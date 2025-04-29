@@ -3,12 +3,8 @@
 import { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import config from '../config';
-import AppError from '../errors/AppError';
-import handleCastError from '../errors/handleCastError';
-import handleDuplicateError from '../errors/handleDuplicateError';
-import handleValidationError from '../errors/handleValidationError';
-import handleZodError from '../errors/handleZodError';
 import { TErrorSources } from '../interface/error';
+import { AppError, error } from '../errors/error';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): any => {
@@ -23,22 +19,22 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): any => {
   ];
 
   if (err instanceof ZodError) {
-    const simplifiedError = handleZodError(err);
+    const simplifiedError = error.handleZodError(err);
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
   } else if (err?.name === 'ValidationError') {
-    const simplifiedError = handleValidationError(err);
+    const simplifiedError = error.handleValidationError(err);
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
   } else if (err?.name === 'CastError') {
-    const simplifiedError = handleCastError(err);
+    const simplifiedError = error.handleCastError(err);
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
   } else if (err?.code === 11000) {
-    const simplifiedError = handleDuplicateError(err);
+    const simplifiedError = error.handleDuplicateError(err);
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;

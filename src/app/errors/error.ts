@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { TErrorSources, TGenericErrorResponse } from '../interface/error';
 import { ZodError, ZodIssue } from 'zod';
 
-class AppError extends Error {
+export class AppError extends Error {
   public statusCode: number;
 
   constructor(statusCode: number, message: string, stack = '') {
@@ -99,7 +99,6 @@ const handleZodError = (err: ZodError): TGenericErrorResponse => {
 };
 
 export const error = {
-  AppError,
   handleCastError,
   handleDuplicateError,
   handleValidationError,
