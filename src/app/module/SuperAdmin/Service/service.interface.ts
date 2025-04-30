@@ -4,4 +4,6 @@ export interface IService {
   respondAt?: string;
   reviewedAt?: string;
   completedAt?: string;
+  isDeleted: boolean;
+  deletedAt: Date;
 }

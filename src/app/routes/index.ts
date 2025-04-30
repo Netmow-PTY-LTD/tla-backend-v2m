@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import superAdminRoute from '../module/super-admin';
+import superAdminRoute from '../module/SuperAdmin';
 
 const router = Router();
 

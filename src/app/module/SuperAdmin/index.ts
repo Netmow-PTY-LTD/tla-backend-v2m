@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import serviceRouter from './service/service.route';
-import countryRouter from './country/country.route';
+
+import { serviceRouter } from './Service/service.route';
+import { countryRouter } from './Country/country.route';
 
 const superAdminRoute = Router();
 

@@ -4,6 +4,7 @@ import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
 import notFound from './app/middlewares/notFound';
 import router from './app/routes';
+import config from './app/config';
 
 const app: Application = express();
 
@@ -11,7 +12,7 @@ const app: Application = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(cors({ origin: ['http://localhost:5173'], credentials: true }));
+app.use(cors({ origin: [`${config.client_url}`], credentials: true }));
 
 // application routes
 app.use('/api/v1', router);
