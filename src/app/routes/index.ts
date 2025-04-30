@@ -1,11 +1,12 @@
 import { Router } from 'express';
+import superAdminRoute from '../module/super-admin';
 
 const router = Router();
 
 const moduleRoutes = [
   {
-    path: '/users',
-    route: function () {},
+    path: '/super-admin',
+    route: superAdminRoute,
   },
 ];
 
