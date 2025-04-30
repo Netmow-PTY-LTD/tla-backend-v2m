@@ -15,15 +15,25 @@ const optionSchema = new Schema<IOption>(
       trim: true,
       unique: true,
     },
-    option_group_obj: {
+    service_ref: {
       type: Schema.Types.ObjectId,
-      ref: 'OptionGroup',
+      ref: 'Service',
       required: true,
     },
-    respondAt: [
+    country_ref: {
+      type: Schema.Types.ObjectId,
+      ref: 'Country',
+      required: true,
+    },
+    step_ref: {
+      type: Schema.Types.ObjectId,
+      ref: 'StepsCountryWiseOptionGroupsMap',
+      required: true,
+    },
+    selected_options: [
       {
-        type: Date,
-        required: true,
+        type: Schema.Types.ObjectId,
+        ref: 'Option',
       },
     ],
   },

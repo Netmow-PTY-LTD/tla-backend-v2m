@@ -4,13 +4,13 @@ import { IStepsCountryWiseOptionGroupsMap } from './stepsCountryWiseOptionGroups
 const stepsCountryWiseOptionGroupsMapSchema =
   new Schema<IStepsCountryWiseOptionGroupsMap>(
     {
-      option_group_ids: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: 'OptionGroup',
-          required: true,
-        },
-      ],
+      option_group_name: {
+        type: String,
+        required: true,
+      },
+      slug: {
+        type: String,
+      },
       service_ref: {
         type: Schema.Types.ObjectId,
         ref: 'Service',
@@ -21,12 +21,12 @@ const stepsCountryWiseOptionGroupsMapSchema =
         ref: 'Country',
         required: true,
       },
+      step_serial: {
+        type: Number,
+        default: 0,
+      },
       respondAt: {
-        type: [Date],
-        validate: {
-          validator: (arr: Date[]) => arr.length === 3,
-          message: 'respondAt must contain exactly 3 dates.',
-        },
+        type: String,
         required: true,
       },
     },
