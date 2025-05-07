@@ -14,6 +14,19 @@ const login = catchAsync(async (req, res) => {
   });
 });
 
+const register = catchAsync(async (req, res) => {
+  const payload = req.body;
+
+  const registerResult = await authService.registerUserIntoDB(payload);
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Register User Successfully',
+    data: registerResult,
+  });
+});
+
 export const authController = {
   login,
+  register,
 };

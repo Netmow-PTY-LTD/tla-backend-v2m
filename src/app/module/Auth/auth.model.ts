@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+import mongoose, { model } from 'mongoose';
+import { IUser, UserModel } from './auth.interface';
 
 const userSchema = new mongoose.Schema(
   {
@@ -18,6 +19,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+    },
+    role: {
+      type: String,
+      required: true,
     },
     password: {
       type: String,
@@ -78,6 +83,13 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-const User = mongoose.model('user', userSchema);
+userSchema.statics.isUserExists = async function (id: string) {
+  return await User.findById(id).select('+password');
+};
+userSchema.statics.isUserExistsByEmail = async function (email: string) {
+  return await User.findOne({ email }).select('+password');
+};
+
+export const User = model<IUser, UserModel>('User', userSchema);
 
 export default User;
