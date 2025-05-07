@@ -2,6 +2,11 @@ import mongoose, { model } from 'mongoose';
 import { IUser, UserModel } from './auth.interface';
 import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
 import config from '../../config';
+import {
+  PHONE_VERIFICATION_STATUS,
+  USER_PROFILE,
+  USER_STATUS,
+} from './auth.constant';
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -31,8 +36,10 @@ const userSchema = new mongoose.Schema(
     },
     activeProfile: {
       type: String,
-      enum: ['basic', 'premium', 'admin'],
-      default: 'basic',
+      enum: Object.values(USER_PROFILE),
+      default: USER_PROFILE.BASIC,
+      // enum: ['basic', 'premium', 'admin'],
+      // default: 'basic',
     },
     country: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,13 +56,17 @@ const userSchema = new mongoose.Schema(
     },
     isPhoneVerified: {
       type: String,
-      enum: ['yes', 'no'],
-      default: 'no',
+      enum: Object.values(PHONE_VERIFICATION_STATUS),
+      default: PHONE_VERIFICATION_STATUS.NO,
+      // enum: ['yes', 'no'],
+      // default: 'no',
     },
     accountStatus: {
       type: String,
-      enum: ['active', 'suspended', 'suspended&spam'],
-      default: 'active',
+      enum: Object.values(USER_STATUS),
+      default: USER_STATUS.ACTIVE,
+      // enum: ['active', 'suspended', 'suspended&spam'],
+      // default: 'active',
     },
     googleId: {
       type: String,

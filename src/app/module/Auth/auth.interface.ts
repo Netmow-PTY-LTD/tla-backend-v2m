@@ -1,4 +1,9 @@
 import { Model, Types } from 'mongoose';
+import {
+  PhoneVerificationStatus,
+  UserProfile,
+  UserStatus,
+} from './auth.constant';
 
 export interface ILoginUser {
   email: string;
@@ -12,13 +17,13 @@ export interface IUser {
   email: string;
   role: string;
   password: string;
-  activeProfile: 'basic' | 'premium' | 'admin';
+  activeProfile: UserProfile;
   country: Types.ObjectId;
   verifyCode?: string;
   verifyToken?: string;
   phoneNo?: string;
-  isPhoneVerified: 'yes' | 'no';
-  accountStatus: 'active' | 'suspended' | 'suspended&spam';
+  isPhoneVerified: PhoneVerificationStatus;
+  accountStatus: UserStatus;
   googleId?: string;
   isVerifiedAccount: boolean;
   resetPasswordToken?: string;

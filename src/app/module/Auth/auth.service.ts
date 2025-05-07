@@ -4,6 +4,7 @@ import { ILoginUser, IUser } from './auth.interface';
 import User from './auth.model';
 import httpStatus from 'http-status';
 import { createToken } from './auth.utils';
+import { USER_STATUS } from './auth.constant';
 
 const loginUserIntoDB = async (payload: ILoginUser) => {
   // checking if the user is exist
@@ -24,15 +25,12 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 
   const userStatus = user?.accountStatus;
 
-  if (userStatus === 'suspended' || userStatus === 'suspended&spam') {
+  if (
+    userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.SUSPENDED_SPAM
+  ) {
     throw new AppError(httpStatus.FORBIDDEN, `This user is ${userStatus} !`);
   }
-
-  //checking if the password is correct
-  console.log({
-    userLoginPassword: payload?.password,
-    userDbPassword: user?.password,
-  });
 
   if (!(await User.isPasswordMatched(payload?.password, user?.password)))
     throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched');
