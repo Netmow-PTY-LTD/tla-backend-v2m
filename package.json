@@ -30,6 +30,7 @@
     "@types/cors": "^2.8.17",
     "@types/eslint__js": "^9.14.0",
     "@types/express": "^5.0.1",
+    "@types/http-status": "^1.1.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.14.1",
     "eslint": "^9.24.0",
