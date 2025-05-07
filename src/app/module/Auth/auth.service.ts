@@ -29,6 +29,10 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   }
 
   //checking if the password is correct
+  console.log({
+    userLoginPassword: payload?.password,
+    userDbPassword: user?.password,
+  });
 
   if (!(await User.isPasswordMatched(payload?.password, user?.password)))
     throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched');
@@ -71,7 +75,31 @@ const registerUserIntoDB = async (payload: IUser) => {
   //create new user
   const newUser = await User.create(payload);
 
-  return newUser;
+  //create token and sent to the  client
+  const jwtPayload = {
+    userId: newUser?._id,
+    name: `${newUser.firstName} ${newUser.lastName}`.trim(),
+    email: newUser?.email,
+    role: newUser?.role,
+    status: newUser?.accountStatus,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    config.jwt_access_expires_in as string,
+  );
+
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret as string,
+    config.jwt_refresh_expires_in as string,
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+  };
 };
 
 export const authService = {
