@@ -6,6 +6,7 @@ export interface ILoginUser {
 }
 
 export interface IUser {
+  _id?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -17,13 +18,13 @@ export interface IUser {
   verifyToken?: string;
   phoneNo?: string;
   isPhoneVerified: 'yes' | 'no';
-  accountStatus: 'active' | 'suspended' | 'banned';
+  accountStatus: 'active' | 'suspended' | 'suspended&spam';
   googleId?: string;
   isVerifiedAccount: boolean;
   resetPasswordToken?: string;
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
-  isDelete: boolean;
+  isDeleted: boolean;
 }
 
 export interface UserModel extends Model<IUser> {
@@ -31,4 +32,11 @@ export interface UserModel extends Model<IUser> {
   isUserExists(id: string): Promise<IUser>;
   // eslint-disable-next-line no-unused-vars
   isUserExistsByEmail(email: string): Promise<IUser>;
+
+  isPasswordMatched(
+    // eslint-disable-next-line no-unused-vars
+    plainTextPassword: string,
+    // eslint-disable-next-line no-unused-vars
+    hashedPassword: string,
+  ): Promise<boolean>;
 }

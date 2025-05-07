@@ -1,6 +1,7 @@
 import mongoose, { model } from 'mongoose';
 import { IUser, UserModel } from './auth.interface';
-
+import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
+import config from '../../config';
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -53,7 +54,7 @@ const userSchema = new mongoose.Schema(
     },
     accountStatus: {
       type: String,
-      enum: ['active', 'suspended', 'banned'],
+      enum: ['active', 'suspended', 'suspended&spam'],
       default: 'active',
     },
     googleId: {
@@ -73,7 +74,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    isDelete: {
+    isDeleted: {
       type: Boolean,
       default: false,
     },
@@ -82,6 +83,32 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Password hashing
+
+userSchema.pre('save', async function (next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = this; // doc
+  // hashing password and save into DB
+  user.password = await bcrypt.hash(
+    user.password,
+    Number(config.bcrypt_salt_rounds),
+  );
+  next();
+});
+
+// set '' after saving password
+userSchema.post('save', function (doc, next) {
+  doc.password = '';
+  next();
+});
+
+userSchema.statics.isPasswordMatched = async function (
+  plainTextPassword,
+  hashedPassword,
+) {
+  return await bcrypt.compare(plainTextPassword, hashedPassword);
+};
 
 userSchema.statics.isUserExists = async function (id: string) {
   return await User.findById(id).select('+password');
