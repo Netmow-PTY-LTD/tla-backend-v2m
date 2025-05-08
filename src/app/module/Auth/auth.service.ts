@@ -5,6 +5,7 @@ import User from './auth.model';
 import httpStatus from 'http-status';
 import { createToken } from './auth.utils';
 import { USER_STATUS } from './auth.constant';
+import { StringValue } from 'ms';
 
 const loginUserIntoDB = async (payload: ILoginUser) => {
   // checking if the user is exist
@@ -47,14 +48,14 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 
   const accessToken = createToken(
     jwtPayload,
-    config.jwt_access_secret as string,
-    config.jwt_access_expires_in as string,
+    config.jwt_access_secret as StringValue,
+    config.jwt_access_expires_in as StringValue,
   );
 
   const refreshToken = createToken(
     jwtPayload,
-    config.jwt_refresh_secret as string,
-    config.jwt_refresh_expires_in as string,
+    config.jwt_refresh_secret as StringValue,
+    config.jwt_refresh_expires_in as StringValue,
   );
 
   return {
@@ -84,14 +85,14 @@ const registerUserIntoDB = async (payload: IUser) => {
 
   const accessToken = createToken(
     jwtPayload,
-    config.jwt_access_secret as string,
-    config.jwt_access_expires_in as string,
+    config.jwt_access_secret as StringValue,
+    config.jwt_access_expires_in as StringValue,
   );
 
   const refreshToken = createToken(
     jwtPayload,
-    config.jwt_refresh_secret as string,
-    config.jwt_refresh_expires_in as string,
+    config.jwt_refresh_secret as StringValue,
+    config.jwt_refresh_expires_in as StringValue,
   );
 
   return {
