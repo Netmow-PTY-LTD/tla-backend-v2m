@@ -58,9 +58,11 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
     config.jwt_refresh_expires_in as StringValue,
   );
 
+  const userData = await User.findOne({ email: payload.email });
   return {
     accessToken,
     refreshToken,
+    userData,
   };
 };
 
