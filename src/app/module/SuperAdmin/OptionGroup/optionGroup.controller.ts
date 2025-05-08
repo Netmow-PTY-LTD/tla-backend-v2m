@@ -1,7 +1,7 @@
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import httpStatus from 'http-status';
 import { optionGroupService } from './optionGroup.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
 
 const createOptionGroup = catchAsync(async (req, res) => {
   const optionGroupData = req.body;
@@ -9,7 +9,7 @@ const createOptionGroup = catchAsync(async (req, res) => {
   const result =
     await optionGroupService.CreateOptionGroupIntoDB(optionGroupData);
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'optionGroup Create successfully',
     data: result,
@@ -22,7 +22,7 @@ const getSingleOptionGroup = catchAsync(async (req, res) => {
     await optionGroupService.getSingleOptionGroupFromDB(optionGroupId);
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'OptionGroup is retrieved successfully',
     data: result,
@@ -35,7 +35,7 @@ const deleteSingleOptionGroup = catchAsync(async (req, res) => {
     await optionGroupService.deleteOptionGroupFromDB(optionGroupId);
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'OptionGroup delete successfully',
     data: result,
@@ -51,7 +51,7 @@ const updateSingleOptionGroup = catchAsync(async (req, res) => {
   );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'OptionGroup delete successfully',
     data: result,
@@ -62,7 +62,7 @@ const getAllOptionGroup = catchAsync(async (req, res) => {
   const result = await optionGroupService.getAllOptionGroupFromDB();
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All OptionGroup is retrieved successfully',
     data: result,

@@ -1,6 +1,7 @@
+import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import httpStatus from 'http-status';
+
 import { optionService } from './option.service';
 
 const createOption = catchAsync(async (req, res) => {
@@ -8,7 +9,7 @@ const createOption = catchAsync(async (req, res) => {
   // const userId = req.user.userId;
   const result = await optionService.CreateOptionIntoDB(optionData);
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'option Create successfully',
     data: result,
@@ -20,7 +21,7 @@ const getSingleOption = catchAsync(async (req, res) => {
   const result = await optionService.getSingleOptionFromDB(optionId);
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Option is retrieved successfully',
     data: result,
@@ -32,7 +33,7 @@ const deleteSingleOption = catchAsync(async (req, res) => {
   const result = await optionService.deleteOptionFromDB(optionId);
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Option delete successfully',
     data: result,
@@ -45,7 +46,7 @@ const updateSingleOption = catchAsync(async (req, res) => {
   const result = await optionService.updateOptionIntoDB(optionId, payload);
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Option delete successfully',
     data: result,
@@ -56,7 +57,7 @@ const getAllOption = catchAsync(async (req, res) => {
   const result = await optionService.getAllOptionFromDB();
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All Option is retrieved successfully',
     data: result,

@@ -1,7 +1,7 @@
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import httpStatus from 'http-status';
 import { stepsCountryWiseOptionGroupsMapGroupService } from './stepsCountryWiseOptionGroupsMap.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
 
 const createStepsCountryWiseOptionGroupsMap = catchAsync(async (req, res) => {
   const stepsCountryWiseOptionGroupsMapData = req.body;
@@ -11,7 +11,7 @@ const createStepsCountryWiseOptionGroupsMap = catchAsync(async (req, res) => {
       stepsCountryWiseOptionGroupsMapData,
     );
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'stepsCountryWiseOptionGroupsMap Create successfully',
     data: result,
@@ -27,7 +27,7 @@ const getSingleStepsCountryWiseOptionGroupsMap = catchAsync(
       );
 
     sendResponse(res, {
-      statusCode: httpStatus.OK,
+      statusCode: HTTP_STATUS.OK,
       success: true,
       message: 'OptionGroup is retrieved successfully',
       data: result,
@@ -44,7 +44,7 @@ const deleteSingleStepsCountryWiseOptionGroupsMap = catchAsync(
       );
 
     sendResponse(res, {
-      statusCode: httpStatus.OK,
+      statusCode: HTTP_STATUS.OK,
       success: true,
       message: 'OptionGroup delete successfully',
       data: result,
@@ -63,7 +63,7 @@ const updateSingleStepsCountryWiseOptionGroupsMap = catchAsync(
       );
 
     sendResponse(res, {
-      statusCode: httpStatus.OK,
+      statusCode: HTTP_STATUS.OK,
       success: true,
       message: 'OptionGroup delete successfully',
       data: result,
@@ -76,7 +76,7 @@ const getAllStepsCountryWiseOptionGroupsMap = catchAsync(async (req, res) => {
     await stepsCountryWiseOptionGroupsMapGroupService.getAllStepsCountryWiseOptionGroupsMapFromDB();
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All OptionGroup is retrieved successfully',
     data: result,

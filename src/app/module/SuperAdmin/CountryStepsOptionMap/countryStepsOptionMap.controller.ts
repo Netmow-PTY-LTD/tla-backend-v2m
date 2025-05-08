@@ -1,6 +1,7 @@
+import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import httpStatus from 'http-status';
+
 import { countryStepsOptionMapService } from './countryStepsOptionMap.service';
 
 const createCountryStepsOptionMap = catchAsync(async (req, res) => {
@@ -11,7 +12,7 @@ const createCountryStepsOptionMap = catchAsync(async (req, res) => {
       countryStepsCountryStepsOptionMapMapData,
     );
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'countryStepsCountryStepsOptionMapMap Create successfully',
     data: result,
@@ -26,7 +27,7 @@ const getSingleCountryStepsOptionMap = catchAsync(async (req, res) => {
     );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'CountryStepsOptionMap is retrieved successfully',
     data: result,
@@ -41,7 +42,7 @@ const deleteSingleCountryStepsOptionMap = catchAsync(async (req, res) => {
     );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'CountryStepsOptionMap delete successfully',
     data: result,
@@ -58,7 +59,7 @@ const updateSingleCountryStepsOptionMap = catchAsync(async (req, res) => {
     );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'CountryStepsOptionMap delete successfully',
     data: result,
@@ -70,7 +71,7 @@ const getAllCountryStepsOptionMap = catchAsync(async (req, res) => {
     await countryStepsOptionMapService.getAllCountryStepsOptionMapFromDB();
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All CountryStepsOptionMap is retrieved successfully',
     data: result,

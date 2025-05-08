@@ -1,7 +1,7 @@
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import httpStatus from 'http-status';
 import { countryWiseServiceMapService } from './countryWiseServiceMap.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
 
 const createCountryWiseServiceMap = catchAsync(async (req, res) => {
   const countryWiseServiceMapData = req.body;
@@ -11,7 +11,7 @@ const createCountryWiseServiceMap = catchAsync(async (req, res) => {
       countryWiseServiceMapData,
     );
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'countryWiseServiceMap Create successfully',
     data: result,
@@ -26,7 +26,7 @@ const getSingleCountryWiseServiceMap = catchAsync(async (req, res) => {
     );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'CountryWiseServiceMap is retrieved successfully',
     data: result,
@@ -41,7 +41,7 @@ const deleteSingleCountryWiseServiceMap = catchAsync(async (req, res) => {
     );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'CountryWiseServiceMap delete successfully',
     data: result,
@@ -58,7 +58,7 @@ const updateSingleCountryWiseServiceMap = catchAsync(async (req, res) => {
     );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'CountryWiseServiceMap delete successfully',
     data: result,
@@ -70,7 +70,7 @@ const getAllCountryWiseServiceMap = catchAsync(async (req, res) => {
     await countryWiseServiceMapService.getAllCountryWiseServiceMapFromDB();
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All CountryWiseServiceMap is retrieved successfully',
     data: result,

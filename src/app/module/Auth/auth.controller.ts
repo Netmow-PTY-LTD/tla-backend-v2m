@@ -1,13 +1,13 @@
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import httpStatus from 'http-status';
 import { authService } from './auth.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
 const login = catchAsync(async (req, res) => {
   const payload = req.body;
 
   const loginResult = await authService.loginUserIntoDB(payload);
   return sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'login User Successfully',
     data: loginResult,
@@ -19,7 +19,7 @@ const register = catchAsync(async (req, res) => {
 
   const registerResult = await authService.registerUserIntoDB(payload);
   return sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Register User Successfully',
     data: registerResult,
