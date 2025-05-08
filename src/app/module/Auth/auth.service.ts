@@ -2,7 +2,7 @@ import config from '../../config';
 import { AppError } from '../../errors/error';
 import { ILoginUser, IUser } from './auth.interface';
 import User from './auth.model';
-import { createToken } from './auth.utils';
+import { createToken, verifyToken } from './auth.utils';
 import { USER_STATUS } from './auth.constant';
 import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../constant/httpStatus';
@@ -96,14 +96,52 @@ const registerUserIntoDB = async (payload: IUser) => {
     config.jwt_refresh_secret as StringValue,
     config.jwt_refresh_expires_in as StringValue,
   );
+  const userData = await User.findOne({ email: payload.email });
 
   return {
     accessToken,
     refreshToken,
+    userData,
+  };
+};
+
+const refreshToken = async (token: string) => {
+  // checking if the given token is valid
+
+  let decoded;
+  try {
+    decoded = verifyToken(token, config.jwt_refresh_secret as StringValue);
+  } catch (err) {
+    throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'Invalid Refresh Token');
+  }
+
+  const { email } = decoded;
+
+  // checking if the user is exist
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
+  }
+
+  const jwtPayload = {
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as StringValue,
+    config.jwt_access_expires_in as StringValue,
+  );
+
+  return {
+    accessToken,
   };
 };
 
 export const authService = {
   loginUserIntoDB,
   registerUserIntoDB,
+  refreshToken,
 };

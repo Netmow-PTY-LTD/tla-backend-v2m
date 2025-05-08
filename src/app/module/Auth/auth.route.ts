@@ -6,7 +6,7 @@ const router = Router();
 
 router.post(
   '/login',
-  // validateRequest(),
+  validateRequest(authZodValidation.loginValidationSchema),
   authController.login,
 );
 
@@ -14,6 +14,12 @@ router.post(
   '/register',
   validateRequest(authZodValidation.userZodValidationSchema),
   authController.register,
+);
+
+router.post(
+  '/refresh-token',
+  validateRequest(authZodValidation.refreshTokenValidationSchema),
+  authController.refreshToken,
 );
 
 export const AuthRouter = router;
