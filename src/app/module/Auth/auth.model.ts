@@ -60,15 +60,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(PHONE_VERIFICATION_STATUS),
       default: PHONE_VERIFICATION_STATUS.NO,
-      // enum: ['yes', 'no'],
-      // default: 'no',
     },
     accountStatus: {
       type: String,
       enum: Object.values(USER_STATUS),
       default: USER_STATUS.ACTIVE,
-      // enum: ['active', 'suspended', 'suspended&spam'],
-      // default: 'active',
     },
     googleId: {
       type: String,
