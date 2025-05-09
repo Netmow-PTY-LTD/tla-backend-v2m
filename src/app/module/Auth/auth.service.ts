@@ -8,6 +8,7 @@ import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import { JwtPayload } from 'jsonwebtoken';
+
 const loginUserIntoDB = async (payload: ILoginUser) => {
   // checking if the user is exist
   const user = await User.isUserExistsByEmail(payload?.email);
@@ -112,6 +113,7 @@ const refreshToken = async (token: string) => {
   let decoded;
   try {
     decoded = verifyToken(token, config.jwt_refresh_secret as StringValue);
+    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   } catch (err) {
     throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'Invalid Refresh Token');
   }

@@ -8,7 +8,7 @@ import { countryStepsOptionMapRouter } from './CountryStepsOptionMap/countryStep
 import { OptionGroupRouter } from './OptionGroup/optionGroup.route';
 import { OptionRouter } from './Option/option.route';
 
-const superAdminRoute = Router();
+const adminRoute = Router();
 
 const moduleRoutes = [
   {
@@ -41,5 +41,5 @@ const moduleRoutes = [
   },
 ];
 
-moduleRoutes.forEach((route) => superAdminRoute.use(route.path, route.route));
-export default superAdminRoute;
+moduleRoutes.forEach((route) => adminRoute.use(route.path, route.route));
+export default adminRoute;

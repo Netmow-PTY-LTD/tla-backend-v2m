@@ -1,18 +1,20 @@
 import { Router } from 'express';
-import superAdminRoute from '../module/SuperAdmin';
+
 import { publicRouter } from '../module/Public';
-import { AuthRouter } from '../module/Auth/auth.route';
+
+import adminRoute from '../module/admin';
+import { authRouter } from '../module/Auth/auth.route';
 
 const router = Router();
 
 const moduleRoutes = [
   {
-    path: '/super-admin',
-    route: superAdminRoute,
+    path: '/admin',
+    route: adminRoute,
   },
   {
     path: '/auth',
-    route: AuthRouter,
+    route: authRouter,
   },
   {
     path: '/public',
