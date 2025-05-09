@@ -7,6 +7,7 @@ import {
   USER_PROFILE,
   USER_STATUS,
 } from './auth.constant';
+import { USER_ROLE } from '../../constant';
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -29,7 +30,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ['admin', 'seller', 'buyer'],
+      enum: Object.values(USER_ROLE),
     },
     password: {
       type: String,
@@ -59,15 +60,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(PHONE_VERIFICATION_STATUS),
       default: PHONE_VERIFICATION_STATUS.NO,
-      // enum: ['yes', 'no'],
-      // default: 'no',
     },
     accountStatus: {
       type: String,
       enum: Object.values(USER_STATUS),
       default: USER_STATUS.ACTIVE,
-      // enum: ['active', 'suspended', 'suspended&spam'],
-      // default: 'active',
     },
     googleId: {
       type: String,
