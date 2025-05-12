@@ -2,8 +2,11 @@ import nodemailer from 'nodemailer';
 import config from './index';
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.mailgun.org',
+  // host: 'smtp.mailgun.org',
+  host: 'smtp.gmail.com',
   port: 587,
+  // secure: config.NODE_ENV === 'production',
+  secure: false,
   auth: {
     user: config.mailgun_smtp_user,
     pass: config.mailgun_smtp_password,
