@@ -9,5 +9,6 @@ router.patch(
   validateRequest(authZodValidation.userUpdateZodValidationSchema),
   userProfileController.updateProfile,
 );
+router.get('/:userId', userProfileController.getSingleUserProfileData);
 
 export const UserProfileRouter = router;

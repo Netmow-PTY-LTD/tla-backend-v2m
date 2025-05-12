@@ -17,6 +17,21 @@ const updateProfile = catchAsync(async (req, res) => {
   });
 });
 
+const getSingleUserProfileData = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+
+  const result =
+    await UserProfileService.getSingleUserProfileDataIntoDB(userId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Get Single User Basic Info Successfully',
+    data: result,
+  });
+});
+
 export const userProfileController = {
   updateProfile,
+  getSingleUserProfileData,
 };
