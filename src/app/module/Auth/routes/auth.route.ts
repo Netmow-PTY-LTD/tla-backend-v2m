@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { authController } from '../controllers/auth.controller';
 import { authZodValidation } from '../validation/auth.validation';
 import validateRequest from '../../../middlewares/validateRequest';
+import auth from '../../../middlewares/auth';
+import { USER_ROLE } from '../../../constant';
 const router = Router();
 
 router.post(
@@ -23,6 +25,7 @@ router.post(
 );
 router.post(
   '/change-password',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   validateRequest(authZodValidation.changePasswordValidationSchema),
   authController.changePassword,
 );
