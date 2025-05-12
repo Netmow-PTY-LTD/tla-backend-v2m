@@ -13,7 +13,7 @@ const updateProfileIntoDB = async (
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
   }
 
-  const updatedProfile = await UserProfile.findByIdAndUpdate(
+  const updatedProfile = await UserProfile.findOneAndUpdate(
     { user: id },
     payload,
     {

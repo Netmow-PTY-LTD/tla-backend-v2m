@@ -10,12 +10,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       required: true,
       unique: true, // 1:1 relationship
     },
-    firstName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    lastName: {
+    name: {
       type: String,
       required: true,
       trim: true,

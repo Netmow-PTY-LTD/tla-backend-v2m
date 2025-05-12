@@ -1,6 +1,7 @@
 import { Model } from 'mongoose';
 import { PhoneVerificationStatus, UserStatus } from './auth.constant';
 import { UserRole } from '../../constant';
+import { IUserProfile } from '../User/user.interface';
 
 export interface ILoginUser {
   email: string;
@@ -9,6 +10,7 @@ export interface ILoginUser {
 
 export interface IUser {
   _id?: string;
+  username: string;
   email: string;
   role: UserRole;
   password: string;
@@ -23,6 +25,7 @@ export interface IUser {
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
   isDeleted: boolean;
+  profile: IUserProfile;
 }
 
 export interface UserModel extends Model<IUser> {

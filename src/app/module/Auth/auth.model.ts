@@ -6,6 +6,12 @@ import { PHONE_VERIFICATION_STATUS, USER_STATUS } from './auth.constant';
 import { USER_ROLE } from '../../constant';
 const userSchema = new mongoose.Schema(
   {
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
@@ -17,6 +23,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: Object.values(USER_ROLE),
+      default: USER_ROLE.USER,
     },
     password: {
       type: String,

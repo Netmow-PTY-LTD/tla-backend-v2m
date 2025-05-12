@@ -3,8 +3,7 @@ import { UserProfile } from './user.constant';
 
 export interface IUserProfile {
   user: Types.ObjectId;
-  firstName: string;
-  lastName: string;
+  name: string;
   activeProfile: UserProfile;
   country?: Types.ObjectId;
 }

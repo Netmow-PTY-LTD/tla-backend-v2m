@@ -8,6 +8,8 @@ import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import { JwtPayload } from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import UserProfile from '../User/user.model';
 
 const loginUserIntoDB = async (payload: ILoginUser) => {
   // checking if the user is exist
@@ -68,41 +70,65 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 };
 
 const registerUserIntoDB = async (payload: IUser) => {
-  // checking if the user is exist
-  const user = await User.isUserExistsByEmail(payload?.email);
-  if (user) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is already exist!');
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Check if user already exists
+    const existingUser = await User.isUserExistsByEmail(payload.email);
+    if (existingUser) {
+      throw new AppError(HTTP_STATUS.BAD_REQUEST, 'This user already exists!');
+    }
+
+    // Separate the profile part from user payload
+    const { profile, ...userData } = payload;
+
+    // Create the user
+    const [newUser] = await User.create([userData], { session });
+
+    // Prepare profile data with userId reference
+    const profileData = {
+      ...profile,
+      user: newUser._id,
+    };
+
+    // Create user profile
+    await UserProfile.create([profileData], { session });
+
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Generate tokens
+    const jwtPayload = {
+      userId: newUser._id,
+      email: newUser.email,
+      role: newUser.role,
+      status: newUser.accountStatus,
+    };
+
+    const accessToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as StringValue,
+      config.jwt_access_expires_in as StringValue,
+    );
+
+    const refreshToken = createToken(
+      jwtPayload,
+      config.jwt_refresh_secret as StringValue,
+      config.jwt_refresh_expires_in as StringValue,
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      userData: newUser,
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  //create new user
-  const newUser = await User.create(payload);
-
-  //create token and sent to the  client
-  const jwtPayload = {
-    userId: newUser?._id,
-    email: newUser?.email,
-    role: newUser?.role,
-    status: newUser?.accountStatus,
-  };
-
-  const accessToken = createToken(
-    jwtPayload,
-    config.jwt_access_secret as StringValue,
-    config.jwt_access_expires_in as StringValue,
-  );
-
-  const refreshToken = createToken(
-    jwtPayload,
-    config.jwt_refresh_secret as StringValue,
-    config.jwt_refresh_expires_in as StringValue,
-  );
-  const userData = await User.findOne({ email: payload.email });
-
-  return {
-    accessToken,
-    refreshToken,
-    userData,
-  };
 };
 
 const refreshToken = async (token: string) => {
