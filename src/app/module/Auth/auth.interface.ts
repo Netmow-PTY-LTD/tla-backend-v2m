@@ -1,9 +1,6 @@
-import { Model, Types } from 'mongoose';
-import {
-  PhoneVerificationStatus,
-  UserProfile,
-  UserStatus,
-} from './auth.constant';
+import { Model } from 'mongoose';
+import { PhoneVerificationStatus, UserStatus } from './auth.constant';
+import { UserRole } from '../../constant';
 
 export interface ILoginUser {
   email: string;
@@ -12,13 +9,9 @@ export interface ILoginUser {
 
 export interface IUser {
   _id?: string;
-  firstName: string;
-  lastName: string;
   email: string;
-  role: string;
+  role: UserRole;
   password: string;
-  activeProfile: UserProfile;
-  country: Types.ObjectId;
   verifyCode?: string;
   verifyToken?: string;
   phoneNo?: string;

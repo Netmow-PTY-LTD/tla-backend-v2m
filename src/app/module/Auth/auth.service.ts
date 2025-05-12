@@ -42,7 +42,6 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 
   const jwtPayload = {
     userId: user?._id,
-    name: `${user.firstName} ${user.lastName}`.trim(),
     email: user?.email,
     role: user?.role,
     status: user?.accountStatus,
@@ -81,7 +80,6 @@ const registerUserIntoDB = async (payload: IUser) => {
   //create token and sent to the  client
   const jwtPayload = {
     userId: newUser?._id,
-    name: `${newUser.firstName} ${newUser.lastName}`.trim(),
     email: newUser?.email,
     role: newUser?.role,
     status: newUser?.accountStatus,

@@ -2,24 +2,10 @@ import mongoose, { model } from 'mongoose';
 import { IUser, UserModel } from './auth.interface';
 import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
 import config from '../../config';
-import {
-  PHONE_VERIFICATION_STATUS,
-  USER_PROFILE,
-  USER_STATUS,
-} from './auth.constant';
+import { PHONE_VERIFICATION_STATUS, USER_STATUS } from './auth.constant';
 import { USER_ROLE } from '../../constant';
 const userSchema = new mongoose.Schema(
   {
-    firstName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    lastName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     email: {
       type: String,
       required: true,
@@ -36,16 +22,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    activeProfile: {
+    isPhoneVerified: {
       type: String,
-      enum: Object.values(USER_PROFILE),
-      default: USER_PROFILE.BASIC,
-      // enum: ['basic', 'premium', 'admin'],
-      // default: 'basic',
+      enum: Object.values(PHONE_VERIFICATION_STATUS),
+      default: PHONE_VERIFICATION_STATUS.NO,
     },
-    country: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Country',
+    phoneNo: {
+      type: String,
     },
     verifyCode: {
       type: String,
@@ -53,31 +36,23 @@ const userSchema = new mongoose.Schema(
     verifyToken: {
       type: String,
     },
-    phoneNo: {
-      type: String,
-    },
-    isPhoneVerified: {
-      type: String,
-      enum: Object.values(PHONE_VERIFICATION_STATUS),
-      default: PHONE_VERIFICATION_STATUS.NO,
-    },
-    accountStatus: {
-      type: String,
-      enum: Object.values(USER_STATUS),
-      default: USER_STATUS.ACTIVE,
-    },
-    googleId: {
-      type: String,
-    },
     isVerifiedAccount: {
       type: Boolean,
       default: false,
+    },
+    googleId: {
+      type: String,
     },
     resetPasswordToken: {
       type: String,
     },
     resetPasswordExpires: {
       type: String,
+    },
+    accountStatus: {
+      type: String,
+      enum: Object.values(USER_STATUS),
+      default: USER_STATUS.ACTIVE,
     },
     deletedAt: {
       type: Date,
