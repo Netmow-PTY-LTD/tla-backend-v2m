@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { userProfileController } from './user.controller';
-import { authZodValidation } from './user.validation';
-import validateRequest from '../../middlewares/validateRequest';
+import { userProfileController } from '../controllers/user.controller';
+import { authZodValidation } from '../validations/user.validation';
+import validateRequest from '../../../middlewares/validateRequest';
 const router = Router();
 
 router.patch(

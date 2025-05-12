@@ -1,6 +1,6 @@
 import mongoose, { Schema, model } from 'mongoose';
-import { USER_PROFILE } from './user.constant';
-import { IUserProfile } from './user.interface';
+import { USER_PROFILE } from '../constants/user.constant';
+import { IUserProfile } from '../interfaces/user.interface';
 
 const userProfileSchema = new Schema<IUserProfile>(
   {

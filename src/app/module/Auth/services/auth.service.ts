@@ -1,15 +1,15 @@
-import config from '../../config';
-import { AppError } from '../../errors/error';
-import { ILoginUser, IUser } from './auth.interface';
-import User from './auth.model';
-import { createToken, verifyToken } from './auth.utils';
-import { USER_STATUS } from './auth.constant';
+import config from '../../../config';
+import { AppError } from '../../../errors/error';
+import { ILoginUser, IUser } from '../interfaces/auth.interface';
+import User from '../models/auth.model';
+import { createToken, verifyToken } from '../utils/auth.utils';
+import { USER_STATUS } from '../constant/auth.constant';
 import { StringValue } from 'ms';
-import { HTTP_STATUS } from '../../constant/httpStatus';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
-import UserProfile from '../User/user.model';
+import UserProfile from '../../User/models/user.model';
 
 const loginUserIntoDB = async (payload: ILoginUser) => {
   // checking if the user is exist

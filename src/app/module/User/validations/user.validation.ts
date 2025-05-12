@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { USER_PROFILE } from './user.constant';
+import { USER_PROFILE } from '../constants/user.constant';
 
 // Zod enum from USER_PROFILE values
 const userProfileEnum = z.enum([

@@ -1,8 +1,8 @@
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import { AppError } from '../../errors/error';
-import User from '../Auth/auth.model';
-import { IUserProfile } from './user.interface';
-import UserProfile from './user.model';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { AppError } from '../../../errors/error';
+import User from '../../Auth/models/auth.model';
+import { IUserProfile } from '../interfaces/user.interface';
+import UserProfile from '../models/user.model';
 
 const updateProfileIntoDB = async (
   id: string,

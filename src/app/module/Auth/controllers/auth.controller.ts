@@ -1,8 +1,8 @@
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
-import { authService } from './auth.service';
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import config from '../../config';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { authService } from '../services/auth.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import config from '../../../config';
 const login = catchAsync(async (req, res) => {
   const payload = req.body;
 

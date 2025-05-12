@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
-import { PhoneVerificationStatus, UserStatus } from './auth.constant';
-import { UserRole } from '../../constant';
-import { IUserProfile } from '../User/user.interface';
+import { PhoneVerificationStatus, UserStatus } from '../constant/auth.constant';
+import { UserRole } from '../../../constant';
+import { IUserProfile } from '../../User/interfaces/user.interface';
 
 export interface ILoginUser {
   email: string;

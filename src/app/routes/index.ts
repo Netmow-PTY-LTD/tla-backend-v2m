@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
 import adminRoute from '../module/Admin';
-import { authRouter } from '../module/Auth/auth.route';
-import { UserProfileRouter } from '../module/User/user.route';
+import { authRouter } from '../module/Auth/routes/auth.route';
+import { UserProfileRouter } from '../module/User/routes/user.route';
 
 const router = Router();
 

@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { UserProfile } from './user.constant';
+import { UserProfile } from '../constants/user.constant';
 
 export interface IUserProfile {
   user: Types.ObjectId;

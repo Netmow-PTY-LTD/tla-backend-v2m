@@ -1,8 +1,8 @@
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
 
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import { UserProfileService } from './user.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { UserProfileService } from '../services/user.service';
 const updateProfile = catchAsync(async (req, res) => {
   const userId = req.params.userId;
   const payload = req.body;
