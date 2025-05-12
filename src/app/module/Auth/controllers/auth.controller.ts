@@ -1,8 +1,8 @@
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
-import { authService } from './auth.service';
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import config from '../../config';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { authService } from '../services/auth.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import config from '../../../config';
 const login = catchAsync(async (req, res) => {
   const payload = req.body;
 
@@ -17,7 +17,7 @@ const login = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'login User Successfully',
+    message: 'User logged in Successfully',
     token: accessToken,
     data: userData,
   });
@@ -54,8 +54,22 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
+const changePassword = catchAsync(async (req, res) => {
+  const user = req.user;
+  const { ...passwordData } = req.body;
+
+  const result = await authService.changePasswordIntoDB(user, passwordData);
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Password is change successfully!',
+    data: result,
+  });
+});
+
 export const authController = {
   login,
   register,
   refreshToken,
+  changePassword,
 };

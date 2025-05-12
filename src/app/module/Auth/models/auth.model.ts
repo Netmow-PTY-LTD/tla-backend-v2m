@@ -1,22 +1,18 @@
 import mongoose, { model } from 'mongoose';
-import { IUser, UserModel } from './auth.interface';
+import { IUser, UserModel } from '../interfaces/auth.interface';
 import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
-import config from '../../config';
+import config from '../../../config';
 import {
   PHONE_VERIFICATION_STATUS,
-  USER_PROFILE,
   USER_STATUS,
-} from './auth.constant';
+} from '../constant/auth.constant';
+import { USER_ROLE } from '../../../constant';
 const userSchema = new mongoose.Schema(
   {
-    firstName: {
+    username: {
       type: String,
       required: true,
-      trim: true,
-    },
-    lastName: {
-      type: String,
-      required: true,
+      unique: true,
       trim: true,
     },
     email: {
@@ -29,22 +25,35 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ['admin', 'seller', 'buyer'],
+      enum: Object.values(USER_ROLE),
+      default: USER_ROLE.USER,
+    },
+    regUserType: {
+      type: String,
+      required: true,
+      enum: ['seller', 'buyer'],
+    },
+    regType: {
+      type: String,
     },
     password: {
       type: String,
       required: true,
     },
-    activeProfile: {
-      type: String,
-      enum: Object.values(USER_PROFILE),
-      default: USER_PROFILE.BASIC,
-      // enum: ['basic', 'premium', 'admin'],
-      // default: 'basic',
+    needsPasswordChange: {
+      type: Boolean,
+      default: true,
     },
-    country: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Country',
+    passwordChangedAt: {
+      type: Date,
+    },
+    isPhoneVerified: {
+      type: String,
+      enum: Object.values(PHONE_VERIFICATION_STATUS),
+      default: PHONE_VERIFICATION_STATUS.NO,
+    },
+    phoneNo: {
+      type: String,
     },
     verifyCode: {
       type: String,
@@ -52,35 +61,23 @@ const userSchema = new mongoose.Schema(
     verifyToken: {
       type: String,
     },
-    phoneNo: {
-      type: String,
-    },
-    isPhoneVerified: {
-      type: String,
-      enum: Object.values(PHONE_VERIFICATION_STATUS),
-      default: PHONE_VERIFICATION_STATUS.NO,
-      // enum: ['yes', 'no'],
-      // default: 'no',
-    },
-    accountStatus: {
-      type: String,
-      enum: Object.values(USER_STATUS),
-      default: USER_STATUS.ACTIVE,
-      // enum: ['active', 'suspended', 'suspended&spam'],
-      // default: 'active',
-    },
-    googleId: {
-      type: String,
-    },
     isVerifiedAccount: {
       type: Boolean,
       default: false,
+    },
+    googleId: {
+      type: String,
     },
     resetPasswordToken: {
       type: String,
     },
     resetPasswordExpires: {
       type: String,
+    },
+    accountStatus: {
+      type: String,
+      enum: Object.values(USER_STATUS),
+      default: USER_STATUS.ACTIVE,
     },
     deletedAt: {
       type: Date,
@@ -127,6 +124,15 @@ userSchema.statics.isUserExists = async function (id: string) {
 };
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
   return await User.findOne({ email }).select('+password');
+};
+
+userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
+  passwordChangedTimestamp: Date,
+  jwtIssuedTimestamp: number,
+) {
+  const passwordChangedTime =
+    new Date(passwordChangedTimestamp).getTime() / 1000;
+  return passwordChangedTime > jwtIssuedTimestamp;
 };
 
 export const User = model<IUser, UserModel>('User', userSchema);
