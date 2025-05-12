@@ -28,9 +28,24 @@ const userSchema = new mongoose.Schema(
       enum: Object.values(USER_ROLE),
       default: USER_ROLE.USER,
     },
+    regUserType: {
+      type: String,
+      required: true,
+      enum: ['seller', 'buyer'],
+    },
+    regType: {
+      type: String,
+    },
     password: {
       type: String,
       required: true,
+    },
+    needsPasswordChange: {
+      type: Boolean,
+      default: true,
+    },
+    passwordChangedAt: {
+      type: Date,
     },
     isPhoneVerified: {
       type: String,
@@ -109,6 +124,15 @@ userSchema.statics.isUserExists = async function (id: string) {
 };
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
   return await User.findOne({ email }).select('+password');
+};
+
+userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
+  passwordChangedTimestamp: Date,
+  jwtIssuedTimestamp: number,
+) {
+  const passwordChangedTime =
+    new Date(passwordChangedTimestamp).getTime() / 1000;
+  return passwordChangedTime > jwtIssuedTimestamp;
 };
 
 export const User = model<IUser, UserModel>('User', userSchema);

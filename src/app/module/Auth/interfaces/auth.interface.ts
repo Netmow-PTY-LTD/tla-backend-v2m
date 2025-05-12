@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { Model } from 'mongoose';
 import { PhoneVerificationStatus, UserStatus } from '../constant/auth.constant';
-import { UserRole } from '../../../constant';
+import { TUserRole } from '../../../constant';
 import { IUserProfile } from '../../User/interfaces/user.interface';
 
 export interface ILoginUser {
@@ -12,8 +13,12 @@ export interface IUser {
   _id?: string;
   username: string;
   email: string;
-  role: UserRole;
+  role: TUserRole;
   password: string;
+  regUserType: string;
+  regType?: string;
+  needsPasswordChange: boolean;
+  passwordChangedAt?: Date;
   verifyCode?: string;
   verifyToken?: string;
   phoneNo?: string;
@@ -29,15 +34,17 @@ export interface IUser {
 }
 
 export interface UserModel extends Model<IUser> {
-  // eslint-disable-next-line no-unused-vars
   isUserExists(id: string): Promise<IUser>;
-  // eslint-disable-next-line no-unused-vars
+
   isUserExistsByEmail(email: string): Promise<IUser>;
 
   isPasswordMatched(
-    // eslint-disable-next-line no-unused-vars
     plainTextPassword: string,
-    // eslint-disable-next-line no-unused-vars
     hashedPassword: string,
   ): Promise<boolean>;
+
+  isJWTIssuedBeforePasswordChanged(
+    passwordChangedTimestamp: Date,
+    jwtIssuedTimestamp: number,
+  ): boolean;
 }
