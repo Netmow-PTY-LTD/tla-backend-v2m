@@ -4,22 +4,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const SuperAdmin_1 = __importDefault(require("../module/SuperAdmin"));
-const Public_1 = require("../module/Public");
-const auth_route_1 = require("../module/Auth/auth.route");
+const Admin_1 = __importDefault(require("../module/Admin"));
+const auth_route_1 = require("../module/Auth/routes/auth.route");
+const user_route_1 = require("../module/User/routes/user.route");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
-        path: '/super-admin',
-        route: SuperAdmin_1.default,
+        path: '/admin',
+        route: Admin_1.default,
     },
     {
         path: '/auth',
-        route: auth_route_1.AuthRouter,
+        route: auth_route_1.authRouter,
     },
     {
-        path: '/public',
-        route: Public_1.publicRouter,
+        path: '/user',
+        route: user_route_1.UserProfileRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

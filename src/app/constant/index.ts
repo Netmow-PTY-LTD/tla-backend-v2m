@@ -5,4 +5,4 @@ export const USER_ROLE = {
   // BUYER: 'buyer',
 } as const;
 
-export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE];
+export type TUserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE];
