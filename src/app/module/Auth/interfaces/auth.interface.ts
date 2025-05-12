@@ -15,6 +15,8 @@ export interface IUser {
   email: string;
   role: TUserRole;
   password: string;
+  regUserType: string;
+  regType?: string;
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
   verifyCode?: string;

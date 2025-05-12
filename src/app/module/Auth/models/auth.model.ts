@@ -28,6 +28,14 @@ const userSchema = new mongoose.Schema(
       enum: Object.values(USER_ROLE),
       default: USER_ROLE.USER,
     },
+    regUserType: {
+      type: String,
+      required: true,
+      enum: ['seller', 'buyer'],
+    },
+    regType: {
+      type: String,
+    },
     password: {
       type: String,
       required: true,
