@@ -7,7 +7,7 @@ import { USER_STATUS } from '../constant/auth.constant';
 import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
-import { JwtPayload } from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
@@ -285,10 +285,65 @@ const forgetPassword = async (userEmail: string) => {
   });
 };
 
+const resetPassword = async (
+  payload: { email: string; newPassword: string },
+  token: string,
+) => {
+  // checking if the user is exist
+  const user = await User.isUserExistsByEmail(payload?.email);
+
+  if (!user) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
+  }
+  // checking if the user is already deleted
+  const isDeleted = user?.isDeleted;
+
+  if (isDeleted) {
+    throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
+  }
+
+  // checking if the user is blocked
+  const userStatus = user?.accountStatus;
+  if (
+    userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.SUSPENDED_SPAM
+  ) {
+    throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
+  }
+
+  const decoded = jwt.verify(
+    token,
+    config.jwt_access_secret as string,
+  ) as JwtPayload;
+
+  if (payload.email !== decoded.email) {
+    throw new AppError(HTTP_STATUS.FORBIDDEN, 'You are forbidden!');
+  }
+
+  //hash new password
+  const newHashedPassword = await bcrypt.hash(
+    payload.newPassword,
+    Number(config.bcrypt_salt_rounds),
+  );
+
+  await User.findOneAndUpdate(
+    {
+      email: decoded.email,
+      role: decoded.role,
+    },
+    {
+      password: newHashedPassword,
+      needsPasswordChange: false,
+      passwordChangedAt: new Date(),
+    },
+  );
+};
+
 export const authService = {
   loginUserIntoDB,
   registerUserIntoDB,
   refreshToken,
   changePasswordIntoDB,
   forgetPassword,
+  resetPassword,
 };
