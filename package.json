@@ -24,6 +24,7 @@
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
+    "yarn": "^1.22.22",
     "zod": "^3.24.2"
   },
   "devDependencies": {
