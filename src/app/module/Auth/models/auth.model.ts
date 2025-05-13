@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      select: false,
     },
     needsPasswordChange: {
       type: Boolean,
@@ -91,6 +92,18 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
+    toObject: {
+      transform(doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
   },
 );
 
@@ -108,10 +121,10 @@ userSchema.pre('save', async function (next) {
 });
 
 // set '' after saving password
-userSchema.post('save', function (doc, next) {
-  doc.password = '';
-  next();
-});
+// userSchema.post('save', function (doc, next) {
+//   doc.password = '';
+//   next();
+// });
 
 userSchema.statics.isPasswordMatched = async function (
   plainTextPassword,
