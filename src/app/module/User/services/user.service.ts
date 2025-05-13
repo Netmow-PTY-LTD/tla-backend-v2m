@@ -38,7 +38,7 @@ const getSingleUserProfileDataIntoDB = async (id: string) => {
     .select('name activeProfile country') // fields from UserProfile
     .populate({
       path: 'user',
-      select: 'username email role accountStatus', // fields from User
+      select: 'username email role accountStatus regUserType  ', // fields from User
     });
 
   if (!userProfileInfo) {
