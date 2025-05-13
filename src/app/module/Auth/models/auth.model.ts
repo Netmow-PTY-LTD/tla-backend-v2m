@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     regUserType: {
       type: String,
       required: true,
-      enum: ['seller', 'buyer'],
+      enum: ['seller', 'buyer', 'admin'],
     },
     regType: {
       type: String,
