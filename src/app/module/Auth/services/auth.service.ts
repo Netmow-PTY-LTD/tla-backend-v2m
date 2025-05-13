@@ -95,7 +95,10 @@ const registerUserIntoDB = async (payload: IUser) => {
     };
 
     // Create user profile
-    await UserProfile.create([profileData], { session });
+    const [newProfile] = await UserProfile.create([profileData], { session });
+
+    newUser.profile = newProfile._id;
+    await newUser.save({ session });
 
     // Commit transaction
     await session.commitTransaction();

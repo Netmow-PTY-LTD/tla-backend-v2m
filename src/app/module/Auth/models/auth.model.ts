@@ -87,6 +87,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    profile: { type: mongoose.Schema.Types.ObjectId, ref: 'UserProfile' }, // Reference to profile
   },
   {
     timestamps: true,
