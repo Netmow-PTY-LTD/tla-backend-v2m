@@ -18,7 +18,7 @@ router.post(
   authController.register,
 );
 
-router.post(
+router.get(
   '/refresh-token',
   validateRequest(authZodValidation.refreshTokenValidationSchema),
   authController.refreshToken,
@@ -32,7 +32,7 @@ router.post(
 router.post(
   '/forgot-password',
   validateRequest(authZodValidation.forgetPasswordValidationSchema),
-  authController.changePassword,
+  authController.forgetPassword,
 );
 
 router.post(
