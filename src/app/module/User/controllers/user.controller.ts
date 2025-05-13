@@ -57,7 +57,7 @@ const getAllUserProfile = catchAsync(async (req, res) => {
 
 const deleteSingleUserProfile = catchAsync(async (req, res) => {
   const userId = req.params.userId;
-  const result = await UserProfileService.deleteSingleUserIntoDB(userId);
+  const result = await UserProfileService.softDeleteUserIntoDB(userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

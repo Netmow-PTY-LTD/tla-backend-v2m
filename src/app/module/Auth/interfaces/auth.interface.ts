@@ -1,8 +1,7 @@
 /* eslint-disable no-unused-vars */
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { PhoneVerificationStatus, UserStatus } from '../constant/auth.constant';
 import { TUserRole } from '../../../constant';
-import { IUserProfile } from '../../User/interfaces/user.interface';
 
 export interface ILoginUser {
   email: string;
@@ -30,7 +29,7 @@ export interface IUser {
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
   isDeleted: boolean;
-  profile: IUserProfile;
+  profile: Types.ObjectId;
 }
 
 export interface UserModel extends Model<IUser> {
