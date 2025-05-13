@@ -31,7 +31,21 @@ const getSingleUserProfileData = catchAsync(async (req, res) => {
   });
 });
 
+const getUserProfileInfo = catchAsync(async (req, res) => {
+  const user = req.user;
+
+  const result = await UserProfileService.getUserProfileInfoIntoDB(user);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: ' User Basic Info GET Successfully',
+    data: result,
+  });
+});
+
 export const userProfileController = {
   updateProfile,
   getSingleUserProfileData,
+  getUserProfileInfo,
 };

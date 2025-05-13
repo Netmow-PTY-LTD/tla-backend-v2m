@@ -1,3 +1,4 @@
+import { JwtPayload } from 'jsonwebtoken';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import User from '../../Auth/models/auth.model';
@@ -47,7 +48,27 @@ const getSingleUserProfileDataIntoDB = async (id: string) => {
   return userProfileInfo;
 };
 
+const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
+  const isUserExists = await User.isUserExists(user.userId);
+  if (!isUserExists) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+  }
+
+  const userProfileInfo = await UserProfile.findOne({ user: user.userId })
+    .select('name activeProfile country') // fields from UserProfile
+    .populate({
+      path: 'user',
+      select: 'username email role accountStatus regUserType  ', // fields from User
+    });
+
+  if (!userProfileInfo) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
+  }
+  return userProfileInfo;
+};
+
 export const UserProfileService = {
   updateProfileIntoDB,
   getSingleUserProfileDataIntoDB,
+  getUserProfileInfoIntoDB,
 };
