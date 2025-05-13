@@ -122,12 +122,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// set '' after saving password
-// userSchema.post('save', function (doc, next) {
-//   doc.password = '';
-//   next();
-// });
-
 userSchema.statics.isPasswordMatched = async function (
   plainTextPassword,
   hashedPassword,
