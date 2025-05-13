@@ -6,4 +6,6 @@ export interface IUserProfile {
   name: string;
   activeProfile: UserProfile;
   country?: Types.ObjectId;
+  deletedAt?: Date | null;
+  isDeleted: boolean;
 }

@@ -7,7 +7,7 @@ import UserProfile from '../models/user.model';
 import mongoose from 'mongoose';
 
 const getAllUserIntoDB = async () => {
-  const result = await UserProfile.find({}).populate('user');
+  const result = await User.find({}).populate('profile');
   return result;
 };
 
@@ -41,16 +41,13 @@ const getSingleUserProfileDataIntoDB = async (id: string) => {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
   }
 
-  const userProfileInfo = await UserProfile.findOne({ user: id })
-    .select('name activeProfile country') // fields from UserProfile
+  const userProfileInfo = await User.findById(id)
+    .select('username email role accountStatus regUserType') // fields from User
     .populate({
-      path: 'user',
-      select: 'username email role accountStatus regUserType  ', // fields from User
+      path: 'profile',
+      select: ' -_id name activeProfile country', // fields from UserProfile
     });
 
-  if (!userProfileInfo) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
-  }
   return userProfileInfo;
 };
 
@@ -60,20 +57,17 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
   }
 
-  const userProfileInfo = await UserProfile.findOne({ user: user.userId })
-    .select('name activeProfile country') // fields from UserProfile
+  const userProfileInfo = await User.findById(user.userId)
+    .select('username email role accountStatus regUserType') // fields from User
     .populate({
-      path: 'user',
-      select: 'username email role accountStatus regUserType  ', // fields from User
+      path: 'profile',
+      select: '-_id name activeProfile country', // fields from UserProfile
     });
 
-  if (!userProfileInfo) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
-  }
   return userProfileInfo;
 };
 
-export const deleteSingleUserIntoDB = async (id: string) => {
+export const softDeleteUserIntoDB = async (id: string) => {
   const session = await mongoose.startSession();
 
   try {
@@ -84,26 +78,25 @@ export const deleteSingleUserIntoDB = async (id: string) => {
       throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
     }
 
-    // Delete UserProfile first
-    const deletedProfile = await UserProfile.findOneAndDelete(
-      { user: id },
+    const deletedAt = new Date();
+
+    await User.findByIdAndUpdate(
+      id,
+      { isDeleted: true, deletedAt },
       { session },
     );
-    if (!deletedProfile) {
-      throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
-    }
 
-    // Then delete User
-    const deletedUser = await User.findByIdAndDelete(id, { session });
-    if (!deletedUser) {
-      throw new AppError(HTTP_STATUS.NOT_FOUND, 'Failed to delete user');
-    }
+    await UserProfile.findOneAndUpdate(
+      { user: id },
+      { isDeleted: true, deletedAt },
+      { session },
+    );
 
     await session.commitTransaction();
     session.endSession();
 
     return {
-      message: 'User and profile deleted successfully',
+      message: 'User and profile soft-deleted successfully',
       userId: id,
     };
   } catch (error) {
@@ -118,5 +111,5 @@ export const UserProfileService = {
   getSingleUserProfileDataIntoDB,
   getUserProfileInfoIntoDB,
   getAllUserIntoDB,
-  deleteSingleUserIntoDB,
+  softDeleteUserIntoDB,
 };
