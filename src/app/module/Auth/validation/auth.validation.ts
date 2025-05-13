@@ -6,7 +6,7 @@ const userZodValidationSchema = z.object({
     username: z.string({ required_error: 'username is Required' }),
     email: z.string().email('Invalid email address'),
     role: z.string().min(1, 'Role is required'),
-    regUserType: z.enum(['seller', 'buyer']),
+    regUserType: z.enum(['seller', 'buyer', 'admin']),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     profile: profileValidationSchema,
   }),
@@ -36,9 +36,30 @@ const changePasswordValidationSchema = z.object({
   }),
 });
 
+const forgetPasswordValidationSchema = z.object({
+  body: z.object({
+    email: z.string({
+      required_error: 'User id is required!',
+    }),
+  }),
+});
+
+const resetPasswordValidationSchema = z.object({
+  body: z.object({
+    email: z.string({
+      required_error: 'User id is required!',
+    }),
+    newPassword: z.string({
+      required_error: 'User password is required!',
+    }),
+  }),
+});
+
 export const authZodValidation = {
   userZodValidationSchema,
   refreshTokenValidationSchema,
   loginValidationSchema,
   changePasswordValidationSchema,
+  forgetPasswordValidationSchema,
+  resetPasswordValidationSchema,
 };
