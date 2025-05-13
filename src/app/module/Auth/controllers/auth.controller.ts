@@ -12,7 +12,9 @@ const login = catchAsync(async (req, res) => {
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
+    // secure: config.NODE_ENV === 'production',
+    secure: true,
+    sameSite: 'none', // Only use if cross-site and using HTTPS
   });
 
   return sendResponse(res, {
@@ -31,7 +33,9 @@ const register = catchAsync(async (req, res) => {
     await authService.registerUserIntoDB(payload);
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
+    // secure: config.NODE_ENV === 'production',
+    secure: true,
+    sameSite: 'none', // Only use if cross-site and using HTTPS
   });
 
   return sendResponse(res, {
