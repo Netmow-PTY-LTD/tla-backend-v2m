@@ -11,7 +11,17 @@ router.get(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   userProfileController.getUserProfileInfo,
 );
+router.get(
+  '/all',
+  auth(USER_ROLE.ADMIN),
+  userProfileController.getAllUserProfile,
+);
 
+router.delete(
+  '/:userId',
+  auth(USER_ROLE.ADMIN),
+  userProfileController.deleteSingleUserProfile,
+);
 router.patch(
   '/:userId',
   validateRequest(authZodValidation.userUpdateZodValidationSchema),
