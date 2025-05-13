@@ -31,7 +31,46 @@ const getSingleUserProfileData = catchAsync(async (req, res) => {
   });
 });
 
+const getUserProfileInfo = catchAsync(async (req, res) => {
+  const user = req.user;
+
+  const result = await UserProfileService.getUserProfileInfoIntoDB(user);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: ' User Basic Info GET Successfully',
+    data: result,
+  });
+});
+
+const getAllUserProfile = catchAsync(async (req, res) => {
+  const result = await UserProfileService.getAllUserIntoDB();
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: ' Get all Users Successfully',
+    data: result,
+  });
+});
+
+const deleteSingleUserProfile = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  const result = await UserProfileService.softDeleteUserIntoDB(userId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: ' Delete user Successfully',
+    data: result,
+  });
+});
+
 export const userProfileController = {
   updateProfile,
   getSingleUserProfileData,
+  getUserProfileInfo,
+  getAllUserProfile,
+  deleteSingleUserProfile,
 };
