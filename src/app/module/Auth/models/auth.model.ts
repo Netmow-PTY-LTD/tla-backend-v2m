@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      select: false,
     },
     needsPasswordChange: {
       type: Boolean,
@@ -87,9 +88,24 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    profile: { type: mongoose.Schema.Types.ObjectId, ref: 'UserProfile' }, // Reference to profile
   },
   {
     timestamps: true,
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+      },
+    },
+    toObject: {
+      transform(doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+      },
+    },
   },
 );
 
@@ -103,12 +119,6 @@ userSchema.pre('save', async function (next) {
     user.password,
     Number(config.bcrypt_salt_rounds),
   );
-  next();
-});
-
-// set '' after saving password
-userSchema.post('save', function (doc, next) {
-  doc.password = '';
   next();
 });
 
