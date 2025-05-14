@@ -2,6 +2,7 @@ import mongoose, { Schema, model } from 'mongoose';
 import { USER_PROFILE } from '../constants/user.constant';
 import { IUserProfile } from '../interfaces/user.interface';
 
+// Define the schema for the user profile
 const userProfileSchema = new Schema<IUserProfile>(
   {
     user: {
@@ -51,6 +52,7 @@ const userProfileSchema = new Schema<IUserProfile>(
   },
 );
 
+// Creating the model for UserProfile
 export const UserProfile = model<IUserProfile>(
   'UserProfile',
   userProfileSchema,

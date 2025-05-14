@@ -11,26 +11,29 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
-
+/**
+ * @desc   Handles user authentication by verifying credentials and user status.
+ *         Checks if the user exists, if the account is deleted or suspended,
+ *         verifies the password, and generates access and refresh tokens.
+ * @param  {ILoginUser} payload - The login credentials (email and password).
+ * @returns {Promise<Object>} An object containing the access token, refresh token, and user data.
+ */
 const loginUserIntoDB = async (payload: ILoginUser) => {
-  // checking if the user is exist
+  // Checking if the user exists by email
   const user = await User.isUserExistsByEmail(payload?.email);
 
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
   }
-  // checking if the user is already deleted
 
+  // Checking if the user is deleted
   const isDeleted = user?.isDeleted;
-
   if (isDeleted) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
   }
 
-  // checking if the user is blocked
-
+  // Checking if the user is blocked
   const userStatus = user?.accountStatus;
-
   if (
     userStatus === USER_STATUS.SUSPENDED ||
     userStatus === USER_STATUS.SUSPENDED_SPAM
@@ -38,11 +41,11 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
   }
 
+  // Verifying if the password matches the one in the database
   if (!(await User.isPasswordMatched(payload?.password, user?.password)))
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password do not matched');
 
-  //create token and sent to the  client
-
+  // Create JWT tokens (access and refresh) and return them with user data
   const jwtPayload = {
     userId: user?._id,
     username: user.username,
@@ -51,19 +54,24 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
     status: user?.accountStatus,
   };
 
+  // Generate access token
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as StringValue,
     config.jwt_access_expires_in as StringValue,
   );
 
+  // Generate refresh token
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as StringValue,
     config.jwt_refresh_expires_in as StringValue,
   );
 
+  // Fetch user data
   const userData = await User.findOne({ email: payload.email });
+
+  // Return tokens and user data
   return {
     accessToken,
     refreshToken,
@@ -71,40 +79,49 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   };
 };
 
+/**
+ * @desc   Registers a new user in the database by checking if the user already exists,
+ *         creating a new user record, creating a profile for the user, and generating
+ *         access and refresh tokens for the user.
+ * @param  {IUser} payload - The user registration data.
+ * @returns {Promise<Object>} An object containing the access token, refresh token, and user data.
+ */
 const registerUserIntoDB = async (payload: IUser) => {
+  // Start a database session for the transaction
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // Check if user already exists
+    // Check if the user already exists by email
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
       throw new AppError(HTTP_STATUS.BAD_REQUEST, 'This user already exists!');
     }
 
-    // Separate the profile part from user payload
+    // Separate the profile data from the user data
     const { profile, ...userData } = payload;
 
-    // Create the user
+    // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
 
-    // Prepare profile data with userId reference
+    // Prepare the profile data with a reference to the user
     const profileData = {
       ...profile,
       user: newUser._id,
     };
 
-    // Create user profile
+    // Create the user profile document in the database
     const [newProfile] = await UserProfile.create([profileData], { session });
 
+    // Link the profile to the newly created user
     newUser.profile = newProfile._id;
     await newUser.save({ session });
 
-    // Commit transaction
+    // Commit the transaction (save changes to the database)
     await session.commitTransaction();
     session.endSession();
 
-    // Generate tokens
+    // Generate the access token for the user
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
@@ -119,18 +136,21 @@ const registerUserIntoDB = async (payload: IUser) => {
       config.jwt_access_expires_in as StringValue,
     );
 
+    // Generate the refresh token for the user
     const refreshToken = createToken(
       jwtPayload,
       config.jwt_refresh_secret as StringValue,
       config.jwt_refresh_expires_in as StringValue,
     );
 
+    // Return the generated tokens and user data
     return {
       accessToken,
       refreshToken,
       userData: newUser,
     };
   } catch (error) {
+    // If an error occurs, abort the transaction to avoid incomplete data
     await session.abortTransaction();
     session.endSession();
     throw error;
@@ -230,21 +250,27 @@ const changePasswordIntoDB = async (
   return null;
 };
 
+/**
+ * @desc   Handles the forgot password process by verifying the user’s status,
+ *         generating a password reset token, and sending a reset link via email.
+ * @param  {string} userEmail - The email address of the user who requested a password reset.
+ * @returns {Promise<void>} Returns nothing, sends an email with the reset link if successful.
+ */
 const forgetPassword = async (userEmail: string) => {
-  // checking if the user is exist
+  // Check if the user exists by email
   const user = await User.isUserExistsByEmail(userEmail);
 
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
   }
-  // checking if the user is already deleted
-  const isDeleted = user?.isDeleted;
 
+  // Check if the user is marked as deleted
+  const isDeleted = user?.isDeleted;
   if (isDeleted) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
   }
 
-  // checking if the user is blocked
+  // Check if the user’s account is blocked or suspended
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
@@ -253,21 +279,25 @@ const forgetPassword = async (userEmail: string) => {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
 
+  // Prepare the payload for the reset token
   const jwtPayload = {
     userId: user?._id,
     username: user.username,
     email: user?.email,
     role: user?.role,
   };
+
+  // Create a JWT reset token valid for 10 minutes
   const resetToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
     '10m',
   );
 
-  const resetUILink = `${config.reset_pass_ui_link}/reset-password?email=${user.email}&token=${resetToken} `;
+  // Construct the reset password UI link containing the token
+  const resetUILink = `${config.reset_pass_ui_link}/reset-password?email=${user.email}&token=${resetToken}`;
 
-  //  for reset password
+  // Prepare email content for password reset
   const subject = 'Reset Your Password';
   const text = `Hi ${user.username},\n\nClick the link below to reset your password:\n${resetUILink}`;
   const html = `
@@ -280,6 +310,7 @@ const forgetPassword = async (userEmail: string) => {
     <p>If you didn’t request this, you can safely ignore this email.</p>
   `;
 
+  // Send the reset password email to the user
   await sendEmail({
     to: user.email,
     subject,
@@ -288,24 +319,32 @@ const forgetPassword = async (userEmail: string) => {
   });
 };
 
+/**
+ * @desc   Resets the user's password by verifying their account status, checking the reset token,
+ *         and updating the password in the database.
+ * @param  {Object} payload - The request payload containing the email and the new password.
+ * @param  {string} token - The reset token used for verification.
+ * @returns {Promise<void>} Returns nothing, but updates the user's password if successful.
+ */
 const resetPassword = async (
   payload: { email: string; newPassword: string },
   token: string,
 ) => {
-  // checking if the user is exist
+  // Check if the user exists by their email
   const user = await User.isUserExistsByEmail(payload?.email);
 
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
   }
-  // checking if the user is already deleted
+
+  // Check if the user has been deleted
   const isDeleted = user?.isDeleted;
 
   if (isDeleted) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
   }
 
-  // checking if the user is blocked
+  // Check if the user’s account is blocked or suspended
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
@@ -314,21 +353,24 @@ const resetPassword = async (
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
 
+  // Decode and verify the reset token
   const decoded = jwt.verify(
     token,
     config.jwt_access_secret as string,
   ) as JwtPayload;
 
+  // Ensure that the email in the token matches the email in the payload
   if (payload.email !== decoded.email) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'You are forbidden!');
   }
 
-  //hash new password
+  // Hash the new password before saving it to the database
   const newHashedPassword = await bcrypt.hash(
     payload.newPassword,
     Number(config.bcrypt_salt_rounds),
   );
 
+  // Update the user's password and reset related fields
   await User.findOneAndUpdate(
     {
       email: decoded.email,
@@ -342,6 +384,48 @@ const resetPassword = async (
   );
 };
 
+/**
+ * @desc   Validates the provided refresh token, checks if the user exists, and returns a response indicating the validity of the user.
+ * @param  {string} token - The refresh token to be validated.
+ * @returns {Promise<{ validUser: boolean }>} Returns an object with the `validUser` flag indicating if the user is valid.
+ * @throws {AppError} Throws an error if the token is invalid, expired, or if the user is not found.
+ */
+export const logOutToken = async (
+  token: string,
+): Promise<{ validUser: boolean }> => {
+  let decoded;
+
+  try {
+    // Verify and decode the provided refresh token
+    decoded = verifyToken(token, config.jwt_refresh_secret as StringValue);
+    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+  } catch (err) {
+    // If token verification fails, throw an error indicating the token is invalid or expired
+    throw new AppError(
+      HTTP_STATUS.UNAUTHORIZED,
+      'Invalid or expired refresh token',
+    );
+  }
+
+  // Check if the decoded token contains a valid email
+  if (!decoded?.email) {
+    throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'Invalid token payload');
+  }
+
+  // Find the user associated with the decoded email
+  const user = await User.findOne({ email: decoded.email });
+
+  // If user not found, throw an error
+  if (!user) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+  }
+
+  // Return a response indicating the user is valid
+  return {
+    validUser: true,
+  };
+};
+
 export const authService = {
   loginUserIntoDB,
   registerUserIntoDB,
@@ -349,4 +433,5 @@ export const authService = {
   changePasswordIntoDB,
   forgetPassword,
   resetPassword,
+  logOutToken,
 };

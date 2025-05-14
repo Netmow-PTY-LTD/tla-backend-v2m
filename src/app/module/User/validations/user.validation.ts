@@ -1,13 +1,15 @@
 import { z } from 'zod';
 import { USER_PROFILE } from '../constants/user.constant';
 
-// Zod enum from USER_PROFILE values
+//// Zod enum created from USER_PROFILE values
+// This enforces the accepted values for the activeProfile field
 const userProfileEnum = z.enum([
   USER_PROFILE.BASIC,
   USER_PROFILE.PREMIUM,
   USER_PROFILE.ADMIN,
 ]);
 
+// Profile validation schema
 export const profileValidationSchema = z.object({
   // user: z.string().min(1, 'User ID is required'), // ObjectId as string
   name: z.string().min(1, 'First name is required'),
@@ -20,11 +22,12 @@ export const profileValidationSchema = z.object({
   //   })
   //   .optional(),
 });
-
+// User update validation schema, reusing the profileValidationSchema for the body
 const userUpdateZodValidationSchema = z.object({
   body: profileValidationSchema,
 });
 
+// Exporting all validation schemas
 export const authZodValidation = {
   userUpdateZodValidationSchema,
 };
