@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { profileValidationSchema } from '../../User/validations/user.validation';
 
+// Validation schema for creating or updating a user
 const userZodValidationSchema = z.object({
   body: z.object({
     username: z.string({ required_error: 'username is Required' }),
@@ -12,6 +13,7 @@ const userZodValidationSchema = z.object({
   }),
 });
 
+// Validation schema for login requests
 const loginValidationSchema = z.object({
   body: z.object({
     email: z.string({ required_error: 'email is required.' }),
@@ -19,6 +21,7 @@ const loginValidationSchema = z.object({
   }),
 });
 
+// Validation schema for refresh token in cookies
 const refreshTokenValidationSchema = z.object({
   cookies: z.object({
     refreshToken: z.string({
@@ -27,6 +30,7 @@ const refreshTokenValidationSchema = z.object({
   }),
 });
 
+// Validation schema for changing user password
 const changePasswordValidationSchema = z.object({
   body: z.object({
     oldPassword: z.string({
@@ -35,7 +39,7 @@ const changePasswordValidationSchema = z.object({
     newPassword: z.string({ required_error: 'Password is required' }),
   }),
 });
-
+// Validation schema for forgotten password (email required to reset password)
 const forgetPasswordValidationSchema = z.object({
   body: z.object({
     email: z.string({
@@ -44,6 +48,7 @@ const forgetPasswordValidationSchema = z.object({
   }),
 });
 
+// Validation schema for resetting password (requires email and new password)
 const resetPasswordValidationSchema = z.object({
   body: z.object({
     email: z.string({
@@ -54,7 +59,7 @@ const resetPasswordValidationSchema = z.object({
     }),
   }),
 });
-
+// Validation schema for logging out (requires refresh token in cookies)
 const logOutTokenValidationSchema = z.object({
   cookies: z.object({
     refreshToken: z.string({
@@ -63,6 +68,7 @@ const logOutTokenValidationSchema = z.object({
   }),
 });
 
+// Exporting all validation schemas
 export const authZodValidation = {
   userZodValidationSchema,
   refreshTokenValidationSchema,
