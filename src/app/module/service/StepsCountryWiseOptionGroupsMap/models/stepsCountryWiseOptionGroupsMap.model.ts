@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IStepsCountryWiseOptionGroupsMap } from './stepsCountryWiseOptionGroupsMap.interface';
+import { IStepsCountryWiseOptionGroupsMap } from '../interfaces/stepsCountryWiseOptionGroupsMap.interface';
 
 const stepsCountryWiseOptionGroupsMapSchema =
   new Schema<IStepsCountryWiseOptionGroupsMap>(
