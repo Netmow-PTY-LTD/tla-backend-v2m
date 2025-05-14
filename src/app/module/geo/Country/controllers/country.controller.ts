@@ -47,7 +47,7 @@ const updateSingleCountry = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Country delete successfully',
+    message: 'Country update successfully',
     data: result,
   });
 });

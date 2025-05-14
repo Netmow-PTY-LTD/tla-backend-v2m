@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
+import { CountryModel, ICountry } from '../interfaces/country.interface';
 
-const country = new mongoose.Schema(
+const countriesSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -25,9 +26,28 @@ const country = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.__v;
+        return ret;
+      },
+    },
+    toObject: {
+      transform(doc, ret) {
+        delete ret.__v;
+        return ret;
+      },
+    },
   },
 );
 
-const Country = mongoose.model('Country', country);
+countriesSchema.statics.isCountryExists = async function (id: string) {
+  return await Country.findById(id);
+};
+
+const Country = mongoose.model<ICountry, CountryModel>(
+  'Country',
+  countriesSchema,
+);
 
 export default Country;
