@@ -26,6 +26,7 @@ const countryWiseServiceSchema = new Schema<ICountryWiseService>(
   },
   {
     timestamps: true,
+    versionKey: false,
   },
 );
 

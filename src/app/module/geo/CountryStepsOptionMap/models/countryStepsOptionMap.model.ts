@@ -30,17 +30,10 @@ const countryStepsOptionMapSchema = new Schema<ICountryStepsOptionMap>(
       ref: 'Country',
       required: true,
     },
-    respondAt: {
-      type: [Date],
-      validate: {
-        validator: (arr: Date[]) => arr.length === 3,
-        message: 'respondAt must contain exactly 3 dates.',
-      },
-      required: true,
-    },
   },
   {
     timestamps: true,
+    versionKey: false,
   },
 );
 

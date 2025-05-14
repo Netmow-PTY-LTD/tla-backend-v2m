@@ -25,16 +25,15 @@ const countriesSchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
     toJSON: {
       transform(doc, ret) {
-        delete ret.__v;
         return ret;
       },
     },
     toObject: {
       transform(doc, ret) {
-        delete ret.__v;
         return ret;
       },
     },

@@ -9,7 +9,7 @@ const CreateCountryIntoDB = async (payload: ICountry) => {
 };
 
 const getAllCountryFromDB = async () => {
-  const countries = await Country.find({ isDeleted: false }).lean().exec();
+  const countries = await Country.find({ isDeleted: false });
   return countries;
 };
 

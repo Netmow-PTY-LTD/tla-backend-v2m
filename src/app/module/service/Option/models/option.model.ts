@@ -39,6 +39,7 @@ const optionSchema = new Schema<IOption>(
   },
   {
     timestamps: true,
+    versionKey: false,
   },
 );
 

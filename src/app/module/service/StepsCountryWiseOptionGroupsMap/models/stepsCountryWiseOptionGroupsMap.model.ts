@@ -32,6 +32,7 @@ const stepsCountryWiseOptionGroupsMapSchema =
     },
     {
       timestamps: true,
+      versionKey: false,
     },
   );
 
