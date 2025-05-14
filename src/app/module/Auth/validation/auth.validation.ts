@@ -55,6 +55,14 @@ const resetPasswordValidationSchema = z.object({
   }),
 });
 
+const logOutTokenValidationSchema = z.object({
+  cookies: z.object({
+    refreshToken: z.string({
+      required_error: 'Refresh token is required!',
+    }),
+  }),
+});
+
 export const authZodValidation = {
   userZodValidationSchema,
   refreshTokenValidationSchema,
@@ -62,4 +70,5 @@ export const authZodValidation = {
   changePasswordValidationSchema,
   forgetPasswordValidationSchema,
   resetPasswordValidationSchema,
+  logOutTokenValidationSchema,
 };
