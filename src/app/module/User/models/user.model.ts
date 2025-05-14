@@ -36,16 +36,15 @@ const userProfileSchema = new Schema<IUserProfile>(
     // Add more profile-specific fields here
   },
   {
+    versionKey: false,
     timestamps: true,
     toJSON: {
       transform(doc, ret) {
-        delete ret.__v;
         return ret;
       },
     },
     toObject: {
       transform(doc, ret) {
-        delete ret.__v;
         return ret;
       },
     },

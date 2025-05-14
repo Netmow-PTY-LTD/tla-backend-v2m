@@ -91,18 +91,17 @@ const userSchema = new mongoose.Schema(
     profile: { type: mongoose.Schema.Types.ObjectId, ref: 'UserProfile' }, // Reference to profile
   },
   {
+    versionKey: false,
     timestamps: true,
     toJSON: {
       transform(doc, ret) {
         delete ret.password;
-        delete ret.__v;
         return ret;
       },
     },
     toObject: {
       transform(doc, ret) {
         delete ret.password;
-        delete ret.__v;
         return ret;
       },
     },

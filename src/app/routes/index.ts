@@ -1,16 +1,19 @@
 import { Router } from 'express';
 
-import adminRoute from '../module/Admin';
 import { authRouter } from '../module/Auth/routes/auth.route';
 import { UserProfileRouter } from '../module/User/routes/user.route';
+import { countryRouter } from '../module/Geo/Country/routes/country.route';
+import { serviceRouter } from '../module/Service/Service/routes/service.route';
+
+import { countryStepsOptionMapRouter } from '../module/Geo/CountryStepsOptionMap/routes/countryStepsOptionMap.route';
+import { OptionGroupRouter } from '../module/Service/OptionGroup/routes/optionGroup.route';
+import { OptionRouter } from '../module/Service/Option/routes/option.route';
+import { CountryWiseServiceRouter } from '../module/Geo/CountryWiseServices/routes/countryWiseServiceMap.route';
+import { ServiceWiseQuestionRouter } from '../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route';
 
 const router = Router();
 
 const moduleRoutes = [
-  {
-    path: '/admin',
-    route: adminRoute,
-  },
   {
     path: '/auth',
     route: authRouter,
@@ -18,6 +21,39 @@ const moduleRoutes = [
   {
     path: '/users',
     route: UserProfileRouter,
+  },
+  {
+    path: '/countries',
+    route: countryRouter,
+  },
+  {
+    path: '/services',
+    route: serviceRouter,
+  },
+  {
+    path: '/country_wise_services',
+    route: CountryWiseServiceRouter,
+  },
+  {
+    path: '/service-wise-questions',
+    route: ServiceWiseQuestionRouter,
+  },
+  {
+    path: '/options',
+    route: OptionRouter,
+  },
+  // {
+  //   path: '/steps_country_wise_service_wise_option_groups_map',
+  //   route: stepsCountryWiseOptionGroupsMapRouter,
+  // },
+
+  {
+    path: '/country_steps_option_group-option-map',
+    route: countryStepsOptionMapRouter,
+  },
+  {
+    path: '/option_groups',
+    route: OptionGroupRouter,
   },
 ];
 
