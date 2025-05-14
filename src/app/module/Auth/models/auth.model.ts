@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     regUserType: {
       type: String,
       required: true,
-      enum: ['seller', 'buyer', 'admin'],
+      enum: ['client', 'lawyer', 'admin'],
     },
     regType: {
       type: String,
@@ -122,20 +122,23 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// Static method to check if the plain password matches the hashed password
 userSchema.statics.isPasswordMatched = async function (
   plainTextPassword,
   hashedPassword,
 ) {
   return await bcrypt.compare(plainTextPassword, hashedPassword);
 };
-
+// Static method to check if a user exists by ID
 userSchema.statics.isUserExists = async function (id: string) {
   return await User.findById(id).select('+password');
 };
+// Static method to check if a user exists by email
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
   return await User.findOne({ email }).select('+password');
 };
 
+// Static method to check if JWT was issued before password change
 userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
   passwordChangedTimestamp: Date,
   jwtIssuedTimestamp: number,
@@ -144,7 +147,7 @@ userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
     new Date(passwordChangedTimestamp).getTime() / 1000;
   return passwordChangedTime > jwtIssuedTimestamp;
 };
-
+// Create User model
 export const User = model<IUser, UserModel>('User', userSchema);
 
 export default User;
