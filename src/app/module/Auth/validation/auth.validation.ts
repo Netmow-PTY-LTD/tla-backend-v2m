@@ -6,7 +6,7 @@ const userZodValidationSchema = z.object({
     username: z.string({ required_error: 'username is Required' }),
     email: z.string().email('Invalid email address'),
     role: z.string().min(1, 'Role is required'),
-    regUserType: z.enum(['seller', 'buyer', 'admin']),
+    regUserType: z.enum(['client', 'lawyer', 'admin']),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     profile: profileValidationSchema,
   }),
