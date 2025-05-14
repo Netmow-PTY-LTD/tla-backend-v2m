@@ -47,7 +47,7 @@ const updateSingleOption = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Option delete successfully',
+    message: 'Option Update  successfully',
     data: result,
   });
 });

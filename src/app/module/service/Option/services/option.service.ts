@@ -1,3 +1,5 @@
+import { HTTP_STATUS } from '../../../../constant/httpStatus';
+import { AppError } from '../../../../errors/error';
 import { IOption } from '../interfaces/option.interface';
 import Option from '../models/option.model';
 
@@ -7,26 +9,46 @@ const CreateOptionIntoDB = async (payload: IOption) => {
 };
 
 const getAllOptionFromDB = async () => {
-  const result = await Option.find({});
+  const result = await Option.find({ deletedAt: null });
   return result;
 };
 
 const getSingleOptionFromDB = async (id: string) => {
-  const result = await Option.findById(id);
+  const option = await Option.isOptionExists(id);
+  if (!option) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Option is not found !');
+  }
+
+  const result = await Option.findOne({ _id: option._id, deletedAt: null });
   return result;
 };
 
 const updateOptionIntoDB = async (id: string, payload: Partial<IOption>) => {
-  const result = await Option.findByIdAndUpdate(id, payload, {
-    new: true,
-  });
+  const option = await Option.isOptionExists(id);
+  if (!option) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Option is not found !');
+  }
+
+  const result = await Option.findOneAndUpdate(
+    { _id: option._id, deletedAt: null },
+    payload,
+    {
+      new: true,
+    },
+  );
   return result;
 };
 
 const deleteOptionFromDB = async (id: string) => {
+  const deletedAt = new Date().toISOString();
+  const option = await Option.isOptionExists(id);
+  if (!option) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Option is not found !');
+  }
+
   const result = await Option.findByIdAndUpdate(
     id,
-    { isDeleted: true },
+    { deletedAt: deletedAt },
     {
       new: true,
     },
