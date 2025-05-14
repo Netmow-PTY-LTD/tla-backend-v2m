@@ -342,6 +342,36 @@ const resetPassword = async (
   );
 };
 
+export const logOutToken = async (
+  token: string,
+): Promise<{ validUser: boolean }> => {
+  let decoded;
+
+  try {
+    decoded = verifyToken(token, config.jwt_refresh_secret as StringValue);
+    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+  } catch (err) {
+    throw new AppError(
+      HTTP_STATUS.UNAUTHORIZED,
+      'Invalid or expired refresh token',
+    );
+  }
+
+  if (!decoded?.email) {
+    throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'Invalid token payload');
+  }
+
+  const user = await User.findOne({ email: decoded.email });
+
+  if (!user) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+  }
+
+  return {
+    validUser: true,
+  };
+};
+
 export const authService = {
   loginUserIntoDB,
   registerUserIntoDB,
@@ -349,4 +379,5 @@ export const authService = {
   changePasswordIntoDB,
   forgetPassword,
   resetPassword,
+  logOutToken,
 };
