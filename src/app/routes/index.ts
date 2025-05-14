@@ -8,7 +8,7 @@ import { serviceRouter } from '../module/Service/Service/routes/service.route';
 import { countryStepsOptionMapRouter } from '../module/Geo/CountryStepsOptionMap/routes/countryStepsOptionMap.route';
 import { OptionGroupRouter } from '../module/Service/OptionGroup/routes/optionGroup.route';
 import { OptionRouter } from '../module/Service/Option/routes/option.route';
-import { CountryWiseServiceRouter } from '../module/Geo/CountryWiseServices/routes/countryWiseServiceMap.route';
+import { CountryWiseServiceRouter } from '../module/Geo/CountryWiseServices/routes/countryWiseService.route';
 import { ServiceWiseQuestionRouter } from '../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route';
 
 const router = Router();

@@ -5,7 +5,6 @@ import { serviceService } from '../services/service.service';
 
 const createService = catchAsync(async (req, res) => {
   const serviceData = req.body;
-  // const userId = req.user.userId;
   const result = await serviceService.CreateServiceIntoDB(serviceData);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

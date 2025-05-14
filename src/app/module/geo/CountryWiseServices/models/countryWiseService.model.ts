@@ -1,5 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
-import { ICountryWiseService } from '../interfaces/countryWiseService.interface';
+import {
+  CountryWiseServiceModel,
+  ICountryWiseService,
+} from '../interfaces/countryWiseService.interface';
 
 const countryWiseServiceSchema = new Schema<ICountryWiseService>(
   {
@@ -30,9 +33,15 @@ const countryWiseServiceSchema = new Schema<ICountryWiseService>(
   },
 );
 
-const CountryWiseService = mongoose.model<ICountryWiseService>(
-  'CountryWiseService',
-  countryWiseServiceSchema,
-);
+countryWiseServiceSchema.statics.isCountryWiseServiceExists = async function (
+  id: string,
+) {
+  return await CountryWiseService.findById(id);
+};
+
+const CountryWiseService = mongoose.model<
+  ICountryWiseService,
+  CountryWiseServiceModel
+>('CountryWiseService', countryWiseServiceSchema);
 
 export default CountryWiseService;
