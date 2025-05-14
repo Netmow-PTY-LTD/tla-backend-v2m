@@ -1,17 +1,36 @@
 import mongoose from 'mongoose';
 import { z } from 'zod';
 
-export const optionValidationSchema = z.object({
+export const OptionZodSchema = z.object({
   body: z.object({
-    name: z.string().min(1, 'Name is required').trim(),
-    slug: z.string().min(1, 'Slug is required').trim().toLowerCase(),
-    option_group_obj: z
+    name: z.string().trim().min(1, { message: 'Name is required' }),
+    slug: z.string().trim().min(1, { message: 'Slug is required' }),
+    countryId: z
       .string()
       .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-        message: 'Invalid ObjectId for option_group_obj',
+        message: 'Invalid countryId',
       }),
-    respondAt: z
-      .array(z.date())
-      .min(1, 'At least one respondAt date is required'),
+    serviceId: z
+      .string()
+      .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+        message: 'Invalid serviceId',
+      }),
+    questionId: z
+      .string()
+      .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+        message: 'Invalid questionId',
+      }),
+    selected_options: z
+      .array(
+        z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
+          message: 'Invalid ObjectId in selected_options',
+        }),
+      )
+      .optional()
+      .default([]),
   }),
 });
+
+export const OptionZodValidation = {
+  OptionZodSchema,
+};

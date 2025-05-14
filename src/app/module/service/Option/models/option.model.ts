@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IOption } from './option.interface';
+import { IOption } from '../interfaces/option.interface';
 
 const optionSchema = new Schema<IOption>(
   {
@@ -15,19 +15,19 @@ const optionSchema = new Schema<IOption>(
       trim: true,
       unique: true,
     },
-    service_ref: {
-      type: Schema.Types.ObjectId,
-      ref: 'Service',
-      required: true,
-    },
-    country_ref: {
+    countryId: {
       type: Schema.Types.ObjectId,
       ref: 'Country',
       required: true,
     },
-    step_ref: {
+    serviceId: {
       type: Schema.Types.ObjectId,
-      ref: 'StepsCountryWiseOptionGroupsMap',
+      ref: 'Service',
+      required: true,
+    },
+    questionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Question',
       required: true,
     },
     selected_options: [

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { Model } from 'mongoose';
 
-export interface IServiceWiseStep {
+export interface IServiceWiseQuestion {
   countryId: mongoose.Types.ObjectId;
   serviceId: mongoose.Types.ObjectId;
   question: string;
@@ -11,7 +11,7 @@ export interface IServiceWiseStep {
 }
 
 // Define the ServiceWiseStep model interface to include static methods
-export interface IServiceWiseStepModel extends Model<IServiceWiseStep> {
+export interface IServiceWiseQuestionModel extends Model<IServiceWiseQuestion> {
   // eslint-disable-next-line no-unused-vars
-  isServiceWiseStepExists(id: string): Promise<IServiceWiseStep | null>;
+  isServiceWiseStepExists(id: string): Promise<IServiceWiseQuestion | null>;
 }

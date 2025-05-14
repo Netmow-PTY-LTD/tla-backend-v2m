@@ -1,10 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
 import {
-  IServiceWiseStep,
-  IServiceWiseStepModel,
-} from '../interfaces/ServiceWiseStep.interface';
+  IServiceWiseQuestion,
+  IServiceWiseQuestionModel,
+} from '../interfaces/ServiceWiseQuestion.interface';
 
-const ServiceWiseStepSchema = new mongoose.Schema(
+const ServiceWiseQuestionSchema = new mongoose.Schema(
   {
     countryId: {
       type: Schema.Types.ObjectId,
@@ -47,16 +47,16 @@ const ServiceWiseStepSchema = new mongoose.Schema(
 );
 
 //creating a custom static method
-ServiceWiseStepSchema.statics.isServiceWiseStepExists = async function (
+ServiceWiseQuestionSchema.statics.isServiceWiseStepExists = async function (
   id: string,
 ) {
-  const existingServiceWiseStep = await ServiceWiseStep.findById(id);
+  const existingServiceWiseStep = await ServiceWiseQuestion.findById(id);
   return existingServiceWiseStep;
 };
 
-const ServiceWiseStep = mongoose.model<IServiceWiseStep, IServiceWiseStepModel>(
-  'ServiceWiseStep',
-  ServiceWiseStepSchema,
-);
+const ServiceWiseQuestion = mongoose.model<
+  IServiceWiseQuestion,
+  IServiceWiseQuestionModel
+>('Question', ServiceWiseQuestionSchema);
 
-export default ServiceWiseStep;
+export default ServiceWiseQuestion;

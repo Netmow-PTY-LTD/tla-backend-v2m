@@ -9,7 +9,7 @@ import { countryStepsOptionMapRouter } from '../module/Geo/CountryStepsOptionMap
 import { OptionGroupRouter } from '../module/Service/OptionGroup/routes/optionGroup.route';
 import { OptionRouter } from '../module/Service/Option/routes/option.route';
 import { CountryWiseServiceRouter } from '../module/Geo/CountryWiseServices/routes/countryWiseServiceMap.route';
-import { ServiceWiseStepRouter } from '../module/Service/ServiceWiseStep/routes/ServiceWiseStep.route';
+import { ServiceWiseQuestionRouter } from '../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route';
 
 const router = Router();
 
@@ -35,8 +35,12 @@ const moduleRoutes = [
     route: CountryWiseServiceRouter,
   },
   {
-    path: '/service-wise-step',
-    route: ServiceWiseStepRouter,
+    path: '/service-wise-question',
+    route: ServiceWiseQuestionRouter,
+  },
+  {
+    path: '/options',
+    route: OptionRouter,
   },
   // {
   //   path: '/steps_country_wise_service_wise_option_groups_map',
@@ -50,10 +54,6 @@ const moduleRoutes = [
   {
     path: '/option_groups',
     route: OptionGroupRouter,
-  },
-  {
-    path: '/options',
-    route: OptionRouter,
   },
 ];
 
