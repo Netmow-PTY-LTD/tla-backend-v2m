@@ -31,11 +31,11 @@ const moduleRoutes = [
     route: serviceRouter,
   },
   {
-    path: '/country_wise_service',
+    path: '/country_wise_services',
     route: CountryWiseServiceRouter,
   },
   {
-    path: '/service-wise-question',
+    path: '/service-wise-questions',
     route: ServiceWiseQuestionRouter,
   },
   {
