@@ -14,6 +14,14 @@ const country = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

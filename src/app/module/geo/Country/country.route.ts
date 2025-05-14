@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { countryController } from './country.controller';
-
-// import validateRequest from '../../../middlewares/validateRequest';
+import { countryZodValidation } from './country.validation';
+import validateRequest from '../../../middlewares/validateRequest';
 
 const router = Router();
 
 router.post(
   '/',
-  // validateRequest(),
+  validateRequest(countryZodValidation.countryZodValidationSchema),
   countryController.createCountry,
 );
 router.get('/', countryController.getAllCountry);
