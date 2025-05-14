@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { IService, ServiceModel } from '../interfaces/service.interface';
 
 const serviceSchema = new mongoose.Schema(
   {
@@ -35,6 +36,9 @@ serviceSchema.statics.isServiceExists = async function (id: string) {
   return existingService;
 };
 
-const Service = mongoose.model('Service', serviceSchema);
+const Service = mongoose.model<IService, ServiceModel>(
+  'Service',
+  serviceSchema,
+);
 
 export default Service;

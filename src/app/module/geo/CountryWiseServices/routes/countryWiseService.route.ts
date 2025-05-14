@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import { countryWiseServiceController } from '../controllers/countryWiseService.controller';
-
-// import validateRequest from '../../../middlewares/validateRequest';
+import validateRequest from '../../../../middlewares/validateRequest';
+import { CountryWiseServiceZodValidation } from '../validations/countryWiseService.validation';
 
 const router = Router();
 
 router.post(
   '/',
-  // validateRequest(),
+  validateRequest(
+    CountryWiseServiceZodValidation.createCountryWiseServiceSchema,
+  ),
   countryWiseServiceController.createCountryWiseService,
 );
 router.get('/', countryWiseServiceController.getAllCountryWiseService);
@@ -19,8 +21,11 @@ router.delete(
   '/:countryWiseServiceId',
   countryWiseServiceController.deleteSingleCountryWiseService,
 );
-router.put(
+router.patch(
   '/:countryWiseServiceId',
+  validateRequest(
+    CountryWiseServiceZodValidation.createCountryWiseServiceSchema,
+  ),
   countryWiseServiceController.updateSingleCountryWiseService,
 );
 
