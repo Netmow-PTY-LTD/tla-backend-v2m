@@ -1,5 +1,7 @@
 import { FilterQuery, Query } from 'mongoose';
 
+
+// Generic QueryBuilder class for building flexible and reusable Mongoose queries
 class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
   public query: Record<string, unknown>;
@@ -9,6 +11,10 @@ class QueryBuilder<T> {
     this.query = query;
   }
 
+  /**
+   * Adds a case-insensitive search across specified fields using regex
+   * @param searchableFields - List of field names to apply the search on
+   */
   search(searchableFields: string[]) {
     const searchTerm = this?.query?.searchTerm;
     if (searchTerm) {
@@ -25,6 +31,9 @@ class QueryBuilder<T> {
     return this;
   }
 
+  /**
+   * Filters the query based on the provided parameters, excluding non-filter keys
+   */
   filter() {
     const queryObj = { ...this.query }; // copy
 
@@ -38,6 +47,9 @@ class QueryBuilder<T> {
     return this;
   }
 
+  /**
+   * Applies sorting to the query. Defaults to descending order of 'createdAt'
+   */
   sort() {
     const sort =
       (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
@@ -46,6 +58,9 @@ class QueryBuilder<T> {
     return this;
   }
 
+  /**
+   * Applies pagination to the query using page and limit values
+   */
   paginate() {
     const page = Number(this?.query?.page) || 1;
     const limit = Number(this?.query?.limit) || 10;
@@ -56,6 +71,9 @@ class QueryBuilder<T> {
     return this;
   }
 
+  /**
+   * Selects specific fields to include or exclude in the query result
+   */
   fields() {
     const fields =
       (this?.query?.fields as string)?.split(',')?.join(' ') || '-__v';
@@ -63,6 +81,10 @@ class QueryBuilder<T> {
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }
+
+  /**
+   * Calculates total documents and total pages for the current query filter
+   */
   async countTotal() {
     const totalQueries = this.modelQuery.getFilter();
     const total = await this.modelQuery.model.countDocuments(totalQueries);
