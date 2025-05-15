@@ -6,13 +6,13 @@ import { OptionZodValidation } from '../validations/option.validation';
 const router = Router();
 
 router.post(
-  '/',
+  '/create',
   validateRequest(OptionZodValidation.OptionZodSchema),
   optionController.createOption,
 );
-router.get('/', optionController.getAllOption);
-router.get('/:optionId', optionController.getSingleOption);
-router.delete('/:optionId', optionController.deleteSingleOption);
-router.patch('/:optionId', optionController.updateSingleOption);
+router.get('/all', optionController.getAllOption);
+router.get('/single/:optionId', optionController.getSingleOption);
+router.delete('/delete/:optionId', optionController.deleteSingleOption);
+router.patch('/edit/:optionId', optionController.updateSingleOption);
 
 export const OptionRouter = router;

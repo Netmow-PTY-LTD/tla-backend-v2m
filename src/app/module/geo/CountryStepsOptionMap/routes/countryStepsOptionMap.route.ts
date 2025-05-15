@@ -6,21 +6,21 @@ import { countryStepsOptionMapController } from '../controllers/countryStepsOpti
 const router = Router();
 
 router.post(
-  '/',
+  '/create',
   // validateRequest(),
   countryStepsOptionMapController.createCountryStepsOptionMap,
 );
-router.get('/', countryStepsOptionMapController.getAllCountryStepsOptionMap);
+router.get('/all', countryStepsOptionMapController.getAllCountryStepsOptionMap);
 router.get(
-  '/:countryStepsOptionMapId',
+  '/single/:countryStepsOptionMapId',
   countryStepsOptionMapController.getSingleCountryStepsOptionMap,
 );
 router.delete(
-  '/:countryStepsOptionMapId',
+  '/delete/:countryStepsOptionMapId',
   countryStepsOptionMapController.deleteSingleCountryStepsOptionMap,
 );
 router.put(
-  '/:countryStepsOptionMapId',
+  '/edit/:countryStepsOptionMapId',
   countryStepsOptionMapController.updateSingleCountryStepsOptionMap,
 );
 

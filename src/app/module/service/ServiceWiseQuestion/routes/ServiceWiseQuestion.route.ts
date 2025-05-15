@@ -7,22 +7,22 @@ import { ServiceWiseQuestionController } from '../controllers/ServiceWiseQuestio
 const router = Router();
 
 router.post(
-  '/',
+  '/create',
   validateRequest(serviceWiseStepZodValidation.ServiceWiseStepZodSchema),
   ServiceWiseQuestionController.createServiceWiseQuestion,
 );
 
-router.get('/', ServiceWiseQuestionController.getAllServiceWiseQuestion);
+router.get('/all', ServiceWiseQuestionController.getAllServiceWiseQuestion);
 router.get(
-  '/:questionId',
+  '/single/:questionId',
   ServiceWiseQuestionController.getSingleServiceWiseQuestion,
 );
 router.delete(
-  '/:questionId',
+  '/delete/:questionId',
   ServiceWiseQuestionController.deleteSingleServiceWiseQuestion,
 );
 router.patch(
-  '/:questionId',
+  '/edit/:questionId',
   ServiceWiseQuestionController.updateSingleServiceWiseQuestion,
 );
 
