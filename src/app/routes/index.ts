@@ -19,27 +19,27 @@ const moduleRoutes = [
     route: authRouter,
   },
   {
-    path: '/users',
+    path: '/user',
     route: UserProfileRouter,
   },
   {
-    path: '/countries',
+    path: '/country',
     route: countryRouter,
   },
   {
-    path: '/services',
+    path: '/service',
     route: serviceRouter,
   },
   {
-    path: '/country_wise_services',
+    path: '/country-wise-service',
     route: CountryWiseServiceRouter,
   },
   {
-    path: '/service-wise-questions',
+    path: '/service-wise-question',
     route: ServiceWiseQuestionRouter,
   },
   {
-    path: '/options',
+    path: '/option',
     route: OptionRouter,
   },
   // {
