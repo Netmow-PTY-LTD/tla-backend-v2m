@@ -28,7 +28,6 @@ export interface IUser {
   resetPasswordToken?: string;
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
-  isDeleted: boolean;
   profile: Types.ObjectId;
 }
 

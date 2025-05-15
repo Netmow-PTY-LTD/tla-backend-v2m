@@ -41,9 +41,9 @@ const auth = (...requiredRoles: TUserRole[]) => {
     }
     // checking if the user is already deleted
 
-    const isDeleted = user?.isDeleted;
+    const deletedAt = user?.deletedAt;
 
-    if (isDeleted) {
+    if (deletedAt) {
       throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted !');
     }
 
