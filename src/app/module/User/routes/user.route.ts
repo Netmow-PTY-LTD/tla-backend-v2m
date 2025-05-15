@@ -12,18 +12,18 @@ router.get(
   userProfileController.getUserProfileInfo,
 );
 router.get(
-  '/all',
+  '/list',
   auth(USER_ROLE.ADMIN),
   userProfileController.getAllUserProfile,
 );
 
 router.delete(
-  '/:userId',
+  '/delete/:userId',
   auth(USER_ROLE.ADMIN),
   userProfileController.deleteSingleUserProfile,
 );
 router.patch(
-  '/:userId',
+  '/edit/:userId',
   validateRequest(authZodValidation.userUpdateZodValidationSchema),
   userProfileController.updateProfile,
 );

@@ -1,10 +1,10 @@
 import { Model, Types } from 'mongoose';
 
 export interface ICountryWiseService {
+  _id: string;
   countryId: Types.ObjectId;
   serviceIds: Types.ObjectId[];
   deletedAt?: Date | null;
-  isDeleted: boolean;
 }
 
 export interface CountryWiseServiceModel extends Model<ICountryWiseService> {

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Model } from 'mongoose';
 
 export interface IServiceWiseQuestion {
+  _id: string;
   countryId: mongoose.Types.ObjectId;
   serviceId: mongoose.Types.ObjectId;
   question: string;

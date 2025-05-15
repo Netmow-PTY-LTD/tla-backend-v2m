@@ -9,7 +9,7 @@ const CreateServiceIntoDB = async (payload: IService) => {
 };
 
 const getAllServiceFromDB = async () => {
-  const result = await Service.find({ isDeleted: false });
+  const result = await Service.find({ deletedAt: null });
   return result;
 };
 
@@ -18,7 +18,7 @@ const getSingleServiceFromDB = async (id: string) => {
   if (!service) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Service is not found !');
   }
-  const result = await Service.findById(id);
+  const result = await Service.findOne({ _id: service._id, deletedAt: null });
   return result;
 };
 
@@ -27,9 +27,14 @@ const updateServiceIntoDB = async (id: string, payload: Partial<IService>) => {
   if (!service) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Service is not found !');
   }
-  const result = await Service.findByIdAndUpdate(id, payload, {
-    new: true,
-  });
+
+  const result = await Service.findOneAndUpdate(
+    { _id: service._id, deletedAt: null },
+    payload,
+    {
+      new: true,
+    },
+  );
   return result;
 };
 
@@ -42,7 +47,7 @@ const deleteServiceFromDB = async (id: string) => {
 
   const result = await Service.findByIdAndUpdate(
     id,
-    { isDeleted: true, deletedAt: deletedAt },
+    { deletedAt: deletedAt },
     {
       new: true,
     },
