@@ -29,10 +29,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: Date,
       default: null,
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
+
     // Add more profile-specific fields here
   },
   {

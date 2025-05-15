@@ -4,7 +4,6 @@ export interface ICountryWiseService {
   countryId: Types.ObjectId;
   serviceIds: Types.ObjectId[];
   deletedAt?: Date | null;
-  isDeleted: boolean;
 }
 
 export interface CountryWiseServiceModel extends Model<ICountryWiseService> {

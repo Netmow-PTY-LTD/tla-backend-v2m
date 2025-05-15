@@ -9,7 +9,7 @@ const CreateCountryIntoDB = async (payload: ICountry) => {
 };
 
 const getAllCountryFromDB = async () => {
-  const countries = await Country.find({ isDeleted: false });
+  const countries = await Country.find({});
   return countries;
 };
 
@@ -41,7 +41,7 @@ const deleteCountryFromDB = async (id: string) => {
   }
   const result = await Country.findByIdAndUpdate(
     id,
-    { isDeleted: true, deletedAt: deletedAt },
+    { deletedAt: deletedAt },
     {
       new: true,
     },

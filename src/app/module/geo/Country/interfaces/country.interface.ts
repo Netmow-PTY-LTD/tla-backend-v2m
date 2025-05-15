@@ -5,7 +5,6 @@ export interface ICountry {
   name: string;
   slug: string;
   deletedAt?: Date | null;
-  isDeleted: boolean;
 }
 
 export interface CountryModel extends Model<ICountry> {

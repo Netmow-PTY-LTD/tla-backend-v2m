@@ -22,10 +22,6 @@ const countryWiseServiceSchema = new Schema<ICountryWiseService>(
       type: Date,
       default: null,
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
   },
   {
     timestamps: true,

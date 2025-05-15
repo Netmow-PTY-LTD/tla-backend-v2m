@@ -27,8 +27,8 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   }
 
   // Checking if the user is deleted
-  const isDeleted = user?.isDeleted;
-  if (isDeleted) {
+  const deletedAt = user?.deletedAt;
+  if (deletedAt) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
   }
 
@@ -207,9 +207,9 @@ const changePasswordIntoDB = async (
   }
   // checking if the user is already deleted
 
-  const isDeleted = user?.isDeleted;
+  const deletedAt = user?.deletedAt;
 
-  if (isDeleted) {
+  if (deletedAt) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
   }
 
@@ -265,8 +265,8 @@ const forgetPassword = async (userEmail: string) => {
   }
 
   // Check if the user is marked as deleted
-  const isDeleted = user?.isDeleted;
-  if (isDeleted) {
+  const deletedAt = user?.deletedAt;
+  if (deletedAt) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
   }
 
@@ -338,9 +338,9 @@ const resetPassword = async (
   }
 
   // Check if the user has been deleted
-  const isDeleted = user?.isDeleted;
+  const deletedAt = user?.deletedAt;
 
-  if (isDeleted) {
+  if (deletedAt) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
   }
 
