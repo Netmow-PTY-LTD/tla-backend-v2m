@@ -23,4 +23,8 @@ export default {
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
   client_url: process.env.CLIENT_SITE_URL,
+  digitalocean_space_access_key: process.env.DIGITALOCEAN_SPACE_ACCESS_KEY,
+  digitalocean_space_secrete_key: process.env.DIGITALOCEAN_SPACE_SECRETE_KEY,
+  digitalocean_origin_endpoint: process.env.DIGITALOCEAN_ORIGIN_ENDPOINT,
+  digitalocean_bucket: process.env.DIGITALOCEAN_BUCKET,
 };

@@ -1,50 +1,55 @@
 import multer from 'multer';
+import mime from 'mime-types';
 import path from 'path';
-import fs from 'fs';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { v4 as uuidv4 } from 'uuid';
+import { s3Client } from './s3Client';
+import config from '.';
 
-// Create the uploads folder if it doesn't exist
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']; // Extend as needed
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir); // Save files to /uploads
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const safeName = file.fieldname + '-' + uniqueSuffix + ext;
-    cb(null, safeName);
-  },
-});
+// Multer memory storage (required for uploading to S3)
+const storage = multer.memoryStorage();
 
-// File filter
-const fileFilter = (
-  // eslint-disable-next-line no-undef
-  req: Express.Request,
-  // eslint-disable-next-line no-undef
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback,
-) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']; // will add more file type
+const fileFilter: multer.Options['fileFilter'] = (req, file, cb) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPG, PNG, and PDF are allowed.'));
+    cb(new Error('Only JPG, PNG, and PDF files are allowed'));
   }
 };
 
-// Limits (e.g., max file size = 5MB)
 const limits = {
   fileSize: 5 * 1024 * 1024, // 5MB
 };
 
-// Final upload middleware
 export const upload = multer({
   storage,
   fileFilter,
   limits,
 });
+
+// Upload logic to S3
+
+export const uploadToSpaces = async (
+  fileBuffer: Buffer,
+  originalName: string,
+  userId: string, // 👈 Add userId to distinguish folders
+): Promise<string> => {
+  const fileExt = path.extname(originalName);
+  const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
+  const fileName = `users/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
+
+  const command = new PutObjectCommand({
+    Bucket: config.digitalocean_bucket!,
+    Key: fileName,
+    Body: fileBuffer,
+    ACL: 'public-read',
+    ContentType: mimeType,
+  });
+
+  await s3Client.send(command);
+
+  // 👇 Construct public URL
+  return `https://thelawapp.syd1.digitaloceanspaces.com/${fileName}`;
+};
