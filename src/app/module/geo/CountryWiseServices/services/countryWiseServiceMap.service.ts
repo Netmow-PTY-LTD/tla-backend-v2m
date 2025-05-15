@@ -9,7 +9,7 @@ const CreateCountryWiseServiceIntoDB = async (payload: ICountryWiseService) => {
 };
 
 const getAllCountryWiseServiceFromDB = async () => {
-  const result = await CountryWiseService.find({});
+  const result = await CountryWiseService.find({ deletedAt: null });
   return result;
 };
 
@@ -22,7 +22,10 @@ const getSingleCountryWiseServiceFromDB = async (id: string) => {
       'This Country Wise Service is not found !',
     );
   }
-  const result = await CountryWiseService.findById(id);
+  const result = await CountryWiseService.findOne({
+    _id: countryWiseService._id,
+    deletedAt: null,
+  });
   return result;
 };
 
@@ -39,9 +42,13 @@ const updateCountryWiseServiceIntoDB = async (
     );
   }
 
-  const result = await CountryWiseService.findByIdAndUpdate(id, payload, {
-    new: true,
-  });
+  const result = await CountryWiseService.findOneAndUpdate(
+    { _id: countryWiseService._id, deletedAt: null },
+    payload,
+    {
+      new: true,
+    },
+  );
   return result;
 };
 

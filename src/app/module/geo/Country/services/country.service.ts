@@ -9,7 +9,7 @@ const CreateCountryIntoDB = async (payload: ICountry) => {
 };
 
 const getAllCountryFromDB = async () => {
-  const countries = await Country.find({});
+  const countries = await Country.find({ deletedAt: null });
   return countries;
 };
 
@@ -18,7 +18,7 @@ const getSingleCountryFromDB = async (id: string) => {
   if (!country) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Country is not found !');
   }
-  const result = await Country.findById(id);
+  const result = await Country.findOne({ _id: country._id, deletedAt: null });
   return result;
 };
 
@@ -27,9 +27,13 @@ const updateCountryIntoDB = async (id: string, payload: Partial<ICountry>) => {
   if (!country) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Country is not found !');
   }
-  const result = await Country.findByIdAndUpdate(id, payload, {
-    new: true,
-  });
+  const result = await Country.findOneAndUpdate(
+    { _id: country._id, deletedAt: null },
+    payload,
+    {
+      new: true,
+    },
+  );
   return result;
 };
 
