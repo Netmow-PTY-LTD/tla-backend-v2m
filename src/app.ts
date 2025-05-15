@@ -5,6 +5,7 @@ import globalErrorHandler from './app/middlewares/globalErrorhandler';
 import notFound from './app/middlewares/notFound';
 import router from './app/routes';
 import config from './app/config';
+import { upload } from './app/config/multerUploder';
 
 const app: Application = express();
 
@@ -14,6 +15,15 @@ app.use(cookieParser());
 
 app.use(cors({ origin: [`${config.client_url}`], credentials: true }));
 
+app.post('/api/v1/upload', upload.single('file'), (req, res) => {
+  console.log('upload file route');
+  // eslint-disable-next-line no-undef
+  const file = req.file as Express.Multer.File;
+  res.json({
+    message: 'File uploaded successfully',
+    url: file.path, // public URL of the uploaded file
+  });
+});
 // application routes
 app.use('/api/v1', router);
 

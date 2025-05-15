@@ -109,11 +109,18 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function (next) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const user = this; // doc
-  // hashing password and save into DB
-  user.password = await bcrypt.hash(
+
+  // ✅ Prevent re-hashing if password isn't modified
+  if (!user.isModified('password')) {
+    return next();
+  }
+
+  const generatedHasPassword = await bcrypt.hash(
     user.password,
     Number(config.bcrypt_salt_rounds),
   );
+  // hashing password and save into DB
+  user.password = generatedHasPassword;
   next();
 });
 
