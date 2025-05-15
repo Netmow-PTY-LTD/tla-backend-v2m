@@ -33,9 +33,10 @@ const updateStepsCountryWiseOptionGroupsMapIntoDB = async (
 };
 
 const deleteStepsCountryWiseOptionGroupsMapFromDB = async (id: string) => {
+  const deletedAt = new Date().toISOString();
   const result = await StepsCountryWiseOptionGroupsMap.findByIdAndUpdate(
     id,
-    { isDeleted: true },
+    { deletedAt: deletedAt },
     {
       new: true,
     },

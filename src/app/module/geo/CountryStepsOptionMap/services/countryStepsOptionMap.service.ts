@@ -29,9 +29,10 @@ const updateCountryStepsOptionMapIntoDB = async (
 };
 
 const deleteCountryStepsOptionMapFromDB = async (id: string) => {
+  const deletedAt = new Date().toISOString();
   const result = await CountryStepsOptionMap.findByIdAndUpdate(
     id,
-    { isDeleted: true },
+    { deletedAt: deletedAt },
     {
       new: true,
     },

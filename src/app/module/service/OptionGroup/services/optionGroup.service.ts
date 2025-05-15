@@ -27,9 +27,10 @@ const updateOptionGroupIntoDB = async (
 };
 
 const deleteOptionGroupFromDB = async (id: string) => {
+  const deletedAt = new Date().toISOString();
   const result = await OptionGroup.findByIdAndUpdate(
     id,
-    { isDeleted: true },
+    { deleteAt: deletedAt },
     {
       new: true,
     },

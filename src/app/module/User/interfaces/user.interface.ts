@@ -7,5 +7,4 @@ export interface IUserProfile {
   activeProfile: UserProfile;
   country?: Types.ObjectId;
   deletedAt?: Date | null;
-  isDeleted: boolean;
 }

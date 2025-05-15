@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IOption } from '../interfaces/option.interface';
+import { IOption, OptionModel } from '../interfaces/option.interface';
 
 const optionSchema = new Schema<IOption>(
   {
@@ -36,6 +36,10 @@ const optionSchema = new Schema<IOption>(
         ref: 'Option',
       },
     ],
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -43,5 +47,10 @@ const optionSchema = new Schema<IOption>(
   },
 );
 
-const Option = mongoose.model<IOption>('Option', optionSchema);
+//creating a custom static method
+optionSchema.statics.isOptionExists = async function (id: string) {
+  const existingOption = await Option.findById(id);
+  return existingOption;
+};
+const Option = mongoose.model<IOption, OptionModel>('Option', optionSchema);
 export default Option;

@@ -9,7 +9,7 @@ const CreateCountryWiseServiceIntoDB = async (payload: ICountryWiseService) => {
 };
 
 const getAllCountryWiseServiceFromDB = async () => {
-  const result = await CountryWiseService.find({ isDeleted: false });
+  const result = await CountryWiseService.find({});
   return result;
 };
 
@@ -58,7 +58,7 @@ const deleteCountryWiseServiceFromDB = async (id: string) => {
 
   const result = await CountryWiseService.findByIdAndUpdate(
     id,
-    { isDeleted: true, deletedAt: deletedAt },
+    { deletedAt: deletedAt },
     {
       new: true,
     },

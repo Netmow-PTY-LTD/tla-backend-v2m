@@ -4,7 +4,6 @@ export interface IService {
   _id?: string;
   name: string;
   slug: string;
-  isDeleted: boolean;
   deletedAt?: Date;
 }
 

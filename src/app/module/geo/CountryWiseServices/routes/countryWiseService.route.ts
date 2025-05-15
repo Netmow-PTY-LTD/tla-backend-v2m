@@ -6,23 +6,23 @@ import { CountryWiseServiceZodValidation } from '../validations/countryWiseServi
 const router = Router();
 
 router.post(
-  '/',
+  '/add',
   validateRequest(
     CountryWiseServiceZodValidation.createCountryWiseServiceSchema,
   ),
   countryWiseServiceController.createCountryWiseService,
 );
-router.get('/', countryWiseServiceController.getAllCountryWiseService);
+router.get('/list', countryWiseServiceController.getAllCountryWiseService);
 router.get(
   '/:countryWiseServiceId',
   countryWiseServiceController.getSingleCountryWiseService,
 );
 router.delete(
-  '/:countryWiseServiceId',
+  '/delete/:countryWiseServiceId',
   countryWiseServiceController.deleteSingleCountryWiseService,
 );
 router.patch(
-  '/:countryWiseServiceId',
+  '/edit/:countryWiseServiceId',
   validateRequest(
     CountryWiseServiceZodValidation.createCountryWiseServiceSchema,
   ),

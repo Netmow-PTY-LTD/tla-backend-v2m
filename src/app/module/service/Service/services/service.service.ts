@@ -9,7 +9,7 @@ const CreateServiceIntoDB = async (payload: IService) => {
 };
 
 const getAllServiceFromDB = async () => {
-  const result = await Service.find({ isDeleted: false });
+  const result = await Service.find({});
   return result;
 };
 
@@ -42,7 +42,7 @@ const deleteServiceFromDB = async (id: string) => {
 
   const result = await Service.findByIdAndUpdate(
     id,
-    { isDeleted: true, deletedAt: deletedAt },
+    { deletedAt: deletedAt },
     {
       new: true,
     },

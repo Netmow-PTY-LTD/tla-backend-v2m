@@ -125,17 +125,13 @@ export const softDeleteUserIntoDB = async (id: string) => {
     // Define the deletion timestamp
     const deletedAt = new Date();
 
-    // Soft delete the user by setting isDeleted to true and adding the deletedAt timestamp
-    await User.findByIdAndUpdate(
-      id,
-      { isDeleted: true, deletedAt },
-      { session },
-    );
+    // Soft delete the user by setting  adding the deletedAt timestamp
+    await User.findByIdAndUpdate(id, { deletedAt: deletedAt }, { session });
 
     // Soft delete the user's profile with the same method
     await UserProfile.findOneAndUpdate(
       { user: id },
-      { isDeleted: true, deletedAt },
+      { deletedAt: deletedAt },
       { session },
     );
 

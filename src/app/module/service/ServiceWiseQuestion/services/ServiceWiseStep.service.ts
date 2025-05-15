@@ -29,9 +29,10 @@ const updateServiceWiseQuestionIntoDB = async (
 };
 
 const deleteServiceWiseQuestionFromDB = async (id: string) => {
+  const deletedAt = new Date().toISOString();
   const result = await ServiceWiseQuestion.findByIdAndUpdate(
     id,
-    { isDeleted: true },
+    { deletedAt: deletedAt },
     {
       new: true,
     },
