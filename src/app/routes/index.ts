@@ -35,7 +35,7 @@ const moduleRoutes = [
     route: CountryWiseServiceRouter,
   },
   {
-    path: '/service-wise-question',
+    path: '/question',
     route: ServiceWiseQuestionRouter,
   },
   {
