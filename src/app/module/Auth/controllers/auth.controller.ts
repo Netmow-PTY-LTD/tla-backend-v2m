@@ -29,6 +29,13 @@ const login = catchAsync(async (req, res) => {
     sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
   });
 
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
+    // secure: config.NODE_ENV === 'production',
+    secure: true, // Ensures cookie is only sent over HTTPS
+    sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
+  });
+
   // Send the access token and user data in the response
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
