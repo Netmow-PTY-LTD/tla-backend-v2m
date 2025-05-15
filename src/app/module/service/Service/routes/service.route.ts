@@ -7,13 +7,13 @@ import { serviceZodValidation } from '../validations/service.validation';
 const router = Router();
 
 router.post(
-  '/create',
+  '/add',
   validateRequest(serviceZodValidation.serviceValidationSchema),
   serviceController.createService,
 );
 
-router.get('/all', serviceController.getAllService);
-router.get('/single/:serviceId', serviceController.getSingleService);
+router.get('/list', serviceController.getAllService);
+router.get('/:serviceId', serviceController.getSingleService);
 router.delete('/delete/:serviceId', serviceController.deleteSingleService);
 router.patch(
   '/edit/:serviceId',

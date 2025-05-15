@@ -6,15 +6,15 @@ import { CountryWiseServiceZodValidation } from '../validations/countryWiseServi
 const router = Router();
 
 router.post(
-  '/create',
+  '/add',
   validateRequest(
     CountryWiseServiceZodValidation.createCountryWiseServiceSchema,
   ),
   countryWiseServiceController.createCountryWiseService,
 );
-router.get('/all', countryWiseServiceController.getAllCountryWiseService);
+router.get('/list', countryWiseServiceController.getAllCountryWiseService);
 router.get(
-  '/single/:countryWiseServiceId',
+  '/:countryWiseServiceId',
   countryWiseServiceController.getSingleCountryWiseService,
 );
 router.delete(

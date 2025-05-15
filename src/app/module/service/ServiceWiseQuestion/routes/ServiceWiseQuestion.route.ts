@@ -7,14 +7,14 @@ import { ServiceWiseQuestionController } from '../controllers/ServiceWiseQuestio
 const router = Router();
 
 router.post(
-  '/create',
+  '/add',
   validateRequest(serviceWiseStepZodValidation.ServiceWiseStepZodSchema),
   ServiceWiseQuestionController.createServiceWiseQuestion,
 );
 
-router.get('/all', ServiceWiseQuestionController.getAllServiceWiseQuestion);
+router.get('/list', ServiceWiseQuestionController.getAllServiceWiseQuestion);
 router.get(
-  '/single/:questionId',
+  '/:questionId',
   ServiceWiseQuestionController.getSingleServiceWiseQuestion,
 );
 router.delete(

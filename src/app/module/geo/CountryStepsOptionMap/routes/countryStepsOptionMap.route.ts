@@ -6,13 +6,16 @@ import { countryStepsOptionMapController } from '../controllers/countryStepsOpti
 const router = Router();
 
 router.post(
-  '/create',
+  '/add',
   // validateRequest(),
   countryStepsOptionMapController.createCountryStepsOptionMap,
 );
-router.get('/all', countryStepsOptionMapController.getAllCountryStepsOptionMap);
 router.get(
-  '/single/:countryStepsOptionMapId',
+  '/list',
+  countryStepsOptionMapController.getAllCountryStepsOptionMap,
+);
+router.get(
+  '/:countryStepsOptionMapId',
   countryStepsOptionMapController.getSingleCountryStepsOptionMap,
 );
 router.delete(

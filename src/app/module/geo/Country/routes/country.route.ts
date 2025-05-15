@@ -6,13 +6,13 @@ import { countryController } from '../controllers/country.controller';
 const router = Router();
 
 router.post(
-  '/create',
+  '/add',
 
   validateRequest(countryZodValidation.countryZodValidationSchema),
   countryController.createCountry,
 );
-router.get('/all', countryController.getAllCountry);
-router.get('/single/:countryId', countryController.getSingleCountry);
+router.get('/list', countryController.getAllCountry);
+router.get('/:countryId', countryController.getSingleCountry);
 router.delete('/delete/:countryId', countryController.deleteSingleCountry);
 router.patch(
   '/edit/:countryId',

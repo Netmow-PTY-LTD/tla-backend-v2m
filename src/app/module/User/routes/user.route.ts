@@ -12,7 +12,7 @@ router.get(
   userProfileController.getUserProfileInfo,
 );
 router.get(
-  '/all',
+  '/list',
   auth(USER_ROLE.ADMIN),
   userProfileController.getAllUserProfile,
 );
@@ -27,6 +27,6 @@ router.patch(
   validateRequest(authZodValidation.userUpdateZodValidationSchema),
   userProfileController.updateProfile,
 );
-router.get('/single/:userId', userProfileController.getSingleUserProfileData);
+router.get('/:userId', userProfileController.getSingleUserProfileData);
 
 export const UserProfileRouter = router;
