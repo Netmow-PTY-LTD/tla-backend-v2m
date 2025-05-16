@@ -3,6 +3,9 @@ import sendResponse from '../../../utils/sendResponse';
 
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { UserProfileService } from '../services/user.service';
+import { TUploadedFile } from '../../../interface/file.interface';
+import { CompanyProfileService } from '../services/companyProfile.service';
+import { ProfilePhotosService } from '../services/profilePhotos.service';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -11,26 +14,66 @@ import { UserProfileService } from '../services/user.service';
  * @returns {Promise<void>} Sends the response with status, success message, and updated profile data.
  * @throws {AppError} Throws an error if the user profile update fails.
  */
+
 const updateProfile = catchAsync(async (req, res) => {
-  // Extract the user ID from the request parameters
   const userId = req.params.userId;
-  const file = req.file;
+  const parsedData = JSON.parse(req.body.data); // { userProfile, companyInfo, socialMedia, questions }
 
-  // Extract the updated profile data from the request body
-  const payload = req.body;
+  const files = req.files as TUploadedFile[];
 
-  // Call the service function to update the user's profile data in the database
-  const result = await UserProfileService.updateProfileIntoDB(
+  // Map fieldname => TUploadedFile
+  const fileMap: Record<string, TUploadedFile[]> = {};
+
+  files.forEach((file) => {
+    if (!fileMap[file.fieldname]) {
+      fileMap[file.fieldname] = [];
+    }
+    fileMap[file.fieldname].push(file);
+  });
+
+  // Update user  profile
+
+  const userProfileResult = await UserProfileService.updateProfileIntoDB(
     userId,
-    payload,
-    file,
+    parsedData.userProfile,
+    fileMap['userProfile']?.[0],
   );
 
-  // Send a successful response back to the client with the updated profile data
+  const companyProfileResult =
+    await CompanyProfileService.updateCompanyProfileIntoDB(
+      userId,
+      parsedData.companyInfo,
+      fileMap['companyLogo']?.[0],
+    );
+
+  const profilePhotosResult =
+    await ProfilePhotosService.updateProfilePhotosIntoDB(
+      userId,
+      parsedData.photos,
+      fileMap['photos'],
+    );
+
+  // Decide which result to return, prioritizing userProfile first
+  const result =
+    userProfileResult || companyProfileResult || profilePhotosResult;
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      success: false,
+      message: 'No profile data provided to update.',
+      data: '',
+    });
+  }
+
+  const message = userProfileResult
+    ? 'User profile updated successfully.'
+    : 'Company profile updated successfully.';
+
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Update User Successfully',
+    message,
     data: result,
   });
 });
