@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+import mongoose, { model } from 'mongoose';
+import { ICompanyProfile } from '../interfaces/companyProfile.interface';
 
 const companyProfileSchema = new mongoose.Schema(
   {
@@ -79,4 +80,8 @@ const companyProfileSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model('CompanyProfile', companyProfileSchema);
+export const CompanyProfile = model<ICompanyProfile>(
+  'CompanyProfile',
+  companyProfileSchema,
+);
+export default CompanyProfile;
