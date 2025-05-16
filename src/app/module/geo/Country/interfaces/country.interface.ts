@@ -1,9 +1,10 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 export interface ICountry {
   _id?: string;
   name: string;
   slug: string;
+  serviceIds: [Types.ObjectId];
   deletedAt?: Date | null;
 }
 

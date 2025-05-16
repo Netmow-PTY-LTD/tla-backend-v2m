@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response, Router } from 'express';
+import { Router } from 'express';
 import { userProfileController } from '../controllers/user.controller';
-import { authZodValidation } from '../validations/user.validation';
-import validateRequest from '../../../middlewares/validateRequest';
+// import { authZodValidation } from '../validations/user.validation';
+// import validateRequest from '../../../middlewares/validateRequest';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
 import { upload } from '../../../config/upload';
