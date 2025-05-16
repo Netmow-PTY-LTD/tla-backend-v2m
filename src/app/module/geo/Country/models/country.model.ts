@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { CountryModel, ICountry } from '../interfaces/country.interface';
+import { Schema } from 'mongoose';
 
 const countriesSchema = new mongoose.Schema(
   {
@@ -15,6 +16,13 @@ const countriesSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    serviceIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Service',
+        required: true,
+      },
+    ],
     deletedAt: {
       type: Date,
       default: null,
