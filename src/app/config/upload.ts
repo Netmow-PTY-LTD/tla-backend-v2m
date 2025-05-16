@@ -39,7 +39,7 @@ export const uploadToSpaces = async (
 ): Promise<string> => {
   const fileExt = path.extname(originalName);
   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
-  const fileName = `users/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
+  const fileName = `profiles/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
   // const fileName = `${folder}/${userId}/${uuidv4()}${fileExt}`;
 
   const command = new PutObjectCommand({

@@ -14,12 +14,17 @@ import { UserProfileService } from '../services/user.service';
 const updateProfile = catchAsync(async (req, res) => {
   // Extract the user ID from the request parameters
   const userId = req.params.userId;
+  const file = req.file;
 
   // Extract the updated profile data from the request body
   const payload = req.body;
 
   // Call the service function to update the user's profile data in the database
-  const result = await UserProfileService.updateProfileIntoDB(userId, payload);
+  const result = await UserProfileService.updateProfileIntoDB(
+    userId,
+    payload,
+    file,
+  );
 
   // Send a successful response back to the client with the updated profile data
   return sendResponse(res, {
