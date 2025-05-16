@@ -1,9 +1,10 @@
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import { userProfileController } from '../controllers/user.controller';
 import { authZodValidation } from '../validations/user.validation';
 import validateRequest from '../../../middlewares/validateRequest';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
+import { upload } from '../../../config/upload';
 const router = Router();
 
 router.get(
@@ -24,6 +25,11 @@ router.delete(
 );
 router.patch(
   '/edit/:userId',
+  upload.single('file'),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   validateRequest(authZodValidation.userUpdateZodValidationSchema),
   userProfileController.updateProfile,
 );
