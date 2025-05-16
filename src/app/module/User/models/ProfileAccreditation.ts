@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+import mongoose, { model } from 'mongoose';
+import { IAccreditation } from '../interfaces/profileAccreditatio';
 
 const accreditationSchema = new mongoose.Schema(
   {
@@ -23,4 +24,8 @@ const accreditationSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model('Accreditation', accreditationSchema);
+export const Accreditation = model<IAccreditation>(
+  'Accreditation',
+  accreditationSchema,
+);
+export default Accreditation;
