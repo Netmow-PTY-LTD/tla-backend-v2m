@@ -3,8 +3,9 @@ import mime from 'mime-types';
 import path from 'path';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
+
+import config from './index';
 import { s3Client } from './s3Client';
-import config from '.';
 
 const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']; // Extend as needed
 
@@ -41,7 +42,7 @@ export const uploadToSpaces = async (
   const fileName = `users/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
 
   const command = new PutObjectCommand({
-    Bucket: config.digitalocean_bucket!,
+    Bucket: config.do_spaces_bucket!,
     Key: fileName,
     Body: fileBuffer,
     ACL: 'public-read',
@@ -51,5 +52,7 @@ export const uploadToSpaces = async (
   await s3Client.send(command);
 
   // 👇 Construct public URL
-  return `https://thelawapp.syd1.digitaloceanspaces.com/${fileName}`;
+  const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
+  const publicUrl = `https://${config.do_spaces_bucket}.${endpoint}/${fileName}`;
+  return publicUrl;
 };

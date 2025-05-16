@@ -2,10 +2,10 @@ import { S3Client } from '@aws-sdk/client-s3';
 import config from './index';
 
 export const s3Client = new S3Client({
-  region: 'us-east-1',
-  endpoint: config.digitalocean_origin_endpoint,
+  region: config.do_spaces_region,
+  endpoint: config.do_spaces_endpoint,
   credentials: {
-    accessKeyId: config.digitalocean_space_access_key!,
-    secretAccessKey: config.digitalocean_space_secrete_key!,
+    accessKeyId: config.do_spaces_access_key!,
+    secretAccessKey: config.do_spaces_secret_key!,
   },
 });
