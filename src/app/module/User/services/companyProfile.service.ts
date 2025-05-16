@@ -46,11 +46,6 @@ const updateCompanyProfileIntoDB = async (
     },
   );
 
-  // If no profile is found to update, throw an error
-  if (!updateCompanyProfile) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, ' Company profile not found');
-  }
-
   // Return the updated profile
   return updateCompanyProfile;
 };
