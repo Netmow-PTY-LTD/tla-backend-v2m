@@ -8,4 +8,5 @@ export interface IUserProfile {
   country?: Types.ObjectId;
   deletedAt?: Date | null;
   profilePicture?: string;
+  bio?: string;
 }

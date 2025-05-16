@@ -25,13 +25,14 @@ router.delete(
 );
 router.patch(
   '/edit/:userId',
-  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  upload.single('file'),
-  (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
-    next();
-  },
-  validateRequest(authZodValidation.userUpdateZodValidationSchema),
+  // auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  // upload.single('file'),
+  upload.any(),
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   req.body = JSON.parse(req.body.data);
+  //   next();
+  // },
+  // validateRequest(authZodValidation.userUpdateZodValidationSchema),
   userProfileController.updateProfile,
 );
 router.get('/:userId', userProfileController.getSingleUserProfileData);
