@@ -29,6 +29,10 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
     },
+    bio: {
+      type: String,
+      trim: true,
+    },
     deletedAt: {
       type: Date,
       default: null,
