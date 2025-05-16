@@ -25,6 +25,10 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Country',
     },
+    profilePicture: {
+      type: String,
+      trim: true,
+    },
     deletedAt: {
       type: Date,
       default: null,

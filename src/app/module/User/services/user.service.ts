@@ -5,6 +5,8 @@ import User from '../../Auth/models/auth.model';
 import { IUserProfile } from '../interfaces/user.interface';
 import UserProfile from '../models/user.model';
 import mongoose from 'mongoose';
+import { uploadToSpaces } from '../../../config/upload';
+import { TUploadedFile } from '../../../interface/file.interface';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -26,11 +28,31 @@ const getAllUserIntoDB = async () => {
 const updateProfileIntoDB = async (
   id: string,
   payload: Partial<IUserProfile>,
+  file?: TUploadedFile,
 ) => {
   // Check if the user exists in the database by ID
   const isUserExists = await User.isUserExists(id);
   if (!isUserExists) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+  }
+
+  // ✅ Handle file upload if provided
+  if (file?.buffer) {
+    try {
+      const uploadedUrl = await uploadToSpaces(
+        file.buffer,
+        file.originalname,
+        id,
+        // 'avatars', // optional folder name
+      );
+      payload.profilePicture = uploadedUrl;
+      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new AppError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        'File upload failed',
+      );
+    }
   }
 
   // Update the user's profile in the database
