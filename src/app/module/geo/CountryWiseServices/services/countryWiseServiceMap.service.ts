@@ -16,12 +16,7 @@ const getAllCountryWiseServiceFromDB = async () => {
 const getSingleCountryWiseServiceFromDB = async (id: string) => {
   const countryWiseService =
     await CountryWiseService.isCountryWiseServiceExists(id);
-  if (!countryWiseService) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      'This Country Wise Service is not found !',
-    );
-  }
+
   const result = await CountryWiseService.findOne({
     _id: countryWiseService._id,
     deletedAt: null,
