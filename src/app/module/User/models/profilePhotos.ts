@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+import mongoose, { model } from 'mongoose';
+import { IProfilePhotos } from '../interfaces/profiePhotos.interface';
 
 const profileServiceCustomSchema = new mongoose.Schema(
   {
@@ -25,4 +26,9 @@ const profileServiceCustomSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model('ProfilePhotos', profileServiceCustomSchema);
+// Creating the model for  photos
+export const ProfilePhotos = model<IProfilePhotos>(
+  'ProfilePhotos',
+  profileServiceCustomSchema,
+);
+export default ProfilePhotos;

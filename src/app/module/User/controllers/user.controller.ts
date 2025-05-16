@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { UserProfileService } from '../services/user.service';
 import { TUploadedFile } from '../../../interface/file.interface';
 import { CompanyProfileService } from '../services/companyProfile.service';
+import { ProfilePhotosService } from '../services/profilePhotos.service';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -21,9 +22,13 @@ const updateProfile = catchAsync(async (req, res) => {
   const files = req.files as TUploadedFile[];
 
   // Map fieldname => TUploadedFile
-  const fileMap: Record<string, TUploadedFile> = {};
+  const fileMap: Record<string, TUploadedFile[]> = {};
+
   files.forEach((file) => {
-    fileMap[file.fieldname] = file;
+    if (!fileMap[file.fieldname]) {
+      fileMap[file.fieldname] = [];
+    }
+    fileMap[file.fieldname].push(file);
   });
 
   // Update user  profile
@@ -31,18 +36,26 @@ const updateProfile = catchAsync(async (req, res) => {
   const userProfileResult = await UserProfileService.updateProfileIntoDB(
     userId,
     parsedData.userProfile,
-    fileMap['userProfile'],
+    fileMap['userProfile']?.[0],
   );
 
   const companyProfileResult =
     await CompanyProfileService.updateCompanyProfileIntoDB(
       userId,
       parsedData.companyInfo,
-      fileMap['companyLogo'],
+      fileMap['companyLogo']?.[0],
+    );
+
+  const profilePhotosResult =
+    await ProfilePhotosService.updateProfilePhotosIntoDB(
+      userId,
+      parsedData.photos,
+      fileMap['photos'],
     );
 
   // Decide which result to return, prioritizing userProfile first
-  const result = userProfileResult || companyProfileResult;
+  const result =
+    userProfileResult || companyProfileResult || profilePhotosResult;
 
   if (!result) {
     return sendResponse(res, {
