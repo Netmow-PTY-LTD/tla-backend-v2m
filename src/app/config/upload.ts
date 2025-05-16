@@ -1,7 +1,7 @@
 import multer from 'multer';
 import mime from 'mime-types';
 import path from 'path';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 
 import config from './index';
@@ -40,6 +40,7 @@ export const uploadToSpaces = async (
   const fileExt = path.extname(originalName);
   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
   const fileName = `users/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
+  // const fileName = `${folder}/${userId}/${uuidv4()}${fileExt}`;
 
   const command = new PutObjectCommand({
     Bucket: config.do_spaces_bucket!,
@@ -55,4 +56,12 @@ export const uploadToSpaces = async (
   const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
   const publicUrl = `https://${config.do_spaces_bucket}.${endpoint}/${fileName}`;
   return publicUrl;
+};
+
+export const deleteFromSpaces = async (fileKey: string) => {
+  const command = new DeleteObjectCommand({
+    Bucket: config.do_spaces_bucket!,
+    Key: fileKey,
+  });
+  await s3Client.send(command);
 };
