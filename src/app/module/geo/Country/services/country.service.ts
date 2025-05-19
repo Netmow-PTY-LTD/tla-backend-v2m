@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
-import { HTTP_STATUS } from '../../../../constant/httpStatus';
-import { AppError } from '../../../../errors/error';
 import CountryWiseMap from '../../CountryWiseMap/models/countryWiseMap.model';
 import { ICountry } from '../interfaces/country.interface';
 import Country from '../models/country.model';
+import { validateObjectId } from '../../../../utils/validateObjectId';
 
 const CreateCountryIntoDB = async (payload: ICountry) => {
   const session = await mongoose.startSession();
@@ -38,21 +37,15 @@ const getAllCountryFromDB = async () => {
 };
 
 const getSingleCountryFromDB = async (id: string) => {
-  const country = await Country.isCountryExists(id);
-  if (!country) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Country is not found !');
-  }
-  const result = await Country.findOne({ _id: country._id, deletedAt: null });
+  validateObjectId(id, 'Country');
+  const result = await Country.findOne({ _id: id, deletedAt: null });
   return result;
 };
 
 const updateCountryIntoDB = async (id: string, payload: Partial<ICountry>) => {
-  const country = await Country.isCountryExists(id);
-  if (!country) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Country is not found !');
-  }
+  validateObjectId(id, 'Country');
   const result = await Country.findOneAndUpdate(
-    { _id: country._id, deletedAt: null },
+    { _id: id, deletedAt: null },
     payload,
     {
       new: true,
@@ -62,11 +55,9 @@ const updateCountryIntoDB = async (id: string, payload: Partial<ICountry>) => {
 };
 
 const deleteCountryFromDB = async (id: string) => {
+  validateObjectId(id, 'Country');
   const deletedAt = new Date().toISOString();
-  const country = await Country.isCountryExists(id);
-  if (!country) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Country is not found !');
-  }
+
   const result = await Country.findByIdAndUpdate(
     id,
     { deletedAt: deletedAt },
