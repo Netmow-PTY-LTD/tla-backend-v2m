@@ -1,5 +1,4 @@
-import { HTTP_STATUS } from '../../../../constant/httpStatus';
-import { AppError } from '../../../../errors/error';
+import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IServiceWiseQuestion } from '../interfaces/ServiceWiseQuestion.interface';
 import ServiceWiseQuestion from '../models/ServiceWiseQuestion.model';
 
@@ -16,18 +15,11 @@ const getAllServiceWiseQuestionFromDB = async () => {
 };
 
 const getSingleServiceWiseQuestionFromDB = async (id: string) => {
-  const swQuestion = await ServiceWiseQuestion.isServiceWiseStepExists(id);
-  if (!swQuestion) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      'This Service Wise Question is not found !',
-    );
-  }
-
+  validateObjectId(id, 'Question');
   const result = await ServiceWiseQuestion.findOne({
-    _id: swQuestion._id,
+    _id: id,
     deletedAt: null,
-  });
+  }).populate('serviceId countryId');
   return result;
 };
 
@@ -35,16 +27,10 @@ const updateServiceWiseQuestionIntoDB = async (
   id: string,
   payload: Partial<IServiceWiseQuestion>,
 ) => {
-  const swQuestion = await ServiceWiseQuestion.isServiceWiseStepExists(id);
-  if (!swQuestion) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      'This Service Wise Question is not found !',
-    );
-  }
+  validateObjectId(id, 'Question');
 
   const result = await ServiceWiseQuestion.findOneAndUpdate(
-    { _id: swQuestion._id, deletedAt: null },
+    { _id: id, deletedAt: null },
     payload,
     {
       new: true,
@@ -54,13 +40,7 @@ const updateServiceWiseQuestionIntoDB = async (
 };
 
 const deleteServiceWiseQuestionFromDB = async (id: string) => {
-  const swQuestion = await ServiceWiseQuestion.isServiceWiseStepExists(id);
-  if (!swQuestion) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      'This Service Wise Question is not found !',
-    );
-  }
+  validateObjectId(id, 'Question');
   const deletedAt = new Date().toISOString();
   const result = await ServiceWiseQuestion.findByIdAndUpdate(
     id,

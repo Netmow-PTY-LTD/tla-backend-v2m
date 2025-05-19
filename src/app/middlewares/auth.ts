@@ -52,7 +52,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
 
     if (
       userStatus === USER_STATUS.SUSPENDED ||
-      userStatus === USER_STATUS.SUSPENDED_SPAM
+      userStatus === USER_STATUS.INACTIVE
     ) {
       throw new AppError(
         HTTP_STATUS.FORBIDDEN,

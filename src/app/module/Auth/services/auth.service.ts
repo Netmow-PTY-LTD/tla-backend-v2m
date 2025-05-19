@@ -1,10 +1,6 @@
 import config from '../../../config';
 import { AppError } from '../../../errors/error';
-import {
-  IAccountStatusChange,
-  ILoginUser,
-  IUser,
-} from '../interfaces/auth.interface';
+import { ILoginUser, IUser } from '../interfaces/auth.interface';
 import User from '../models/auth.model';
 import { createToken, verifyToken } from '../utils/auth.utils';
 import { USER_STATUS } from '../constant/auth.constant';
