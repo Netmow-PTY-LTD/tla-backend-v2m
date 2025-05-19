@@ -21,6 +21,15 @@ const getSingleCountryWiseMapFromDB = async (id: string) => {
   return result;
 };
 
+const getSingleCountryWiseMapByIdFromDB = async (id: string) => {
+  validateObjectId(id, 'Country');
+  const result = await CountryWiseMap.find({
+    countryId: id,
+    deletedAt: null,
+  });
+  return result;
+};
+
 const updateCountryWiseMapIntoDB = async (
   id: string,
   payload: Partial<ICountryWiseMap>,
@@ -55,4 +64,5 @@ export const countryWiseMapService = {
   getSingleCountryWiseMapFromDB,
   updateCountryWiseMapIntoDB,
   deleteCountryWiseMapFromDB,
+  getSingleCountryWiseMapByIdFromDB,
 };

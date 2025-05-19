@@ -16,6 +16,10 @@ router.get(
   '/:countryWiseMapId',
   countryWiseMapController.getSingleCountryWiseMap,
 );
+router.get(
+  '/country/:countryId',
+  countryWiseMapController.getSingleCountryWiseMapById,
+);
 router.delete(
   '/delete/:countryWiseMapId',
   countryWiseMapController.deleteSingleCountryWiseMap,

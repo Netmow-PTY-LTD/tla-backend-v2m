@@ -29,6 +29,19 @@ const getSingleCountryWiseMap = catchAsync(async (req, res) => {
   });
 });
 
+const getSingleCountryWiseMapById = catchAsync(async (req, res) => {
+  const { countryId } = req.params;
+  const result =
+    await countryWiseMapService.getSingleCountryWiseMapByIdFromDB(countryId);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Country Wise Map is retrieved successfully',
+    data: result,
+  });
+});
+
 const deleteSingleCountryWiseMap = catchAsync(async (req, res) => {
   const { countryWiseMapId } = req.params;
   const result =
@@ -75,4 +88,5 @@ export const countryWiseMapController = {
   deleteSingleCountryWiseMap,
   updateSingleCountryWiseMap,
   getAllCountryWiseMap,
+  getSingleCountryWiseMapById,
 };
