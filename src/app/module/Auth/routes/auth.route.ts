@@ -18,7 +18,7 @@ router.post(
   authController.register,
 );
 
-router.get(
+router.post(
   '/refresh-token',
   validateRequest(authZodValidation.refreshTokenValidationSchema),
   authController.refreshToken,
@@ -39,6 +39,12 @@ router.post(
   '/reset-password',
   validateRequest(authZodValidation.forgetPasswordValidationSchema),
   authController.resetPassword,
+);
+
+router.post(
+  '/logout',
+  validateRequest(authZodValidation.logOutTokenValidationSchema),
+  authController.logOut,
 );
 
 export const authRouter = router;

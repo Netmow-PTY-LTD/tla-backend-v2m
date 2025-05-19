@@ -14,11 +14,14 @@ const app = (0, express_1.default)();
 //parsers
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
-app.use((0, cors_1.default)({ origin: [`${config_1.default.client_url}`], credentials: true }));
+app.use((0, cors_1.default)({
+    origin: [`${config_1.default.client_url}`, 'http://localhost:3000'],
+    credentials: true,
+}));
 // application routes
 app.use('/api/v1', routes_1.default);
 app.get('/', (req, res) => {
-    res.send('Welcome to Backend World');
+    res.send('Welcome to TLA Backend World');
 });
 app.use(globalErrorhandler_1.default);
 //Not Found

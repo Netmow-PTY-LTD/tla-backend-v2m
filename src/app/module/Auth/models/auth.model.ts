@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     regUserType: {
       type: String,
       required: true,
-      enum: ['seller', 'buyer', 'admin'],
+      enum: ['client', 'lawyer', 'admin'],
     },
     regType: {
       type: String,
@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      select: false,
     },
     needsPasswordChange: {
       type: Boolean,
@@ -83,13 +84,23 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
+    profile: { type: mongoose.Schema.Types.ObjectId, ref: 'UserProfile' }, // Reference to profile
   },
   {
+    versionKey: false,
     timestamps: true,
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
+    toObject: {
+      transform(doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
   },
 );
 
@@ -98,34 +109,38 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function (next) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const user = this; // doc
-  // hashing password and save into DB
-  user.password = await bcrypt.hash(
+
+  // ✅ Prevent re-hashing if password isn't modified
+  if (!user.isModified('password')) {
+    return next();
+  }
+
+  const generatedHasPassword = await bcrypt.hash(
     user.password,
     Number(config.bcrypt_salt_rounds),
   );
+  // hashing password and save into DB
+  user.password = generatedHasPassword;
   next();
 });
 
-// set '' after saving password
-userSchema.post('save', function (doc, next) {
-  doc.password = '';
-  next();
-});
-
+// Static method to check if the plain password matches the hashed password
 userSchema.statics.isPasswordMatched = async function (
   plainTextPassword,
   hashedPassword,
 ) {
   return await bcrypt.compare(plainTextPassword, hashedPassword);
 };
-
+// Static method to check if a user exists by ID
 userSchema.statics.isUserExists = async function (id: string) {
   return await User.findById(id).select('+password');
 };
+// Static method to check if a user exists by email
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
   return await User.findOne({ email }).select('+password');
 };
 
+// Static method to check if JWT was issued before password change
 userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
   passwordChangedTimestamp: Date,
   jwtIssuedTimestamp: number,
@@ -134,7 +149,7 @@ userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
     new Date(passwordChangedTimestamp).getTime() / 1000;
   return passwordChangedTime > jwtIssuedTimestamp;
 };
-
+// Create User model
 export const User = model<IUser, UserModel>('User', userSchema);
 
 export default User;

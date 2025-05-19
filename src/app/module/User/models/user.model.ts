@@ -2,6 +2,7 @@ import mongoose, { Schema, model } from 'mongoose';
 import { USER_PROFILE } from '../constants/user.constant';
 import { IUserProfile } from '../interfaces/user.interface';
 
+// Define the schema for the user profile
 const userProfileSchema = new Schema<IUserProfile>(
   {
     user: {
@@ -24,13 +25,38 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Country',
     },
+    profilePicture: {
+      type: String,
+      trim: true,
+    },
+    bio: {
+      type: String,
+      trim: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
     // Add more profile-specific fields here
   },
   {
+    versionKey: false,
     timestamps: true,
+    toJSON: {
+      transform(doc, ret) {
+        return ret;
+      },
+    },
+    toObject: {
+      transform(doc, ret) {
+        return ret;
+      },
+    },
   },
 );
 
+// Creating the model for UserProfile
 export const UserProfile = model<IUserProfile>(
   'UserProfile',
   userProfileSchema,
