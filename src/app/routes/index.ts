@@ -7,8 +7,9 @@ import { serviceRouter } from '../module/Service/Service/routes/service.route';
 
 import { OptionRouter } from '../module/Service/Option/routes/option.route';
 
-import { ServiceWiseQuestionRouter } from '../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route';
 import { CountryWiseMapRouter } from '../module/Geo/CountryWiseMap/routes/countryWiseMap.route';
+import { serviceWiseQuestionRouter } from '../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route';
+import { questionRouter } from '../module/Service/Question/routes/ServiceWiseQuestion.route';
 
 const router = Router();
 
@@ -35,7 +36,11 @@ const moduleRoutes = [
   },
   {
     path: '/question',
-    route: ServiceWiseQuestionRouter,
+    route: questionRouter,
+  },
+  {
+    path: '/service-wise-questions',
+    route: serviceWiseQuestionRouter,
   },
   {
     path: '/option',
