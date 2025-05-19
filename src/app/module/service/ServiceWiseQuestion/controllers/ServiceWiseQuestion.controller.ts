@@ -35,6 +35,14 @@ const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
       serviceId,
     );
 
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Service Wise Question  not found.',
+      data: null,
+    });
+  }
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
