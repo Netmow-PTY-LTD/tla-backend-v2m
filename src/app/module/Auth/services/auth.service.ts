@@ -1,6 +1,10 @@
 import config from '../../../config';
 import { AppError } from '../../../errors/error';
-import { ILoginUser, IUser } from '../interfaces/auth.interface';
+import {
+  IAccountStatusChange,
+  ILoginUser,
+  IUser,
+} from '../interfaces/auth.interface';
 import User from '../models/auth.model';
 import { createToken, verifyToken } from '../utils/auth.utils';
 import { USER_STATUS } from '../constant/auth.constant';
@@ -36,7 +40,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
   }
@@ -219,7 +223,7 @@ const changePasswordIntoDB = async (
 
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -274,7 +278,7 @@ const forgetPassword = async (userEmail: string) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -348,7 +352,7 @@ const resetPassword = async (
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -426,6 +430,21 @@ export const logOutToken = async (
   };
 };
 
+const accountStatusChangeIntoDB = async (
+  userId: string,
+  accountStatus: string,
+) => {
+  const result = await User.findOneAndUpdate(
+    { _id: userId, deletedAt: null },
+    {
+      accountStatus,
+    },
+    { new: true },
+  );
+
+  return result;
+};
+
 export const authService = {
   loginUserIntoDB,
   registerUserIntoDB,
@@ -434,4 +453,5 @@ export const authService = {
   forgetPassword,
   resetPassword,
   logOutToken,
+  accountStatusChangeIntoDB,
 };

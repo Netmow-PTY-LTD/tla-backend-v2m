@@ -10,6 +10,7 @@ const countryWiseMapSchema = new Schema<ICountryWiseMap>(
       type: Schema.Types.ObjectId,
       ref: 'Country',
       required: true,
+      unique: true,
     },
     serviceIds: [
       {
