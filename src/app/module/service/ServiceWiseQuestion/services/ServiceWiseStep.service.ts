@@ -28,7 +28,7 @@ const getSingleServiceWiseQuestionFromDB = async (id: string) => {
   const result = await ServiceWiseQuestion.find({
     serviceId: id,
     deletedAt: null,
-  });
+  }).populate('serviceId countryId');
 
   return result;
 };
