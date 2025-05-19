@@ -7,7 +7,7 @@ const objectId = z.string().refine((val) => Types.ObjectId.isValid(val), {
   message: 'Invalid ObjectId',
 });
 
-const createCountryWiseServiceSchema = z.object({
+const createCountryWiseMapSchema = z.object({
   body: z.object({
     countryId: objectId.optional(),
     serviceIds: z
@@ -16,14 +16,14 @@ const createCountryWiseServiceSchema = z.object({
   }),
 });
 
-const updateCountryWiseServiceSchema = z.object({
+const updateCountryWiseMapSchema = z.object({
   body: z.object({
     countryId: objectId.optional(),
     serviceIds: z.array(objectId).optional(),
   }),
 });
 
-export const CountryWiseServiceZodValidation = {
-  createCountryWiseServiceSchema,
-  updateCountryWiseServiceSchema,
+export const CountryWiseMapZodValidation = {
+  createCountryWiseMapSchema,
+  updateCountryWiseMapSchema,
 };
