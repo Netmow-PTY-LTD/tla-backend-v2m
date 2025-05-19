@@ -29,10 +29,12 @@ const getSingleQuestion = catchAsync(async (req, res) => {
 });
 
 const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
-  const { serviceId } = req.params;
+  const { serviceId, countryId } = req.query;
+
   const result =
     await ServiceWiseQuestionService.getSingleServiceWiseQuestionFromDB(
-      serviceId,
+      serviceId as string,
+      countryId as string,
     );
 
   if (!result.length) {
