@@ -15,17 +15,30 @@ const createServiceWiseQuestion = catchAsync(async (req, res) => {
   });
 });
 
-const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
+const getSingleQuestion = catchAsync(async (req, res) => {
   const { questionId } = req.params;
   const result =
+    await ServiceWiseQuestionService.getSingleQuestionFromDB(questionId);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Question is retrieved successfully',
+    data: result,
+  });
+});
+
+const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
+  const { serviceId } = req.params;
+  const result =
     await ServiceWiseQuestionService.getSingleServiceWiseQuestionFromDB(
-      questionId,
+      serviceId,
     );
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Service Wise Step is retrieved successfully',
+    message: 'Service Wise Question is retrieved successfully',
     data: result,
   });
 });
@@ -80,4 +93,5 @@ export const ServiceWiseQuestionController = {
   deleteSingleServiceWiseQuestion,
   updateSingleServiceWiseQuestion,
   getAllServiceWiseQuestion,
+  getSingleQuestion,
 };

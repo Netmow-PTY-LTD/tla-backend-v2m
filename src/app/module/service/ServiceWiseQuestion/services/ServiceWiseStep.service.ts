@@ -14,12 +14,22 @@ const getAllServiceWiseQuestionFromDB = async () => {
   return result;
 };
 
-const getSingleServiceWiseQuestionFromDB = async (id: string) => {
+const getSingleQuestionFromDB = async (id: string) => {
   validateObjectId(id, 'Question');
   const result = await ServiceWiseQuestion.findOne({
     _id: id,
     deletedAt: null,
   }).populate('serviceId countryId');
+  return result;
+};
+
+const getSingleServiceWiseQuestionFromDB = async (id: string) => {
+  validateObjectId(id, 'Service');
+  const result = await ServiceWiseQuestion.find({
+    serviceId: id,
+    deletedAt: null,
+  });
+
   return result;
 };
 
@@ -58,4 +68,5 @@ export const ServiceWiseQuestionService = {
   getSingleServiceWiseQuestionFromDB,
   deleteServiceWiseQuestionFromDB,
   updateServiceWiseQuestionIntoDB,
+  getSingleQuestionFromDB,
 };

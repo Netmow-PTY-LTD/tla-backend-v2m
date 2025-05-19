@@ -13,8 +13,10 @@ router.post(
 );
 
 router.get('/list', ServiceWiseQuestionController.getAllServiceWiseQuestion);
+router.get('/:questionId', ServiceWiseQuestionController.getSingleQuestion);
+
 router.get(
-  '/:questionId',
+  '/service/:serviceId',
   ServiceWiseQuestionController.getSingleServiceWiseQuestion,
 );
 router.delete(
