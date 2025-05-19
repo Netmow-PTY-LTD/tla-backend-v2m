@@ -47,4 +47,10 @@ router.post(
   authController.logOut,
 );
 
+// router.post(
+//   '/userInfo/:userId',
+//   // auth(USER_ROLE.ADMIN),
+//   authController.userAuthUpdate,
+// );
+
 export const authRouter = router;

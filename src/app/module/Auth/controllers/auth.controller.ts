@@ -206,6 +206,35 @@ const logOut = catchAsync(async (req, res) => {
     data: null,
   });
 });
+const userAuthUpdate = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+  const formData = req.body;
+
+  const formType = req.query.profileUpdate;
+
+  console.log('form data ==>', req.test);
+
+  // let result;
+  // if (formType === 'updateStatus') {
+  //   result = await authService.accountStatusChangeIntoDB(userId, formData);
+  // }
+
+  // if (!result) {
+  //   return sendResponse(res, {
+  //     statusCode: HTTP_STATUS.NOT_FOUND,
+  //     success: false,
+  //     message: 'User not found',
+  //     data: null,
+  //   });
+  // }
+
+  // sendResponse(res, {
+  //   statusCode: HTTP_STATUS.OK,
+  //   success: true,
+  //   message: `User account status updated to }`,
+  //   data: result,
+  // });
+});
 
 // Exporting all authentication-related controller functions as a single object.
 // This allows centralized access and cleaner imports elsewhere in the application.
@@ -217,4 +246,5 @@ export const authController = {
   forgetPassword,
   resetPassword,
   logOut,
+  // userAuthUpdate,
 };

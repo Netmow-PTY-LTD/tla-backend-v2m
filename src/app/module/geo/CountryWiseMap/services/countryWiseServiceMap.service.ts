@@ -2,6 +2,8 @@ import { Types } from 'mongoose';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { ICountryWiseMap } from '../interfaces/countryWiseMap.interface';
 import CountryWiseMap from '../models/countryWiseMap.model';
+import { AppError } from '../../../../errors/error';
+import { HTTP_STATUS } from '../../../../constant/httpStatus';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -37,6 +39,10 @@ const getSingleCountryWiseMapByIdFromDB = async (
     deletedAt: null,
   };
 
+  if (query == null) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'Query not found');
+  }
+
   if (query?.type === 'servicelist') {
     // Populate only serviceIds and return flattened populated services
     const records = await CountryWiseMap.find(filter).populate('serviceIds');
@@ -48,8 +54,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
   }
 
   // Default: return full documents (can also populate if needed)
-  const result = await CountryWiseMap.find(filter).populate('serviceIds');
-  return result;
+  // const result = await CountryWiseMap.find(filter).populate('serviceIds');
 };
 
 const updateCountryWiseMapIntoDB = async (
