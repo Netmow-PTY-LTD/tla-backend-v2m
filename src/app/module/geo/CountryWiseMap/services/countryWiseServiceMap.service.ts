@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { ICountryWiseMap } from '../interfaces/countryWiseMap.interface';
 import CountryWiseMap from '../models/countryWiseMap.model';
@@ -21,12 +22,33 @@ const getSingleCountryWiseMapFromDB = async (id: string) => {
   return result;
 };
 
-const getSingleCountryWiseMapByIdFromDB = async (id: string) => {
+type TGetCountryWiseMapQuery = {
+  type?: 'servicelist';
+};
+
+const getSingleCountryWiseMapByIdFromDB = async (
+  id: string,
+  query: TGetCountryWiseMapQuery,
+) => {
   validateObjectId(id, 'Country');
-  const result = await CountryWiseMap.find({
-    countryId: id,
+
+  const filter = {
+    countryId: new Types.ObjectId(id),
     deletedAt: null,
-  });
+  };
+
+  if (query?.type === 'servicelist') {
+    // Populate only serviceIds and return flattened populated services
+    const records = await CountryWiseMap.find(filter).populate('serviceIds');
+
+    // Flatten the array of service arrays into a single array of services
+    const populatedServices = records.flatMap((record) => record.serviceIds);
+
+    return populatedServices;
+  }
+
+  // Default: return full documents (can also populate if needed)
+  const result = await CountryWiseMap.find(filter).populate('serviceIds');
   return result;
 };
 

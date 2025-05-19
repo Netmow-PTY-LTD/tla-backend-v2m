@@ -5,10 +5,9 @@ import { countryService } from '../services/country.service';
 
 const createCountry = catchAsync(async (req, res) => {
   const countryData = req.body;
-  // const userId = req.user.userId;
   const result = await countryService.CreateCountryIntoDB(countryData);
   sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
+    statusCode: HTTP_STATUS.CREATED,
     success: true,
     message: 'country Create successfully',
     data: result,
@@ -18,6 +17,15 @@ const createCountry = catchAsync(async (req, res) => {
 const getSingleCountry = catchAsync(async (req, res) => {
   const { countryId } = req.params;
   const result = await countryService.getSingleCountryFromDB(countryId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Country  not found.',
+      data: null,
+    });
+  }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -30,6 +38,15 @@ const getSingleCountry = catchAsync(async (req, res) => {
 const deleteSingleCountry = catchAsync(async (req, res) => {
   const { countryId } = req.params;
   const result = await countryService.deleteCountryFromDB(countryId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Country  not found or already deleted.',
+      data: null,
+    });
+  }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -44,6 +61,15 @@ const updateSingleCountry = catchAsync(async (req, res) => {
   const payload = req.body;
   const result = await countryService.updateCountryIntoDB(countryId, payload);
 
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Country  not found for update.',
+      data: null,
+    });
+  }
+
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -54,6 +80,15 @@ const updateSingleCountry = catchAsync(async (req, res) => {
 
 const getAllCountry = catchAsync(async (req, res) => {
   const result = await countryService.getAllCountryFromDB();
+
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Country  not found.',
+      data: null,
+    });
+  }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
