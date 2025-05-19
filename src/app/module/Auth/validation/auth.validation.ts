@@ -68,6 +68,19 @@ const logOutTokenValidationSchema = z.object({
   }),
 });
 
+export const accountStatusChangeValidationSchema = z.object({
+  body: z.object({
+    userId: z.string({
+      required_error: 'User id is required!',
+    }),
+    accountStatus: z.enum(['active', 'inactive', 'suspended'], {
+      required_error: 'Account status is required!',
+      invalid_type_error:
+        'Account status must be one of: active, inactive, blocked',
+    }),
+  }),
+});
+
 // Exporting all validation schemas
 export const authZodValidation = {
   userZodValidationSchema,
@@ -77,4 +90,5 @@ export const authZodValidation = {
   forgetPasswordValidationSchema,
   resetPasswordValidationSchema,
   logOutTokenValidationSchema,
+  accountStatusChangeValidationSchema,
 };
