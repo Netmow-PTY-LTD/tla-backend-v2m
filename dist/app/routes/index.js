@@ -6,8 +6,9 @@ const user_route_1 = require("../module/User/routes/user.route");
 const country_route_1 = require("../module/Geo/Country/routes/country.route");
 const service_route_1 = require("../module/Service/Service/routes/service.route");
 const option_route_1 = require("../module/Service/Option/routes/option.route");
-const ServiceWiseQuestion_route_1 = require("../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route");
 const countryWiseMap_route_1 = require("../module/Geo/CountryWiseMap/routes/countryWiseMap.route");
+const ServiceWiseQuestion_route_1 = require("../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route");
+const ServiceWiseQuestion_route_2 = require("../module/Service/Question/routes/ServiceWiseQuestion.route");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -32,7 +33,11 @@ const moduleRoutes = [
     },
     {
         path: '/question',
-        route: ServiceWiseQuestion_route_1.ServiceWiseQuestionRouter,
+        route: ServiceWiseQuestion_route_2.questionRouter,
+    },
+    {
+        path: '/service-wise-questions',
+        route: ServiceWiseQuestion_route_1.serviceWiseQuestionRouter,
     },
     {
         path: '/option',

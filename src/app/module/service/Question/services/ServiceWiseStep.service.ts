@@ -1,6 +1,6 @@
 import { validateObjectId } from '../../../../utils/validateObjectId';
-import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import { IServiceWiseQuestion } from '../interfaces/ServiceWiseQuestion.interface';
+import ServiceWiseQuestion from '../models/ServiceWiseQuestion.model';
 
 const CreateServiceWiseQuestionIntoDB = async (
   payload: IServiceWiseQuestion,
@@ -23,17 +23,12 @@ const getSingleQuestionFromDB = async (id: string) => {
   return result;
 };
 
-const getSingleServiceWiseQuestionFromDB = async (
-  serviceId: string,
-  countryId: string,
-) => {
-  validateObjectId(serviceId, 'Service');
-  validateObjectId(countryId, 'Country');
+const getSingleServiceWiseQuestionFromDB = async (id: string) => {
+  validateObjectId(id, 'Service');
   const result = await ServiceWiseQuestion.find({
-    serviceId: serviceId,
-    countryId: countryId,
+    serviceId: id,
     deletedAt: null,
-  }).populate('serviceId countryId');
+  });
 
   return result;
 };
