@@ -5,6 +5,7 @@ import Country from '../models/country.model';
 
 const CreateCountryIntoDB = async (payload: ICountry) => {
   const result = await Country.create(payload);
+
   return result;
 };
 
