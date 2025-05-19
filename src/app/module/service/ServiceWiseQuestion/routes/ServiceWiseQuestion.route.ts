@@ -15,10 +15,7 @@ const router = Router();
 // router.get('/list', ServiceWiseQuestionController.getAllServiceWiseQuestion);
 // router.get('/:questionId', ServiceWiseQuestionController.getSingleQuestion);
 
-router.get(
-  '/:serviceId',
-  ServiceWiseQuestionController.getSingleServiceWiseQuestion,
-);
+router.get('/', ServiceWiseQuestionController.getSingleServiceWiseQuestion);
 // router.delete(
 //   '/delete/:questionId',
 //   ServiceWiseQuestionController.deleteSingleServiceWiseQuestion,

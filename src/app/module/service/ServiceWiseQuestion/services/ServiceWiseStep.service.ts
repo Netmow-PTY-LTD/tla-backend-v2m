@@ -23,10 +23,15 @@ const getSingleQuestionFromDB = async (id: string) => {
   return result;
 };
 
-const getSingleServiceWiseQuestionFromDB = async (id: string) => {
-  validateObjectId(id, 'Service');
+const getSingleServiceWiseQuestionFromDB = async (
+  serviceId: string,
+  countryId: string,
+) => {
+  validateObjectId(serviceId, 'Service');
+  validateObjectId(countryId, 'Country');
   const result = await ServiceWiseQuestion.find({
-    serviceId: id,
+    serviceId: serviceId,
+    countryId: countryId,
     deletedAt: null,
   }).populate('serviceId countryId');
 
