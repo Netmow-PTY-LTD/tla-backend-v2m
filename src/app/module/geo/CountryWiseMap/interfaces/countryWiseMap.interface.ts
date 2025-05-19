@@ -1,13 +1,13 @@
 import { Model, Types } from 'mongoose';
 
-export interface ICountryWiseService {
+export interface ICountryWiseMap {
   _id: string;
   countryId: Types.ObjectId;
   serviceIds: Types.ObjectId[];
   deletedAt?: Date | null;
 }
 
-export interface CountryWiseServiceModel extends Model<ICountryWiseService> {
+export interface CountryWiseMapModel extends Model<ICountryWiseMap> {
   // eslint-disable-next-line no-unused-vars
-  isCountryWiseServiceExists(id: string): Promise<ICountryWiseService>;
+  isCountryWiseMapExists(id: string): Promise<ICountryWiseMap>;
 }
