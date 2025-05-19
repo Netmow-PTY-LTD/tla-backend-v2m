@@ -41,8 +41,12 @@ const getSingleCountryWiseMap = catchAsync(async (req, res) => {
 
 const getSingleCountryWiseMapById = catchAsync(async (req, res) => {
   const { countryId } = req.params;
-  const result =
-    await countryWiseMapService.getSingleCountryWiseMapByIdFromDB(countryId);
+  const query = req?.query;
+
+  const result = await countryWiseMapService.getSingleCountryWiseMapByIdFromDB(
+    countryId,
+    query,
+  );
 
   if (!result) {
     return sendResponse(res, {
