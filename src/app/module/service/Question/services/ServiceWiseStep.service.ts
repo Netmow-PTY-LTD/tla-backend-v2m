@@ -1,6 +1,6 @@
 import { validateObjectId } from '../../../../utils/validateObjectId';
-import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import { IServiceWiseQuestion } from '../interfaces/ServiceWiseQuestion.interface';
+import ServiceWiseQuestion from '../models/ServiceWiseQuestion.model';
 
 const CreateServiceWiseQuestionIntoDB = async (
   payload: IServiceWiseQuestion,
