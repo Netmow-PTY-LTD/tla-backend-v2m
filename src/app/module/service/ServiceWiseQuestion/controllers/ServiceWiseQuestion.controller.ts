@@ -33,8 +33,8 @@ const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
 
   const result =
     await ServiceWiseQuestionService.getSingleServiceWiseQuestionFromDB(
-      serviceId,
-      countryId,
+      serviceId as string,
+      countryId as string,
     );
 
   if (!result.length) {
