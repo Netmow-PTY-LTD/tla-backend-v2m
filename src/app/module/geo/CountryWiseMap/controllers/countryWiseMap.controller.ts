@@ -17,9 +17,9 @@ const createCountryWiseMap = catchAsync(async (req, res) => {
 });
 
 const getSingleCountryWiseMap = catchAsync(async (req, res) => {
-  const { CountryWiseMapId } = req.params;
+  const { countryWiseMapId } = req.params;
   const result =
-    await countryWiseMapService.getSingleCountryWiseMapFromDB(CountryWiseMapId);
+    await countryWiseMapService.getSingleCountryWiseMapFromDB(countryWiseMapId);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -30,9 +30,9 @@ const getSingleCountryWiseMap = catchAsync(async (req, res) => {
 });
 
 const deleteSingleCountryWiseMap = catchAsync(async (req, res) => {
-  const { CountryWiseMapId } = req.params;
+  const { countryWiseMapId } = req.params;
   const result =
-    await countryWiseMapService.deleteCountryWiseMapFromDB(CountryWiseMapId);
+    await countryWiseMapService.deleteCountryWiseMapFromDB(countryWiseMapId);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -43,10 +43,10 @@ const deleteSingleCountryWiseMap = catchAsync(async (req, res) => {
 });
 
 const updateSingleCountryWiseMap = catchAsync(async (req, res) => {
-  const { CountryWiseMapId } = req.params;
+  const { countryWiseMapId } = req.params;
   const payload = req.body;
   const result = await countryWiseMapService.updateCountryWiseMapIntoDB(
-    CountryWiseMapId,
+    countryWiseMapId,
     payload,
   );
 

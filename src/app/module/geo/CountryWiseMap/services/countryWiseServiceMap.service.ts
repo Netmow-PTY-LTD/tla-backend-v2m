@@ -1,3 +1,4 @@
+import { validateObjectId } from '../../../../utils/validateObjectId';
 import { ICountryWiseMap } from '../interfaces/countryWiseMap.interface';
 import CountryWiseMap from '../models/countryWiseMap.model';
 
@@ -12,6 +13,7 @@ const getAllCountryWiseMapFromDB = async () => {
 };
 
 const getSingleCountryWiseMapFromDB = async (id: string) => {
+  validateObjectId(id, 'Country Wise Map');
   const result = await CountryWiseMap.findOne({
     _id: id,
     deletedAt: null,
@@ -23,10 +25,9 @@ const updateCountryWiseMapIntoDB = async (
   id: string,
   payload: Partial<ICountryWiseMap>,
 ) => {
-  const countryWiseMap = await CountryWiseMap.isCountryWiseMapExists(id);
-
+  validateObjectId(id, 'Country Wise Map');
   const result = await CountryWiseMap.findOneAndUpdate(
-    { _id: countryWiseMap._id, deletedAt: null },
+    { _id: id, deletedAt: null },
     payload,
     {
       new: true,
@@ -36,6 +37,7 @@ const updateCountryWiseMapIntoDB = async (
 };
 
 const deleteCountryWiseMapFromDB = async (id: string) => {
+  validateObjectId(id, 'Country Wise Map');
   const deletedAt = new Date().toISOString();
   const result = await CountryWiseMap.findByIdAndUpdate(
     id,
