@@ -21,14 +21,42 @@ const getSingleServiceWiseQuestionFromDB = async (
       },
     },
     {
-      $sort: { order: 1 }, // Sort by order ascending
+      $sort: { order: 1 },
     },
     {
       $lookup: {
-        from: 'options', // collection name
+        from: 'options',
         localField: '_id',
         foreignField: 'questionId',
         as: 'options',
+      },
+    },
+    {
+      $lookup: {
+        from: 'countries',
+        localField: 'countryId',
+        foreignField: '_id',
+        as: 'countryId',
+      },
+    },
+    {
+      $unwind: {
+        path: '$countryId',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'serviceId',
+        foreignField: '_id',
+        as: 'serviceId',
+      },
+    },
+    {
+      $unwind: {
+        path: '$serviceId',
+        preserveNullAndEmptyArrays: true,
       },
     },
     {
@@ -36,6 +64,19 @@ const getSingleServiceWiseQuestionFromDB = async (
         question: 1,
         questionType: 1,
         order: 1,
+
+        countryId: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+          serviceIds: 1,
+        },
+        serviceId: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+        },
+
         options: {
           _id: 1,
           name: 1,
