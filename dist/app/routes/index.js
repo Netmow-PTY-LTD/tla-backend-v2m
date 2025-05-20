@@ -7,9 +7,8 @@ const country_route_1 = require("../module/Geo/Country/routes/country.route");
 const service_route_1 = require("../module/Service/Service/routes/service.route");
 const option_route_1 = require("../module/Service/Option/routes/option.route");
 const countryWiseMap_route_1 = require("../module/Geo/CountryWiseMap/routes/countryWiseMap.route");
-const ServiceWiseQuestion_route_1 = require("../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route");
-const ServiceWiseQuestion_route_2 = require("../module/Service/Question/routes/ServiceWiseQuestion.route");
-const ServiceWiseQuestion_route_3 = require("../module/Service/QuestionWiseOptions/routes/ServiceWiseQuestion.route");
+const ServiceWiseQuestion_route_1 = require("../module/Service/Question/routes/ServiceWiseQuestion.route");
+const view_router_1 = require("../module/View/routes/view.router");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -34,19 +33,15 @@ const moduleRoutes = [
     },
     {
         path: '/question',
-        route: ServiceWiseQuestion_route_2.questionRouter,
-    },
-    {
-        path: '/service-wise-questions',
-        route: ServiceWiseQuestion_route_1.serviceWiseQuestionRouter,
-    },
-    {
-        path: '/question-wise-options',
-        route: ServiceWiseQuestion_route_3.questionWiseOptionsRouter,
+        route: ServiceWiseQuestion_route_1.questionRouter,
     },
     {
         path: '/option',
         route: option_route_1.OptionRouter,
+    },
+    {
+        path: '/',
+        route: view_router_1.viewRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
