@@ -4,13 +4,10 @@ import { authRouter } from '../module/Auth/routes/auth.route';
 import { UserProfileRouter } from '../module/User/routes/user.route';
 import { countryRouter } from '../module/Geo/Country/routes/country.route';
 import { serviceRouter } from '../module/Service/Service/routes/service.route';
-
 import { OptionRouter } from '../module/Service/Option/routes/option.route';
-
 import { CountryWiseMapRouter } from '../module/Geo/CountryWiseMap/routes/countryWiseMap.route';
-import { serviceWiseQuestionRouter } from '../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route';
 import { questionRouter } from '../module/Service/Question/routes/ServiceWiseQuestion.route';
-import { questionWiseOptionsRouter } from '../module/Service/QuestionWiseOptions/routes/ServiceWiseQuestion.route';
+import { viewRouter } from '../module/View/routes/view.router';
 
 const router = Router();
 
@@ -39,17 +36,14 @@ const moduleRoutes = [
     path: '/question',
     route: questionRouter,
   },
-  {
-    path: '/service-wise-questions',
-    route: serviceWiseQuestionRouter,
-  },
-  {
-    path: '/question-wise-options',
-    route: questionWiseOptionsRouter,
-  },
+
   {
     path: '/option',
     route: OptionRouter,
+  },
+  {
+    path: '/',
+    route: viewRouter,
   },
 ];
 
