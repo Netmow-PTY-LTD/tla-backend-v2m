@@ -12,8 +12,9 @@ const getSingleServiceWiseQuestionFromDB = async (
     serviceId: serviceId,
     countryId: countryId,
     deletedAt: null,
-  }).populate('serviceId countryId');
-
+  })
+    .populate('serviceId countryId')
+    .sort({ order: 1 }); // ascending order by 'order' field
   return result;
 };
 
