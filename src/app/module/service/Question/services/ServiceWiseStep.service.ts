@@ -75,6 +75,7 @@ const updateQuestionOrderIntoDB = async (
       validItems.push(item);
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.warn(`Skipping invalid Question ID: ${item._id}`);
     }
   }
