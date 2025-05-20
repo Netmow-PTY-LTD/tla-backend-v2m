@@ -1,4 +1,5 @@
 import { validateObjectId } from '../../../utils/validateObjectId';
+import Option from '../../Service/Option/models/option.model';
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
 
 const getSingleServiceWiseQuestionFromDB = async (
@@ -15,6 +16,22 @@ const getSingleServiceWiseQuestionFromDB = async (
 
   return result;
 };
+
+const getQuestionWiseOptionsFromDB = async (questionId: string) => {
+  validateObjectId(questionId, 'Question');
+  const result = await Option.find({
+    questionId: questionId,
+    deletedAt: null,
+  }).populate(['questionId', 'serviceId', 'countryId']); // ✅ fixed
+
+  return result;
+};
+
+export const questionWiseOptionsService = {
+  getQuestionWiseOptionsFromDB,
+};
+
 export const viewService = {
   getSingleServiceWiseQuestionFromDB,
+  getQuestionWiseOptionsFromDB,
 };
