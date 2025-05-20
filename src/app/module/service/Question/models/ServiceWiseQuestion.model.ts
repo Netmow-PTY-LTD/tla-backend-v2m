@@ -32,6 +32,10 @@ const ServiceWiseQuestionSchema = new mongoose.Schema(
       enum: ['radio', 'checkbox'], // Only 'radio' or 'checkbox' can be assigned
       required: true,
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
     deletedAt: {
       type: Date,
       default: null,
