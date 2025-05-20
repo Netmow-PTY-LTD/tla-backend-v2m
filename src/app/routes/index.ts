@@ -10,6 +10,7 @@ import { OptionRouter } from '../module/Service/Option/routes/option.route';
 import { CountryWiseMapRouter } from '../module/Geo/CountryWiseMap/routes/countryWiseMap.route';
 import { serviceWiseQuestionRouter } from '../module/Service/ServiceWiseQuestion/routes/ServiceWiseQuestion.route';
 import { questionRouter } from '../module/Service/Question/routes/ServiceWiseQuestion.route';
+import { questionWiseOptionsRouter } from '../module/Service/QuestionWiseOptions/routes/ServiceWiseQuestion.route';
 
 const router = Router();
 
@@ -41,6 +42,10 @@ const moduleRoutes = [
   {
     path: '/service-wise-questions',
     route: serviceWiseQuestionRouter,
+  },
+  {
+    path: '/question-wise-options',
+    route: questionWiseOptionsRouter,
   },
   {
     path: '/option',
