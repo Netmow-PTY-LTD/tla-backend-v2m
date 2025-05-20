@@ -40,6 +40,7 @@ const getSingleServiceWiseQuestionFromDB = async (
           _id: 1,
           name: 1,
           slug: 1,
+          selected_options: 1,
         },
       },
     },
