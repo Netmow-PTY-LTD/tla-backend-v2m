@@ -87,6 +87,19 @@ const getAllServiceWiseQuestion = catchAsync(async (req, res) => {
   });
 });
 
+const updateQuestionOrderWise = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const result =
+    await ServiceWiseQuestionService.updateQuestionOrderIntoDB(payload);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Question Order update successfully',
+    data: result,
+  });
+});
+
 export const ServiceWiseQuestionController = {
   createServiceWiseQuestion,
   getSingleServiceWiseQuestion,
@@ -94,4 +107,5 @@ export const ServiceWiseQuestionController = {
   updateSingleServiceWiseQuestion,
   getAllServiceWiseQuestion,
   getSingleQuestion,
+  updateQuestionOrderWise,
 };
