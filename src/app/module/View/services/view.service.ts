@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import Option from '../../Service/Option/models/option.model';
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
@@ -8,13 +9,42 @@ const getSingleServiceWiseQuestionFromDB = async (
 ) => {
   validateObjectId(serviceId, 'Service');
   validateObjectId(countryId, 'Country');
-  const result = await ServiceWiseQuestion.find({
-    serviceId: serviceId,
-    countryId: countryId,
-    deletedAt: null,
-  })
-    .populate('serviceId countryId')
-    .sort({ order: 1 }); // ascending order by 'order' field
+  const serviceObjectId = new Types.ObjectId(serviceId);
+  const countryObjectId = new Types.ObjectId(countryId);
+
+  const result = await ServiceWiseQuestion.aggregate([
+    {
+      $match: {
+        serviceId: serviceObjectId,
+        countryId: countryObjectId,
+        deletedAt: null,
+      },
+    },
+    {
+      $sort: { order: 1 }, // Sort by order ascending
+    },
+    {
+      $lookup: {
+        from: 'options', // collection name
+        localField: '_id',
+        foreignField: 'questionId',
+        as: 'options',
+      },
+    },
+    {
+      $project: {
+        question: 1,
+        questionType: 1,
+        order: 1,
+        options: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+        },
+      },
+    },
+  ]);
+
   return result;
 };
 
