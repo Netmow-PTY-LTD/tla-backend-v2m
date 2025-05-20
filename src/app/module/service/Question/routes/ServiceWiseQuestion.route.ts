@@ -28,4 +28,6 @@ router.patch(
   ServiceWiseQuestionController.updateSingleServiceWiseQuestion,
 );
 
+router.patch('/order', ServiceWiseQuestionController.updateQuestionOrderWise);
+
 export const questionRouter = router;

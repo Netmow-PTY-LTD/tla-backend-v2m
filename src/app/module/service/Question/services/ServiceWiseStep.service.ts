@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IServiceWiseQuestion } from '../interfaces/ServiceWiseQuestion.interface';
 import ServiceWiseQuestion from '../models/ServiceWiseQuestion.model';
@@ -62,6 +63,71 @@ const deleteServiceWiseQuestionFromDB = async (id: string) => {
   return result;
 };
 
+const updateQuestionOrderIntoDB = async (
+  payload: { _id: string; order: number }[],
+) => {
+  // Step 1: Filter valid ObjectIds using your utility
+  const validItems: { _id: string; order: number }[] = [];
+
+  for (const item of payload) {
+    try {
+      validateObjectId(item._id, 'Question');
+      validItems.push(item);
+      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    } catch (err) {
+      console.warn(`Skipping invalid Question ID: ${item._id}`);
+    }
+  }
+
+  // Step 2: Exit early if none are valid
+  if (validItems.length === 0) {
+    return {
+      message: 'No valid Question IDs provided.',
+      updated: [],
+    };
+  }
+
+  // Step 3: Check which IDs actually exist in the database
+  const existingIds = await ServiceWiseQuestion.find({
+    _id: { $in: validItems?.map((item) => item._id) },
+  }).distinct('_id');
+
+  // Step 4: Filter only valid and existing items
+
+  const updateItems = validItems.filter((item) => {
+    return existingIds.some(
+      (existingId) =>
+        existingId.toString() ===
+        new mongoose.Types.ObjectId(item._id).toString(),
+    );
+  });
+
+  if (updateItems.length === 0) {
+    return {
+      message: 'None of the valid Question IDs exist in the database.',
+      updated: [],
+    };
+  }
+
+  // Step 5: Build bulk update operations
+  const bulkOps = updateItems.map(({ _id, order }) => ({
+    updateOne: {
+      filter: { _id },
+      update: { $set: { order } },
+    },
+  }));
+
+  // Step 6: Execute bulkWrite
+  await ServiceWiseQuestion.bulkWrite(bulkOps);
+
+  // Fetch updated documents to return them
+  const updatedDocuments = await ServiceWiseQuestion.find({
+    _id: { $in: updateItems.map((item) => item._id) },
+  });
+
+  return updatedDocuments;
+};
+
 export const ServiceWiseQuestionService = {
   CreateServiceWiseQuestionIntoDB,
   getAllServiceWiseQuestionFromDB,
@@ -69,4 +135,5 @@ export const ServiceWiseQuestionService = {
   deleteServiceWiseQuestionFromDB,
   updateServiceWiseQuestionIntoDB,
   getSingleQuestionFromDB,
+  updateQuestionOrderIntoDB,
 };
