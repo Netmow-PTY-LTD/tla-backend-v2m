@@ -5,10 +5,9 @@ import { optionService } from '../services/option.service';
 
 const createOption = catchAsync(async (req, res) => {
   const optionData = req.body;
-  // const userId = req.user.userId;
   const result = await optionService.CreateOptionIntoDB(optionData);
   sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
+    statusCode: HTTP_STATUS.CREATED,
     success: true,
     message: 'option Create successfully',
     data: result,
@@ -18,6 +17,15 @@ const createOption = catchAsync(async (req, res) => {
 const getSingleOption = catchAsync(async (req, res) => {
   const { optionId } = req.params;
   const result = await optionService.getSingleOptionFromDB(optionId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Option  not found.',
+      data: null,
+    });
+  }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -30,6 +38,15 @@ const getSingleOption = catchAsync(async (req, res) => {
 const deleteSingleOption = catchAsync(async (req, res) => {
   const { optionId } = req.params;
   const result = await optionService.deleteOptionFromDB(optionId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Option  not found or already deleted.',
+      data: null,
+    });
+  }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -44,6 +61,15 @@ const updateSingleOption = catchAsync(async (req, res) => {
   const payload = req.body;
   const result = await optionService.updateOptionIntoDB(optionId, payload);
 
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Option  not found for update.',
+      data: null,
+    });
+  }
+
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -54,6 +80,15 @@ const updateSingleOption = catchAsync(async (req, res) => {
 
 const getAllOption = catchAsync(async (req, res) => {
   const result = await optionService.getAllOptionFromDB();
+
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Option  not found.',
+      data: null,
+    });
+  }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

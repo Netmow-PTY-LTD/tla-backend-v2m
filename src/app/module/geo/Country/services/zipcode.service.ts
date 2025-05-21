@@ -1,5 +1,5 @@
-import { HTTP_STATUS } from '../../../../constant/httpStatus';
-import { AppError } from '../../../../errors/error';
+// import { HTTP_STATUS } from '../../../../constant/httpStatus';
+// import { AppError } from '../../../../errors/error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IZipCode } from '../interfaces/zipcode.interface';
 import ZipCode from '../models/zipcode.model';
