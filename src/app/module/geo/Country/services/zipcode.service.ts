@@ -1,3 +1,5 @@
+import { HTTP_STATUS } from '../../../../constant/httpStatus';
+import { AppError } from '../../../../errors/error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IZipCode } from '../interfaces/zipcode.interface';
 import ZipCode from '../models/zipcode.model';
@@ -7,10 +9,24 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
   return zipCode;
 };
 
-const getAllZipCodeFromDB = async () => {
-  const countries = await ZipCode.find({ deletedAt: null }).populate(
-    'countryId',
-  );
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getAllZipCodeFromDB = async (query: Record<string, any>) => {
+  const { countryId } = query;
+
+  if (!countryId) {
+    throw new AppError(
+      HTTP_STATUS.BAD_REQUEST,
+      'Query parameter "countryId" is required',
+    );
+  }
+
+  // Validate ObjectId format before querying
+  validateObjectId(countryId, 'Country');
+
+  const countries = await ZipCode.find({
+    deletedAt: null,
+    countryId: countryId,
+  }).populate('countryId');
   return countries;
 };
 
