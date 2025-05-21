@@ -79,7 +79,8 @@ const updateSingleZipCode = catchAsync(async (req, res) => {
 });
 
 const getAllZipCode = catchAsync(async (req, res) => {
-  const result = await zipCodeService.getAllZipCodeFromDB();
+  const query = req.query;
+  const result = await zipCodeService.getAllZipCodeFromDB(query);
 
   if (!result.length) {
     return sendResponse(res, {
