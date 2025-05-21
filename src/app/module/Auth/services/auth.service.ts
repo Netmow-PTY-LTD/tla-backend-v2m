@@ -95,7 +95,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     // Check if the user already exists by email
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
-      throw new AppError(HTTP_STATUS.BAD_REQUEST, 'This user already exists!');
+      throw new AppError(HTTP_STATUS.CONFLICT, 'This user already exists!');
     }
 
     // Separate the profile data from the user data
