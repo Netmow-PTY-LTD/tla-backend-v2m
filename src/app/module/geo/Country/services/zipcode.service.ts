@@ -8,13 +8,17 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 };
 
 const getAllZipCodeFromDB = async () => {
-  const countries = await ZipCode.find({ deletedAt: null });
+  const countries = await ZipCode.find({ deletedAt: null }).populate(
+    'countryId',
+  );
   return countries;
 };
 
 const getSingleZipCodeFromDB = async (id: string) => {
   validateObjectId(id, 'ZipCode');
-  const result = await ZipCode.findOne({ _id: id, deletedAt: null });
+  const result = await ZipCode.findOne({ _id: id, deletedAt: null }).populate(
+    'countryId',
+  );
   return result;
 };
 
