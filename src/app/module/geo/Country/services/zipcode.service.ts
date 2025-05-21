@@ -11,23 +11,33 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAllZipCodeFromDB = async (query: Record<string, any>) => {
+  //  maksud vai logic
+  // const { countryId } = query;
+  // if (!countryId) {
+  //   throw new AppError(
+  //     HTTP_STATUS.BAD_REQUEST,
+  //     'Query parameter "countryId" is required',
+  //   );
+  // }
+  // // Validate ObjectId format before querying
+  // validateObjectId(countryId, 'Country');
+  // const countries = await ZipCode.find({
+  //   deletedAt: null,
+  //   countryId: countryId,
+  // }).populate('countryId');
+  // return countries;
+  //  -----  alternative logic ---
   const { countryId } = query;
-
-  if (!countryId) {
-    throw new AppError(
-      HTTP_STATUS.BAD_REQUEST,
-      'Query parameter "countryId" is required',
-    );
-  }
-
-  // Validate ObjectId format before querying
-  validateObjectId(countryId, 'Country');
-
-  const countries = await ZipCode.find({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filter: Record<string, any> = {
     deletedAt: null,
-    countryId: countryId,
-  }).populate('countryId');
-  return countries;
+  };
+  if (countryId) {
+    validateObjectId(countryId, 'Country');
+    filter.countryId = countryId;
+  }
+  const zipCodes = await ZipCode.find(filter).populate('countryId');
+  return zipCodes;
 };
 
 const getSingleZipCodeFromDB = async (id: string) => {
