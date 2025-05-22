@@ -25,7 +25,7 @@ router.delete(
   countryWiseMapController.deleteSingleCountryWiseMap,
 );
 router.patch(
-  '/edit/:countryWiseMapId',
+  '/edit/:countryId',
   validateRequest(CountryWiseMapZodValidation.createCountryWiseMapSchema),
   countryWiseMapController.updateSingleCountryWiseMap,
 );

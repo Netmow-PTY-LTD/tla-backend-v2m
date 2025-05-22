@@ -58,12 +58,12 @@ const getSingleCountryWiseMapByIdFromDB = async (
 };
 
 const updateCountryWiseMapIntoDB = async (
-  id: string,
+  countryId: string,
   payload: Partial<ICountryWiseMap>,
 ) => {
-  validateObjectId(id, 'Country Wise Map');
+  validateObjectId(countryId, 'Country');
   const result = await CountryWiseMap.findOneAndUpdate(
-    { _id: id, deletedAt: null },
+    { countryId: countryId, deletedAt: null },
     payload,
     {
       new: true,
