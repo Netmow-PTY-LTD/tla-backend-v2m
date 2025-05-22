@@ -88,10 +88,10 @@ const deleteSingleCountryWiseMap = catchAsync(async (req, res) => {
 });
 
 const updateSingleCountryWiseMap = catchAsync(async (req, res) => {
-  const { countryWiseMapId } = req.params;
+  const { countryId } = req.params;
   const payload = req.body;
   const result = await countryWiseMapService.updateCountryWiseMapIntoDB(
-    countryWiseMapId,
+    countryId,
     payload,
   );
 
