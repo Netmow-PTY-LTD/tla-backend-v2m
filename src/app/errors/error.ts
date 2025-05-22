@@ -62,7 +62,6 @@ const handleCastError = (
 
 const handleDuplicateError = (err: any): TGenericErrorResponse => {
   const statusCode = 409; // 409 Conflict is more semantically correct for duplicate key errors
-
   // Get the duplicate key name and value
   const duplicateKey = Object.keys(err.keyValue || {})[0] || 'Unknown field';
   const duplicateValue = err.keyValue?.[duplicateKey] || 'Unknown value';
@@ -70,7 +69,7 @@ const handleDuplicateError = (err: any): TGenericErrorResponse => {
   const errorSources: TErrorSources = [
     {
       path: duplicateKey,
-      message: `A record with this ${duplicateKey} (${duplicateValue}) already exists.`,
+      message: `A record with this ${duplicateKey} (${duplicateValue}) already exists.Please use a different value.`,
     },
   ];
 
