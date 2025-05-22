@@ -135,6 +135,9 @@ const getSingleServiceWiseQuestionFromDB = async (
       },
     },
     {
+      $sort: { order: 1 },
+    },
+    {
       $lookup: {
         from: 'countries',
         localField: 'countryId',
