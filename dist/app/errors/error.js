@@ -55,7 +55,7 @@ const handleDuplicateError = (err) => {
     const errorSources = [
         {
             path: duplicateKey,
-            message: `A record with this ${duplicateKey} (${duplicateValue}) already exists.`,
+            message: `A record with this ${duplicateKey} (${duplicateValue}) already exists.Please use a different value.`,
         },
     ];
     return {
