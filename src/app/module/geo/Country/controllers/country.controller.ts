@@ -20,7 +20,7 @@ const getSingleCountry = catchAsync(async (req, res) => {
 
   if (!result) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Country  not found.',
       data: null,
@@ -41,7 +41,7 @@ const deleteSingleCountry = catchAsync(async (req, res) => {
 
   if (!result) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Country  not found or already deleted.',
       data: null,
@@ -63,7 +63,7 @@ const updateSingleCountry = catchAsync(async (req, res) => {
 
   if (!result) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Country  not found for update.',
       data: null,
@@ -83,10 +83,10 @@ const getAllCountry = catchAsync(async (req, res) => {
 
   if (!result.length) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Country  not found.',
-      data: null,
+      data: [],
     });
   }
 

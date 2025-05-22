@@ -20,7 +20,7 @@ const getSingleZipCode = catchAsync(async (req, res) => {
 
   if (!result) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'ZipCode  not found.',
       data: null,
@@ -41,7 +41,7 @@ const deleteSingleZipCode = catchAsync(async (req, res) => {
 
   if (!result) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'ZipCode  not found or already deleted.',
       data: null,
@@ -63,7 +63,7 @@ const updateSingleZipCode = catchAsync(async (req, res) => {
 
   if (!result) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'ZipCode  not found for update.',
       data: null,
@@ -84,10 +84,10 @@ const getAllZipCode = catchAsync(async (req, res) => {
 
   if (!result.length) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'ZipCode  not found.',
-      data: null,
+      data: [],
     });
   }
 
