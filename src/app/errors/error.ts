@@ -37,25 +37,46 @@ const handleCastError = (
   };
 };
 
-const handleDuplicateError = (err: any): TGenericErrorResponse => {
-  // Extract value within double quotes using regex
-  const match = err.message.match(/"([^"]*)"/);
+// const handleDuplicateError = (err: any): TGenericErrorResponse => {
+//   // Extract value within double quotes using regex
+//   const match = err.message.match(/"([^"]*)"/);
 
-  // The extracted value will be in the first capturing group
-  const extractedMessage = match && match[1];
+//   // The extracted value will be in the first capturing group
+//   const extractedMessage = match && match[1];
+
+//   const errorSources: TErrorSources = [
+//     {
+//       path: '',
+//       message: `${extractedMessage} is already exists`,
+//     },
+//   ];
+
+//   const statusCode = 400;
+
+//   return {
+//     statusCode,
+//     message: 'Invalid ID',
+//     errorSources,
+//   };
+// };
+
+const handleDuplicateError = (err: any): TGenericErrorResponse => {
+  const statusCode = 409; // 409 Conflict is more semantically correct for duplicate key errors
+
+  // Get the duplicate key name and value
+  const duplicateKey = Object.keys(err.keyValue || {})[0] || 'Unknown field';
+  const duplicateValue = err.keyValue?.[duplicateKey] || 'Unknown value';
 
   const errorSources: TErrorSources = [
     {
-      path: '',
-      message: `${extractedMessage} is already exists`,
+      path: duplicateKey,
+      message: `A record with this ${duplicateKey} (${duplicateValue}) already exists.`,
     },
   ];
 
-  const statusCode = 400;
-
   return {
     statusCode,
-    message: 'Invalid ID',
+    message: 'Duplicate entry detected',
     errorSources,
   };
 };
