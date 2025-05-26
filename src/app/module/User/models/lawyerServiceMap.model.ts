@@ -20,7 +20,7 @@ const lawyerServiceMapSchema = new Schema(
       required: true,
     },
 
-    zipCodes: {
+    zipCode: {
       type: Types.ObjectId,
       ref: 'Service',
       required: true,
