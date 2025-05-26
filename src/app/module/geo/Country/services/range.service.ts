@@ -18,15 +18,17 @@ const getAllRangeFromDB = async (query: Record<string, any>) => {
     validateObjectId(zipcodeId, 'Country');
     filter.zipcodeId = zipcodeId;
   }
-  const zipCodes = await Range.find(filter).populate('CountryId zipcodeId');
+  const zipCodes = await Range.find(filter)
+    .populate('countryId')
+    .populate('zipCodeId');
   return zipCodes;
 };
 
 const getSingleRangeFromDB = async (id: string) => {
   validateObjectId(id, 'Range');
-  const result = await Range.findOne({ _id: id, deletedAt: null }).populate(
-    'countryId',
-  );
+  const result = await Range.findOne({ _id: id, deletedAt: null })
+    .populate('countryId')
+    .populate('zipCodeId');
   return result;
 };
 

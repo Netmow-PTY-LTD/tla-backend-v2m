@@ -61,7 +61,7 @@ router.delete(
   zipCodeController.deleteSingleZipCode,
 );
 router.patch(
-  '/zipcode/range/edit/:zipcodeId',
+  '/zipcode/edit/:zipcodeId',
   auth(USER_ROLE.ADMIN),
   validateRequest(zipcodeZodValidation.updateZipcodeZodValidationSchema),
   zipCodeController.updateSingleZipCode,
