@@ -46,7 +46,7 @@ router.post(
 );
 router.get(
   '/zipcode/list',
-  auth(USER_ROLE.ADMIN),
+
   zipCodeController.getAllZipCode,
 );
 router.get(

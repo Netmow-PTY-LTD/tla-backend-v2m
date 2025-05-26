@@ -28,8 +28,9 @@ const lawyerServiceMapSchema = new Schema(
       },
     ],
     rangeInKm: {
-      type: Number,
-      default: 0,
+      type: Types.ObjectId,
+      ref: 'Service',
+      required: true,
     },
     practiceWithin: {
       type: Boolean,
