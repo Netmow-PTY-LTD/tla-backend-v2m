@@ -127,6 +127,7 @@ const getSingleServiceWiseQuestionFromDB = async (
       $group: {
         _id: '$_id',
         question: { $first: '$question' },
+        slug: { $first: '$slug' },
         questionType: { $first: '$questionType' },
         order: { $first: '$order' },
         countryId: { $first: '$countryId' },
@@ -169,6 +170,7 @@ const getSingleServiceWiseQuestionFromDB = async (
       $project: {
         question: 1,
         questionType: 1,
+        slug: 1,
         order: 1,
         countryId: {
           _id: 1,
