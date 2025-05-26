@@ -6,6 +6,8 @@ import auth from '../../../../middlewares/auth';
 import { USER_ROLE } from '../../../../constant';
 import { zipcodeZodValidation } from '../validations/zipcode.validation';
 import { zipCodeController } from '../controllers/zipcode.controller';
+import { rangeZodValidation } from '../validations/range.validation';
+import { rangeController } from '../controllers/range.controller';
 
 const router = Router();
 
@@ -44,7 +46,7 @@ router.post(
 );
 router.get(
   '/zipcode/list',
-  auth(USER_ROLE.ADMIN),
+
   zipCodeController.getAllZipCode,
 );
 router.get(
@@ -63,6 +65,33 @@ router.patch(
   auth(USER_ROLE.ADMIN),
   validateRequest(zipcodeZodValidation.updateZipcodeZodValidationSchema),
   zipCodeController.updateSingleZipCode,
+);
+
+// Range dedicated end point
+
+router.post(
+  '/zipcode/range/add',
+  auth(USER_ROLE.ADMIN),
+  validateRequest(rangeZodValidation.rangeZodValidationSchema),
+  rangeController.createRange,
+);
+router.get('/zipcode/range/list', rangeController.getAllRange);
+router.get(
+  '/zipcode/range/:rangeId',
+  auth(USER_ROLE.ADMIN),
+  rangeController.getSingleRange,
+);
+router.delete(
+  '/zipcode/range/delete/:rangeId',
+  auth(USER_ROLE.ADMIN),
+
+  rangeController.deleteSingleRange,
+);
+router.patch(
+  '/zipcode/range/edit/:rangeId',
+  auth(USER_ROLE.ADMIN),
+  validateRequest(rangeZodValidation.updateRangeZodValidationSchema),
+  rangeController.updateSingleRange,
 );
 
 export const countryRouter = router;
