@@ -1,0 +1,65 @@
+import { validateObjectId } from '../../../../utils/validateObjectId';
+import { IRange } from '../interfaces/range.interface';
+import { Range } from '../models/range.model';
+
+const CreateRangeIntoDB = async (payload: IRange) => {
+  const zipCode = await Range.create(payload);
+  return zipCode;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getAllRangeFromDB = async (query: Record<string, any>) => {
+  const { zipcodeId } = query;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filter: Record<string, any> = {
+    deletedAt: null,
+  };
+  if (zipcodeId) {
+    validateObjectId(zipcodeId, 'Country');
+    filter.zipcodeId = zipcodeId;
+  }
+  const zipCodes = await Range.find(filter).populate('CountryId zipcodeId');
+  return zipCodes;
+};
+
+const getSingleRangeFromDB = async (id: string) => {
+  validateObjectId(id, 'Range');
+  const result = await Range.findOne({ _id: id, deletedAt: null }).populate(
+    'countryId',
+  );
+  return result;
+};
+
+const updateRangeIntoDB = async (id: string, payload: Partial<IRange>) => {
+  validateObjectId(id, 'Range');
+  const result = await Range.findOneAndUpdate(
+    { _id: id, deletedAt: null },
+    payload,
+    {
+      new: true,
+    },
+  );
+  return result;
+};
+
+const deleteRangeFromDB = async (id: string) => {
+  validateObjectId(id, 'Range');
+  const deletedAt = new Date().toISOString();
+
+  const result = await Range.findByIdAndUpdate(
+    id,
+    { deletedAt: deletedAt },
+    {
+      new: true,
+    },
+  );
+  return result;
+};
+
+export const rangeService = {
+  CreateRangeIntoDB,
+  getAllRangeFromDB,
+  getSingleRangeFromDB,
+  updateRangeIntoDB,
+  deleteRangeFromDB,
+};

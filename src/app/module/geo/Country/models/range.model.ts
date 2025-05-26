@@ -2,12 +2,12 @@ import { Schema, model, Types } from 'mongoose';
 
 const rangeSchema = new Schema(
   {
-    country: {
+    countryId: {
       type: Types.ObjectId,
       ref: 'Country',
       required: true,
     },
-    zipCode: {
+    zipCodeId: {
       type: Types.ObjectId,
       ref: 'ZipCode',
       required: true,
