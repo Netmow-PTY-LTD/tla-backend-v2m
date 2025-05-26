@@ -16,7 +16,7 @@ const getAllRangeFromDB = async (query: Record<string, any>) => {
   };
   if (zipcodeId) {
     validateObjectId(zipcodeId, 'Country');
-    filter.zipcodeId = zipcodeId;
+    filter.zipCodeId = zipcodeId;
   }
   const zipCodes = await Range.find(filter)
     .populate('countryId')
