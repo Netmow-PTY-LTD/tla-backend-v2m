@@ -75,11 +75,7 @@ router.post(
   validateRequest(rangeZodValidation.rangeZodValidationSchema),
   rangeController.createRange,
 );
-router.get(
-  '/zipcode/range/list',
-  auth(USER_ROLE.ADMIN),
-  rangeController.getAllRange,
-);
+router.get('/zipcode/range/list', rangeController.getAllRange);
 router.get(
   '/zipcode/range/:rangeId',
   auth(USER_ROLE.ADMIN),
