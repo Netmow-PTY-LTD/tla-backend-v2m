@@ -1,4 +1,5 @@
 import { Schema, model, Types } from 'mongoose';
+import { ILawyerServiceMap } from '../interfaces/lawyerServiceMap.interface';
 
 const lawyerServiceMapSchema = new Schema(
   {
@@ -47,7 +48,7 @@ const lawyerServiceMapSchema = new Schema(
   { timestamps: true },
 );
 
-export const LawyerServiceMap = model(
+export const LawyerServiceMap = model<ILawyerServiceMap>(
   'LawyerServiceMap',
   lawyerServiceMapSchema,
 );

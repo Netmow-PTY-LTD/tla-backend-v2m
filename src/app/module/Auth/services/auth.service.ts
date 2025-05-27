@@ -11,6 +11,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
+import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -99,7 +100,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     }
 
     // Separate the profile data from the user data
-    const { profile, ...userData } = payload;
+    const { profile, lawyerServiceMap, ...userData } = payload;
 
     // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
@@ -116,6 +117,16 @@ const registerUserIntoDB = async (payload: IUser) => {
     // Link the profile to the newly created user
     newUser.profile = newProfile._id;
     await newUser.save({ session });
+
+    // lawyer service map create
+    if (newUser.regUserType === 'lawyer') {
+      const lawyerServiceMapData = {
+        ...lawyerServiceMap,
+        userProfile: newProfile._id,
+      };
+
+      await LawyerServiceMap.create([lawyerServiceMapData], { session });
+    }
 
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
