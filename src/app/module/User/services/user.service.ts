@@ -3,11 +3,11 @@ import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import User from '../../Auth/models/auth.model';
 import { IUserProfile } from '../interfaces/user.interface';
-import UserProfile from '../models/user.model';
+
 import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
-import { validateObjectId } from '../../../utils/validateObjectId';
+import UserProfile from '../models/user.model';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -27,19 +27,17 @@ const getAllUserIntoDB = async () => {
  * @throws {AppError} Throws an error if the user does not exist or the profile cannot be updated.
  */
 const updateProfileIntoDB = async (
-  id: string,
+  userId: string,
   payload: Partial<IUserProfile>,
   file?: TUploadedFile,
 ) => {
-  console.log('updateProfileIntoDB', id, payload, file);
-
   // ✅ Handle file upload if provided
   if (file?.buffer) {
     try {
       const uploadedUrl = await uploadToSpaces(
         file.buffer,
         file.originalname,
-        id,
+        userId,
         // 'avatars', // optional folder name
       );
       payload.profilePicture = uploadedUrl;
@@ -54,7 +52,7 @@ const updateProfileIntoDB = async (
 
   // Update the user's profile in the database
   const updatedProfile = await UserProfile.findOneAndUpdate(
-    { user: id },
+    { user: userId },
     payload,
     {
       new: true, // Return the updated document

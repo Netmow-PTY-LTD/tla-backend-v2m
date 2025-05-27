@@ -1,49 +1,51 @@
 import { uploadToSpaces } from '../../../config/upload';
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import { AppError } from '../../../errors/error';
+
 import { TUploadedFile } from '../../../interface/file.interface';
 
 import { ICompanyProfile } from '../interfaces/companyProfile.interface';
 import CompanyProfile from '../models/companyProfile.model';
+import UserProfile from '../models/user.model';
 
 const updateCompanyProfileIntoDB = async (
-  id: string,
+  userId: string,
   payload: Partial<ICompanyProfile>,
   file?: TUploadedFile,
 ) => {
-  console.log('updateCompanyProfileIntoDB', id, payload, file);
+  // Step 1: Get the userProfileId
+  const userProfile = await UserProfile.findOne({ user: userId });
 
-  // ✅ Handle file upload if provided
+  if (!userProfile) {
+    // Return early if userProfile is not found — no error
+    return null;
+  }
+
+  // Step 2: Handle file upload if present
   if (file?.buffer) {
     try {
       const uploadedUrl = await uploadToSpaces(
         file.buffer,
         file.originalname,
-        id,
+        userId,
       );
       payload.logoUrl = uploadedUrl;
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
-      throw new AppError(
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        'File upload failed',
-      );
+      throw new Error('File upload failed');
     }
   }
 
-  // Update the company  profile in the database
-
-  const updateCompanyProfile = await CompanyProfile.findOneAndUpdate(
-    { userProfile: id },
+  // Step 3: Update or create company profile
+  const updatedCompanyProfile = await CompanyProfile.findOneAndUpdate(
+    { userProfileId: userProfile._id },
     payload,
     {
       upsert: true,
       new: true,
+      runValidators: true,
     },
   );
 
-  // Return the updated profile
-  return updateCompanyProfile;
+  return updatedCompanyProfile;
 };
 
 export const CompanyProfileService = {

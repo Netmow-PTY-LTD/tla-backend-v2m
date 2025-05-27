@@ -6,12 +6,19 @@ import { TUploadedFile } from '../../../interface/file.interface';
 import { IProfilePhotos } from '../interfaces/profiePhotos.interface';
 
 import ProfilePhotos from '../models/profilePhotos';
+import UserProfile from '../models/user.model';
 
 const updateProfilePhotosIntoDB = async (
-  id: string,
+  userId: string,
   payload: Partial<IProfilePhotos>,
   files?: TUploadedFile[],
 ) => {
+  const userProfile = await UserProfile.findOne({ user: userId });
+
+  if (!userProfile) {
+    // Return early if userProfile is not found — no error
+    return null;
+  }
   if (files?.length) {
     const uploadedUrls: string[] = [];
 
@@ -24,7 +31,11 @@ const updateProfilePhotosIntoDB = async (
       }
 
       try {
-        const url = await uploadToSpaces(file.buffer, file.originalname, id);
+        const url = await uploadToSpaces(
+          file.buffer,
+          file.originalname,
+          userId,
+        );
         uploadedUrls.push(url);
         // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
       } catch (err) {
@@ -41,7 +52,7 @@ const updateProfilePhotosIntoDB = async (
   // Update the company  profile in the database
 
   const updateProfilePhotos = await ProfilePhotos.findOneAndUpdate(
-    { userProfile: id },
+    { userProfile: userProfile._id },
     payload,
     {
       upsert: true,
