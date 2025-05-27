@@ -20,17 +20,19 @@ const lawyerServiceMapSchema = new Schema(
       ref: 'Country',
       required: true,
     },
-
     zipCode: {
       type: Types.ObjectId,
       ref: 'Service',
       required: true,
     },
-
+    // rangeInKm: {
+    //   type: Types.ObjectId,
+    //   ref: 'Service',
+    //   required: true,
+    // },
     rangeInKm: {
-      type: Types.ObjectId,
-      ref: 'Service',
-      required: true,
+      type: Number,
+      default: 0,
     },
     practiceWithin: {
       type: Boolean,
