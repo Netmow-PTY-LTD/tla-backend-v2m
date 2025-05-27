@@ -3,6 +3,7 @@ import { Model, Types } from 'mongoose';
 import { PhoneVerificationStatus, UserStatus } from '../constant/auth.constant';
 import { TUserRole } from '../../../constant';
 import { ILawyerServiceMap } from '../../User/interfaces/lawyerServiceMap.interface';
+import { ICompanyProfile } from '../../User/interfaces/companyProfile.interface';
 
 export interface ILoginUser {
   email: string;
@@ -31,6 +32,7 @@ export interface IUser {
   deletedAt?: Date | null;
   profile: Types.ObjectId;
   lawyerServiceMap: ILawyerServiceMap;
+  companyInfo?: ICompanyProfile;
 }
 
 export interface UserModel extends Model<IUser> {
