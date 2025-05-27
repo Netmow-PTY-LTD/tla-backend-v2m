@@ -25,4 +25,5 @@ export interface ICompanyProfile {
     | 'Over 200 employees';
   yearsInBusiness?: number;
   description?: string;
+  companyTeam?: boolean;
 }

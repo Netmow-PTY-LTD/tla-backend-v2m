@@ -12,6 +12,7 @@ import mongoose from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
+import CompanyProfile from '../../User/models/companyProfile.model';
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -85,7 +86,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
  *         creating a new user record, creating a profile for the user, and generating
  *         access and refresh tokens for the user.
  * @param  {IUser} payload - The user registration data.
- * @returns {Promise<Object>} An object containing the access token, refresh token, and user data.
+ * @returns  An object containing the access token, refresh token, and user data.
  */
 const registerUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
@@ -100,7 +101,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     }
 
     // Separate the profile data from the user data
-    const { profile, lawyerServiceMap, ...userData } = payload;
+    const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
 
     // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
@@ -117,6 +118,18 @@ const registerUserIntoDB = async (payload: IUser) => {
     // Link the profile to the newly created user
     newUser.profile = newProfile._id;
     await newUser.save({ session });
+
+    // compnay profile map create
+
+    if (companyInfo?.companyTeam) {
+      const companyProfileMapData = {
+        ...companyInfo,
+        contactEmail: userData.email,
+        userProfileId: newProfile._id,
+      };
+
+      await CompanyProfile.create([companyProfileMapData], { session });
+    }
 
     // lawyer service map create
     if (newUser.regUserType === 'lawyer') {
