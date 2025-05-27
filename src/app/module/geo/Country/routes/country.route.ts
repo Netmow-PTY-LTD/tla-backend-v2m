@@ -18,7 +18,7 @@ router.post(
   validateRequest(countryZodValidation.countryZodValidationSchema),
   countryController.createCountry,
 );
-router.get('/list', auth(USER_ROLE.ADMIN), countryController.getAllCountry);
+router.get('/list', countryController.getAllCountry);
 router.get(
   '/:countryId',
   auth(USER_ROLE.ADMIN),
