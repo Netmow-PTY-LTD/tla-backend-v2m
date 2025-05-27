@@ -1,6 +1,5 @@
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { UserProfileService } from '../services/user.service';
 import { TUploadedFile } from '../../../interface/file.interface';
@@ -109,6 +108,7 @@ const getSingleUserProfileData = catchAsync(async (req, res) => {
  * @returns {Promise<void>} Sends the response with status, success message, and the user's profile data.
  * @throws {AppError} Throws an error if the profile retrieval fails.
  */
+
 const getUserProfileInfo = catchAsync(async (req, res) => {
   // Extract the logged-in user information from the request (from JWT payload)
   const user = req.user;
@@ -152,6 +152,7 @@ const getAllUserProfile = catchAsync(async (req, res) => {
  * @returns {Promise<void>} Sends the response with status, success message, and the result of the soft deletion.
  * @throws {AppError} Throws an error if the deletion fails or the user does not exist.
  */
+
 const deleteSingleUserProfile = catchAsync(async (req, res) => {
   // Extract the user ID from the request parameters
   const userId = req.params.userId;
