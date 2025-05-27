@@ -56,15 +56,15 @@ const companyProfileSchema = new mongoose.Schema(
     },
     companySize: {
       type: String,
-      enum: [
-        'Self-employed / sole trader',
-        '2–10 employees',
-        '11–50 employees',
-        '51–200 employees',
-        '51–200 employees',
-        'Over 200 employees',
-      ],
-      required: true,
+      // enum: [
+      //   'Self-employed / sole trader',
+      //   '2–10 employees',
+      //   '11–50 employees',
+      //   '51–200 employees',
+      //   '51–200 employees',
+      //   'Over 200 employees',
+      // ],
+      // required: true,
     },
     yearsInBusiness: {
       type: Number,
