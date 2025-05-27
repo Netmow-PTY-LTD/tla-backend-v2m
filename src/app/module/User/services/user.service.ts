@@ -7,6 +7,7 @@ import UserProfile from '../models/user.model';
 import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
+import { validateObjectId } from '../../../utils/validateObjectId';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -30,11 +31,7 @@ const updateProfileIntoDB = async (
   payload: Partial<IUserProfile>,
   file?: TUploadedFile,
 ) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
-  }
+  console.log('updateProfileIntoDB', id, payload, file);
 
   // ✅ Handle file upload if provided
   if (file?.buffer) {
@@ -72,7 +69,7 @@ const updateProfileIntoDB = async (
 /**
  * @desc   Retrieves the profile data of a single user from the database, including user and profile details.
  * @param  {string} id - The ID of the user whose profile data is to be retrieved.
- * @returns {Promise<any>} Returns the user's basic information along with their profile data.
+ * @returns Returns the user's basic information along with their profile data.
  * @throws {AppError} Throws an error if the user does not exist.
  */
 const getSingleUserProfileDataIntoDB = async (id: string) => {

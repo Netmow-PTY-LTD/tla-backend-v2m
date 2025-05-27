@@ -2,7 +2,7 @@ import { uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
-import User from '../../Auth/models/auth.model';
+
 import { ICompanyProfile } from '../interfaces/companyProfile.interface';
 import CompanyProfile from '../models/companyProfile.model';
 
@@ -11,11 +11,7 @@ const updateCompanyProfileIntoDB = async (
   payload: Partial<ICompanyProfile>,
   file?: TUploadedFile,
 ) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
-  }
+  console.log('updateCompanyProfileIntoDB', id, payload, file);
 
   // ✅ Handle file upload if provided
   if (file?.buffer) {

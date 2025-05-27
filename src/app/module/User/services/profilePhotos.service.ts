@@ -2,7 +2,6 @@ import { uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
-import User from '../../Auth/models/auth.model';
 
 import { IProfilePhotos } from '../interfaces/profiePhotos.interface';
 
@@ -13,12 +12,6 @@ const updateProfilePhotosIntoDB = async (
   payload: Partial<IProfilePhotos>,
   files?: TUploadedFile[],
 ) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
-  }
-
   if (files?.length) {
     const uploadedUrls: string[] = [];
 
