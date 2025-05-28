@@ -7,6 +7,7 @@ export interface IOption {
   countryId: Types.ObjectId;
   serviceId: Types.ObjectId;
   questionId: Types.ObjectId;
+  order: number;
   selected_options: [Types.ObjectId];
   deletedAt?: Date;
 }

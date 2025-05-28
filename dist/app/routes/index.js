@@ -1,25 +1,47 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const Admin_1 = __importDefault(require("../module/Admin"));
 const auth_route_1 = require("../module/Auth/routes/auth.route");
 const user_route_1 = require("../module/User/routes/user.route");
+const country_route_1 = require("../module/Geo/Country/routes/country.route");
+const service_route_1 = require("../module/Service/Service/routes/service.route");
+const option_route_1 = require("../module/Service/Option/routes/option.route");
+const countryWiseMap_route_1 = require("../module/Geo/CountryWiseMap/routes/countryWiseMap.route");
+const ServiceWiseQuestion_route_1 = require("../module/Service/Question/routes/ServiceWiseQuestion.route");
+const view_router_1 = require("../module/View/routes/view.router");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
-    {
-        path: '/admin',
-        route: Admin_1.default,
-    },
     {
         path: '/auth',
         route: auth_route_1.authRouter,
     },
     {
-        path: '/users',
+        path: '/user',
         route: user_route_1.UserProfileRouter,
+    },
+    {
+        path: '/country',
+        route: country_route_1.countryRouter,
+    },
+    {
+        path: '/service',
+        route: service_route_1.serviceRouter,
+    },
+    {
+        path: '/country-wise-map',
+        route: countryWiseMap_route_1.CountryWiseMapRouter,
+    },
+    {
+        path: '/question',
+        route: ServiceWiseQuestion_route_1.questionRouter,
+    },
+    {
+        path: '/option',
+        route: option_route_1.OptionRouter,
+    },
+    {
+        path: '/',
+        route: view_router_1.viewRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

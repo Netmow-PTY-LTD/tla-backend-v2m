@@ -65,11 +65,6 @@ const updateProfileIntoDB = async (
     },
   );
 
-  // If no profile is found to update, throw an error
-  if (!updatedProfile) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
-  }
-
   // Return the updated profile
   return updatedProfile;
 };

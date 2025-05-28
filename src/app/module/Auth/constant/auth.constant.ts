@@ -1,7 +1,7 @@
 export const USER_STATUS = {
   ACTIVE: 'active',
   SUSPENDED: 'suspended',
-  SUSPENDED_SPAM: 'suspended&spam',
+  INACTIVE: 'inactive',
 } as const;
 
 export type UserStatus = (typeof USER_STATUS)[keyof typeof USER_STATUS]; // for typescript interface

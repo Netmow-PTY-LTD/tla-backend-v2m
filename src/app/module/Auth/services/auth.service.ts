@@ -11,6 +11,8 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
+import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
+import CompanyProfile from '../../User/models/companyProfile.model';
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -36,7 +38,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
   }
@@ -84,7 +86,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
  *         creating a new user record, creating a profile for the user, and generating
  *         access and refresh tokens for the user.
  * @param  {IUser} payload - The user registration data.
- * @returns {Promise<Object>} An object containing the access token, refresh token, and user data.
+ * @returns  An object containing the access token, refresh token, and user data.
  */
 const registerUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
@@ -95,11 +97,11 @@ const registerUserIntoDB = async (payload: IUser) => {
     // Check if the user already exists by email
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
-      throw new AppError(HTTP_STATUS.BAD_REQUEST, 'This user already exists!');
+      throw new AppError(HTTP_STATUS.CONFLICT, 'This user already exists!');
     }
 
     // Separate the profile data from the user data
-    const { profile, ...userData } = payload;
+    const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
 
     // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
@@ -116,6 +118,28 @@ const registerUserIntoDB = async (payload: IUser) => {
     // Link the profile to the newly created user
     newUser.profile = newProfile._id;
     await newUser.save({ session });
+
+    // compnay profile map create
+
+    if (companyInfo?.companyTeam) {
+      const companyProfileMapData = {
+        ...companyInfo,
+        contactEmail: userData.email,
+        userProfileId: newProfile._id,
+      };
+
+      await CompanyProfile.create([companyProfileMapData], { session });
+    }
+
+    // lawyer service map create
+    if (newUser.regUserType === 'lawyer') {
+      const lawyerServiceMapData = {
+        ...lawyerServiceMap,
+        userProfile: newProfile._id,
+      };
+
+      await LawyerServiceMap.create([lawyerServiceMapData], { session });
+    }
 
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
@@ -219,7 +243,7 @@ const changePasswordIntoDB = async (
 
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -274,7 +298,7 @@ const forgetPassword = async (userEmail: string) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -348,7 +372,7 @@ const resetPassword = async (
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.SUSPENDED_SPAM
+    userStatus === USER_STATUS.INACTIVE
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -426,6 +450,21 @@ export const logOutToken = async (
   };
 };
 
+const accountStatusChangeIntoDB = async (
+  userId: string,
+  accountStatus: string,
+) => {
+  const result = await User.findOneAndUpdate(
+    { _id: userId, deletedAt: null },
+    {
+      accountStatus,
+    },
+    { new: true },
+  );
+
+  return result;
+};
+
 export const authService = {
   loginUserIntoDB,
   registerUserIntoDB,
@@ -434,4 +473,5 @@ export const authService = {
   forgetPassword,
   resetPassword,
   logOutToken,
+  accountStatusChangeIntoDB,
 };
