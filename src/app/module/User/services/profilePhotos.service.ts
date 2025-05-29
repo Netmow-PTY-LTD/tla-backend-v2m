@@ -1,5 +1,6 @@
 import { uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
 
@@ -17,7 +18,7 @@ const updateProfilePhotosIntoDB = async (
 
   if (!userProfile) {
     // Return early if userProfile is not found — no error
-    return null;
+    return sendNotFoundResponse('user profile data');
   }
   if (files?.length) {
     const uploadedUrls: string[] = [];
@@ -52,7 +53,7 @@ const updateProfilePhotosIntoDB = async (
   // Update the company  profile in the database
 
   const updateProfilePhotos = await ProfilePhotos.findOneAndUpdate(
-    { userProfile: userProfile._id },
+    { userProfileId: userProfile._id },
     payload,
     {
       upsert: true,
