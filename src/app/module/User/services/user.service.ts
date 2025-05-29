@@ -3,10 +3,11 @@ import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import User from '../../Auth/models/auth.model';
 import { IUserProfile } from '../interfaces/user.interface';
-import UserProfile from '../models/user.model';
+
 import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
+import UserProfile from '../models/user.model';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -26,23 +27,17 @@ const getAllUserIntoDB = async () => {
  * @throws {AppError} Throws an error if the user does not exist or the profile cannot be updated.
  */
 const updateProfileIntoDB = async (
-  id: string,
+  userId: string,
   payload: Partial<IUserProfile>,
   file?: TUploadedFile,
 ) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
-  }
-
   // ✅ Handle file upload if provided
   if (file?.buffer) {
     try {
       const uploadedUrl = await uploadToSpaces(
         file.buffer,
         file.originalname,
-        id,
+        userId,
         // 'avatars', // optional folder name
       );
       payload.profilePicture = uploadedUrl;
@@ -57,7 +52,7 @@ const updateProfileIntoDB = async (
 
   // Update the user's profile in the database
   const updatedProfile = await UserProfile.findOneAndUpdate(
-    { user: id },
+    { user: userId },
     payload,
     {
       new: true, // Return the updated document
@@ -72,7 +67,7 @@ const updateProfileIntoDB = async (
 /**
  * @desc   Retrieves the profile data of a single user from the database, including user and profile details.
  * @param  {string} id - The ID of the user whose profile data is to be retrieved.
- * @returns {Promise<any>} Returns the user's basic information along with their profile data.
+ * @returns Returns the user's basic information along with their profile data.
  * @throws {AppError} Throws an error if the user does not exist.
  */
 const getSingleUserProfileDataIntoDB = async (id: string) => {

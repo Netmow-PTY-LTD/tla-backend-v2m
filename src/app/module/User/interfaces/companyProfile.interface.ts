@@ -17,12 +17,13 @@ export interface ICompanyProfile {
     hideFromProfile?: boolean;
     locationReason?: 'No Location' | 'Online only' | 'Multiple Location';
   };
-  companySize:
-    | 'Self-employed / sole trader'
-    | '2–10 employees'
-    | '11–50 employees'
-    | '51–200 employees'
-    | 'Over 200 employees';
+  // companySize:
+  //   | 'Self-employed / sole trader'
+  //   | '2–10 employees'
+  //   | '11–50 employees'
+  //   | '51–200 employees'
+  //   | 'Over 200 employees';
+  companySize: string;
   yearsInBusiness?: number;
   description?: string;
   companyTeam?: boolean;
