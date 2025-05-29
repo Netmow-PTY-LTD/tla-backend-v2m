@@ -1,4 +1,5 @@
 import { uploadToSpaces } from '../../../config/upload';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 
 import { TUploadedFile } from '../../../interface/file.interface';
 
@@ -16,7 +17,9 @@ const updateCompanyProfileIntoDB = async (
 
   if (!userProfile) {
     // Return early if userProfile is not found — no error
-    return null;
+    return sendNotFoundResponse(
+      'user profile data not found for update company profile',
+    );
   }
 
   // Step 2: Handle file upload if present

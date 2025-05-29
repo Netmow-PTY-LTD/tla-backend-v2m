@@ -3,9 +3,9 @@ import { IAccreditation } from '../interfaces/profileAccreditatio';
 
 const accreditationSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
     name: {
@@ -20,6 +20,7 @@ const accreditationSchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );

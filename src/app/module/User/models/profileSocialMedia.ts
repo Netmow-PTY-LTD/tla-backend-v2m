@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const profileSocialMediaSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
     website: {
@@ -62,6 +62,7 @@ const profileSocialMediaSchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );

@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile', // Reference to the company profile
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
     reviewerName: {
@@ -40,6 +40,7 @@ const reviewSchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );
