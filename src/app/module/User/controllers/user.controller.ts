@@ -15,14 +15,11 @@ import { ProfilePhotosService } from '../services/profilePhotos.service';
  */
 
 const updateProfile = catchAsync(async (req, res) => {
-  const userId = req.params.userId;
-  const parsedData = JSON.parse(req.body.data); // { userProfile, companyInfo, socialMedia, questions }
-
+  const userId = req.user.userId;
+  const parsedData = JSON.parse(req.body.data);
   const files = req.files as TUploadedFile[];
 
-  // Map fieldname => TUploadedFile
   const fileMap: Record<string, TUploadedFile[]> = {};
-
   files.forEach((file) => {
     if (!fileMap[file.fieldname]) {
       fileMap[file.fieldname] = [];
@@ -30,29 +27,35 @@ const updateProfile = catchAsync(async (req, res) => {
     fileMap[file.fieldname].push(file);
   });
 
-  // Update user  profile
+  let userProfileResult = null;
+  let companyProfileResult = null;
+  let profilePhotosResult = null;
 
-  const userProfileResult = await UserProfileService.updateProfileIntoDB(
-    userId,
-    parsedData.userProfile,
-    fileMap['userProfile']?.[0],
-  );
-
-  const companyProfileResult =
-    await CompanyProfileService.updateCompanyProfileIntoDB(
+  if (parsedData?.userProfile) {
+    userProfileResult = await UserProfileService.updateProfileIntoDB(
       userId,
-      parsedData.companyInfo,
-      fileMap['companyLogo']?.[0],
+      parsedData.userProfile,
+      fileMap['userProfileLogo']?.[0],
     );
+  }
 
-  const profilePhotosResult =
-    await ProfilePhotosService.updateProfilePhotosIntoDB(
+  if (parsedData?.companyInfo) {
+    companyProfileResult =
+      await CompanyProfileService.updateCompanyProfileIntoDB(
+        userId,
+        parsedData.companyInfo,
+        fileMap['companyLogo']?.[0],
+      );
+  }
+
+  if (parsedData?.photos) {
+    profilePhotosResult = await ProfilePhotosService.updateProfilePhotosIntoDB(
       userId,
       parsedData.photos,
       fileMap['photos'],
     );
+  }
 
-  // Decide which result to return, prioritizing userProfile first
   const result =
     userProfileResult || companyProfileResult || profilePhotosResult;
 
@@ -67,7 +70,9 @@ const updateProfile = catchAsync(async (req, res) => {
 
   const message = userProfileResult
     ? 'User profile updated successfully.'
-    : 'Company profile updated successfully.';
+    : companyProfileResult
+      ? 'Company profile updated successfully.'
+      : 'Profile photos updated successfully.';
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
