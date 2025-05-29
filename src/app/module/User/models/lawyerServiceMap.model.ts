@@ -47,7 +47,7 @@ const lawyerServiceMapSchema = new Schema(
       default: false,
     },
   },
-  { timestamps: true },
+  { versionKey: false, timestamps: true },
 );
 
 export const LawyerServiceMap = model<ILawyerServiceMap>(

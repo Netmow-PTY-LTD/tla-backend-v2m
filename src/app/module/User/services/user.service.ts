@@ -11,6 +11,7 @@ import UserProfile from '../models/user.model';
 import CompanyProfile from '../models/companyProfile.model';
 import ProfilePhotos from '../models/profilePhotos';
 import profileSocialMedia from '../models/profileSocialMedia';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -74,12 +75,6 @@ const updateProfileIntoDB = async (
  * @throws {AppError} Throws an error if the user does not exist.
  */
 const getSingleUserProfileDataIntoDB = async (id: string) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
-  }
-
   // Retrieve the user's basic information and populate the profile data
   const userProfileInfo = await User.findById(id)
     .select('username email role accountStatus regUserType') // Select fields from the User model
@@ -122,19 +117,18 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
   // 1. Check if user exists
   const isUserExists = await User.isUserExists(user.userId);
   if (!isUserExists) {
-    return null; // Return null if user does not exist
+    return sendNotFoundResponse('user does not exist');
   }
 
   // 2. Get the user + profile
   const userData = await User.findById(user.userId)
-    .select('username email role accountStatus regUserType')
+
     .populate<{ profile: mongoose.Document }>({
       path: 'profile',
-      select: 'name activeProfile country',
     });
 
   if (!userData || !userData.profile || typeof userData.profile === 'string') {
-    return null;
+    return sendNotFoundResponse('user profile data not found');
   }
 
   const userProfileId = userData.profile._id;

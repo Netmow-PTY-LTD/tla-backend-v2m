@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const profileQASchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
     questionId: {
@@ -19,6 +19,7 @@ const profileQASchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );
