@@ -20,6 +20,7 @@ const updateProfilePhotosIntoDB = async (
     // Return early if userProfile is not found — no error
     return sendNotFoundResponse('user profile data');
   }
+
   if (files?.length) {
     const uploadedUrls: string[] = [];
 
