@@ -8,6 +8,9 @@ import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
 import UserProfile from '../models/user.model';
+import CompanyProfile from '../models/companyProfile.model';
+import ProfilePhotos from '../models/profilePhotos';
+import profileSocialMedia from '../models/profileSocialMedia';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -95,23 +98,70 @@ const getSingleUserProfileDataIntoDB = async (id: string) => {
  * @returns  Returns the user's basic information along with their profile data.
  * @throws {AppError} Throws an error if the user does not exist.
  */
+
+// const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
+//   // Check if the user exists in the database by user ID from the JWT payload
+//   const isUserExists = await User.isUserExists(user.userId);
+//   if (!isUserExists) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+//   }
+
+//   // Retrieve the user's basic information and populate the profile data
+//   const userProfileInfo = await User.findById(user.userId)
+//     .select('username email role accountStatus regUserType') // Select fields from the User model
+//     .populate({
+//       path: 'profile', // Populate the profile field
+//       select: '-_id name activeProfile country', // Select specific fields from the UserProfile model
+//     });
+
+//   // Return the user's profile data
+//   return userProfileInfo;
+// };
+
 const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
-  // Check if the user exists in the database by user ID from the JWT payload
+  // 1. Check if user exists
   const isUserExists = await User.isUserExists(user.userId);
   if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+    return null; // Return null if user does not exist
   }
 
-  // Retrieve the user's basic information and populate the profile data
-  const userProfileInfo = await User.findById(user.userId)
-    .select('username email role accountStatus regUserType') // Select fields from the User model
-    .populate({
-      path: 'profile', // Populate the profile field
-      select: '-_id name activeProfile country', // Select specific fields from the UserProfile model
+  // 2. Get the user + profile
+  const userData = await User.findById(user.userId)
+    .select('username email role accountStatus regUserType')
+    .populate<{ profile: mongoose.Document }>({
+      path: 'profile',
+      select: 'name activeProfile country',
     });
 
-  // Return the user's profile data
-  return userProfileInfo;
+  if (!userData || !userData.profile || typeof userData.profile === 'string') {
+    return null;
+  }
+
+  const userProfileId = userData.profile._id;
+
+  // 3. Fetch models that point to the UserProfile
+  const [companyProfile, photos, socialMedia] = await Promise.all([
+    CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
+
+    ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
+    profileSocialMedia
+      .findOne({ userProfileId: userProfileId })
+      .select('+_id '),
+  ]);
+
+  // 4. Convert to plain object to remove Mongoose internals
+  const plainUser = userData.toObject();
+  const plainProfile = userData.profile.toObject();
+
+  // 5. Add nested profile data
+  plainUser.profile = {
+    ...plainProfile,
+    companyProfile,
+    photos,
+    socialMedia,
+  };
+
+  return plainUser;
 };
 
 /**
