@@ -4,12 +4,13 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
 import User from '../../Auth/models/auth.model';
-import { ICompanyProfile } from '../interfaces/companyProfile.interface';
-import CompanyProfile from '../models/companyProfile.model';
+import { IAccreditation } from '../interfaces/profileAccreditation';
+
+import Accreditation from '../models/ProfileAccreditation';
 
 const updateProfileAccreditationIntoDB = async (
   id: string,
-  payload: Partial<ICompanyProfile>,
+  payload: Partial<IAccreditation>,
   file?: TUploadedFile,
 ) => {
   // Check if the user exists in the database by ID
@@ -26,7 +27,7 @@ const updateProfileAccreditationIntoDB = async (
         file.originalname,
         id,
       );
-      payload.logoUrl = uploadedUrl;
+      payload.attachment = uploadedUrl;
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
       throw new AppError(
@@ -38,7 +39,7 @@ const updateProfileAccreditationIntoDB = async (
 
   // Update the company  profile in the database
 
-  const updateCompanyProfile = await CompanyProfile.findOneAndUpdate(
+  const updateAccreditation = await Accreditation.findOneAndUpdate(
     { userProfileId: id },
     payload,
     {
@@ -48,9 +49,9 @@ const updateProfileAccreditationIntoDB = async (
   );
 
   // Return the updated profile
-  return updateCompanyProfile;
+  return updateAccreditation;
 };
 
-export const CompanyProfileService = {
+export const accreditationService = {
   updateProfileAccreditationIntoDB,
 };

@@ -5,6 +5,7 @@ import { UserProfileService } from '../services/user.service';
 import { TUploadedFile } from '../../../interface/file.interface';
 import { CompanyProfileService } from '../services/companyProfile.service';
 import { ProfilePhotosService } from '../services/profilePhotos.service';
+import { accreditationService } from '../services/profileAccreditation.service';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -30,6 +31,7 @@ const updateProfile = catchAsync(async (req, res) => {
   let userProfileResult = null;
   let companyProfileResult = null;
   let profilePhotosResult = null;
+  let accreditationResult = null;
 
   if (parsedData?.userProfile) {
     userProfileResult = await UserProfileService.updateProfileIntoDB(
@@ -56,8 +58,20 @@ const updateProfile = catchAsync(async (req, res) => {
     );
   }
 
+  if (parsedData?.accreditationInfo) {
+    accreditationResult =
+      await accreditationService.updateProfileAccreditationIntoDB(
+        userId,
+        parsedData.accreditationInfo,
+        fileMap['attachment']?.[0],
+      );
+  }
+
   const result =
-    userProfileResult || companyProfileResult || profilePhotosResult;
+    userProfileResult ||
+    companyProfileResult ||
+    profilePhotosResult ||
+    accreditationResult;
 
   if (!result) {
     return sendResponse(res, {
@@ -72,7 +86,9 @@ const updateProfile = catchAsync(async (req, res) => {
     ? 'User profile updated successfully.'
     : companyProfileResult
       ? 'Company profile updated successfully.'
-      : 'Profile photos updated successfully.';
+      : accreditationResult
+        ? 'Accreditation updated successfully.'
+        : 'Profile photos updated successfully.';
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
