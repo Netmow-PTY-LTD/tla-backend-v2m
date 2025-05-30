@@ -7,9 +7,9 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const globalErrorhandler_1 = __importDefault(require("./app/middlewares/globalErrorhandler"));
-const notFound_1 = __importDefault(require("./app/middlewares/notFound"));
 const routes_1 = __importDefault(require("./app/routes"));
 const config_1 = __importDefault(require("./app/config"));
+const apiNotFound_1 = __importDefault(require("./app/middlewares/apiNotFound"));
 const app = (0, express_1.default)();
 //parsers
 app.use(express_1.default.json());
@@ -25,5 +25,5 @@ app.get('/', (req, res) => {
 });
 app.use(globalErrorhandler_1.default);
 //Not Found
-app.use(notFound_1.default);
+app.use(apiNotFound_1.default);
 exports.default = app;
