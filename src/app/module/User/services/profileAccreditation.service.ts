@@ -3,10 +3,11 @@ import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
-import User from '../../Auth/models/auth.model';
+
 import { IAccreditation } from '../interfaces/profileAccreditation';
 
 import Accreditation from '../models/ProfileAccreditation';
+import UserProfile from '../models/user.model';
 
 const updateProfileAccreditationIntoDB = async (
   id: string,
@@ -14,9 +15,11 @@ const updateProfileAccreditationIntoDB = async (
   file?: TUploadedFile,
 ) => {
   // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    return sendNotFoundResponse('user not found for update accreditation');
+  const userProfile = await UserProfile.findOne({ user: id });
+
+  if (!userProfile) {
+    // Return early if userProfile is not found — no error
+    return sendNotFoundResponse('user profile data');
   }
 
   // ✅ Handle file upload if provided
@@ -40,7 +43,7 @@ const updateProfileAccreditationIntoDB = async (
   // Update the company  profile in the database
 
   const updateAccreditation = await Accreditation.findOneAndUpdate(
-    { userProfileId: id },
+    { userProfileId: userProfile._id },
     payload,
     {
       upsert: true,
