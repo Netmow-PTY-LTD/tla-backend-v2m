@@ -1,5 +1,5 @@
 import mongoose, { model } from 'mongoose';
-import { IAccreditation } from '../interfaces/profileAccreditatio';
+import { IAccreditation } from '../interfaces/profileAccreditation';
 
 const accreditationSchema = new mongoose.Schema(
   {
