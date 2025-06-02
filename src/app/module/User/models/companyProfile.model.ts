@@ -39,9 +39,11 @@ const companyProfileSchema = new mongoose.Schema(
       coordinates: {
         lat: {
           type: Number,
+          default: 0,
         },
         lng: {
           type: Number,
+          default: 0,
         },
       },
       hideFromProfile: {
