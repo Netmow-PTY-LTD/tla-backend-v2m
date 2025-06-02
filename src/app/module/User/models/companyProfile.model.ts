@@ -10,7 +10,6 @@ const companyProfileSchema = new mongoose.Schema(
     },
     companyName: {
       type: String,
-      required: true,
       trim: true,
     },
     logoUrl: {
@@ -20,7 +19,7 @@ const companyProfileSchema = new mongoose.Schema(
 
     contactEmail: {
       type: String,
-      required: true,
+
       lowercase: true,
       trim: true,
     },
@@ -52,6 +51,7 @@ const companyProfileSchema = new mongoose.Schema(
       locationReason: {
         type: String,
         enum: ['no_location', 'online_only', 'multiple_location'],
+        default: 'no_location',
       },
     },
     companySize: {
@@ -63,6 +63,7 @@ const companyProfileSchema = new mongoose.Schema(
         '51_200_employees',
         'over_200_employees',
       ],
+      default: 'self_employed',
     },
     yearsInBusiness: {
       type: Number,
