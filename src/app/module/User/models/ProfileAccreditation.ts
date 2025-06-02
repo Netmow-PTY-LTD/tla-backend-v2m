@@ -8,14 +8,21 @@ const accreditationSchema = new mongoose.Schema(
       ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
-    name: {
+    institution: {
       type: String,
-      required: true,
+      trim: true,
+    },
+    address: {
+      type: String,
+
+      trim: true,
+    },
+    certificate_title: {
+      type: String,
       trim: true,
     },
     attachment: {
       type: String, // URL or file path to the uploaded file (e.g., certificate PDF/image)
-      required: true,
       trim: true,
     },
   },
