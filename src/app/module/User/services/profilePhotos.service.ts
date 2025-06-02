@@ -12,7 +12,7 @@ import UserProfile from '../models/user.model';
 const updateProfilePhotosIntoDB = async (
   userId: string,
   payload: Partial<IProfilePhotos>,
-  files?: TUploadedFile[],
+  file: TUploadedFile,
 ) => {
   const userProfile = await UserProfile.findOne({ user: userId });
 
@@ -21,35 +21,22 @@ const updateProfilePhotosIntoDB = async (
     return sendNotFoundResponse('user profile data');
   }
 
-  if (files?.length) {
-    const uploadedUrls: string[] = [];
-
-    for (const file of files) {
-      if (!file.buffer) {
-        throw new AppError(
-          HTTP_STATUS.BAD_REQUEST,
-          'One or more uploaded files are missing buffers.',
-        );
-      }
-
-      try {
-        const url = await uploadToSpaces(
-          file.buffer,
-          file.originalname,
-          userId,
-        );
-        uploadedUrls.push(url);
-        // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-      } catch (err) {
-        throw new AppError(
-          HTTP_STATUS.INTERNAL_SERVER_ERROR,
-          `Failed to upload file: ${file.originalname}`,
-        );
-      }
+  // ✅ Handle file upload if provided
+  if (file?.buffer) {
+    try {
+      const uploadedUrl = await uploadToSpaces(
+        file.buffer,
+        file.originalname,
+        userId,
+      );
+      payload.photo = uploadedUrl;
+      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new AppError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        'File upload failed',
+      );
     }
-
-    // ✅ Assign uploaded photo URLs to payload
-    payload.photos = uploadedUrls;
   }
   // Update the company  profile in the database
 
