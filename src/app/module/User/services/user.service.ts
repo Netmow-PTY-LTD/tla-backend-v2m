@@ -13,7 +13,6 @@ import ProfilePhotos from '../models/profilePhotos';
 import profileSocialMedia from '../models/profileSocialMedia';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import Accreditation from '../models/ProfileAccreditation';
-import { profileCustomService } from './ProfileCustomService.service';
 import ProfileCustomService from '../models/profileServiceCoustom.model';
 
 /**

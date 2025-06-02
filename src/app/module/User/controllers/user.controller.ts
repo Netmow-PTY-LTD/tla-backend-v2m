@@ -8,6 +8,7 @@ import { ProfilePhotosService } from '../services/profilePhotos.service';
 import { accreditationService } from '../services/profileAccreditation.service';
 import { profileSocialMediaService } from '../services/profileSocialMedia.service';
 import { profileCustomService } from '../services/ProfileCustomService.service';
+import { profileQAService } from '../services/profileQA.service';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -36,6 +37,7 @@ const updateProfile = catchAsync(async (req, res) => {
   let accreditationResult = null;
   let socialMediaResult = null;
   let serviceInfoResult = null;
+  let profileQAResult = null;
 
   if (parsedData?.userProfile) {
     userProfileResult = await UserProfileService.updateProfileIntoDB(
@@ -86,6 +88,13 @@ const updateProfile = catchAsync(async (req, res) => {
         parsedData.serviceInfo,
       );
   }
+  if (parsedData?.profileQA) {
+    // Assuming profileCustomService is used for custom services
+    profileQAResult = await profileQAService.updateProfileQAIntoDB(
+      userId,
+      parsedData.profileQA,
+    );
+  }
 
   const result =
     userProfileResult ||
@@ -93,6 +102,7 @@ const updateProfile = catchAsync(async (req, res) => {
     profilePhotosResult ||
     accreditationResult ||
     serviceInfoResult ||
+    profileQAResult ||
     socialMediaResult;
 
   if (!result) {
