@@ -7,10 +7,10 @@ const profileQASchema = new mongoose.Schema(
       ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
-    questionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Question',
+    question: {
+      type: String,
       required: true,
+      trim: true,
     },
     answer: {
       type: String,
@@ -24,4 +24,5 @@ const profileQASchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model('ProfileQA', profileQASchema);
+const ProfileQA = mongoose.model('ProfileQA', profileQASchema);
+export default ProfileQA;
