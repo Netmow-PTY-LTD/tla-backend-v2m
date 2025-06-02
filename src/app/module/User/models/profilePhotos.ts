@@ -8,18 +8,15 @@ const profileServiceCustomSchema = new mongoose.Schema(
       ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
-    photos: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-    videos: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    photo: {
+      type: String,
+      trim: true,
+    },
+
+    video: {
+      type: String,
+      trim: true,
+    },
   },
   {
     versionKey: false,
