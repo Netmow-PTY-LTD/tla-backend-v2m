@@ -60,6 +60,10 @@ const profileSocialMediaSchema = new mongoose.Schema(
       trim: true,
       description: 'Any other custom social link',
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     versionKey: false,
@@ -67,4 +71,8 @@ const profileSocialMediaSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model('ProfileSocialMedia', profileSocialMediaSchema);
+export const ProfileSocialMedia = mongoose.model(
+  'ProfileSocialMedia',
+  profileSocialMediaSchema,
+);
+export default ProfileSocialMedia;

@@ -12,6 +12,7 @@ import CompanyProfile from '../models/companyProfile.model';
 import ProfilePhotos from '../models/profilePhotos';
 import profileSocialMedia from '../models/profileSocialMedia';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
+import Accreditation from '../models/ProfileAccreditation';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -134,14 +135,15 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
   const userProfileId = userData.profile._id;
 
   // 3. Fetch models that point to the UserProfile
-  const [companyProfile, photos, socialMedia] = await Promise.all([
-    CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
-
-    ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
-    profileSocialMedia
-      .findOne({ userProfileId: userProfileId })
-      .select('+_id '),
-  ]);
+  const [companyProfile, accreditation, photos, socialMedia] =
+    await Promise.all([
+      CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
+      Accreditation.findOne({ userProfileId: userProfileId }).select('+_id '),
+      ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
+      profileSocialMedia
+        .findOne({ userProfileId: userProfileId })
+        .select('+_id '),
+    ]);
 
   // 4. Convert to plain object to remove Mongoose internals
   const plainUser = userData.toObject();
@@ -153,6 +155,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     companyProfile,
     photos,
     socialMedia,
+    accreditation,
   };
 
   return plainUser;
