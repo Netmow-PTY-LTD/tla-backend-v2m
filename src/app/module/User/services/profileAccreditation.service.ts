@@ -11,18 +11,17 @@ import UserProfile from '../models/user.model';
 
 const updateProfileAccreditationIntoDB = async (
   id: string,
-  payload: Partial<IAccreditation>,
+  payload: Partial<IAccreditation> & { _id?: string },
   file?: TUploadedFile,
 ) => {
-  // Check if the user exists in the database by ID
+  // Find the user's profile by user ID
   const userProfile = await UserProfile.findOne({ user: id });
 
   if (!userProfile) {
-    // Return early if userProfile is not found — no error
     return sendNotFoundResponse('user profile data');
   }
 
-  // ✅ Handle file upload if provided
+  // Handle file upload if provided
   if (file?.buffer) {
     try {
       const uploadedUrl = await uploadToSpaces(
@@ -40,19 +39,29 @@ const updateProfileAccreditationIntoDB = async (
     }
   }
 
-  // Update the company  profile in the database
+  let accreditation;
 
-  const updateAccreditation = await Accreditation.findOneAndUpdate(
-    { userProfileId: userProfile._id },
-    payload,
-    {
-      upsert: true,
-      new: true,
-    },
-  );
+  if (payload._id) {
+    // Try updating existing accreditation using the _id
+    accreditation = await Accreditation.findByIdAndUpdate(
+      payload._id,
+      {
+        ...payload,
+        userProfileId: userProfile._id, // ensure association
+      },
+      { new: true },
+    );
+  }
 
-  // Return the updated profile
-  return updateAccreditation;
+  // If no accreditation found or no _id in payload, create new one
+  if (!accreditation) {
+    accreditation = await Accreditation.create({
+      ...payload,
+      userProfileId: userProfile._id,
+    });
+  }
+
+  return accreditation;
 };
 
 export const accreditationService = {
