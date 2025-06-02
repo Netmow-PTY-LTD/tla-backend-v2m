@@ -138,7 +138,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
   const [companyProfile, accreditation, photos, socialMedia] =
     await Promise.all([
       CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
-      Accreditation.findOne({ userProfileId: userProfileId }).select('+_id '),
+      Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
       ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
       profileSocialMedia
         .findOne({ userProfileId: userProfileId })
