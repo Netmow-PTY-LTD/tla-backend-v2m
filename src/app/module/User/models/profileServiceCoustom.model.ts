@@ -22,7 +22,8 @@ const profileServiceCustomSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model(
+export const ProfileCustomService = mongoose.model(
   'ProfileCustomService',
   profileServiceCustomSchema,
 );
+export default ProfileCustomService;
