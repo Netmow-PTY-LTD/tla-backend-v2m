@@ -33,7 +33,8 @@ const updateProfileQAIntoDB = async (
       ),
     );
 
-  await Promise.all(operations);
+  const result = await Promise.all(operations);
+  return result.filter((item) => item !== null);
 };
 
 export const profileQAService = {
