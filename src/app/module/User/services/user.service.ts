@@ -14,6 +14,8 @@ import profileSocialMedia from '../models/profileSocialMedia';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import Accreditation from '../models/ProfileAccreditation';
 import ProfileCustomService from '../models/profileServiceCoustom.model';
+import ProfileQA from '../models/ProfileQAS';
+import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -136,22 +138,36 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
   const userProfileId = userData.profile._id;
 
   // 3. Fetch models that point to the UserProfile
-  const [companyProfile, accreditation, photos, socialMedia, customService] =
-    await Promise.all([
-      CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
-      Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
-      ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
-      profileSocialMedia
-        .findOne({ userProfileId: userProfileId })
-        .select('+_id '),
-      ProfileCustomService.find({ userProfileId: userProfileId }).select(
-        '+_id ',
-      ),
-    ]);
+  const [
+    companyProfile,
+    accreditation,
+    photos,
+    socialMedia,
+    customService,
+    profileQAAnswers,
+  ] = await Promise.all([
+    CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
+    Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
+    ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
+    profileSocialMedia
+      .findOne({ userProfileId: userProfileId })
+      .select('+_id '),
+    ProfileCustomService.find({ userProfileId: userProfileId }).select('+_id '),
+    ProfileQA.find({ userProfileId }), // ← fetch all Q&A
+  ]);
 
   // 4. Convert to plain object to remove Mongoose internals
   const plainUser = userData.toObject();
   const plainProfile = userData.profile.toObject();
+
+  // Optional: Map the answers to question labels (sorted as in PROFILE_QUESTIONS)
+  const sortedQA = PROFILE_QUESTIONS.map((q) => {
+    const match = profileQAAnswers.find((item) => item.question === q);
+    return {
+      question: q,
+      answer: match?.answer || '',
+    };
+  });
 
   // 5. Add nested profile data
   plainUser.profile = {
@@ -161,6 +177,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     photos,
     socialMedia,
     accreditation,
+    profileQA: sortedQA,
   };
 
   return plainUser;
