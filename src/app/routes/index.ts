@@ -8,6 +8,7 @@ import { OptionRouter } from '../module/Service/Option/routes/option.route';
 import { CountryWiseMapRouter } from '../module/Geo/CountryWiseMap/routes/countryWiseMap.route';
 import { questionRouter } from '../module/Service/Question/routes/ServiceWiseQuestion.route';
 import { viewRouter } from '../module/View/routes/view.router';
+import { leadServiceRouter } from '../module/Lead/routes/leadService.routes';
 
 const router = Router();
 
@@ -40,6 +41,10 @@ const moduleRoutes = [
   {
     path: '/option',
     route: OptionRouter,
+  },
+  {
+    path: '/lead-services',
+    route: leadServiceRouter,
   },
   {
     path: '/',
