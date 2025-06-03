@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { IServiceWiseQuestion } from '../../Service/Question/interfaces/ServiceWiseQuestion.interface';
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
@@ -24,23 +25,81 @@ const createLeadService = async (
   });
 };
 
-// Get all services with their questions
-const getLeadServicesWithQuestions = async (
-  userId: string,
-): Promise<(ILeadService & { questions: IServiceWiseQuestion[] })[]> => {
-  const services = await LeadService.find({ userId }).lean();
-  const serviceIds = services.map((s) => s.serviceId);
-  const questions = await ServiceWiseQuestion.find({
-    serviceId: { $in: serviceIds },
-    deletedAt: null,
-  }).lean();
+const getLeadServicesWithQuestions = async (userId: string) => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+  if (!userProfile) sendNotFoundResponse('User profile not found');
 
-  return services.map((service) => ({
-    ...service,
-    questions: questions.filter(
-      (q) => q.serviceId.toString() === service.serviceId.toString(),
-    ),
-  }));
+  const leadServices = await LeadService.aggregate([
+    {
+      $match: {
+        userProfileId: new mongoose.Types.ObjectId(userProfile?._id),
+      },
+    },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'serviceId',
+        foreignField: '_id',
+        as: 'serviceId',
+      },
+    },
+    { $unwind: '$serviceId' },
+    {
+      $lookup: {
+        from: 'questions',
+        let: { serviceId: '$serviceId._id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$serviceId', '$$serviceId'] },
+              deletedAt: null,
+            },
+          },
+          {
+            $lookup: {
+              from: 'options', // Assuming options are stored in a separate collection
+              localField: '_id',
+              foreignField: 'questionId',
+              as: 'options',
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              question: 1,
+              slug: 1,
+              questionType: 1,
+              order: 1,
+              options: {
+                _id: 1,
+                name: 1,
+                slug: 1,
+              },
+            },
+          },
+        ],
+        as: 'serviceId.questions',
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        userProfileId: 1,
+        serviceName: 1,
+        locations: 1,
+        onlineEnabled: 1,
+        serviceId: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+          questions: 1,
+          defaultSelectedOptions: 1,
+        },
+      },
+    },
+  ]);
+
+  return leadServices;
 };
 
 // Update service locations
