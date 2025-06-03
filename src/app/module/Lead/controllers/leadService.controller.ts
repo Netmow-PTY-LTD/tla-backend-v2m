@@ -68,6 +68,15 @@ const deleteLeadService = catchAsync(async (req, res) => {
 
   const result = await LeadServiceService.deleteLeadService(leadServiceId);
 
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Lead Service  not found or already deleted.',
+      data: null,
+    });
+  }
+
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,

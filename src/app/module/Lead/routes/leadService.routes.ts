@@ -25,7 +25,7 @@ router.patch(
   leadServiceController.toggleOnline,
 );
 router.delete(
-  '/:leadServiceId',
+  '/delete/:leadServiceId',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.deleteLeadService,
 );
