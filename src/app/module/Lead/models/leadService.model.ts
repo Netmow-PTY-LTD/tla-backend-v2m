@@ -23,10 +23,8 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
 );
 
 // Custom static method
-leadServiceSchema.statics.isServiceWiseStepExists = async function (
-  id: string,
-) {
-  return await mongoose.model('ServiceWiseQuestion').findById(id);
+leadServiceSchema.statics.isLeadServiceExists = async function (id: string) {
+  return await LeadService.findById(id);
 };
 
 // Exporting the model
