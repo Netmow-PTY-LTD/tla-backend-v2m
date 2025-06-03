@@ -13,7 +13,6 @@ const optionSchema = new Schema<IOption>(
       required: true,
       lowercase: true,
       trim: true,
-      unique: true,
     },
     countryId: {
       type: Schema.Types.ObjectId,

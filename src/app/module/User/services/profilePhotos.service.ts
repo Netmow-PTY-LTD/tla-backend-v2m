@@ -1,54 +1,47 @@
 import { uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
-import User from '../../Auth/models/auth.model';
 
 import { IProfilePhotos } from '../interfaces/profiePhotos.interface';
 
 import ProfilePhotos from '../models/profilePhotos';
+import UserProfile from '../models/user.model';
 
 const updateProfilePhotosIntoDB = async (
-  id: string,
+  userId: string,
   payload: Partial<IProfilePhotos>,
-  files?: TUploadedFile[],
+  file: TUploadedFile,
 ) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+  const userProfile = await UserProfile.findOne({ user: userId });
+
+  if (!userProfile) {
+    // Return early if userProfile is not found — no error
+    return sendNotFoundResponse('user profile data');
   }
 
-  if (files?.length) {
-    const uploadedUrls: string[] = [];
-
-    for (const file of files) {
-      if (!file.buffer) {
-        throw new AppError(
-          HTTP_STATUS.BAD_REQUEST,
-          'One or more uploaded files are missing buffers.',
-        );
-      }
-
-      try {
-        const url = await uploadToSpaces(file.buffer, file.originalname, id);
-        uploadedUrls.push(url);
-        // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-      } catch (err) {
-        throw new AppError(
-          HTTP_STATUS.INTERNAL_SERVER_ERROR,
-          `Failed to upload file: ${file.originalname}`,
-        );
-      }
+  // ✅ Handle file upload if provided
+  if (file?.buffer) {
+    try {
+      const uploadedUrl = await uploadToSpaces(
+        file.buffer,
+        file.originalname,
+        userId,
+      );
+      payload.photo = uploadedUrl;
+      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new AppError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        'File upload failed',
+      );
     }
-
-    // ✅ Assign uploaded photo URLs to payload
-    payload.photos = uploadedUrls;
   }
   // Update the company  profile in the database
 
   const updateProfilePhotos = await ProfilePhotos.findOneAndUpdate(
-    { userProfile: id },
+    { userProfileId: userProfile._id },
     payload,
     {
       upsert: true,

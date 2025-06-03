@@ -1,23 +1,27 @@
 import { uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
-import User from '../../Auth/models/auth.model';
-import { ICompanyProfile } from '../interfaces/companyProfile.interface';
-import CompanyProfile from '../models/companyProfile.model';
+
+import { IAccreditation } from '../interfaces/profileAccreditation';
+
+import Accreditation from '../models/ProfileAccreditation';
+import UserProfile from '../models/user.model';
 
 const updateProfileAccreditationIntoDB = async (
   id: string,
-  payload: Partial<ICompanyProfile>,
+  payload: Partial<IAccreditation> & { _id?: string },
   file?: TUploadedFile,
 ) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+  // Find the user's profile by user ID
+  const userProfile = await UserProfile.findOne({ user: id });
+
+  if (!userProfile) {
+    return sendNotFoundResponse('user profile data');
   }
 
-  // ✅ Handle file upload if provided
+  // Handle file upload if provided
   if (file?.buffer) {
     try {
       const uploadedUrl = await uploadToSpaces(
@@ -25,7 +29,7 @@ const updateProfileAccreditationIntoDB = async (
         file.originalname,
         id,
       );
-      payload.logoUrl = uploadedUrl;
+      payload.attachment = uploadedUrl;
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
       throw new AppError(
@@ -35,21 +39,31 @@ const updateProfileAccreditationIntoDB = async (
     }
   }
 
-  // Update the company  profile in the database
+  let accreditation;
 
-  const updateCompanyProfile = await CompanyProfile.findOneAndUpdate(
-    { userProfile: id },
-    payload,
-    {
-      upsert: true,
-      new: true,
-    },
-  );
+  if (payload._id) {
+    // Try updating existing accreditation using the _id
+    accreditation = await Accreditation.findByIdAndUpdate(
+      payload._id,
+      {
+        ...payload,
+        userProfileId: userProfile._id, // ensure association
+      },
+      { new: true },
+    );
+  }
 
-  // Return the updated profile
-  return updateCompanyProfile;
+  // If no accreditation found or no _id in payload, create new one
+  if (!accreditation) {
+    accreditation = await Accreditation.create({
+      ...payload,
+      userProfileId: userProfile._id,
+    });
+  }
+
+  return accreditation;
 };
 
-export const CompanyProfileService = {
+export const accreditationService = {
   updateProfileAccreditationIntoDB,
 };

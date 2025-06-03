@@ -2,15 +2,15 @@ import mongoose from 'mongoose';
 
 const profileQASchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
-    questionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Question',
+    question: {
+      type: String,
       required: true,
+      trim: true,
     },
     answer: {
       type: String,
@@ -19,8 +19,10 @@ const profileQASchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );
 
-export default mongoose.model('ProfileQA', profileQASchema);
+const ProfileQA = mongoose.model('ProfileQA', profileQASchema);
+export default ProfileQA;

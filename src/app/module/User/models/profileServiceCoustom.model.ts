@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const profileServiceCustomSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
     title: {
@@ -17,11 +17,13 @@ const profileServiceCustomSchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );
 
-module.exports = mongoose.model(
+export const ProfileCustomService = mongoose.model(
   'ProfileCustomService',
   profileServiceCustomSchema,
 );
+export default ProfileCustomService;

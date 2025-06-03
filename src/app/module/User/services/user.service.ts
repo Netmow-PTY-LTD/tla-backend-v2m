@@ -3,10 +3,19 @@ import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import User from '../../Auth/models/auth.model';
 import { IUserProfile } from '../interfaces/user.interface';
-import UserProfile from '../models/user.model';
+
 import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
+import UserProfile from '../models/user.model';
+import CompanyProfile from '../models/companyProfile.model';
+import ProfilePhotos from '../models/profilePhotos';
+import profileSocialMedia from '../models/profileSocialMedia';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import Accreditation from '../models/ProfileAccreditation';
+import ProfileCustomService from '../models/profileServiceCoustom.model';
+import ProfileQA from '../models/ProfileQAS';
+import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -26,23 +35,17 @@ const getAllUserIntoDB = async () => {
  * @throws {AppError} Throws an error if the user does not exist or the profile cannot be updated.
  */
 const updateProfileIntoDB = async (
-  id: string,
+  userId: string,
   payload: Partial<IUserProfile>,
   file?: TUploadedFile,
 ) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
-  }
-
   // ✅ Handle file upload if provided
   if (file?.buffer) {
     try {
       const uploadedUrl = await uploadToSpaces(
         file.buffer,
         file.originalname,
-        id,
+        userId,
         // 'avatars', // optional folder name
       );
       payload.profilePicture = uploadedUrl;
@@ -57,7 +60,7 @@ const updateProfileIntoDB = async (
 
   // Update the user's profile in the database
   const updatedProfile = await UserProfile.findOneAndUpdate(
-    { user: id },
+    { user: userId },
     payload,
     {
       new: true, // Return the updated document
@@ -72,16 +75,10 @@ const updateProfileIntoDB = async (
 /**
  * @desc   Retrieves the profile data of a single user from the database, including user and profile details.
  * @param  {string} id - The ID of the user whose profile data is to be retrieved.
- * @returns {Promise<any>} Returns the user's basic information along with their profile data.
+ * @returns Returns the user's basic information along with their profile data.
  * @throws {AppError} Throws an error if the user does not exist.
  */
 const getSingleUserProfileDataIntoDB = async (id: string) => {
-  // Check if the user exists in the database by ID
-  const isUserExists = await User.isUserExists(id);
-  if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
-  }
-
   // Retrieve the user's basic information and populate the profile data
   const userProfileInfo = await User.findById(id)
     .select('username email role accountStatus regUserType') // Select fields from the User model
@@ -100,23 +97,90 @@ const getSingleUserProfileDataIntoDB = async (id: string) => {
  * @returns  Returns the user's basic information along with their profile data.
  * @throws {AppError} Throws an error if the user does not exist.
  */
+
+// const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
+//   // Check if the user exists in the database by user ID from the JWT payload
+//   const isUserExists = await User.isUserExists(user.userId);
+//   if (!isUserExists) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+//   }
+
+//   // Retrieve the user's basic information and populate the profile data
+//   const userProfileInfo = await User.findById(user.userId)
+//     .select('username email role accountStatus regUserType') // Select fields from the User model
+//     .populate({
+//       path: 'profile', // Populate the profile field
+//       select: '-_id name activeProfile country', // Select specific fields from the UserProfile model
+//     });
+
+//   // Return the user's profile data
+//   return userProfileInfo;
+// };
+
 const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
-  // Check if the user exists in the database by user ID from the JWT payload
+  // 1. Check if user exists
   const isUserExists = await User.isUserExists(user.userId);
   if (!isUserExists) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User does not exist');
+    return sendNotFoundResponse('user does not exist');
   }
 
-  // Retrieve the user's basic information and populate the profile data
-  const userProfileInfo = await User.findById(user.userId)
-    .select('username email role accountStatus regUserType') // Select fields from the User model
-    .populate({
-      path: 'profile', // Populate the profile field
-      select: '-_id name activeProfile country', // Select specific fields from the UserProfile model
+  // 2. Get the user + profile
+  const userData = await User.findById(user.userId)
+
+    .populate<{ profile: mongoose.Document }>({
+      path: 'profile',
     });
 
-  // Return the user's profile data
-  return userProfileInfo;
+  if (!userData || !userData.profile || typeof userData.profile === 'string') {
+    return sendNotFoundResponse('user profile data not found');
+  }
+
+  const userProfileId = userData.profile._id;
+
+  // 3. Fetch models that point to the UserProfile
+  const [
+    companyProfile,
+    accreditation,
+    photos,
+    socialMedia,
+    customService,
+    profileQAAnswers,
+  ] = await Promise.all([
+    CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
+    Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
+    ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
+    profileSocialMedia
+      .findOne({ userProfileId: userProfileId })
+      .select('+_id '),
+    ProfileCustomService.find({ userProfileId: userProfileId }).select('+_id '),
+    ProfileQA.find({ userProfileId }), // ← fetch all Q&A
+  ]);
+
+  // 4. Convert to plain object to remove Mongoose internals
+  const plainUser = userData.toObject();
+  const plainProfile = userData.profile.toObject();
+
+  // Optional: Map the answers to question labels (sorted as in PROFILE_QUESTIONS)
+  const sortedQA = PROFILE_QUESTIONS.map((q) => {
+    const match = profileQAAnswers.find((item) => item.question === q);
+    return {
+      question: q,
+      answer: match?.answer || '',
+    };
+  });
+
+  // 5. Add nested profile data
+  plainUser.profile = {
+    ...plainProfile,
+    companyProfile,
+    customService,
+    photos,
+    socialMedia,
+    accreditation,
+    profileQA: sortedQA,
+  };
+
+  return plainUser;
 };
 
 /**

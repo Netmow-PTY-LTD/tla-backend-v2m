@@ -5,6 +5,10 @@ import { UserProfileService } from '../services/user.service';
 import { TUploadedFile } from '../../../interface/file.interface';
 import { CompanyProfileService } from '../services/companyProfile.service';
 import { ProfilePhotosService } from '../services/profilePhotos.service';
+import { accreditationService } from '../services/profileAccreditation.service';
+import { profileSocialMediaService } from '../services/profileSocialMedia.service';
+import { profileCustomService } from '../services/ProfileCustomService.service';
+import { profileQAService } from '../services/profileQA.service';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -15,14 +19,11 @@ import { ProfilePhotosService } from '../services/profilePhotos.service';
  */
 
 const updateProfile = catchAsync(async (req, res) => {
-  const userId = req.params.userId;
-  const parsedData = JSON.parse(req.body.data); // { userProfile, companyInfo, socialMedia, questions }
-
+  const userId = req.user.userId;
+  const parsedData = JSON.parse(req.body.data);
   const files = req.files as TUploadedFile[];
 
-  // Map fieldname => TUploadedFile
   const fileMap: Record<string, TUploadedFile[]> = {};
-
   files.forEach((file) => {
     if (!fileMap[file.fieldname]) {
       fileMap[file.fieldname] = [];
@@ -30,31 +31,79 @@ const updateProfile = catchAsync(async (req, res) => {
     fileMap[file.fieldname].push(file);
   });
 
-  // Update user  profile
+  let userProfileResult = null;
+  let companyProfileResult = null;
+  let profilePhotosResult = null;
+  let accreditationResult = null;
+  let socialMediaResult = null;
+  let serviceInfoResult = null;
+  let profileQAResult = null;
 
-  const userProfileResult = await UserProfileService.updateProfileIntoDB(
-    userId,
-    parsedData.userProfile,
-    fileMap['userProfile']?.[0],
-  );
-
-  const companyProfileResult =
-    await CompanyProfileService.updateCompanyProfileIntoDB(
+  if (parsedData?.userProfile) {
+    userProfileResult = await UserProfileService.updateProfileIntoDB(
       userId,
-      parsedData.companyInfo,
-      fileMap['companyLogo']?.[0],
+      parsedData.userProfile,
+      fileMap['userProfileLogo']?.[0],
     );
+  }
 
-  const profilePhotosResult =
-    await ProfilePhotosService.updateProfilePhotosIntoDB(
+  if (parsedData?.companyInfo) {
+    companyProfileResult =
+      await CompanyProfileService.updateCompanyProfileIntoDB(
+        userId,
+        parsedData.companyInfo,
+        fileMap['companyLogo']?.[0],
+      );
+  }
+
+  if (parsedData?.photos) {
+    profilePhotosResult = await ProfilePhotosService.updateProfilePhotosIntoDB(
       userId,
       parsedData.photos,
-      fileMap['photos'],
+      fileMap['photo']?.[0],
     );
+  }
 
-  // Decide which result to return, prioritizing userProfile first
+  if (parsedData?.accreditationInfo) {
+    accreditationResult =
+      await accreditationService.updateProfileAccreditationIntoDB(
+        userId,
+        parsedData.accreditationInfo,
+        fileMap['attachment']?.[0],
+      );
+  }
+
+  if (parsedData?.socialMediaInfo) {
+    socialMediaResult =
+      await profileSocialMediaService.updateProfileSocialMediaIntoDB(
+        userId,
+        parsedData.socialMediaInfo,
+      );
+  }
+  if (parsedData?.serviceInfo) {
+    // Assuming profileCustomService is used for custom services
+    serviceInfoResult =
+      await profileCustomService.updateProfileCustomServiceIntoDB(
+        userId,
+        parsedData.serviceInfo,
+      );
+  }
+  if (parsedData?.profileQA) {
+    // Assuming profileCustomService is used for custom services
+    profileQAResult = await profileQAService.updateProfileQAIntoDB(
+      userId,
+      parsedData.profileQA,
+    );
+  }
+
   const result =
-    userProfileResult || companyProfileResult || profilePhotosResult;
+    userProfileResult ||
+    companyProfileResult ||
+    profilePhotosResult ||
+    accreditationResult ||
+    serviceInfoResult ||
+    profileQAResult ||
+    socialMediaResult;
 
   if (!result) {
     return sendResponse(res, {
@@ -67,7 +116,15 @@ const updateProfile = catchAsync(async (req, res) => {
 
   const message = userProfileResult
     ? 'User profile updated successfully.'
-    : 'Company profile updated successfully.';
+    : companyProfileResult
+      ? 'Company profile updated successfully.'
+      : accreditationResult
+        ? 'Accreditation updated successfully.'
+        : socialMediaResult
+          ? 'Profile social media updated successfully.'
+          : serviceInfoResult
+            ? 'Service info updated successfully.'
+            : 'Profile photos updated successfully.';
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

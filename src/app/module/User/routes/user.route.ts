@@ -24,8 +24,8 @@ router.delete(
   userProfileController.deleteSingleUserProfile,
 );
 router.patch(
-  '/edit/:userId',
-  // auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  '/update',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   // upload.single('file'),
   upload.any(),
   // (req: Request, res: Response, next: NextFunction) => {

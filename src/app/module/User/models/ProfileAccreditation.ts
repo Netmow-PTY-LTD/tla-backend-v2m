@@ -1,25 +1,33 @@
 import mongoose, { model } from 'mongoose';
-import { IAccreditation } from '../interfaces/profileAccreditatio';
+import { IAccreditation } from '../interfaces/profileAccreditation';
 
 const accreditationSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
-    name: {
+    institution: {
       type: String,
-      required: true,
+      trim: true,
+    },
+    address: {
+      type: String,
+
+      trim: true,
+    },
+    certificate_title: {
+      type: String,
       trim: true,
     },
     attachment: {
       type: String, // URL or file path to the uploaded file (e.g., certificate PDF/image)
-      required: true,
       trim: true,
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );

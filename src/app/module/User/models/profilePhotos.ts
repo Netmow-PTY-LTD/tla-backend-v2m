@@ -3,25 +3,23 @@ import { IProfilePhotos } from '../interfaces/profiePhotos.interface';
 
 const profileServiceCustomSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
-    photos: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-    videos: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    photo: {
+      type: String,
+      trim: true,
+    },
+
+    video: {
+      type: String,
+      trim: true,
+    },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );

@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const profileSocialMediaSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
     website: {
@@ -60,10 +60,19 @@ const profileSocialMediaSchema = new mongoose.Schema(
       trim: true,
       description: 'Any other custom social link',
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );
 
-export default mongoose.model('ProfileSocialMedia', profileSocialMediaSchema);
+export const ProfileSocialMedia = mongoose.model(
+  'ProfileSocialMedia',
+  profileSocialMediaSchema,
+);
+export default ProfileSocialMedia;

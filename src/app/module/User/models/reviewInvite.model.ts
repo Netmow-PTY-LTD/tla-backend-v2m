@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const reviewInviteSchema = new mongoose.Schema(
   {
-    companyId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CompanyProfile',
+      ref: 'UserProfile', // Reference to the user profile
       required: true,
     },
     invitedEmails: [
@@ -28,6 +28,7 @@ const reviewInviteSchema = new mongoose.Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   },
 );
