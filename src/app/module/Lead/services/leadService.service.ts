@@ -1,28 +1,73 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
-import { IServiceWiseQuestion } from '../../Service/Question/interfaces/ServiceWiseQuestion.interface';
+
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
 import UserProfile from '../../User/models/user.model';
 import { ILeadService } from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
+import { validateObjectId } from '../../../utils/validateObjectId';
 
-// Create a new lead service
 const createLeadService = async (
   userId: string,
-  payload: ILeadService,
-): Promise<ILeadService> => {
+  payload: {
+    serviceIds: Types.ObjectId[];
+    locations: string[];
+    onlineEnabled: boolean;
+    serviceName: string;
+  },
+): Promise<ILeadService[]> => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
   if (!userProfile) sendNotFoundResponse('User profile not found');
-  const exists = await LeadService.findOne({
-    userProfileId: userProfile?._id,
-    serviceId: payload.serviceId,
-  });
-  if (exists) throw new Error('Service already exists');
 
-  return await LeadService.create({
-    ...payload,
+  // Validate each serviceId
+  payload.serviceIds.forEach((id) =>
+    validateObjectId(id.toString(), 'service'),
+  );
+
+  // Convert to ObjectId instances
+  const objectServiceIds = payload.serviceIds.map(
+    (id) => new mongoose.Types.ObjectId(id),
+  );
+
+  // Check for duplicates
+  const existing = await LeadService.find({
     userProfileId: userProfile?._id,
-  });
+    serviceId: { $in: objectServiceIds },
+  }).select('serviceId');
+
+  const existingServiceIds = new Set(
+    existing.map((e) => e.serviceId.toString()),
+  );
+  const newServiceIds = objectServiceIds.filter(
+    (id) => !existingServiceIds.has(id.toString()),
+  );
+
+  if (newServiceIds.length === 0) {
+    throw {
+      status: 409,
+      message: 'All selected services already exist for this user',
+      duplicates: Array.from(existingServiceIds),
+    };
+  }
+
+  if (existingServiceIds.size > 0) {
+    throw {
+      status: 409,
+      message: 'Some services already exist for this user',
+      duplicates: Array.from(existingServiceIds),
+    };
+  }
+
+  const newLeadServices = newServiceIds.map((serviceId) => ({
+    serviceId,
+    locations: payload.locations,
+    onlineEnabled: payload.onlineEnabled,
+    serviceName: payload.serviceName,
+    userProfileId: userProfile?._id,
+  }));
+
+  const created = await LeadService.insertMany(newLeadServices);
+  return created as ILeadService[];
 };
 
 const getLeadServicesWithQuestions = async (userId: string) => {

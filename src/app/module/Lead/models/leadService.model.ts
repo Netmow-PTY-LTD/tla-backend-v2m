@@ -11,11 +11,13 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
       ref: 'UserProfile',
       required: true,
     },
+    serviceName: { type: String, trim: true },
     serviceId: {
       type: Schema.Types.ObjectId,
       ref: 'Service',
       required: true,
     },
+
     locations: [{ type: String }],
     onlineEnabled: { type: Boolean, default: false },
   },
