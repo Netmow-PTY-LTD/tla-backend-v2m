@@ -172,9 +172,7 @@ const toggleOnlineEnabled = async (
   );
 };
 
-export const deleteLeadService = async (
-  leadServiceId: string,
-): Promise<{ message: string }> => {
+export const deleteLeadService = async (leadServiceId: string) => {
   // Validate ObjectId format
   validateObjectId(leadServiceId, 'lead Service ID');
 
@@ -185,9 +183,8 @@ export const deleteLeadService = async (
   }
 
   // Delete the service
-  await LeadService.findByIdAndDelete(leadServiceId);
-
-  return { message: 'Lead service successfully deleted' };
+  const result = await LeadService.findByIdAndDelete(leadServiceId);
+  return result;
 };
 
 export const LeadServiceService = {
