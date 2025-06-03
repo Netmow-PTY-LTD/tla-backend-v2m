@@ -1,5 +1,7 @@
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { IServiceWiseQuestion } from '../../Service/Question/interfaces/ServiceWiseQuestion.interface';
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+import UserProfile from '../../User/models/user.model';
 import { ILeadService } from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
 
@@ -8,13 +10,18 @@ const createLeadService = async (
   userId: string,
   payload: ILeadService,
 ): Promise<ILeadService> => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+  if (!userProfile) sendNotFoundResponse('User profile not found');
   const exists = await LeadService.findOne({
-    userId,
+    userProfileId: userProfile?._id,
     serviceId: payload.serviceId,
   });
   if (exists) throw new Error('Service already exists');
 
-  return await LeadService.create({ ...payload, userId });
+  return await LeadService.create({
+    ...payload,
+    userProfileId: userProfile?._id,
+  });
 };
 
 // Get all services with their questions

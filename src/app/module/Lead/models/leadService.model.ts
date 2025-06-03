@@ -6,7 +6,7 @@ import {
 
 const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
   {
-    userId: {
+    userProfileId: {
       type: Schema.Types.ObjectId,
       ref: 'UserProfile',
       required: true,

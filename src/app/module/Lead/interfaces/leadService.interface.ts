@@ -2,7 +2,7 @@ import mongoose, { Model } from 'mongoose';
 
 // Interface for the LeadService document
 export interface ILeadService {
-  userId: mongoose.Types.ObjectId;
+  userProfileId: mongoose.Types.ObjectId;
   serviceId: mongoose.Types.ObjectId;
   locations: string[];
   onlineEnabled: boolean;

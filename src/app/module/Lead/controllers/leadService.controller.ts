@@ -5,7 +5,7 @@ import { LeadServiceService } from '../services/leadService.service';
 
 // Create a new lead service
 const createLeadService = catchAsync(async (req, res) => {
-  const userId = req.user._id;
+  const userId = req.user.userId;
   const result = await LeadServiceService.createLeadService(userId, req.body);
 
   sendResponse(res, {
@@ -18,7 +18,7 @@ const createLeadService = catchAsync(async (req, res) => {
 
 // Get all services with questions
 const getLeadServices = catchAsync(async (req, res) => {
-  const userId = req.user._id;
+  const userId = req.user.userId;
   const result = await LeadServiceService.getLeadServicesWithQuestions(userId);
 
   sendResponse(res, {
