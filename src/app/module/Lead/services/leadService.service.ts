@@ -12,7 +12,6 @@ const createLeadService = async (
     serviceIds: Types.ObjectId[];
     locations: string[];
     onlineEnabled: boolean;
-    serviceName: string;
   },
 ): Promise<ILeadService[]> => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -61,7 +60,6 @@ const createLeadService = async (
     serviceId,
     locations: payload.locations,
     onlineEnabled: payload.onlineEnabled,
-    serviceName: payload.serviceName,
     userProfileId: userProfile?._id,
   }));
 
@@ -129,7 +127,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
       $project: {
         _id: 1,
         userProfileId: 1,
-        serviceName: 1,
+        serviceName: '$serviceId.name',
         locations: 1,
         onlineEnabled: 1,
         serviceId: {
