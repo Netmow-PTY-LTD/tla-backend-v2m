@@ -1,7 +1,6 @@
 import mongoose, { Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
-import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
 import UserProfile from '../../User/models/user.model';
 import { ILeadService } from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
@@ -152,6 +151,8 @@ const updateLocations = async (
   serviceId: string,
   locations: string[],
 ): Promise<ILeadService | null> => {
+  // Validate ObjectId format
+  validateObjectId(serviceId, 'lead Service ID');
   return await LeadService.findByIdAndUpdate(
     serviceId,
     { locations },
@@ -164,6 +165,8 @@ const toggleOnlineEnabled = async (
   serviceId: string,
   onlineEnabled: boolean,
 ): Promise<ILeadService | null> => {
+  // Validate ObjectId format
+  validateObjectId(serviceId, 'lead Service ID');
   return await LeadService.findByIdAndUpdate(
     serviceId,
     { onlineEnabled },
@@ -171,16 +174,22 @@ const toggleOnlineEnabled = async (
   );
 };
 
-// Delete service and soft-delete its questions
-const deleteLeadService = async (
+export const deleteLeadService = async (
   serviceId: string,
 ): Promise<{ message: string }> => {
+  // Validate ObjectId format
+  validateObjectId(serviceId, 'lead Service ID');
+
+  // Check if the service exists
+  const service = await LeadService.findById(serviceId);
+  if (!service) {
+    sendNotFoundResponse('Lead service not found');
+  }
+
+  // Delete the service
   await LeadService.findByIdAndDelete(serviceId);
-  await ServiceWiseQuestion.updateMany(
-    { serviceId },
-    { $set: { deletedAt: new Date() } },
-  );
-  return { message: 'Service and its questions removed' };
+
+  return { message: 'Lead service successfully deleted' };
 };
 
 export const LeadServiceService = {
