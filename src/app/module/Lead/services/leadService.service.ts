@@ -162,32 +162,32 @@ const updateLocations = async (
 
 // Toggle online status
 const toggleOnlineEnabled = async (
-  serviceId: string,
+  leadServiceId: string,
   onlineEnabled: boolean,
 ): Promise<ILeadService | null> => {
   // Validate ObjectId format
-  validateObjectId(serviceId, 'lead Service ID');
+  validateObjectId(leadServiceId, 'lead Service ID');
   return await LeadService.findByIdAndUpdate(
-    serviceId,
+    leadServiceId,
     { onlineEnabled },
     { new: true },
   );
 };
 
 export const deleteLeadService = async (
-  serviceId: string,
+  leadServiceId: string,
 ): Promise<{ message: string }> => {
   // Validate ObjectId format
-  validateObjectId(serviceId, 'lead Service ID');
+  validateObjectId(leadServiceId, 'lead Service ID');
 
   // Check if the service exists
-  const service = await LeadService.findById(serviceId);
+  const service = await LeadService.findById(leadServiceId);
   if (!service) {
     sendNotFoundResponse('Lead service not found');
   }
 
   // Delete the service
-  await LeadService.findByIdAndDelete(serviceId);
+  await LeadService.findByIdAndDelete(leadServiceId);
 
   return { message: 'Lead service successfully deleted' };
 };

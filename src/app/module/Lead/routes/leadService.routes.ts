@@ -6,17 +6,28 @@ import { USER_ROLE } from '../../../constant';
 const router = Router();
 
 router.post(
-  '/',
+  '/add',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.createLeadService,
 );
 router.get(
-  '/',
+  '/list',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.getLeadServices,
 );
-router.patch('/:serviceId/locations', leadServiceController.updateLocations);
-router.patch('/:serviceId/online-toggle', leadServiceController.toggleOnline);
-router.delete('/:serviceId', leadServiceController.deleteLeadService);
+router.patch(
+  '/:leadServiceId/locations',
+  leadServiceController.updateLocations,
+);
+router.patch(
+  '/:leadServiceId/online-toggle',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  leadServiceController.toggleOnline,
+);
+router.delete(
+  '/:leadServiceId',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  leadServiceController.deleteLeadService,
+);
 
 export const leadServiceRouter = router;

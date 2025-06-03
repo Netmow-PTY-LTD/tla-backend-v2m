@@ -46,11 +46,11 @@ const updateLocations = catchAsync(async (req, res) => {
 
 // Toggle onlineEnabled status
 const toggleOnline = catchAsync(async (req, res) => {
-  const { serviceId } = req.params;
+  const { leadServiceId } = req.params;
   const { onlineEnabled } = req.body;
 
   const result = await LeadServiceService.toggleOnlineEnabled(
-    serviceId,
+    leadServiceId,
     onlineEnabled,
   );
 
@@ -64,9 +64,9 @@ const toggleOnline = catchAsync(async (req, res) => {
 
 // Delete lead service
 const deleteLeadService = catchAsync(async (req, res) => {
-  const { serviceId } = req.params;
+  const { leadServiceId } = req.params;
 
-  const result = await LeadServiceService.deleteLeadService(serviceId);
+  const result = await LeadServiceService.deleteLeadService(leadServiceId);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
