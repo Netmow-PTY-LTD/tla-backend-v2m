@@ -121,8 +121,9 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
     vatNumber: isVatRegistered ? vatNumber : undefined,
   };
 
-  await user.save();
-  return user;
+  const result = await user.save();
+
+  return result;
 };
 
 const getPaymentMethods = async (userId: string) => {

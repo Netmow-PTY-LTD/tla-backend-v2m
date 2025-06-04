@@ -36,6 +36,15 @@ const applyCoupon = catchAsync(async (req, res) => {
 
 const getBillingDetails = catchAsync(async (req, res) => {
   const user = await CreditPaymentService.getBillingDetails(req.user.id);
+
+  if (!user) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Billing details not found.',
+      data: null,
+    });
+  }
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -46,9 +55,19 @@ const getBillingDetails = catchAsync(async (req, res) => {
 
 const updateBillingDetails = catchAsync(async (req, res) => {
   const result = await CreditPaymentService.updateBillingDetails(
-    req.user.id,
+    req.user.userId,
     req.body,
   );
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Billing details not found for update.',
+      data: null,
+    });
+  }
+
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
