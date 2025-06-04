@@ -7,5 +7,4 @@ export interface IPaymentMethod {
   expiryMonth: number;
   expiryYear: number;
   isDefault: boolean;
-  createdAt: Date;
 }

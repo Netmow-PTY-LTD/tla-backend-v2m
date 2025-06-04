@@ -1,6 +1,8 @@
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
+import { IBillingAddress } from '../../../User/interfaces/user.interface';
 import UserProfile from '../../../User/models/user.model';
+import { IPaymentMethod } from '../interfaces/paymentMethod.interface';
 import Coupon from '../models/coupon.model';
 import CreditPackage from '../models/creditPackage.model';
 import PaymentMethod from '../models/paymentMethod.model';
@@ -12,17 +14,27 @@ const getCreditPackages = async () => {
 
 const purchaseCredits = async (
   userId: string,
-  { packageId, couponCode, autoTopUp }: any,
-): Promise<{ newBalance: number; transactionId: string }> => {
+  {
+    packageId,
+    couponCode,
+    autoTopUp,
+  }: { packageId: string; couponCode: string; autoTopUp: boolean },
+) => {
   validateObjectId(packageId, 'credit package ID');
 
   const creditPackage = await CreditPackage.findById(packageId);
-  if (!creditPackage) sendNotFoundResponse('Credit package not found');
+  if (!creditPackage) {
+    return sendNotFoundResponse('Credit package not found');
+  }
 
   let discount = 0;
   if (couponCode) {
     const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-    if (coupon && coupon.currentUses < coupon.maxUses) {
+    if (
+      coupon &&
+      typeof coupon.maxUses === 'number' &&
+      coupon.currentUses < coupon.maxUses
+    ) {
       discount = coupon.discountPercentage;
       coupon.currentUses += 1;
       await coupon.save();
@@ -42,7 +54,10 @@ const purchaseCredits = async (
     discountApplied: discount,
   });
 
-  const user = await User.findById(userId);
+  const user = await UserProfile.findOne({ user: userId });
+  if (!user) {
+    return sendNotFoundResponse('User not found');
+  }
   user.credits += creditPackage.creditAmount;
   user.autoTopUp = autoTopUp || false;
   await user.save();
@@ -74,12 +89,10 @@ const applyCoupon = async (
 };
 
 const getBillingDetails = async (userId: string) => {
-  return await UserProfile.findById(userId).select(
-    'billingAddress contactName',
-  );
+  return await UserProfile.findOne({ user: userId }).select('billingAddress');
 };
 
-const updateBillingDetails = async (userId: string, body: any) => {
+const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   const {
     contactName,
     addressLine1,
@@ -91,11 +104,14 @@ const updateBillingDetails = async (userId: string, body: any) => {
     vatNumber,
   } = body;
 
-  const user = await User.findById(userId);
-  if (!user) sendNotFoundResponse('User not found');
+  const user = await UserProfile.findOne({ user: userId });
+  if (!user) {
+    sendNotFoundResponse('User not found');
+    return;
+  }
 
-  user.contactName = contactName;
   user.billingAddress = {
+    contactName,
     addressLine1,
     addressLine2,
     city,
@@ -115,7 +131,7 @@ const getPaymentMethods = async (userId: string) => {
 
 const addPaymentMethod = async (
   userId: string,
-  body: any,
+  body: IPaymentMethod,
 ): Promise<InstanceType<typeof PaymentMethod>> => {
   const { cardLastFour, cardBrand, expiryMonth, expiryYear } = body;
 
