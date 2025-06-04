@@ -1,57 +1,32 @@
-import mongoose from 'mongoose';
 import { z } from 'zod';
+import { zodObjectIdField } from '../../../../utils/validateObjectId';
 
-const ServiceWiseStepZodSchema = z.object({
+export const updateLeadServiceAnswersSchema = z.object({
   body: z.object({
-    countryId: z
-      .string()
-      .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-        message: 'Invalid ObjectId for countryId',
-      }),
-    serviceId: z
-      .string()
-      .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-        message: 'Invalid ObjectId for serviceId',
-      }),
-    question: z.string().trim().min(1, { message: 'Question is required' }),
-    slug: z
-      .string()
-      .trim()
-      .min(1, { message: 'Slug is required' })
-      .max(100, { message: 'Slug should be less than 100 characters' }),
-    questionType: z.enum(['radio', 'checkbox']),
+    answers: z
+      .array(
+        z.object({
+          questionId: zodObjectIdField('questionId').optional(),
+          selectedOptionIds: z.array(zodObjectIdField('OptionId')).optional(),
+        }),
+      )
+      .optional(),
   }),
 });
 
-const updateServiceWiseStepZodSchema = z.object({
+export const createLeadServiceSchema = z.object({
   body: z.object({
-    countryId: z
-      .string()
-      .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-        message: 'Invalid ObjectId for countryId',
-      })
-      .optional(),
-    serviceId: z
-      .string()
-      .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-        message: 'Invalid ObjectId for serviceId',
-      })
-      .optional(),
-    question: z
-      .string()
-      .trim()
-      .min(1, { message: 'Question is required' })
-      .optional(),
-    slug: z
-      .string()
-      .trim()
-      .min(1, { message: 'Slug is required' })
-      .max(100, { message: 'Slug should be less than 100 characters' }),
-    questionType: z.enum(['radio', 'checkbox']).optional(),
+    serviceIds: z
+      .array(zodObjectIdField('serviceId'))
+      .min(1, 'At least one service is required'),
+    locations: z
+      .array(z.string({ invalid_type_error: 'location must be string value' }))
+      .transform((val) => (val.length === 0 ? ['nationWide'] : val)),
+    onlineEnabled: z.boolean(),
   }),
 });
 
-export const serviceWiseStepZodValidation = {
-  ServiceWiseStepZodSchema,
-  updateServiceWiseStepZodSchema,
+export const leadServiceZodValidation = {
+  updateLeadServiceAnswersSchema,
+  createLeadServiceSchema,
 };

@@ -43,6 +43,23 @@ const updateLocations = catchAsync(async (req, res) => {
     data: result,
   });
 });
+//  update answer
+const updateLeadServiceAnswers = catchAsync(async (req, res) => {
+  const { leadServiceId } = req.params;
+  const { answers } = req.body;
+
+  const result = await LeadServiceService.updateLeadServiceAnswersIntoDB(
+    leadServiceId,
+    answers,
+  );
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'selected option updated successfully',
+    data: result,
+  });
+});
 
 // Toggle onlineEnabled status
 const toggleOnline = catchAsync(async (req, res) => {
@@ -91,4 +108,5 @@ export const leadServiceController = {
   updateLocations,
   toggleOnline,
   deleteLeadService,
+  updateLeadServiceAnswers,
 };
