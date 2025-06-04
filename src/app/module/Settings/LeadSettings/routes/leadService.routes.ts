@@ -20,6 +20,10 @@ router.patch(
   leadServiceController.updateLocations,
 );
 router.patch(
+  '/:leadServiceId/options',
+  leadServiceController.updateLeadServiceAnswers,
+);
+router.patch(
   '/:leadServiceId/online-toggle',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.toggleOnline,
