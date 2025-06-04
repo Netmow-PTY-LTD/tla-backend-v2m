@@ -37,8 +37,21 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: Date,
       default: null,
     },
-
     // Add more profile-specific fields here
+    businessName: { type: String },
+    credits: { type: Number, default: 0 },
+    billingAddress: {
+      contactName: String,
+      addressLine1: String,
+      addressLine2: String,
+      city: String,
+      postcode: String,
+      phoneNumber: String,
+      isVatRegistered: Boolean,
+      vatNumber: String,
+    },
+    paymentMethods: [{ type: Schema.Types.ObjectId, ref: 'PaymentMethod' }],
+    autoTopUp: { type: Boolean, default: false },
   },
   {
     versionKey: false,
