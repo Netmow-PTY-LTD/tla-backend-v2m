@@ -1,10 +1,10 @@
 import mongoose, { Types } from 'mongoose';
-import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { sendNotFoundResponse } from '../../../../errors/custom.error';
 
-import UserProfile from '../../User/models/user.model';
+import UserProfile from '../../../User/models/user.model';
 import { ILeadService } from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
-import { validateObjectId } from '../../../utils/validateObjectId';
+import { validateObjectId } from '../../../../utils/validateObjectId';
 
 const createLeadService = async (
   userId: string,
