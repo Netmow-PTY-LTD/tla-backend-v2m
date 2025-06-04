@@ -17,19 +17,35 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
       ref: 'Service',
       required: true,
     },
-
-    locations: [{ type: String }],
+    locations: {
+      type: [String],
+      default: ['nationWide'],
+    },
     onlineEnabled: { type: Boolean, default: false },
+
+    questions: [
+      {
+        questionId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Question',
+          required: true,
+        },
+        selectedOptionIds: [
+          {
+            type: Schema.Types.ObjectId,
+            ref: 'Option',
+          },
+        ],
+      },
+    ],
   },
   { timestamps: true },
 );
 
-// Custom static method
 leadServiceSchema.statics.isLeadServiceExists = async function (id: string) {
-  return await LeadService.findById(id);
+  return await this.findById(id);
 };
 
-// Exporting the model
 const LeadService = mongoose.model<ILeadService, ILeadServiceModel>(
   'LeadService',
   leadServiceSchema,

@@ -2,9 +2,13 @@ import mongoose, { Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 
 import UserProfile from '../../../User/models/user.model';
-import { ILeadService } from '../interfaces/leadService.interface';
+import {
+  ILeadService,
+  IUpdateLeadServiceAnswers,
+} from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
 import { validateObjectId } from '../../../../utils/validateObjectId';
+import ServiceWiseQuestion from '../../../Service/Question/models/ServiceWiseQuestion.model';
 
 const createLeadService = async (
   userId: string,
@@ -13,21 +17,18 @@ const createLeadService = async (
     locations: string[];
     onlineEnabled: boolean;
   },
-): Promise<ILeadService[]> => {
+) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
   if (!userProfile) sendNotFoundResponse('User profile not found');
 
-  // Validate each serviceId
   payload.serviceIds.forEach((id) =>
     validateObjectId(id.toString(), 'service'),
   );
 
-  // Convert to ObjectId instances
   const objectServiceIds = payload.serviceIds.map(
     (id) => new mongoose.Types.ObjectId(id),
   );
 
-  // Check for duplicates
   const existing = await LeadService.find({
     userProfileId: userProfile?._id,
     serviceId: { $in: objectServiceIds },
@@ -48,23 +49,33 @@ const createLeadService = async (
     };
   }
 
-  if (existingServiceIds.size > 0) {
-    throw {
-      status: 409,
-      message: 'Some services already exist for this user',
-      duplicates: Array.from(existingServiceIds),
-    };
-  }
+  // Fetch questions for each new service and attach with empty selectedOptionIds
+  const allQuestions = await ServiceWiseQuestion.find({
+    serviceId: { $in: newServiceIds },
+    deletedAt: null,
+  }).select('_id serviceId');
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const groupedQuestions: Record<string, any[]> = {};
+  allQuestions.forEach((q) => {
+    const serviceIdStr = q.serviceId.toString();
+    if (!groupedQuestions[serviceIdStr]) groupedQuestions[serviceIdStr] = [];
+    groupedQuestions[serviceIdStr].push({
+      questionId: q._id,
+      selectedOptionIds: [],
+    });
+  });
 
   const newLeadServices = newServiceIds.map((serviceId) => ({
     serviceId,
+    userProfileId: userProfile?._id,
     locations: payload.locations,
     onlineEnabled: payload.onlineEnabled,
-    userProfileId: userProfile?._id,
+    questions: groupedQuestions[serviceId.toString()] || [],
   }));
 
   const created = await LeadService.insertMany(newLeadServices);
-  return created as ILeadService[];
+  return created;
 };
 
 const getLeadServicesWithQuestions = async (userId: string) => {
@@ -72,9 +83,10 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   if (!userProfile) sendNotFoundResponse('User profile not found');
 
   const leadServices = await LeadService.aggregate([
+    { $match: { userProfileId: userProfile?._id } },
     {
-      $match: {
-        userProfileId: new mongoose.Types.ObjectId(userProfile?._id),
+      $addFields: {
+        originalQuestions: '$questions', // preserve leadService.questions
       },
     },
     {
@@ -82,14 +94,14 @@ const getLeadServicesWithQuestions = async (userId: string) => {
         from: 'services',
         localField: 'serviceId',
         foreignField: '_id',
-        as: 'serviceId',
+        as: 'service',
       },
     },
-    { $unwind: '$serviceId' },
+    { $unwind: '$service' },
     {
       $lookup: {
         from: 'questions',
-        let: { serviceId: '$serviceId._id' },
+        let: { serviceId: '$service._id' },
         pipeline: [
           {
             $match: {
@@ -99,7 +111,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
           },
           {
             $lookup: {
-              from: 'options', // Assuming options are stored in a separate collection
+              from: 'options',
               localField: '_id',
               foreignField: 'questionId',
               as: 'options',
@@ -111,32 +123,57 @@ const getLeadServicesWithQuestions = async (userId: string) => {
               question: 1,
               slug: 1,
               questionType: 1,
-              order: 1,
-              options: {
-                _id: 1,
-                name: 1,
-                slug: 1,
-              },
+              options: { _id: 1, name: 1, slug: 1 },
             },
           },
         ],
-        as: 'serviceId.questions',
+        as: 'questions',
+      },
+    },
+    {
+      $addFields: {
+        questions: {
+          $map: {
+            input: '$questions',
+            as: 'q',
+            in: {
+              $mergeObjects: [
+                '$$q',
+                {
+                  selectedOptionIds: {
+                    $let: {
+                      vars: {
+                        matched: {
+                          $first: {
+                            $filter: {
+                              input: '$originalQuestions',
+                              as: 'oq',
+                              cond: {
+                                $eq: ['$$oq.questionId', '$$q._id'],
+                              },
+                            },
+                          },
+                        },
+                      },
+                      in: {
+                        $ifNull: ['$$matched.selectedOptionIds', []],
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
       },
     },
     {
       $project: {
-        _id: 1,
-        userProfileId: 1,
-        serviceName: '$serviceId.name',
+        serviceName: '$service.name',
+        serviceId: '$service._id',
         locations: 1,
         onlineEnabled: 1,
-        serviceId: {
-          _id: 1,
-          name: 1,
-          slug: 1,
-          questions: 1,
-          defaultSelectedOptions: 1,
-        },
+        questions: 1,
       },
     },
   ]);
@@ -144,7 +181,6 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   return leadServices;
 };
 
-// Update service locations
 const updateLocations = async (
   serviceId: string,
   locations: string[],
@@ -187,10 +223,33 @@ export const deleteLeadService = async (leadServiceId: string) => {
   return result;
 };
 
+//  udate api
+
+const updateLeadServiceAnswersIntoDB = async (
+  leadServiceId: string,
+  answers: IUpdateLeadServiceAnswers[],
+) => {
+  // console.log('leadServiceId,answers', leadServiceId, answers);
+  const leadService = await LeadService.findById(leadServiceId);
+  if (!leadService) {
+    return sendNotFoundResponse('Lead service not found');
+  }
+
+  // Update answers
+  leadService.questions = answers?.map((q) => ({
+    questionId: q.questionId,
+    selectedOptionIds: q.selectedOptionIds,
+  }));
+
+  await leadService.save();
+  return leadService;
+};
+
 export const LeadServiceService = {
   createLeadService,
   getLeadServicesWithQuestions,
   updateLocations,
   toggleOnlineEnabled,
   deleteLeadService,
+  updateLeadServiceAnswersIntoDB,
 };
