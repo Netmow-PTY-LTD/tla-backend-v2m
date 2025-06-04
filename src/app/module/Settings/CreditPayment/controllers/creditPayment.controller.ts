@@ -35,7 +35,7 @@ const applyCoupon = catchAsync(async (req, res) => {
 });
 
 const getBillingDetails = catchAsync(async (req, res) => {
-  const user = await CreditPaymentService.getBillingDetails(req.user.id);
+  const user = await CreditPaymentService.getBillingDetails(req.user.userId);
 
   if (!user) {
     return sendResponse(res, {
@@ -77,7 +77,7 @@ const updateBillingDetails = catchAsync(async (req, res) => {
 });
 
 const getPaymentMethods = catchAsync(async (req, res) => {
-  const methods = await CreditPaymentService.getPaymentMethods(req.user.id);
+  const methods = await CreditPaymentService.getPaymentMethods(req.user.userId);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -88,7 +88,7 @@ const getPaymentMethods = catchAsync(async (req, res) => {
 
 const addPaymentMethod = catchAsync(async (req, res) => {
   const result = await CreditPaymentService.addPaymentMethod(
-    req.user.id,
+    req.user.userId,
     req.body,
   );
   return sendResponse(res, {
@@ -100,7 +100,9 @@ const addPaymentMethod = catchAsync(async (req, res) => {
 });
 
 const getTransactionHistory = catchAsync(async (req, res) => {
-  const result = await CreditPaymentService.getTransactionHistory(req.user.id);
+  const result = await CreditPaymentService.getTransactionHistory(
+    req.user.userId,
+  );
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,

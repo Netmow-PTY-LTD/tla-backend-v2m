@@ -56,7 +56,7 @@ const updateLeadServiceAnswers = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Locations updated successfully',
+    message: 'selected option updated successfully',
     data: result,
   });
 });
