@@ -56,7 +56,31 @@ const browserPreferences = catchAsync(async (req, res) => {
   });
 });
 
+const NotificationPreferences = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+
+  const result =
+    await notificationService.getAllNotificationPreferenceFromDB(userId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Notification preference  not found',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Notification preference retrieve successfully',
+    data: result,
+  });
+});
+
 export const notificationController = {
   emailPreferences,
   browserPreferences,
+  NotificationPreferences,
 };

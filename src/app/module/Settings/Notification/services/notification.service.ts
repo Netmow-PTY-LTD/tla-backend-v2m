@@ -38,7 +38,21 @@ const emailNotificationUpdateIntoDB = async (
   return updatedPreferences;
 };
 
+const getAllNotificationPreferenceFromDB = async (userProfileId: string) => {
+  const userProfile = await UserProfile.findOne({ user: userProfileId }).select(
+    '_id',
+  );
+  if (!userProfile) sendNotFoundResponse('User profile not found');
+
+  const updatedPreferences = await NotificationPreference.findOne({
+    userProfileId: userProfile?._id,
+  });
+
+  return updatedPreferences;
+};
+
 export const notificationService = {
   browserNotificationUpdateIntoDB,
   emailNotificationUpdateIntoDB,
+  getAllNotificationPreferenceFromDB,
 };

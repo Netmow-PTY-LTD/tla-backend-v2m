@@ -15,5 +15,10 @@ router.put(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   notificationController.emailPreferences,
 );
+router.get(
+  '/',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  notificationController.NotificationPreferences,
+);
 
 export const notificationRouter = router;
