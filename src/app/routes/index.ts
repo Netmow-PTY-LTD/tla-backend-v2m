@@ -10,6 +10,7 @@ import { questionRouter } from '../module/Service/Question/routes/ServiceWiseQue
 import { viewRouter } from '../module/View/routes/view.router';
 import { leadServiceRouter } from '../module/Settings/LeadSettings/routes/leadService.routes';
 import { notificationRouter } from '../module/Settings/Notification/routes/notification.routes';
+import { creditPaymentRouter } from '../module/Settings/CreditPayment/routes/creditPayment.routes';
 
 const router = Router();
 
@@ -50,6 +51,10 @@ const moduleRoutes = [
   {
     path: '/settings/notification',
     route: notificationRouter,
+  },
+  {
+    path: '/settings/credit-payment',
+    route: creditPaymentRouter,
   },
   {
     path: '/',
