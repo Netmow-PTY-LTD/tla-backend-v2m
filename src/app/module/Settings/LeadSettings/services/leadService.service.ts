@@ -574,11 +574,16 @@ const updateLeadServiceAnswersIntoDB = async (
   leadServiceId: string,
   answers: IUpdateLeadServiceAnswers[],
 ) => {
+  // console.log('leadServiceId,answers', leadServiceId, answers);
   const leadService = await LeadService.findById(leadServiceId);
-  if (!leadService) sendNotFoundResponse('Lead service not found');
+  if (!leadService) {
+    return sendNotFoundResponse('Lead service not found');
+  }
+
+  console.log('leadService', leadService);
 
   // Update answers
-  leadService.questions = answers.map((q) => ({
+  leadService.questions = answers?.map((q) => ({
     questionId: q.questionId,
     selectedOptionIds: q.selectedOptionIds,
   }));
