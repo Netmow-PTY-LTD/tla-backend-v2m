@@ -8,13 +8,16 @@ import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
 import CompanyProfile from '../../User/models/companyProfile.model';
 import { UserLocationServiceMap } from '../../Settings/LeadSettings/models/UserLocationServiceMap.model';
 import { LocationGroup } from '../../Geo/Country/models/locationGroup.model';
+import { validateObjectId } from '../../../utils/validateObjectId';
+import LeadService from '../../Settings/LeadSettings/models/leadService.model';
+import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -90,6 +93,70 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
  * @param  {IUser} payload - The user registration data.
  * @returns  An object containing the access token, refresh token, and user data.
  */
+
+export const createLeadService = async (
+  userProfileId: mongoose.Types.ObjectId,
+  serviceIds: Types.ObjectId[],
+  session: mongoose.ClientSession, // 🔸 Add session parameter
+) => {
+  serviceIds.forEach((id) => validateObjectId(id.toString(), 'service'));
+
+  const objectServiceIds = serviceIds.map(
+    (id) => new mongoose.Types.ObjectId(id),
+  );
+
+  const existing = await LeadService.find({
+    userProfileId,
+    serviceId: { $in: objectServiceIds },
+  }).select('serviceId');
+
+  const existingServiceIds = new Set(
+    existing.map((e) => e.serviceId.toString()),
+  );
+
+  const newServiceIds = objectServiceIds.filter(
+    (id) => !existingServiceIds.has(id.toString()),
+  );
+
+  if (newServiceIds.length === 0) {
+    throw {
+      status: 409,
+      message: 'All selected services already exist for this user',
+      duplicates: Array.from(existingServiceIds),
+    };
+  }
+
+  const allQuestions = await ServiceWiseQuestion.find({
+    serviceId: { $in: newServiceIds },
+    deletedAt: null,
+  })
+    .select('_id serviceId')
+    .session(session); // 🔸 Ensure it runs inside the transaction
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const groupedQuestions: Record<string, any[]> = {};
+  allQuestions.forEach((q) => {
+    const serviceIdStr = q.serviceId.toString();
+    if (!groupedQuestions[serviceIdStr]) groupedQuestions[serviceIdStr] = [];
+    groupedQuestions[serviceIdStr].push({
+      questionId: q._id,
+      selectedOptionIds: [],
+    });
+  });
+
+  const newLeadServices = newServiceIds.map((serviceId) => ({
+    serviceId,
+    userProfileId,
+    questions: groupedQuestions[serviceId.toString()] || [],
+  }));
+
+  const created = await LeadService.insertMany(newLeadServices, {
+    session, // 🔸 use session here
+  });
+
+  return created ? true : false;
+};
+
 const registerUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
   const session = await mongoose.startSession();
@@ -159,6 +226,8 @@ const registerUserIntoDB = async (payload: IUser) => {
     await UserLocationServiceMap.create([userLocationServiceMapData], {
       session,
     });
+
+    await createLeadService(newProfile._id, lawyerServiceMap.services, session);
 
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
