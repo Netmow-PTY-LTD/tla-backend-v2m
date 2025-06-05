@@ -10,7 +10,7 @@ export interface ICountry {
 
 export interface ICountryWiseLocationGroup {
   countryId: Types.ObjectId;
-  locationGroup?: string; // e.g., 'nation', '1000', '2000'
+  locationGroupName?: string; // e.g., 'nation', '1000', '2000'
   latitude?: number;
   longitude?: number;
 }

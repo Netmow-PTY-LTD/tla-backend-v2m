@@ -13,6 +13,8 @@ import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
 import CompanyProfile from '../../User/models/companyProfile.model';
+import { UserLocationServiceMap } from '../../Settings/LeadSettings/models/UserLocationServiceMap.model';
+import { LocationGroup } from '../../Geo/Country/models/locationGroup.model';
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -132,6 +134,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     }
 
     // lawyer service map create
+
     if (newUser.regUserType === 'lawyer') {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
@@ -140,6 +143,22 @@ const registerUserIntoDB = async (payload: IUser) => {
 
       await LawyerServiceMap.create([lawyerServiceMapData], { session });
     }
+
+    const locationGroup = await LocationGroup.findOne({
+      countryId: newProfile?.country,
+      locationGroupName: 'nation',
+    });
+
+    const userLocationServiceMapData = {
+      userProfileId: newProfile._id,
+      locationGroupId: locationGroup?._id,
+      locationType: 'nation_wide',
+      serviceIds: lawyerServiceMap.services || [],
+    };
+
+    await UserLocationServiceMap.create([userLocationServiceMapData], {
+      session,
+    });
 
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();

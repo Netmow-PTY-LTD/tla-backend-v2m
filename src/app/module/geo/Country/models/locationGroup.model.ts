@@ -8,7 +8,7 @@ const countryWiseLocationGroupSchema = new Schema<ICountryWiseLocationGroup>(
       ref: 'Country',
       required: true,
     },
-    locationGroup: {
+    locationGroupName: {
       type: String,
       trim: true,
     },
@@ -22,8 +22,7 @@ const countryWiseLocationGroupSchema = new Schema<ICountryWiseLocationGroup>(
   { timestamps: true },
 );
 
-export const CountryWiseLocationGroup =
-  mongoose.model<ICountryWiseLocationGroup>(
-    'LocationGroup',
-    countryWiseLocationGroupSchema,
-  );
+export const LocationGroup = mongoose.model<ICountryWiseLocationGroup>(
+  'LocationGroup',
+  countryWiseLocationGroupSchema,
+);
