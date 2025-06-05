@@ -19,7 +19,7 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
     },
     locations: {
       type: [String],
-      default: ['nationWide'],
+      default: ['Nationwide'],
     },
     onlineEnabled: { type: Boolean, default: false },
 
