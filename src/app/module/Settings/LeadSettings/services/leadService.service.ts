@@ -11,12 +11,80 @@ import LeadService from '../models/leadService.model';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import ServiceWiseQuestion from '../../../Service/Question/models/ServiceWiseQuestion.model';
 import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
+import { LocationGroup } from '../../../Geo/Country/models/locationGroup.model';
+
+// const createLeadService = async (
+//   userId: string,
+//   payload: {
+//     serviceIds: Types.ObjectId[];
+//     locations: string[];
+//     onlineEnabled: boolean;
+//   },
+// ) => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+//   if (!userProfile) sendNotFoundResponse('User profile not found');
+
+//   payload.serviceIds.forEach((id) =>
+//     validateObjectId(id.toString(), 'service'),
+//   );
+
+//   const objectServiceIds = payload.serviceIds.map(
+//     (id) => new mongoose.Types.ObjectId(id),
+//   );
+
+//   const existing = await LeadService.find({
+//     userProfileId: userProfile?._id,
+//     serviceId: { $in: objectServiceIds },
+//   }).select('serviceId');
+
+//   const existingServiceIds = new Set(
+//     existing.map((e) => e.serviceId.toString()),
+//   );
+//   const newServiceIds = objectServiceIds.filter(
+//     (id) => !existingServiceIds.has(id.toString()),
+//   );
+
+//   if (newServiceIds.length === 0) {
+//     throw {
+//       status: 409,
+//       message: 'All selected services already exist for this user',
+//       duplicates: Array.from(existingServiceIds),
+//     };
+//   }
+
+//   // Fetch questions for each new service and attach with empty selectedOptionIds
+//   const allQuestions = await ServiceWiseQuestion.find({
+//     serviceId: { $in: newServiceIds },
+//     deletedAt: null,
+//   }).select('_id serviceId');
+
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   const groupedQuestions: Record<string, any[]> = {};
+//   allQuestions.forEach((q) => {
+//     const serviceIdStr = q.serviceId.toString();
+//     if (!groupedQuestions[serviceIdStr]) groupedQuestions[serviceIdStr] = [];
+//     groupedQuestions[serviceIdStr].push({
+//       questionId: q._id,
+//       selectedOptionIds: [],
+//     });
+//   });
+
+//   const newLeadServices = newServiceIds.map((serviceId) => ({
+//     serviceId,
+//     userProfileId: userProfile?._id,
+//     locations: payload.locations,
+//     onlineEnabled: payload.onlineEnabled,
+//     questions: groupedQuestions[serviceId.toString()] || [],
+//   }));
+
+//   const created = await LeadService.insertMany(newLeadServices);
+//   return created;
+// };
 
 const createLeadService = async (
   userId: string,
   payload: {
     serviceIds: Types.ObjectId[];
-    locations: string[];
     onlineEnabled: boolean;
   },
 ) => {
@@ -39,6 +107,7 @@ const createLeadService = async (
   const existingServiceIds = new Set(
     existing.map((e) => e.serviceId.toString()),
   );
+
   const newServiceIds = objectServiceIds.filter(
     (id) => !existingServiceIds.has(id.toString()),
   );
@@ -51,7 +120,21 @@ const createLeadService = async (
     };
   }
 
-  // Fetch questions for each new service and attach with empty selectedOptionIds
+  // ✅ 1. Get default "nationwide" LocationGroup ID (hardcoded or fetched)
+  const defaultLocationGroup = await LocationGroup.findOne({
+    locationGroupName: 'nation',
+  }).select('_id');
+  if (!defaultLocationGroup) {
+    throw new Error('Default nationwide location group not found');
+  }
+
+  const defaultLocation = {
+    locationGroupId: defaultLocationGroup._id,
+    locationType: 'nation_wide',
+    areaName: 'Nationwide',
+  };
+
+  // ✅ 2. Get service-specific questions
   const allQuestions = await ServiceWiseQuestion.find({
     serviceId: { $in: newServiceIds },
     deletedAt: null,
@@ -68,10 +151,11 @@ const createLeadService = async (
     });
   });
 
+  // ✅ 3. Create services with default location
   const newLeadServices = newServiceIds.map((serviceId) => ({
     serviceId,
     userProfileId: userProfile?._id,
-    locations: payload.locations,
+    locations: [defaultLocation],
     onlineEnabled: payload.onlineEnabled,
     questions: groupedQuestions[serviceId.toString()] || [],
   }));
@@ -313,7 +397,7 @@ const updateLeadServiceAnswersIntoDB = async (
   answers: IUpdateLeadServiceAnswers[],
 ) => {
   // console.log('leadServiceId,answers', leadServiceId, answers);
-  const leadService = await LeadService.findById(leadServiceId);
+  const leadService = await LeadService?.findById(leadServiceId);
   if (!leadService) {
     return sendNotFoundResponse('Lead service not found');
   }
