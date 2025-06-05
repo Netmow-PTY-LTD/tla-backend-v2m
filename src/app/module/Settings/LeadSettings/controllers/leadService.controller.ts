@@ -31,10 +31,13 @@ const getLeadServices = catchAsync(async (req, res) => {
 
 // Update locations
 const updateLocations = catchAsync(async (req, res) => {
-  const { serviceId } = req.params;
+  const { leadServiceId } = req.params;
   const { locations } = req.body;
 
-  const result = await LeadServiceService.updateLocations(serviceId, locations);
+  const result = await LeadServiceService.updateLocations(
+    leadServiceId,
+    locations,
+  );
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

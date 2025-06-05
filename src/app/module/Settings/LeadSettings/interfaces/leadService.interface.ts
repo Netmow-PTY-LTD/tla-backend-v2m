@@ -8,11 +8,23 @@ interface Question {
   selectedOptionIds: mongoose.Types.ObjectId[]; // Array of references to ServiceOption
 }
 
+export enum LocationType {
+  NATION_WISE = 'nation_wide',
+  DISTANCE_WISE = 'distance_wise',
+  TRAVEL_TIME = 'travel_time',
+  DRAW_ON_AREA = 'draw_on_area',
+}
+
+export interface ILocation {
+  locationGroupId?: Types.ObjectId | string; // optional for 'custom' type
+  locationType: LocationType;
+  areaName?: string;
+}
 export interface ILeadService {
   userProfileId: mongoose.Types.ObjectId;
   serviceName: string;
   serviceId: mongoose.Types.ObjectId;
-  locations: string[];
+  locations: ILocation[];
   onlineEnabled: boolean;
   questions: Question[];
 }
@@ -31,13 +43,6 @@ export interface ILeadServiceModel extends Model<ILeadService> {
 under this interface  model will be changeable just use if for test case
 
 */
-
-export enum LocationType {
-  NATION_WISE = 'nation_wide',
-  DISTANCE_WISE = 'distance_wise',
-  TRAVEL_TIME = 'travel_time',
-  DRAW_ON_AREA = 'draw_on_area',
-}
 
 export interface IUserLocationServiceMap {
   userProfileId: Types.ObjectId;

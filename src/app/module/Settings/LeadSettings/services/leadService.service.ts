@@ -5,10 +5,12 @@ import UserProfile from '../../../User/models/user.model';
 import {
   ILeadService,
   IUpdateLeadServiceAnswers,
+  LocationType,
 } from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import ServiceWiseQuestion from '../../../Service/Question/models/ServiceWiseQuestion.model';
+import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
 
 const createLeadService = async (
   userId: string,
@@ -181,20 +183,101 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   return leadServices;
 };
 
-const updateLocations = async (
-  serviceId: string,
-  locations: string[],
-): Promise<ILeadService | null> => {
-  // Validate ObjectId format
-  validateObjectId(serviceId, 'lead Service ID');
-  return await LeadService.findByIdAndUpdate(
-    serviceId,
-    { locations },
-    { new: true },
-  );
-};
+// const updateLocations = async (leadServiceId: string, locations: string[]) => {
+//   // Validate ObjectId format
+//   validateObjectId(leadServiceId, 'lead Service ID');
+//   const leadService = await LeadService.findById(leadServiceId);
+//   if (!leadService) {
+//     return sendNotFoundResponse('Lead service not found');
+//   }
+
+//   // Update locations in LeadService
+//   leadService.locations = locations;
+//   await leadService.save();
+
+//   // Delete old mappings for this leadService
+//   await UserLocationServiceMap.deleteMany({
+//     userProfileId: leadService.userProfileId,
+//     serviceId: leadService.serviceId,
+//   });
+
+//   // Create new mappings
+//   const newMappings = locations.map((location) => ({
+//     userProfileId: leadService.userProfileId,
+//     serviceId: leadService.serviceId,
+//     location,
+//   }));
+
+//   await UserLocationServiceMap.insertMany(newMappings);
+
+//   return leadService;
+// };
 
 // Toggle online status
+
+const updateLocations = async (
+  leadServiceId: string,
+  locations: { locationGroupId: string; locationType: LocationType }[],
+) => {
+  validateObjectId(leadServiceId, 'lead Service ID');
+
+  const leadService = await LeadService.findById(leadServiceId);
+  if (!leadService) return sendNotFoundResponse('Lead service not found');
+
+  // Update locations inside LeadService
+  leadService.locations = locations;
+  await leadService.save();
+
+  // Step 1: Remove old mappings for the user+service
+  const oldMaps = await UserLocationServiceMap.find({
+    userProfileId: leadService.userProfileId,
+  });
+
+  // For each old map, remove the serviceId from `serviceIds` array
+  for (const map of oldMaps) {
+    map.serviceIds = map.serviceIds.filter(
+      (id) => id.toString() !== leadService.serviceId.toString(),
+    );
+
+    if (map.serviceIds.length === 0) {
+      await map.deleteOne(); // delete map if no service remains
+    } else {
+      await map.save(); // otherwise save updated list
+    }
+  }
+
+  // Step 2: Insert or update new mappings
+  for (const { locationGroupId, locationType } of locations) {
+    const existingMap = await UserLocationServiceMap.findOne({
+      userProfileId: leadService.userProfileId,
+      locationGroupId,
+      locationType,
+    });
+
+    if (existingMap) {
+      // Add serviceId if not already present
+      if (
+        !existingMap.serviceIds.some(
+          (id) => id.toString() === leadService.serviceId.toString(),
+        )
+      ) {
+        existingMap.serviceIds.push(leadService.serviceId);
+        await existingMap.save();
+      }
+    } else {
+      // Create new mapping
+      await UserLocationServiceMap.create({
+        userProfileId: leadService.userProfileId,
+        locationGroupId,
+        locationType,
+        serviceIds: [leadService.serviceId],
+      });
+    }
+  }
+
+  return leadService;
+};
+
 const toggleOnlineEnabled = async (
   leadServiceId: string,
   onlineEnabled: boolean,
