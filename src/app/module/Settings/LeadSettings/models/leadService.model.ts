@@ -17,7 +17,7 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
       ref: 'Service',
       required: true,
     },
-    selectedLocations: [
+    locations: [
       {
         _id: {
           type: Schema.Types.ObjectId,
@@ -25,11 +25,15 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
         },
         locationGroupId: {
           type: Schema.Types.ObjectId,
-          ref: 'LocationGroup',
+          ref: 'ZipCode',
         },
         locationType: {
           type: String,
           trim: true,
+        },
+        SelectedLocationId: {
+          type: Schema.Types.ObjectId,
+          ref: 'UserLocationServiceMap',
         },
       },
     ],

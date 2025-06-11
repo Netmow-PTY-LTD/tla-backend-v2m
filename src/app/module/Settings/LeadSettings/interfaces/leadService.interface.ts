@@ -16,22 +16,17 @@ export enum LocationType {
 }
 
 export interface ILocation {
-  locationGroupId?: Types.ObjectId | string; // optional for 'custom' type
-  locationType: LocationType;
-  areaName?: string;
-}
-
-interface ISelectedLocations {
-  _id: mongoose.Types.ObjectId;
+  _id: mongoose.Types.ObjectId | string;
   locationGroupId: mongoose.Types.ObjectId;
   locationType: string;
+  SelectedLocationId: mongoose.Types.ObjectId;
 }
+
 export interface ILeadService {
   userProfileId: mongoose.Types.ObjectId;
   serviceName: string;
   serviceId: mongoose.Types.ObjectId;
-  selectedLocations: ISelectedLocations[];
-
+  locations: ILocation[];
   questions: Question[];
 }
 

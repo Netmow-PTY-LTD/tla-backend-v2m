@@ -11,7 +11,7 @@ import LeadService from '../models/leadService.model';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import ServiceWiseQuestion from '../../../Service/Question/models/ServiceWiseQuestion.model';
 import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
-import { LocationGroup } from '../../../Geo/Country/models/locationGroup.model';
+import ZipCode from '../../../Geo/Country/models/zipcode.model';
 
 // const createLeadService = async (
 //   userId: string,
@@ -140,9 +140,9 @@ const createLeadService = async (
   });
 
   //  Location logic
-  const locationGroup = await LocationGroup.findOne({
+  const locationGroup = await ZipCode.findOne({
     countryId: userProfile?.country,
-    locationGroupName: 'nation',
+    zipCodeType: 'default',
   });
 
   const existingLocationMap = await UserLocationServiceMap.findOne({
@@ -329,7 +329,11 @@ const getLeadServicesWithQuestions = async (userId: string) => {
 
 const updateLocations = async (
   leadServiceId: string,
-  locations: { locationGroupId: string; locationType: LocationType }[],
+  locations: {
+    _id: string;
+    locationGroupId: string;
+    locationType: LocationType;
+  }[],
 ) => {
   validateObjectId(leadServiceId, 'lead Service ID');
 
@@ -418,7 +422,7 @@ export const deleteLeadService = async (leadServiceId: string) => {
   return result;
 };
 
-//  udate api
+//  update api
 
 const updateLeadServiceAnswersIntoDB = async (
   leadServiceId: string,

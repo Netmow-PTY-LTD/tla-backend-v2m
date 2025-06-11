@@ -18,6 +18,7 @@ import { LocationGroup } from '../../Geo/Country/models/locationGroup.model';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import LeadService from '../../Settings/LeadSettings/models/leadService.model';
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+import ZipCode from '../../Geo/Country/models/zipcode.model';
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -211,9 +212,9 @@ const registerUserIntoDB = async (payload: IUser) => {
       await LawyerServiceMap.create([lawyerServiceMapData], { session });
     }
 
-    const locationGroup = await LocationGroup.findOne({
+    const locationGroup = await ZipCode.findOne({
       countryId: newProfile?.country,
-      locationGroupName: 'nation',
+      zipCodeType: 'default',
     });
 
     const userLocationServiceMapData = {

@@ -18,7 +18,7 @@ const userLocationServiceMapSchema = new Schema<IUserLocationServiceMap>(
     },
     locationGroupId: {
       type: Schema.Types.ObjectId,
-      ref: 'LocationGroup',
+      ref: 'ZipCode',
     },
     locationType: {
       type: String,
