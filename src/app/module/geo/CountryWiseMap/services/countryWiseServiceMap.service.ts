@@ -101,6 +101,12 @@ const manageServiceIntoDB = async (payload: Partial<ICountryServiceField>) => {
   }
 };
 
+const getAllCountryServiceFieldFromDB = async () => {
+  console.log('test api');
+  const result = await CountryWiseServiceWiseField.find({ deletedAt: null });
+  return result;
+};
+
 export const countryWiseMapService = {
   CreateCountryWiseMapIntoDB,
   getAllCountryWiseMapFromDB,
@@ -109,4 +115,5 @@ export const countryWiseMapService = {
   deleteCountryWiseMapFromDB,
   getSingleCountryWiseMapByIdFromDB,
   manageServiceIntoDB,
+  getAllCountryServiceFieldFromDB,
 };
