@@ -139,26 +139,18 @@ const manageService = catchAsync(async (req, res) => {
   const manageServiceData = JSON.parse(req.body.data);
   const files = req.files as TUploadedFile[];
 
-  const fileMap: Record<string, TUploadedFile[]> = {};
-  files.forEach((file) => {
-    if (!fileMap[file.fieldname]) {
-      fileMap[file.fieldname] = [];
-    }
-    fileMap[file.fieldname].push(file);
-  });
-
-  const result = await countryWiseMapService.manageServiceIntoDB(
+  const { result, isNew } = await countryWiseMapService.manageServiceIntoDB(
     userId,
     manageServiceData,
     files,
   );
-  const isUpdate = Boolean(manageServiceData._id);
+
   sendResponse(res, {
-    statusCode: isUpdate ? HTTP_STATUS.OK : HTTP_STATUS.CREATED,
+    statusCode: isNew ? HTTP_STATUS.CREATED : HTTP_STATUS.OK,
     success: true,
-    message: isUpdate
-      ? 'Country Service updated successfully'
-      : 'Country Service created successfully',
+    message: isNew
+      ? 'Country Service created successfully'
+      : 'Country Service updated successfully',
     data: result,
   });
 });

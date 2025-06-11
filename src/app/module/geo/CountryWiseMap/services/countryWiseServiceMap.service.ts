@@ -89,24 +89,11 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
   return result;
 };
 
-// const manageServiceIntoDB = async (payload: Partial<ICountryServiceField>) => {
-//   if (payload._id && Types.ObjectId.isValid(payload._id)) {
-//     const updated = await CountryWiseServiceWiseField.findByIdAndUpdate(
-//       payload._id,
-//       { $set: payload },
-//       { new: true, runValidators: true },
-//     );
-//     return updated;
-//   } else {
-//     const created = await CountryWiseServiceWiseField.create(payload);
-//     return created;
-//   }
-// };
 const manageServiceIntoDB = async (
   userId: string,
   payload: Partial<ICountryServiceField>,
   files?: TUploadedFile[],
-) => {
+): Promise<{ result: ICountryServiceField; isNew: boolean }> => {
   if (files?.length) {
     for (const file of files) {
       if (file?.buffer && file?.fieldname) {
@@ -116,8 +103,6 @@ const manageServiceIntoDB = async (
             file.originalname,
             userId,
           );
-
-          // Set the URL in payload under the correct fieldname
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (payload as any)[file.fieldname] = uploadedUrl;
           // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
@@ -131,14 +116,17 @@ const manageServiceIntoDB = async (
     }
   }
 
+  const existing = await CountryWiseServiceWiseField.findOne({
+    countryId: payload.countryId,
+    serviceId: payload.serviceId,
+  });
+
   const updated = await CountryWiseServiceWiseField.findOneAndUpdate(
     {
       countryId: payload.countryId,
       serviceId: payload.serviceId,
     },
-    {
-      $set: payload,
-    },
+    { $set: payload },
     {
       new: true,
       upsert: true,
@@ -146,11 +134,10 @@ const manageServiceIntoDB = async (
     },
   );
 
-  return updated;
+  return { result: updated, isNew: !existing };
 };
 
 const getAllCountryServiceFieldFromDB = async () => {
-  console.log('test api');
   const result = await CountryWiseServiceWiseField.find({ deletedAt: null });
   return result;
 };
