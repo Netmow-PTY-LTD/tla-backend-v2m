@@ -87,18 +87,32 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
   return result;
 };
 
+// const manageServiceIntoDB = async (payload: Partial<ICountryServiceField>) => {
+//   if (payload._id && Types.ObjectId.isValid(payload._id)) {
+//     const updated = await CountryWiseServiceWiseField.findByIdAndUpdate(
+//       payload._id,
+//       { $set: payload },
+//       { new: true, runValidators: true },
+//     );
+//     return updated;
+//   } else {
+//     const created = await CountryWiseServiceWiseField.create(payload);
+//     return created;
+//   }
+// };
 const manageServiceIntoDB = async (payload: Partial<ICountryServiceField>) => {
-  if (payload._id && Types.ObjectId.isValid(payload._id)) {
-    const updated = await CountryWiseServiceWiseField.findByIdAndUpdate(
-      payload._id,
-      { $set: payload },
-      { new: true, runValidators: true },
-    );
-    return updated;
-  } else {
-    const created = await CountryWiseServiceWiseField.create(payload);
-    return created;
-  }
+  const updated = await CountryWiseServiceWiseField.findOneAndUpdate(
+    { countryId: payload.countryId, serviceId: payload.serviceId },
+    { $set: payload },
+    { new: true, upsert: true, runValidators: true },
+  );
+  return updated;
+};
+
+const getAllCountryServiceFieldFromDB = async () => {
+  console.log('test api');
+  const result = await CountryWiseServiceWiseField.find({ deletedAt: null });
+  return result;
 };
 
 export const countryWiseMapService = {
@@ -109,4 +123,5 @@ export const countryWiseMapService = {
   deleteCountryWiseMapFromDB,
   getSingleCountryWiseMapByIdFromDB,
   manageServiceIntoDB,
+  getAllCountryServiceFieldFromDB,
 };
