@@ -278,6 +278,36 @@ const getLeadServicesWithQuestions = async (userId: string) => {
       },
     },
     //  extra logic
+    // {
+    //   $lookup: {
+    //     from: 'userlocationservicemaps',
+    //     let: {
+    //       serviceId: '$service._id',
+    //       userProfileId: '$userProfileId',
+    //     },
+    //     pipeline: [
+    //       {
+    //         $match: {
+    //           $expr: {
+    //             $and: [
+    //               { $in: ['$$serviceId', '$serviceIds'] },
+    //               { $eq: ['$userProfileId', '$$userProfileId'] },
+    //             ],
+    //           },
+    //         },
+    //       },
+    //       {
+    //         $project: {
+    //           _id: 1,
+    //           locationGroupId: 1,
+    //           locationType: 1,
+    //         },
+    //       },
+    //     ],
+    //     as: 'locations',
+    //   },
+    // },
+
     {
       $lookup: {
         from: 'userlocationservicemaps',
@@ -305,6 +335,41 @@ const getLeadServicesWithQuestions = async (userId: string) => {
           },
         ],
         as: 'locations',
+      },
+    },
+    {
+      $addFields: {
+        locations: {
+          $map: {
+            input: '$locations',
+            as: 'loc',
+            in: {
+              $mergeObjects: [
+                '$$loc',
+                {
+                  SelectedLocationId: {
+                    $let: {
+                      vars: {
+                        matched: {
+                          $first: {
+                            $filter: {
+                              input: '$locations', // this refers to the populated locations
+                              as: 'originalLoc',
+                              cond: {
+                                $eq: ['$$originalLoc._id', '$$loc._id'],
+                              },
+                            },
+                          },
+                        },
+                      },
+                      in: '$$matched._id',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
       },
     },
     {
