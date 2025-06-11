@@ -17,13 +17,23 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
       ref: 'Service',
       required: true,
     },
-    // locations: {
-    //   type: [String],
-    //   default: ['Nationwide'],
-    // },
-    // Each service can be offered in multiple structured locations
+    selectedLocations: [
+      {
+        _id: {
+          type: Schema.Types.ObjectId,
+          ref: 'UserLocationServiceMap',
+        },
+        locationGroupId: {
+          type: Schema.Types.ObjectId,
+          ref: 'LocationGroup',
+        },
+        locationType: {
+          type: String,
+          trim: true,
+        },
+      },
+    ],
     // onlineEnabled: { type: Boolean, default: false },
-
     questions: [
       {
         questionId: {

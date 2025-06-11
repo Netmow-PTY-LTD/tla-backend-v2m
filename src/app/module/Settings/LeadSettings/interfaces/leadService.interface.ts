@@ -20,12 +20,18 @@ export interface ILocation {
   locationType: LocationType;
   areaName?: string;
 }
+
+interface ISelectedLocations {
+  _id: mongoose.Types.ObjectId;
+  locationGroupId: mongoose.Types.ObjectId;
+  locationType: string;
+}
 export interface ILeadService {
   userProfileId: mongoose.Types.ObjectId;
   serviceName: string;
   serviceId: mongoose.Types.ObjectId;
-  locations: ILocation[];
-  onlineEnabled: boolean;
+  selectedLocations: ISelectedLocations[];
+
   questions: Question[];
 }
 
