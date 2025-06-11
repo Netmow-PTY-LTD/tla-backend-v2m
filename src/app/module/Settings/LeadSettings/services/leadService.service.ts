@@ -298,7 +298,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
           },
           {
             $project: {
-              _id: 0,
+              _id: 1,
               locationGroupId: 1,
               locationType: 1,
             },
