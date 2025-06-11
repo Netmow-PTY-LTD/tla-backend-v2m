@@ -132,6 +132,23 @@ const getAllCountryWiseMap = catchAsync(async (req, res) => {
   });
 });
 
+const manageService = catchAsync(async (req, res) => {
+  // const userId = req.user.userId;
+  const manageServiceData = req.body;
+
+  const result =
+    await countryWiseMapService.manageServiceIntoDB(manageServiceData);
+  const isUpdate = Boolean(manageServiceData._id);
+  sendResponse(res, {
+    statusCode: isUpdate ? HTTP_STATUS.OK : HTTP_STATUS.CREATED,
+    success: true,
+    message: isUpdate
+      ? 'Service updated successfully'
+      : 'Service created successfully',
+    data: result,
+  });
+});
+
 export const countryWiseMapController = {
   createCountryWiseMap,
   getSingleCountryWiseMap,
@@ -139,4 +156,5 @@ export const countryWiseMapController = {
   updateSingleCountryWiseMap,
   getAllCountryWiseMap,
   getSingleCountryWiseMapById,
+  manageService,
 };

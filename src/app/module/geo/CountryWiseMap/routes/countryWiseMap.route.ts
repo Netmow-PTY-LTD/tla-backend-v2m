@@ -29,5 +29,6 @@ router.patch(
   validateRequest(CountryWiseMapZodValidation.createCountryWiseMapSchema),
   countryWiseMapController.updateSingleCountryWiseMap,
 );
+router.patch('/manage-service', countryWiseMapController.manageService);
 
 export const CountryWiseMapRouter = router;

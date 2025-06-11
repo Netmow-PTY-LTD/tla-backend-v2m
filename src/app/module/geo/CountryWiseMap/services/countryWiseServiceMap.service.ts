@@ -4,6 +4,8 @@ import { ICountryWiseMap } from '../interfaces/countryWiseMap.interface';
 import CountryWiseMap from '../models/countryWiseMap.model';
 import { AppError } from '../../../../errors/error';
 import { HTTP_STATUS } from '../../../../constant/httpStatus';
+import CountryWiseServiceWiseField from '../models/countryWiseServiceWiseFields.model';
+import { ICountryServiceField } from '../interfaces/countryWiseServiceWiseField.interface';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -85,6 +87,20 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
   return result;
 };
 
+const manageServiceIntoDB = async (payload: Partial<ICountryServiceField>) => {
+  if (payload._id && Types.ObjectId.isValid(payload._id)) {
+    const updated = await CountryWiseServiceWiseField.findByIdAndUpdate(
+      payload._id,
+      { $set: payload },
+      { new: true, runValidators: true },
+    );
+    return updated;
+  } else {
+    const created = await CountryWiseServiceWiseField.create(payload);
+    return created;
+  }
+};
+
 export const countryWiseMapService = {
   CreateCountryWiseMapIntoDB,
   getAllCountryWiseMapFromDB,
@@ -92,4 +108,5 @@ export const countryWiseMapService = {
   updateCountryWiseMapIntoDB,
   deleteCountryWiseMapFromDB,
   getSingleCountryWiseMapByIdFromDB,
+  manageServiceIntoDB,
 };
