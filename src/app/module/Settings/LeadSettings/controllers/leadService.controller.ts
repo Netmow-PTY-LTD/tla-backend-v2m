@@ -49,11 +49,12 @@ const updateLocations = catchAsync(async (req, res) => {
 //  update answer
 const updateLeadServiceAnswers = catchAsync(async (req, res) => {
   const { leadServiceId } = req.params;
-  const { answers } = req.body;
+  const { answers, selectedLocationIds } = req.body;
 
   const result = await LeadServiceService.updateLeadServiceAnswersIntoDB(
     leadServiceId,
     answers,
+    selectedLocationIds,
   );
 
   sendResponse(res, {
