@@ -6,6 +6,8 @@ import { AppError } from '../../../../errors/error';
 import { HTTP_STATUS } from '../../../../constant/httpStatus';
 import CountryWiseServiceWiseField from '../models/countryWiseServiceWiseFields.model';
 import { ICountryServiceField } from '../interfaces/countryWiseServiceWiseField.interface';
+import { TUploadedFile } from '../../../../interface/file.interface';
+import { uploadToSpaces } from '../../../../config/upload';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -100,12 +102,50 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
 //     return created;
 //   }
 // };
-const manageServiceIntoDB = async (payload: Partial<ICountryServiceField>) => {
+const manageServiceIntoDB = async (
+  userId: string,
+  payload: Partial<ICountryServiceField>,
+  files?: TUploadedFile[],
+) => {
+  if (files?.length) {
+    for (const file of files) {
+      if (file?.buffer && file?.fieldname) {
+        try {
+          const uploadedUrl = await uploadToSpaces(
+            file.buffer,
+            file.originalname,
+            userId,
+          );
+
+          // Set the URL in payload under the correct fieldname
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (payload as any)[file.fieldname] = uploadedUrl;
+          // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+        } catch (err) {
+          throw new AppError(
+            HTTP_STATUS.INTERNAL_SERVER_ERROR,
+            `File upload failed for ${file.fieldname}`,
+          );
+        }
+      }
+    }
+  }
+
   const updated = await CountryWiseServiceWiseField.findOneAndUpdate(
-    { countryId: payload.countryId, serviceId: payload.serviceId },
-    { $set: payload },
-    { new: true, upsert: true, runValidators: true },
+    {
+      countryId: payload.countryId,
+      serviceId: payload.serviceId,
+    },
+    {
+      $set: payload,
+    },
+    {
+      new: true,
+      upsert: true,
+      runValidators: true,
+    },
   );
+
   return updated;
 };
 

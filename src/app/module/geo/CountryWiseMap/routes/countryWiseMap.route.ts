@@ -3,6 +3,9 @@ import { Router } from 'express';
 import validateRequest from '../../../../middlewares/validateRequest';
 import { CountryWiseMapZodValidation } from '../validations/countryWiseService.validation';
 import { countryWiseMapController } from '../controllers/countryWiseMap.controller';
+import auth from '../../../../middlewares/auth';
+import { USER_ROLE } from '../../../../constant';
+import { upload } from '../../../../config/upload';
 
 const router = Router();
 
@@ -35,6 +38,12 @@ router.get(
   countryWiseMapController.getAllCountryServiceField,
 );
 
-router.patch('/manage-service', countryWiseMapController.manageService);
+router.patch(
+  '/manage-service',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  upload.any(),
+
+  countryWiseMapController.manageService,
+);
 
 export const CountryWiseMapRouter = router;
