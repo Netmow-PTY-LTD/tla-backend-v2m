@@ -133,20 +133,6 @@ export const createLeadService = async (
     .select('_id serviceId')
     .session(session); // 🔸 Ensure it runs inside the transaction
 
-  // ✅ 1. Get default "nationwide" LocationGroup ID (hardcoded or fetched)
-  const defaultLocationGroup = await LocationGroup.findOne({
-    locationGroupName: 'nation',
-  }).select('_id');
-  if (!defaultLocationGroup) {
-    throw new Error('Default nationwide location group not found');
-  }
-
-  const defaultLocation = {
-    locationGroupId: defaultLocationGroup._id,
-    locationType: 'nation_wide',
-    areaName: 'Nationwide',
-  };
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedQuestions: Record<string, any[]> = {};
   allQuestions.forEach((q) => {
@@ -161,7 +147,6 @@ export const createLeadService = async (
   const newLeadServices = newServiceIds.map((serviceId) => ({
     serviceId,
     userProfileId,
-    locations: [defaultLocation],
     questions: groupedQuestions[serviceId.toString()] || [],
   }));
 

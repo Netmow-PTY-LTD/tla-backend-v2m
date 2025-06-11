@@ -88,7 +88,9 @@ const createLeadService = async (
     onlineEnabled: boolean;
   },
 ) => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    '_id country',
+  );
   if (!userProfile) sendNotFoundResponse('User profile not found');
 
   payload.serviceIds.forEach((id) =>
@@ -120,20 +122,6 @@ const createLeadService = async (
     };
   }
 
-  // ✅ 1. Get default "nationwide" LocationGroup ID (hardcoded or fetched)
-  const defaultLocationGroup = await LocationGroup.findOne({
-    locationGroupName: 'nation',
-  }).select('_id');
-  if (!defaultLocationGroup) {
-    throw new Error('Default nationwide location group not found');
-  }
-
-  const defaultLocation = {
-    locationGroupId: defaultLocationGroup._id,
-    locationType: 'nation_wide',
-    areaName: 'Nationwide',
-  };
-
   // ✅ 2. Get service-specific questions
   const allQuestions = await ServiceWiseQuestion.find({
     serviceId: { $in: newServiceIds },
@@ -151,12 +139,48 @@ const createLeadService = async (
     });
   });
 
+  //  Location logic
+  const locationGroup = await LocationGroup.findOne({
+    countryId: userProfile?.country,
+    locationGroupName: 'nation',
+  });
+
+  const existingLocationMap = await UserLocationServiceMap.findOne({
+    userProfileId: userProfile?._id,
+    locationGroupId: locationGroup?._id,
+    locationType: 'nation_wide',
+  });
+
+  if (existingLocationMap) {
+    // Filter only serviceIds that are NOT already in the map
+    const existingServiceIdSet = new Set(
+      (existingLocationMap.serviceIds || []).map((id) => id.toString()),
+    );
+
+    const newServiceIdsToAdd = objectServiceIds.filter(
+      (id) => !existingServiceIdSet.has(id.toString()),
+    );
+
+    if (newServiceIdsToAdd.length > 0) {
+      await UserLocationServiceMap.updateOne(
+        { _id: existingLocationMap._id },
+        { $addToSet: { serviceIds: { $each: newServiceIdsToAdd } } },
+      );
+    }
+  } else {
+    // No existing map — create new
+    await UserLocationServiceMap.create({
+      userProfileId: userProfile?._id,
+      locationGroupId: locationGroup?._id,
+      locationType: 'nation_wide',
+      serviceIds: objectServiceIds,
+    });
+  }
+
   // ✅ 3. Create services with default location
   const newLeadServices = newServiceIds.map((serviceId) => ({
     serviceId,
     userProfileId: userProfile?._id,
-    locations: [defaultLocation],
-    onlineEnabled: payload.onlineEnabled,
     questions: groupedQuestions[serviceId.toString()] || [],
   }));
 
@@ -253,11 +277,47 @@ const getLeadServicesWithQuestions = async (userId: string) => {
         },
       },
     },
+    //  extra logic
+    {
+      $lookup: {
+        from: 'userlocationservicemaps',
+        let: {
+          serviceId: '$service._id',
+          userProfileId: '$userProfileId',
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $in: ['$$serviceId', '$serviceIds'] },
+                  { $eq: ['$userProfileId', '$$userProfileId'] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              locationGroupId: 1,
+              locationType: 1,
+            },
+          },
+        ],
+        as: 'locations',
+      },
+    },
+    {
+      $addFields: {
+        locationCount: { $size: '$locations' },
+      },
+    },
     {
       $project: {
         serviceName: '$service.name',
         serviceId: '$service._id',
         locations: 1,
+        locationCount: 1,
         onlineEnabled: 1,
         questions: 1,
       },
@@ -266,38 +326,6 @@ const getLeadServicesWithQuestions = async (userId: string) => {
 
   return leadServices;
 };
-
-// const updateLocations = async (leadServiceId: string, locations: string[]) => {
-//   // Validate ObjectId format
-//   validateObjectId(leadServiceId, 'lead Service ID');
-//   const leadService = await LeadService.findById(leadServiceId);
-//   if (!leadService) {
-//     return sendNotFoundResponse('Lead service not found');
-//   }
-
-//   // Update locations in LeadService
-//   leadService.locations = locations;
-//   await leadService.save();
-
-//   // Delete old mappings for this leadService
-//   await UserLocationServiceMap.deleteMany({
-//     userProfileId: leadService.userProfileId,
-//     serviceId: leadService.serviceId,
-//   });
-
-//   // Create new mappings
-//   const newMappings = locations.map((location) => ({
-//     userProfileId: leadService.userProfileId,
-//     serviceId: leadService.serviceId,
-//     location,
-//   }));
-
-//   await UserLocationServiceMap.insertMany(newMappings);
-
-//   return leadService;
-// };
-
-// Toggle online status
 
 const updateLocations = async (
   leadServiceId: string,
