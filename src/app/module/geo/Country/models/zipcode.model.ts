@@ -14,6 +14,11 @@ const zipCodeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    zipCodeType: {
+      type: String,
+      enum: ['default', 'custom'],
+      default: 'custom',
+    },
     deletedAt: {
       type: Date,
       default: null,
