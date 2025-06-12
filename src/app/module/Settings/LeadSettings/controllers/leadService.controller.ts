@@ -50,12 +50,14 @@ const updateLocations = catchAsync(async (req, res) => {
 const updateLeadServiceAnswers = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const { leadServiceId } = req.params;
-  const { answers, selectedLocationIds } = req.body;
+  const { answers, selectedLocationData } = req.body;
+ 
 
   const result = await LeadServiceService.updateLeadServiceAnswersIntoDB(
     userId,
     leadServiceId,
     answers,
+    selectedLocationData
     
   );
 

@@ -277,24 +277,29 @@ export const deleteLeadService = async (userId: string, serviceId: string) => {
   };
 };
 
+
 const updateLeadServiceAnswersIntoDB = async (
   userId: string,
   serviceId: string,
   answers: IUpdateLeadServiceAnswers[],
+  selectedLocationData: Array<{
+    locationsId: string;
+    serviceIds: string[];
+  }>
 ) => {
-  // ✅ Get userProfileId from userId
+  // ✅ Find the associated user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
 
-  // ✅ Build a Map of selected options for each question
+  // ✅ Build a Map of selected options by question
   const selectedOptionMap = new Map<string, Set<string>>();
   for (const answer of answers) {
     selectedOptionMap.set(answer.questionId, new Set(answer.selectedOptionIds));
   }
 
-  // ✅ Fetch all existing LeadService records for this user & service
+  // ✅ Get all existing LeadService records for this user and service
   const allRecords = await LeadService.find({
     userProfileId: userProfile._id,
     serviceId,
@@ -315,13 +320,26 @@ const updateLeadServiceAnswersIntoDB = async (
     };
   });
 
-  // ✅ Execute bulk update if needed
+  // ✅ Execute in bulk if there's anything to update
   if (bulkOps.length > 0) {
     await LeadService.bulkWrite(bulkOps);
   }
 
-  return { message: 'Lead service answers updated successfully' };
+  // ✅ Update location-service mappings
+  if (Array.isArray(selectedLocationData) && selectedLocationData.length > 0) {
+    for (const location of selectedLocationData) {
+      const { locationsId, serviceIds } = location;
+      await UserLocationServiceMap.findOneAndUpdate(
+        { _id: locationsId },
+        { serviceIds },
+        { new: true, upsert: false } // Avoid creating new if not found
+      );
+    }
+  }
+
+  return { message: 'Lead service answers and locations updated successfully' };
 };
+
 
 export const LeadServiceService = {
   createLeadService,
