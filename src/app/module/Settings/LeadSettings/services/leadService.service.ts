@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 
@@ -467,6 +468,7 @@ const createLeadService = async (
 
 //   return leadServices;
 // };
+
 const getLeadServicesWithQuestions = async (userId: string) => {
   // 1. Fetch user profile
   const userProfile = await UserProfile.findOne({ user: userId }).select(
@@ -476,7 +478,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     return sendNotFoundResponse('User profile not found');
   }
 
-  // 2. Fetch matching lead service entries
+  // 2. Fetch relevant lead services
   const leadServices = await LeadService.find({
     userProfileId: userProfile._id,
     serviceId: { $in: userProfile.serviceIds },
@@ -485,12 +487,12 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     .populate('questionId')
     .populate('optionId');
 
-  // 3. Group by serviceId, then by questionId
-  const groupedByService: Record<
+  // 3. Organize data
+  const grouped: Record<
     string,
     {
       service: any;
-      questions: Record<string, { question: any; options: any[] }>;
+      questionsMap: Record<string, { question: any; options: any[] }>;
     }
   > = {};
 
@@ -498,31 +500,40 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     const serviceId = (item.serviceId as any)._id.toString();
     const questionId = (item.questionId as any)._id.toString();
 
-    // Create service group if doesn't exist
-    if (!groupedByService[serviceId]) {
-      groupedByService[serviceId] = {
+    // Initialize service group
+    if (!grouped[serviceId]) {
+      grouped[serviceId] = {
         service: item.serviceId,
-        questions: {},
+        questionsMap: {},
       };
     }
 
-    // Create question group under the service if doesn't exist
-    if (!groupedByService[serviceId].questions[questionId]) {
-      groupedByService[serviceId].questions[questionId] = {
+    // Initialize question group
+    if (!grouped[serviceId].questionsMap[questionId]) {
+      grouped[serviceId].questionsMap[questionId] = {
         question: item.questionId,
         options: [],
       };
     }
 
-    // Push the selected option into the corresponding question group
-    groupedByService[serviceId].questions[questionId].options.push({
+    // Push the option
+    grouped[serviceId].questionsMap[questionId].options.push({
       option: item.optionId,
       isSelected: item.isSelected,
       idExtraData: item.idExtraData,
     });
   }
 
-  return groupedByService;
+  // 4. Convert grouped object to array structure
+  const result = Object.values(grouped).map(({ service, questionsMap }) => ({
+    service,
+    questions: Object.values(questionsMap).map(({ question, options }) => ({
+      question,
+      options,
+    })),
+  }));
+
+  return result;
 };
 
 const updateLocations = async (
