@@ -163,9 +163,9 @@ const getAllCountryServiceField = catchAsync(async (req, res) => {
 
   if (!result.length) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Country Service not found',
+      message: 'Not Exists',
       data: [],
     });
   }
