@@ -660,38 +660,85 @@ export const deleteLeadService = async (leadServiceId: string) => {
 //   return leadService;
 // };
 
+// const updateLeadServiceAnswersIntoDB = async (
+//   leadServiceId: string,
+//   answers: IUpdateLeadServiceAnswers[],
+//   selectedLocationIds?: string[], // optional now
+// ) => {
+//   console.log('answers',answers)
+//   const leadService = await LeadService?.findById(leadServiceId);
+//   if (!leadService) {
+//     return sendNotFoundResponse('Lead service not found');
+//   }
+
+//   console.log('answers',answers)
+//   // ✅ Update answers
+//   leadService.questions = answers?.map((q) => ({
+//     questionId: q.questionId,
+//     selectedOptionIds: q.selectedOptionIds,
+//   }));
+
+//   // ✅ Only update locations if selectedLocationIds is provided and not empty
+//   if (Array.isArray(selectedLocationIds) && selectedLocationIds.length > 0) {
+//     const locationDocs = await UserLocationServiceMap.find({
+//       _id: { $in: selectedLocationIds },
+//     }).select('_id locationGroupId locationType');
+
+//     leadService.locations = locationDocs.map((loc) => ({
+//       _id: loc._id,
+//       locationGroupId: loc.locationGroupId,
+//       locationType: loc.locationType,
+//       SelectedLocationId: loc._id,
+//     }));
+//   }
+
+//   await leadService.save();
+//   return leadService;
+// };
 const updateLeadServiceAnswersIntoDB = async (
-  leadServiceId: string,
+  userId: string,
+  serviceId: string,
   answers: IUpdateLeadServiceAnswers[],
-  selectedLocationIds?: string[], // optional now
 ) => {
-  const leadService = await LeadService?.findById(leadServiceId);
-  if (!leadService) {
-    return sendNotFoundResponse('Lead service not found');
+  // ✅ Get userProfileId from userId
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
   }
 
-  // ✅ Update answers
-  leadService.questions = answers?.map((q) => ({
-    questionId: q.questionId,
-    selectedOptionIds: q.selectedOptionIds,
-  }));
-
-  // ✅ Only update locations if selectedLocationIds is provided and not empty
-  if (Array.isArray(selectedLocationIds) && selectedLocationIds.length > 0) {
-    const locationDocs = await UserLocationServiceMap.find({
-      _id: { $in: selectedLocationIds },
-    }).select('_id locationGroupId locationType');
-
-    leadService.locations = locationDocs.map((loc) => ({
-      _id: loc._id,
-      locationGroupId: loc.locationGroupId,
-      locationType: loc.locationType,
-      SelectedLocationId: loc._id,
-    }));
+  // ✅ Build a Map of selected options for each question
+  const selectedOptionMap = new Map<string, Set<string>>();
+  for (const answer of answers) {
+    selectedOptionMap.set(answer.questionId, new Set(answer.selectedOptionIds));
   }
 
-  await leadService.save();
-  return leadService;
+  // ✅ Fetch all existing LeadService records for this user & service
+  const allRecords = await LeadService.find({
+    userProfileId: userProfile._id,
+    serviceId,
+  });
+
+  // ✅ Prepare bulk update operations
+  const bulkOps = allRecords.map((record) => {
+    const qId = record.questionId.toString();
+    const oId = record.optionId.toString();
+    const isSelected =
+      selectedOptionMap.has(qId) && selectedOptionMap.get(qId)!.has(oId);
+
+    return {
+      updateOne: {
+        filter: { _id: record._id },
+        update: { isSelected },
+      },
+    };
+  });
+
+  // ✅ Execute bulk update if needed
+  if (bulkOps.length > 0) {
+    await LeadService.bulkWrite(bulkOps);
+  }
+
+  return { message: 'Lead service answers updated successfully' };
 };
 
 export const LeadServiceService = {
