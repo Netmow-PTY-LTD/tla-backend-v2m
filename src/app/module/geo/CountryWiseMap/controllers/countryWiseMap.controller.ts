@@ -156,7 +156,10 @@ const manageService = catchAsync(async (req, res) => {
 });
 
 const getAllCountryServiceField = catchAsync(async (req, res) => {
-  const result = await countryWiseMapService.getAllCountryServiceFieldFromDB();
+  const query = req.query;
+
+  const result =
+    await countryWiseMapService.getAllCountryServiceFieldFromDB(query);
 
   if (!result.length) {
     return sendResponse(res, {

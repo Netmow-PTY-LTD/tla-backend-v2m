@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { ICountryWiseMap } from '../interfaces/countryWiseMap.interface';
 import CountryWiseMap from '../models/countryWiseMap.model';
@@ -137,11 +137,43 @@ const manageServiceIntoDB = async (
   return { result: updated, isNew: !existing };
 };
 
-const getAllCountryServiceFieldFromDB = async () => {
-  const result = await CountryWiseServiceWiseField.find({ deletedAt: null });
+interface ICountryServiceFieldQuery {
+  countryId?: string;
+  serviceId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // For additional dynamic query fields
+}
+
+const getAllCountryServiceFieldFromDB = async (
+  query: ICountryServiceFieldQuery = {},
+) => {
+  // Base query to exclude deleted records
+  const baseQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
+    deletedAt: null,
+  };
+
+  // Extract specific query parameters
+  const { countryId, serviceId, ...restQuery } = query;
+
+  // Build the final query with proper typing
+  const finalQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
+    ...baseQuery,
+    ...restQuery,
+  };
+
+  // Add countryId if provided
+  if (countryId) {
+    finalQuery.countryId = countryId;
+  }
+
+  // Add serviceId if provided
+  if (serviceId) {
+    finalQuery.serviceId = serviceId;
+  }
+
+  const result = await CountryWiseServiceWiseField.find(finalQuery);
   return result;
 };
-
 export const countryWiseMapService = {
   CreateCountryWiseMapIntoDB,
   getAllCountryWiseMapFromDB,

@@ -15,10 +15,7 @@ router.post(
   countryWiseMapController.createCountryWiseMap,
 );
 router.get('/list', countryWiseMapController.getAllCountryWiseMap);
-router.get(
-  '/:countryWiseMapId',
-  countryWiseMapController.getSingleCountryWiseMap,
-);
+
 router.get(
   '/country/:countryId',
   countryWiseMapController.getSingleCountryWiseMapById,
@@ -38,6 +35,10 @@ router.get(
   countryWiseMapController.getAllCountryServiceField,
 );
 
+router.get(
+  '/:countryWiseMapId',
+  countryWiseMapController.getSingleCountryWiseMap,
+);
 router.patch(
   '/manage-service',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
