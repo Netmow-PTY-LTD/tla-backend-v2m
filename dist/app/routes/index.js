@@ -9,6 +9,9 @@ const option_route_1 = require("../module/Service/Option/routes/option.route");
 const countryWiseMap_route_1 = require("../module/Geo/CountryWiseMap/routes/countryWiseMap.route");
 const ServiceWiseQuestion_route_1 = require("../module/Service/Question/routes/ServiceWiseQuestion.route");
 const view_router_1 = require("../module/View/routes/view.router");
+const leadService_routes_1 = require("../module/Settings/LeadSettings/routes/leadService.routes");
+const notification_routes_1 = require("../module/Settings/Notification/routes/notification.routes");
+const creditPayment_routes_1 = require("../module/Settings/CreditPayment/routes/creditPayment.routes");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -38,6 +41,18 @@ const moduleRoutes = [
     {
         path: '/option',
         route: option_route_1.OptionRouter,
+    },
+    {
+        path: '/lead-service',
+        route: leadService_routes_1.leadServiceRouter,
+    },
+    {
+        path: '/settings/notification',
+        route: notification_routes_1.notificationRouter,
+    },
+    {
+        path: '/settings/credit-payment',
+        route: creditPayment_routes_1.creditPaymentRouter,
     },
     {
         path: '/',

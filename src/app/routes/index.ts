@@ -8,6 +8,9 @@ import { OptionRouter } from '../module/Service/Option/routes/option.route';
 import { CountryWiseMapRouter } from '../module/Geo/CountryWiseMap/routes/countryWiseMap.route';
 import { questionRouter } from '../module/Service/Question/routes/ServiceWiseQuestion.route';
 import { viewRouter } from '../module/View/routes/view.router';
+import { leadServiceRouter } from '../module/Settings/LeadSettings/routes/leadService.routes';
+import { notificationRouter } from '../module/Settings/Notification/routes/notification.routes';
+import { creditPaymentRouter } from '../module/Settings/CreditPayment/routes/creditPayment.routes';
 
 const router = Router();
 
@@ -40,6 +43,18 @@ const moduleRoutes = [
   {
     path: '/option',
     route: OptionRouter,
+  },
+  {
+    path: '/lead-service',
+    route: leadServiceRouter,
+  },
+  {
+    path: '/settings/notification',
+    route: notificationRouter,
+  },
+  {
+    path: '/settings/credit-payment',
+    route: creditPaymentRouter,
   },
   {
     path: '/',
