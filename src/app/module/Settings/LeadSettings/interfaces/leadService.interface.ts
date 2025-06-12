@@ -8,12 +8,12 @@
 //   selectedOptionIds: mongoose.Types.ObjectId[]; // Array of references to ServiceOption
 // }
 
-// export enum LocationType {
-//   NATION_WISE = 'nation_wide',
-//   DISTANCE_WISE = 'distance_wise',
-//   TRAVEL_TIME = 'travel_time',
-//   DRAW_ON_AREA = 'draw_on_area',
-// }
+export enum LocationType {
+  NATION_WISE = 'nation_wide',
+  DISTANCE_WISE = 'distance_wise',
+  TRAVEL_TIME = 'travel_time',
+  DRAW_ON_AREA = 'draw_on_area',
+}
 
 // export interface ILocation {
 //   _id: mongoose.Types.ObjectId | string;
@@ -45,12 +45,12 @@
 
 // */
 
-// export interface IUserLocationServiceMap {
-//   userProfileId: Types.ObjectId;
-//   locationGroupId: Types.ObjectId;
-//   locationType: LocationType;
-//   serviceIds: Types.ObjectId[];
-// }
+export interface IUserLocationServiceMap {
+  userProfileId: Types.ObjectId;
+  locationGroupId: Types.ObjectId;
+  locationType: LocationType;
+  serviceIds: Types.ObjectId[];
+}
 
 import { Model, Types } from 'mongoose';
 
@@ -61,10 +61,9 @@ export interface ILeadService {
   optionId: Types.ObjectId;
   isSelected?: boolean;
   idExtraData?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export interface ILeadServiceModel extends Model<ILeadService> {
+  // eslint-disable-next-line no-unused-vars
   isLeadServiceExists(id: string): Promise<ILeadService | null>;
 }

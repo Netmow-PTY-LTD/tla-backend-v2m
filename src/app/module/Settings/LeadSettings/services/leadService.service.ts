@@ -81,39 +81,148 @@ import ZipCode from '../../../Geo/Country/models/zipcode.model';
 //   return created;
 // };
 
+// const createLeadService = async (
+//   userId: string,
+//   payload: {
+//     serviceIds: Types.ObjectId[];
+//     onlineEnabled: boolean;
+//   },
+// ) => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select(
+//     '_id country',
+//   );
+//   if (!userProfile) sendNotFoundResponse('User profile not found');
+
+//   payload.serviceIds.forEach((id) =>
+//     validateObjectId(id.toString(), 'service'),
+//   );
+
+//   const objectServiceIds = payload.serviceIds.map(
+//     (id) => new mongoose.Types.ObjectId(id),
+//   );
+
+//   const existing = await LeadService.find({
+//     userProfileId: userProfile?._id,
+//     serviceId: { $in: objectServiceIds },
+//   }).select('serviceId');
+
+//   const existingServiceIds = new Set(
+//     existing.map((e) => e.serviceId.toString()),
+//   );
+
+//   const newServiceIds = objectServiceIds.filter(
+//     (id) => !existingServiceIds.has(id.toString()),
+//   );
+
+//   if (newServiceIds.length === 0) {
+//     throw {
+//       status: 409,
+//       message: 'All selected services already exist for this user',
+//       duplicates: Array.from(existingServiceIds),
+//     };
+//   }
+
+//   // ✅ 2. Get service-specific questions
+//   const allQuestions = await ServiceWiseQuestion.find({
+//     serviceId: { $in: newServiceIds },
+//     deletedAt: null,
+//   }).select('_id serviceId');
+
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   const groupedQuestions: Record<string, any[]> = {};
+//   allQuestions.forEach((q) => {
+//     const serviceIdStr = q.serviceId.toString();
+//     if (!groupedQuestions[serviceIdStr]) groupedQuestions[serviceIdStr] = [];
+//     groupedQuestions[serviceIdStr].push({
+//       questionId: q._id,
+//       selectedOptionIds: [],
+//     });
+//   });
+
+//   //  Location logic
+//   const locationGroup = await ZipCode.findOne({
+//     countryId: userProfile?.country,
+//     zipCodeType: 'default',
+//   });
+
+//   const existingLocationMap = await UserLocationServiceMap.findOne({
+//     userProfileId: userProfile?._id,
+//     locationGroupId: locationGroup?._id,
+//     locationType: 'nation_wide',
+//   });
+
+//   if (existingLocationMap) {
+//     // Filter only serviceIds that are NOT already in the map
+//     const existingServiceIdSet = new Set(
+//       (existingLocationMap.serviceIds || []).map((id) => id.toString()),
+//     );
+
+//     const newServiceIdsToAdd = objectServiceIds.filter(
+//       (id) => !existingServiceIdSet.has(id.toString()),
+//     );
+
+//     if (newServiceIdsToAdd.length > 0) {
+//       await UserLocationServiceMap.updateOne(
+//         { _id: existingLocationMap._id },
+//         { $addToSet: { serviceIds: { $each: newServiceIdsToAdd } } },
+//       );
+//     }
+//   } else {
+//     // No existing map — create new
+//     await UserLocationServiceMap.create({
+//       userProfileId: userProfile?._id,
+//       locationGroupId: locationGroup?._id,
+//       locationType: 'nation_wide',
+//       serviceIds: objectServiceIds,
+//     });
+//   }
+
+//   // ✅ 3. Create services with default location
+//   const newLeadServices = newServiceIds.map((serviceId) => ({
+//     serviceId,
+//     userProfileId: userProfile?._id,
+//     questions: groupedQuestions[serviceId.toString()] || [],
+//   }));
+
+//   const created = await LeadService.insertMany(newLeadServices);
+//   return created;
+// };
+
 const createLeadService = async (
   userId: string,
   payload: {
     serviceIds: Types.ObjectId[];
-    onlineEnabled: boolean;
   },
 ) => {
+  // 1. Find user profile by userId
   const userProfile = await UserProfile.findOne({ user: userId }).select(
-    '_id country',
+    '_id serviceIds',
   );
-  if (!userProfile) sendNotFoundResponse('User profile not found');
+  if (!userProfile) {
+    sendNotFoundResponse('User profile not found');
+    return;
+  }
 
+  // 2. Validate all serviceIds
   payload.serviceIds.forEach((id) =>
     validateObjectId(id.toString(), 'service'),
   );
 
+  // 3. Convert to ObjectId instances (if needed)
   const objectServiceIds = payload.serviceIds.map(
     (id) => new mongoose.Types.ObjectId(id),
   );
 
-  const existing = await LeadService.find({
-    userProfileId: userProfile?._id,
-    serviceId: { $in: objectServiceIds },
-  }).select('serviceId');
-
+  // 4. Compare with existing serviceIds in userProfile
   const existingServiceIds = new Set(
-    existing.map((e) => e.serviceId.toString()),
+    (userProfile.serviceIds || []).map((id: Types.ObjectId) => id.toString()),
   );
 
   const newServiceIds = objectServiceIds.filter(
     (id) => !existingServiceIds.has(id.toString()),
   );
 
+  // 5. If all services already exist, return conflict response
   if (newServiceIds.length === 0) {
     throw {
       status: 409,
@@ -121,71 +230,15 @@ const createLeadService = async (
       duplicates: Array.from(existingServiceIds),
     };
   }
+  // 6. Append and save new serviceIds
+  userProfile.serviceIds.push(...newServiceIds);
+  await userProfile.save();
 
-  // ✅ 2. Get service-specific questions
-  const allQuestions = await ServiceWiseQuestion.find({
-    serviceId: { $in: newServiceIds },
-    deletedAt: null,
-  }).select('_id serviceId');
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const groupedQuestions: Record<string, any[]> = {};
-  allQuestions.forEach((q) => {
-    const serviceIdStr = q.serviceId.toString();
-    if (!groupedQuestions[serviceIdStr]) groupedQuestions[serviceIdStr] = [];
-    groupedQuestions[serviceIdStr].push({
-      questionId: q._id,
-      selectedOptionIds: [],
-    });
-  });
-
-  //  Location logic
-  const locationGroup = await ZipCode.findOne({
-    countryId: userProfile?.country,
-    zipCodeType: 'default',
-  });
-
-  const existingLocationMap = await UserLocationServiceMap.findOne({
-    userProfileId: userProfile?._id,
-    locationGroupId: locationGroup?._id,
-    locationType: 'nation_wide',
-  });
-
-  if (existingLocationMap) {
-    // Filter only serviceIds that are NOT already in the map
-    const existingServiceIdSet = new Set(
-      (existingLocationMap.serviceIds || []).map((id) => id.toString()),
-    );
-
-    const newServiceIdsToAdd = objectServiceIds.filter(
-      (id) => !existingServiceIdSet.has(id.toString()),
-    );
-
-    if (newServiceIdsToAdd.length > 0) {
-      await UserLocationServiceMap.updateOne(
-        { _id: existingLocationMap._id },
-        { $addToSet: { serviceIds: { $each: newServiceIdsToAdd } } },
-      );
-    }
-  } else {
-    // No existing map — create new
-    await UserLocationServiceMap.create({
-      userProfileId: userProfile?._id,
-      locationGroupId: locationGroup?._id,
-      locationType: 'nation_wide',
-      serviceIds: objectServiceIds,
-    });
-  }
-
-  // ✅ 3. Create services with default location
-  const newLeadServices = newServiceIds.map((serviceId) => ({
-    serviceId,
-    userProfileId: userProfile?._id,
-    questions: groupedQuestions[serviceId.toString()] || [],
-  }));
-
-  const created = await LeadService.insertMany(newLeadServices);
-  return created;
+  // ✅ New services can now be added to the profile or processed
+  return {
+    userProfileId: userProfile._id,
+    newServiceIds,
+  };
 };
 
 const getLeadServicesWithQuestions = async (userId: string) => {

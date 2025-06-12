@@ -52,6 +52,13 @@ const userProfileSchema = new Schema<IUserProfile>(
     },
     paymentMethods: [{ type: Schema.Types.ObjectId, ref: 'PaymentMethod' }],
     autoTopUp: { type: Boolean, default: false },
+    serviceIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Service',
+        required: true,
+      },
+    ],
   },
   {
     versionKey: false,
