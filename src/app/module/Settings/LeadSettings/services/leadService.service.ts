@@ -525,7 +525,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   }
 
   // 4. Convert grouped object to array structure
-  const result = Object.values(grouped).map(({ service, questionsMap }) => ({
+  const service = Object.values(grouped).map(({ service, questionsMap }) => ({
     service,
     questions: Object.values(questionsMap).map(({ question, options }) => ({
       question,
@@ -533,7 +533,14 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     })),
   }));
 
-  return result;
+  const locations = await UserLocationServiceMap.find({
+    userProfileId: userProfile._id,
+  });
+
+  return {
+    service,
+    locations,
+  };
 };
 
 const updateLocations = async (
