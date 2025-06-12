@@ -329,6 +329,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
           {
             $project: {
               _id: 1,
+              serviceIds: 1,
               locationGroupId: 1,
               locationType: 1,
             },
@@ -337,41 +338,41 @@ const getLeadServicesWithQuestions = async (userId: string) => {
         as: 'locations',
       },
     },
-    {
-      $addFields: {
-        locations: {
-          $map: {
-            input: '$locations',
-            as: 'loc',
-            in: {
-              $mergeObjects: [
-                '$$loc',
-                {
-                  SelectedLocationId: {
-                    $let: {
-                      vars: {
-                        matched: {
-                          $first: {
-                            $filter: {
-                              input: '$locations', // this refers to the populated locations
-                              as: 'originalLoc',
-                              cond: {
-                                $eq: ['$$originalLoc._id', '$$loc._id'],
-                              },
-                            },
-                          },
-                        },
-                      },
-                      in: '$$matched._id',
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      },
-    },
+    // {
+    //   $addFields: {
+    //     locations: {
+    //       $map: {
+    //         input: '$locations',
+    //         as: 'loc',
+    //         in: {
+    //           $mergeObjects: [
+    //             '$$loc',
+    //             {
+    //               SelectedLocationId: {
+    //                 $let: {
+    //                   vars: {
+    //                     matched: {
+    //                       $first: {
+    //                         $filter: {
+    //                           input: '$locations', // this refers to the populated locations
+    //                           as: 'originalLoc',
+    //                           cond: {
+    //                             $eq: ['$$originalLoc._id', '$$loc._id'],
+    //                           },
+    //                         },
+    //                       },
+    //                     },
+    //                   },
+    //                   in: '$$matched._id',
+    //                 },
+    //               },
+    //             },
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   },
+    // },
     {
       $addFields: {
         locationCount: { $size: '$locations' },
