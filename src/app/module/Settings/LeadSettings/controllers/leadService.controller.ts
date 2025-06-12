@@ -87,9 +87,10 @@ const toggleOnline = catchAsync(async (req, res) => {
 
 // Delete lead service
 const deleteLeadService = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
   const { leadServiceId } = req.params;
 
-  const result = await LeadServiceService.deleteLeadService(leadServiceId);
+  const result = await LeadServiceService.deleteLeadService(userId,leadServiceId);
 
   if (!result) {
     return sendResponse(res, {

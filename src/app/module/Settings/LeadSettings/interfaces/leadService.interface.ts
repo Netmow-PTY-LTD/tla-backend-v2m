@@ -30,10 +30,10 @@ export enum LocationType {
 //   questions: Question[];
 // }
 
-// export type IUpdateLeadServiceAnswers = {
-//   questionId: mongoose.Types.ObjectId; // ObjectId string
-//   selectedOptionIds: mongoose.Types.ObjectId[]; // Array of ObjectId strings
-// };
+export type IUpdateLeadServiceAnswers = {
+  questionId: mongoose.Types.ObjectId; // ObjectId string
+  selectedOptionIds: mongoose.Types.ObjectId[]; // Array of ObjectId strings
+};
 
 // export interface ILeadServiceModel extends Model<ILeadService> {
 //   // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
