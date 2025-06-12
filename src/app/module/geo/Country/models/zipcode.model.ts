@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import { IZipCode, ZipCodeModel } from '../interfaces/zipcode.interface';
 
+
 const zipCodeSchema = new mongoose.Schema(
   {
     zipcode: {

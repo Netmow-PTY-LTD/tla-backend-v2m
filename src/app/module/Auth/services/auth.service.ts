@@ -14,11 +14,15 @@ import { sendEmail } from '../../../config/emailTranspoter';
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
 import CompanyProfile from '../../User/models/companyProfile.model';
 import { UserLocationServiceMap } from '../../Settings/LeadSettings/models/UserLocationServiceMap.model';
-import { LocationGroup } from '../../Geo/Country/models/locationGroup.model';
+
 import { validateObjectId } from '../../../utils/validateObjectId';
 import LeadService from '../../Settings/LeadSettings/models/leadService.model';
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
 import ZipCode from '../../Geo/Country/models/zipcode.model';
+import Option from '../../Service/Option/models/option.model';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+
+
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -96,29 +100,32 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
  */
 
 export const createLeadService = async (
-  userProfileId: mongoose.Types.ObjectId,
+  userId: string,
   serviceIds: Types.ObjectId[],
-  session: mongoose.ClientSession, // 🔸 Add session parameter
+  session?: mongoose.ClientSession
 ) => {
+  // 1. Find user profile by userId
+  const userProfile = await UserProfile.findOne({ user: userId })
+    .select('_id serviceIds')
+    .session(session || null);
+
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
+  }
+
+  // 2. Validate all serviceIds
   serviceIds.forEach((id) => validateObjectId(id.toString(), 'service'));
 
-  const objectServiceIds = serviceIds.map(
-    (id) => new mongoose.Types.ObjectId(id),
-  );
-
-  const existing = await LeadService.find({
-    userProfileId,
-    serviceId: { $in: objectServiceIds },
-  }).select('serviceId');
-
+  // 3. Compare with existing serviceIds in userProfile
   const existingServiceIds = new Set(
-    existing.map((e) => e.serviceId.toString()),
+    (userProfile.serviceIds || []).map((id: Types.ObjectId) => id.toString())
   );
 
-  const newServiceIds = objectServiceIds.filter(
-    (id) => !existingServiceIds.has(id.toString()),
+  const newServiceIds = serviceIds.filter(
+    (id) => !existingServiceIds.has(id.toString())
   );
 
+  // 4. If all services already exist, return conflict response
   if (newServiceIds.length === 0) {
     throw {
       status: 409,
@@ -127,36 +134,42 @@ export const createLeadService = async (
     };
   }
 
-  const allQuestions = await ServiceWiseQuestion.find({
-    serviceId: { $in: newServiceIds },
-    deletedAt: null,
-  })
-    .select('_id serviceId')
-    .session(session); // 🔸 Ensure it runs inside the transaction
+  // 5. Append and save new serviceIds
+  userProfile.serviceIds.push(...newServiceIds);
+  await userProfile.save({ session });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const groupedQuestions: Record<string, any[]> = {};
-  allQuestions.forEach((q) => {
-    const serviceIdStr = q.serviceId.toString();
-    if (!groupedQuestions[serviceIdStr]) groupedQuestions[serviceIdStr] = [];
-    groupedQuestions[serviceIdStr].push({
-      questionId: q._id,
-      selectedOptionIds: [],
-    });
-  });
+  // 6. Create lead service entries
+  for (const serviceId of newServiceIds) {
+    const questions = await ServiceWiseQuestion.find({ serviceId }).session(session ?? null);
 
-  const newLeadServices = newServiceIds.map((serviceId) => ({
-    serviceId,
-    userProfileId,
-    questions: groupedQuestions[serviceId.toString()] || [],
-  }));
+    for (const question of questions) {
+      const options = await Option.find({
+        questionId: question._id,
+        serviceId,
+      }).session(session ?? null);
 
-  const created = await LeadService.insertMany(newLeadServices, {
-    session, // 🔸 use session here
-  });
+      const leadServiceInserts = options.map((option) => ({
+        userProfileId: userProfile._id,
+        serviceId,
+        questionId: question._id,
+        optionId: option._id,
+        isSelected: true,
+      }));
 
-  return created ? true : false;
+      if (leadServiceInserts.length) {
+        await LeadService.insertMany(leadServiceInserts, { session });
+      }
+    }
+  }
+
+  return {
+    userProfileId: userProfile._id,
+    newServiceIds,
+  };
 };
+
+
+
 
 const registerUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
@@ -228,7 +241,9 @@ const registerUserIntoDB = async (payload: IUser) => {
       session,
     });
 
-    await createLeadService(newProfile._id, lawyerServiceMap.services, session);
+        // ✅ Create lead service entries using session
+        await createLeadService(newUser?._id, lawyerServiceMap.services, session);
+
 
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
