@@ -8,27 +8,27 @@ const CreateRangeIntoDB = async (payload: IRange) => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getAllRangeFromDB = async (query: Record<string, any>) => {
-  const { zipcodeId } = query;
+const getAllRangeFromDB = async () => {
+  // const { zipcodeId } = query;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filter: Record<string, any> = {
-    deletedAt: null,
-  };
-  if (zipcodeId) {
-    validateObjectId(zipcodeId, 'Country');
-    filter.zipCodeId = zipcodeId;
-  }
-  const zipCodes = await Range.find(filter)
-    // .populate('countryId')
-    .populate('zipCodeId');
+  // const filter: Record<string, any> = {
+  //   deletedAt: null,
+  // };
+  // if (zipcodeId) {
+  //   validateObjectId(zipcodeId, 'Country');
+  //   filter.zipCodeId = zipcodeId;
+  // }
+  const zipCodes = await Range.find({});
+  // .populate('countryId')
+  // .populate('zipCodeId');
   return zipCodes;
 };
 
 const getSingleRangeFromDB = async (id: string) => {
   validateObjectId(id, 'Range');
-  const result = await Range.findOne({ _id: id, deletedAt: null })
-    // .populate('countryId')
-    .populate('zipCodeId');
+  const result = await Range.findOne({ _id: id, deletedAt: null });
+  // .populate('countryId')
+  // .populate('zipCodeId');
   return result;
 };
 

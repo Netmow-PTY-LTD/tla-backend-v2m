@@ -156,13 +156,16 @@ const manageService = catchAsync(async (req, res) => {
 });
 
 const getAllCountryServiceField = catchAsync(async (req, res) => {
-  const result = await countryWiseMapService.getAllCountryServiceFieldFromDB();
+  const query = req.query;
+
+  const result =
+    await countryWiseMapService.getAllCountryServiceFieldFromDB(query);
 
   if (!result.length) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Country Service not found',
+      message: 'Not Exists',
       data: [],
     });
   }
