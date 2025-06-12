@@ -12,6 +12,7 @@ import { validateObjectId } from '../../../../utils/validateObjectId';
 import ServiceWiseQuestion from '../../../Service/Question/models/ServiceWiseQuestion.model';
 import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
 import ZipCode from '../../../Geo/Country/models/zipcode.model';
+import Option from '../../../Service/Option/models/option.model';
 
 // const createLeadService = async (
 //   userId: string,
@@ -234,6 +235,27 @@ const createLeadService = async (
   userProfile.serviceIds.push(...newServiceIds);
   await userProfile.save();
 
+  // 7. Create lead service entries
+  for (const serviceId of newServiceIds) {
+    const questions = await ServiceWiseQuestion.find({ serviceId });
+
+    for (const question of questions) {
+      const options = await Option.find({
+        questionId: question._id,
+        serviceId,
+      });
+
+      for (const option of options) {
+        await LeadService.create({
+          userProfileId: userProfile._id,
+          serviceId,
+          questionId: question._id,
+          optionId: option._id,
+          isSelected: true,
+        });
+      }
+    }
+  }
   // ✅ New services can now be added to the profile or processed
   return {
     userProfileId: userProfile._id,
@@ -241,209 +263,266 @@ const createLeadService = async (
   };
 };
 
+// const getLeadServicesWithQuestions = async (userId: string) => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+//   if (!userProfile) sendNotFoundResponse('User profile not found');
+
+//   const leadServices = await LeadService.aggregate([
+//     { $match: { userProfileId: userProfile?._id } },
+//     {
+//       $addFields: {
+//         originalQuestions: '$questions', // preserve leadService.questions
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'services',
+//         localField: 'serviceId',
+//         foreignField: '_id',
+//         as: 'service',
+//       },
+//     },
+//     { $unwind: '$service' },
+//     {
+//       $lookup: {
+//         from: 'questions',
+//         let: { serviceId: '$service._id' },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: { $eq: ['$serviceId', '$$serviceId'] },
+//               deletedAt: null,
+//             },
+//           },
+//           {
+//             $lookup: {
+//               from: 'options',
+//               localField: '_id',
+//               foreignField: 'questionId',
+//               as: 'options',
+//             },
+//           },
+//           {
+//             $project: {
+//               _id: 1,
+//               question: 1,
+//               slug: 1,
+//               questionType: 1,
+//               options: { _id: 1, name: 1, slug: 1 },
+//             },
+//           },
+//         ],
+//         as: 'questions',
+//       },
+//     },
+//     {
+//       $addFields: {
+//         questions: {
+//           $map: {
+//             input: '$questions',
+//             as: 'q',
+//             in: {
+//               $mergeObjects: [
+//                 '$$q',
+//                 {
+//                   selectedOptionIds: {
+//                     $let: {
+//                       vars: {
+//                         matched: {
+//                           $first: {
+//                             $filter: {
+//                               input: '$originalQuestions',
+//                               as: 'oq',
+//                               cond: {
+//                                 $eq: ['$$oq.questionId', '$$q._id'],
+//                               },
+//                             },
+//                           },
+//                         },
+//                       },
+//                       in: {
+//                         $ifNull: ['$$matched.selectedOptionIds', []],
+//                       },
+//                     },
+//                   },
+//                 },
+//               ],
+//             },
+//           },
+//         },
+//       },
+//     },
+//     //  extra logic
+//     // {
+//     //   $lookup: {
+//     //     from: 'userlocationservicemaps',
+//     //     let: {
+//     //       serviceId: '$service._id',
+//     //       userProfileId: '$userProfileId',
+//     //     },
+//     //     pipeline: [
+//     //       {
+//     //         $match: {
+//     //           $expr: {
+//     //             $and: [
+//     //               { $in: ['$$serviceId', '$serviceIds'] },
+//     //               { $eq: ['$userProfileId', '$$userProfileId'] },
+//     //             ],
+//     //           },
+//     //         },
+//     //       },
+//     //       {
+//     //         $project: {
+//     //           _id: 1,
+//     //           locationGroupId: 1,
+//     //           locationType: 1,
+//     //         },
+//     //       },
+//     //     ],
+//     //     as: 'locations',
+//     //   },
+//     // },
+
+//     {
+//       $lookup: {
+//         from: 'userlocationservicemaps',
+//         let: {
+//           serviceId: '$service._id',
+//           userProfileId: '$userProfileId',
+//         },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $and: [
+//                   { $in: ['$$serviceId', '$serviceIds'] },
+//                   { $eq: ['$userProfileId', '$$userProfileId'] },
+//                 ],
+//               },
+//             },
+//           },
+//           {
+//             $project: {
+//               _id: 1,
+//               serviceIds: 1,
+//               locationGroupId: 1,
+//               locationType: 1,
+//             },
+//           },
+//         ],
+//         as: 'locations',
+//       },
+//     },
+//     // {
+//     //   $addFields: {
+//     //     locations: {
+//     //       $map: {
+//     //         input: '$locations',
+//     //         as: 'loc',
+//     //         in: {
+//     //           $mergeObjects: [
+//     //             '$$loc',
+//     //             {
+//     //               SelectedLocationId: {
+//     //                 $let: {
+//     //                   vars: {
+//     //                     matched: {
+//     //                       $first: {
+//     //                         $filter: {
+//     //                           input: '$locations', // this refers to the populated locations
+//     //                           as: 'originalLoc',
+//     //                           cond: {
+//     //                             $eq: ['$$originalLoc._id', '$$loc._id'],
+//     //                           },
+//     //                         },
+//     //                       },
+//     //                     },
+//     //                   },
+//     //                   in: '$$matched._id',
+//     //                 },
+//     //               },
+//     //             },
+//     //           ],
+//     //         },
+//     //       },
+//     //     },
+//     //   },
+//     // },
+//     {
+//       $addFields: {
+//         locationCount: { $size: '$locations' },
+//       },
+//     },
+//     {
+//       $project: {
+//         serviceName: '$service.name',
+//         serviceId: '$service._id',
+//         locations: 1,
+//         locationCount: 1,
+//         onlineEnabled: 1,
+//         questions: 1,
+//       },
+//     },
+//   ]);
+
+//   return leadServices;
+// };
 const getLeadServicesWithQuestions = async (userId: string) => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
-  if (!userProfile) sendNotFoundResponse('User profile not found');
+  // 1. Fetch user profile
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    '_id serviceIds',
+  );
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
+  }
 
-  const leadServices = await LeadService.aggregate([
-    { $match: { userProfileId: userProfile?._id } },
-    {
-      $addFields: {
-        originalQuestions: '$questions', // preserve leadService.questions
-      },
-    },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'serviceId',
-        foreignField: '_id',
-        as: 'service',
-      },
-    },
-    { $unwind: '$service' },
-    {
-      $lookup: {
-        from: 'questions',
-        let: { serviceId: '$service._id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ['$serviceId', '$$serviceId'] },
-              deletedAt: null,
-            },
-          },
-          {
-            $lookup: {
-              from: 'options',
-              localField: '_id',
-              foreignField: 'questionId',
-              as: 'options',
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              question: 1,
-              slug: 1,
-              questionType: 1,
-              options: { _id: 1, name: 1, slug: 1 },
-            },
-          },
-        ],
-        as: 'questions',
-      },
-    },
-    {
-      $addFields: {
-        questions: {
-          $map: {
-            input: '$questions',
-            as: 'q',
-            in: {
-              $mergeObjects: [
-                '$$q',
-                {
-                  selectedOptionIds: {
-                    $let: {
-                      vars: {
-                        matched: {
-                          $first: {
-                            $filter: {
-                              input: '$originalQuestions',
-                              as: 'oq',
-                              cond: {
-                                $eq: ['$$oq.questionId', '$$q._id'],
-                              },
-                            },
-                          },
-                        },
-                      },
-                      in: {
-                        $ifNull: ['$$matched.selectedOptionIds', []],
-                      },
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      },
-    },
-    //  extra logic
-    // {
-    //   $lookup: {
-    //     from: 'userlocationservicemaps',
-    //     let: {
-    //       serviceId: '$service._id',
-    //       userProfileId: '$userProfileId',
-    //     },
-    //     pipeline: [
-    //       {
-    //         $match: {
-    //           $expr: {
-    //             $and: [
-    //               { $in: ['$$serviceId', '$serviceIds'] },
-    //               { $eq: ['$userProfileId', '$$userProfileId'] },
-    //             ],
-    //           },
-    //         },
-    //       },
-    //       {
-    //         $project: {
-    //           _id: 1,
-    //           locationGroupId: 1,
-    //           locationType: 1,
-    //         },
-    //       },
-    //     ],
-    //     as: 'locations',
-    //   },
-    // },
+  // 2. Fetch matching lead service entries
+  const leadServices = await LeadService.find({
+    userProfileId: userProfile._id,
+    serviceId: { $in: userProfile.serviceIds },
+  })
+    .populate('serviceId')
+    .populate('questionId')
+    .populate('optionId');
 
+  // 3. Group by serviceId, then by questionId
+  const groupedByService: Record<
+    string,
     {
-      $lookup: {
-        from: 'userlocationservicemaps',
-        let: {
-          serviceId: '$service._id',
-          userProfileId: '$userProfileId',
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $in: ['$$serviceId', '$serviceIds'] },
-                  { $eq: ['$userProfileId', '$$userProfileId'] },
-                ],
-              },
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              serviceIds: 1,
-              locationGroupId: 1,
-              locationType: 1,
-            },
-          },
-        ],
-        as: 'locations',
-      },
-    },
-    // {
-    //   $addFields: {
-    //     locations: {
-    //       $map: {
-    //         input: '$locations',
-    //         as: 'loc',
-    //         in: {
-    //           $mergeObjects: [
-    //             '$$loc',
-    //             {
-    //               SelectedLocationId: {
-    //                 $let: {
-    //                   vars: {
-    //                     matched: {
-    //                       $first: {
-    //                         $filter: {
-    //                           input: '$locations', // this refers to the populated locations
-    //                           as: 'originalLoc',
-    //                           cond: {
-    //                             $eq: ['$$originalLoc._id', '$$loc._id'],
-    //                           },
-    //                         },
-    //                       },
-    //                     },
-    //                   },
-    //                   in: '$$matched._id',
-    //                 },
-    //               },
-    //             },
-    //           ],
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
-    {
-      $addFields: {
-        locationCount: { $size: '$locations' },
-      },
-    },
-    {
-      $project: {
-        serviceName: '$service.name',
-        serviceId: '$service._id',
-        locations: 1,
-        locationCount: 1,
-        onlineEnabled: 1,
-        questions: 1,
-      },
-    },
-  ]);
+      service: any;
+      questions: Record<string, { question: any; options: any[] }>;
+    }
+  > = {};
 
-  return leadServices;
+  for (const item of leadServices) {
+    const serviceId = (item.serviceId as any)._id.toString();
+    const questionId = (item.questionId as any)._id.toString();
+
+    // Create service group if doesn't exist
+    if (!groupedByService[serviceId]) {
+      groupedByService[serviceId] = {
+        service: item.serviceId,
+        questions: {},
+      };
+    }
+
+    // Create question group under the service if doesn't exist
+    if (!groupedByService[serviceId].questions[questionId]) {
+      groupedByService[serviceId].questions[questionId] = {
+        question: item.questionId,
+        options: [],
+      };
+    }
+
+    // Push the selected option into the corresponding question group
+    groupedByService[serviceId].questions[questionId].options.push({
+      option: item.optionId,
+      isSelected: item.isSelected,
+      idExtraData: item.idExtraData,
+    });
+  }
+
+  return groupedByService;
 };
 
 const updateLocations = async (

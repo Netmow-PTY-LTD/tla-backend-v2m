@@ -95,8 +95,14 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
       ref: 'Option',
       required: true,
     },
-    isSelected: Boolean,
-    idExtraData: String,
+    isSelected: {
+      type: Boolean,
+      default: true,
+    },
+    idExtraData: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true },
 );
