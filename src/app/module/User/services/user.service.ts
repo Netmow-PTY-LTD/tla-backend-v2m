@@ -125,11 +125,14 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
   }
 
   // 2. Get the user + profile
-  const userData = await User.findById(user.userId)
-
-    .populate<{ profile: mongoose.Document }>({
-      path: 'profile',
-    });
+  const userData = await User.findById(user.userId).populate({
+    path: 'profile',
+    model: 'UserProfile',
+    populate: {
+      path: 'serviceIds',
+      model: 'Service', // or whatever your actual model name is
+    },
+  });
 
   if (!userData || !userData.profile || typeof userData.profile === 'string') {
     return sendNotFoundResponse('user profile data not found');
