@@ -18,24 +18,29 @@ router.get(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.getLeadServices,
 );
+// router.patch(
+//   '/:serviceId/locations',
+//   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+//   leadServiceController.updateLocations,
+// );
 router.patch(
-  '/:leadServiceId/locations',
+  '/locations',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.updateLocations,
 );
 router.patch(
-  '/:leadServiceId/options',
+  '/:serviceId/options',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   validateRequest(leadServiceZodValidation.updateLeadServiceAnswersSchema),
   leadServiceController.updateLeadServiceAnswers,
 );
 router.patch(
-  '/:leadServiceId/online-toggle',
+  '/:serviceId/online-toggle',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.toggleOnline,
 );
 router.delete(
-  '/delete/:leadServiceId',
+  '/delete/:serviceId',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.deleteLeadService,
 );
