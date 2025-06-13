@@ -175,32 +175,6 @@ const getAllCountryServiceFieldFromDB = async (
   return result;
 };
 
-// const getAllCountryServiceFieldFromDB = async (
-//   query: ICountryServiceFieldQuery = {},
-// ) => {
-//   const { countryId, serviceId, ...restQuery } = query;
-
-//   const finalQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
-//     deletedAt: null,
-//     ...restQuery,
-//   };
-
-//   // 🚫 Reject invalid case: serviceId provided without countryId
-//   if (serviceId && !countryId) {
-//     return []; // or throw new Error('countryId is required when serviceId is provided');
-//   }
-
-//   if (countryId) {
-//     finalQuery.countryId = countryId;
-//     if (serviceId) {
-//       finalQuery.serviceId = serviceId;
-//     }
-//   }
-
-//   const result = await CountryWiseServiceWiseField.find(finalQuery);
-//   return result;
-// };
-
 export const countryWiseMapService = {
   CreateCountryWiseMapIntoDB,
   getAllCountryWiseMapFromDB,
