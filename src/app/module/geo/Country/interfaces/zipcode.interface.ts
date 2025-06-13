@@ -5,6 +5,7 @@ export interface IZipCode {
   zipcode: string;
   countryId: Types.ObjectId;
   deletedAt?: Date | null;
+  zipCodeType: string;
 }
 
 export interface ZipCodeModel extends Model<IZipCode> {

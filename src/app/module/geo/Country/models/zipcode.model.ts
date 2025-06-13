@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import { IZipCode, ZipCodeModel } from '../interfaces/zipcode.interface';
 
+
 const zipCodeSchema = new mongoose.Schema(
   {
     zipcode: {
@@ -13,6 +14,11 @@ const zipCodeSchema = new mongoose.Schema(
       type: Schema.Types.ObjectId,
       required: true,
       trim: true,
+    },
+    zipCodeType: {
+      type: String,
+      enum: ['default', 'custom'],
+      default: 'custom',
     },
     deletedAt: {
       type: Date,

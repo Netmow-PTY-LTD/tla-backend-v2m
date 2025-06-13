@@ -31,10 +31,13 @@ const getLeadServices = catchAsync(async (req, res) => {
 
 // Update locations
 const updateLocations = catchAsync(async (req, res) => {
-  const { serviceId } = req.params;
+  const { leadServiceId } = req.params;
   const { locations } = req.body;
 
-  const result = await LeadServiceService.updateLocations(serviceId, locations);
+  const result = await LeadServiceService.updateLocations(
+    leadServiceId,
+    locations,
+  );
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -45,12 +48,17 @@ const updateLocations = catchAsync(async (req, res) => {
 });
 //  update answer
 const updateLeadServiceAnswers = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
   const { leadServiceId } = req.params;
-  const { answers } = req.body;
+  const { answers, selectedLocationData } = req.body;
+ 
 
   const result = await LeadServiceService.updateLeadServiceAnswersIntoDB(
+    userId,
     leadServiceId,
     answers,
+    selectedLocationData
+    
   );
 
   sendResponse(res, {
@@ -81,9 +89,10 @@ const toggleOnline = catchAsync(async (req, res) => {
 
 // Delete lead service
 const deleteLeadService = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
   const { leadServiceId } = req.params;
 
-  const result = await LeadServiceService.deleteLeadService(leadServiceId);
+  const result = await LeadServiceService.deleteLeadService(userId,leadServiceId);
 
   if (!result) {
     return sendResponse(res, {

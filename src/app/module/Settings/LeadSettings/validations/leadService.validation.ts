@@ -21,8 +21,9 @@ export const createLeadServiceSchema = z.object({
       .min(1, 'At least one service is required'),
     locations: z
       .array(z.string({ invalid_type_error: 'location must be string value' }))
-      .transform((val) => (val.length === 0 ? ['nationWide'] : val)),
-    onlineEnabled: z.boolean(),
+      .transform((val) => (val.length === 0 ? ['Nationwide'] : val))
+      .optional(),
+    onlineEnabled: z.boolean().optional().default(false),
   }),
 });
 
