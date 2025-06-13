@@ -26,4 +26,5 @@ export interface IUserProfile {
   billingAddress?: IBillingAddress;
   paymentMethods: Types.ObjectId[];
   autoTopUp: boolean;
+  serviceIds: Types.ObjectId[];
 }

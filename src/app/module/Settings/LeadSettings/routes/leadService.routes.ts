@@ -20,10 +20,12 @@ router.get(
 );
 router.patch(
   '/:leadServiceId/locations',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.updateLocations,
 );
 router.patch(
   '/:leadServiceId/options',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   validateRequest(leadServiceZodValidation.updateLeadServiceAnswersSchema),
   leadServiceController.updateLeadServiceAnswers,
 );
