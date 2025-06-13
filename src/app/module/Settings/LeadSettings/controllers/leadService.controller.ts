@@ -31,13 +31,9 @@ const getLeadServices = catchAsync(async (req, res) => {
 
 // Update locations
 const updateLocations = catchAsync(async (req, res) => {
-  const { leadServiceId } = req.params;
-  const { locations } = req.body;
-
-  const result = await LeadServiceService.updateLocations(
-    leadServiceId,
-    locations,
-  );
+  const userId = req.user.userId;
+  const locations = req.body;
+  const result = await LeadServiceService.updateLocations(userId, locations);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -46,15 +42,28 @@ const updateLocations = catchAsync(async (req, res) => {
     data: result,
   });
 });
+// const updateLocations = catchAsync(async (req, res) => {
+//   const { serviceId } = req.params;
+//   const locations = req.body;
+
+//   const result = await LeadServiceService.updateLocations(serviceId, locations);
+
+//   sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: 'Locations updated successfully',
+//     data: result,
+//   });
+// });
 //  update answer
 const updateLeadServiceAnswers = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const { leadServiceId } = req.params;
+  const { serviceId } = req.params;
   const { answers, selectedLocationData } = req.body;
 
   const result = await LeadServiceService.updateLeadServiceAnswersIntoDB(
     userId,
-    leadServiceId,
+    serviceId,
     answers,
     selectedLocationData,
   );
@@ -69,11 +78,11 @@ const updateLeadServiceAnswers = catchAsync(async (req, res) => {
 
 // Toggle onlineEnabled status
 const toggleOnline = catchAsync(async (req, res) => {
-  const { leadServiceId } = req.params;
+  const { serviceId } = req.params;
   const { onlineEnabled } = req.body;
 
   const result = await LeadServiceService.toggleOnlineEnabled(
-    leadServiceId,
+    serviceId,
     onlineEnabled,
   );
 
@@ -88,12 +97,9 @@ const toggleOnline = catchAsync(async (req, res) => {
 // Delete lead service
 const deleteLeadService = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const { leadServiceId } = req.params;
+  const { serviceId } = req.params;
 
-  const result = await LeadServiceService.deleteLeadService(
-    userId,
-    leadServiceId,
-  );
+  const result = await LeadServiceService.deleteLeadService(userId, serviceId);
 
   if (!result) {
     return sendResponse(res, {

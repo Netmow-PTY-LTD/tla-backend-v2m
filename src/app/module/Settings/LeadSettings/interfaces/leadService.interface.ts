@@ -9,7 +9,6 @@ export enum LocationType {
   DRAW_ON_AREA = 'draw_on_area',
 }
 
-
 // export interface ILocation {
 //   _id: mongoose.Types.ObjectId | string;
 //   locationGroupId: mongoose.Types.ObjectId;
@@ -22,14 +21,13 @@ export type IUpdateLeadServiceAnswers = {
   selectedOptionIds: mongoose.Types.ObjectId[]; // Array of ObjectId strings
 };
 
-
 export interface IUserLocationServiceMap {
+  _id?: Types.ObjectId;
   userProfileId: Types.ObjectId;
-  locationGroupId: Types.ObjectId;
+  locationGroupId?: Types.ObjectId;
   locationType: LocationType;
   serviceIds: Types.ObjectId[];
 }
-
 
 export interface ILeadService {
   userProfileId: Types.ObjectId;
