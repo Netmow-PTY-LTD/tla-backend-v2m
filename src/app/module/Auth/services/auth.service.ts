@@ -22,7 +22,6 @@ import ZipCode from '../../Geo/Country/models/zipcode.model';
 import Option from '../../Service/Option/models/option.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
-
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -102,7 +101,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 export const createLeadService = async (
   userId: string,
   serviceIds: Types.ObjectId[],
-  session?: mongoose.ClientSession
+  session?: mongoose.ClientSession,
 ) => {
   // 1. Find user profile by userId
   const userProfile = await UserProfile.findOne({ user: userId })
@@ -118,11 +117,11 @@ export const createLeadService = async (
 
   // 3. Compare with existing serviceIds in userProfile
   const existingServiceIds = new Set(
-    (userProfile.serviceIds || []).map((id: Types.ObjectId) => id.toString())
+    (userProfile.serviceIds || []).map((id: Types.ObjectId) => id.toString()),
   );
 
   const newServiceIds = serviceIds.filter(
-    (id) => !existingServiceIds.has(id.toString())
+    (id) => !existingServiceIds.has(id.toString()),
   );
 
   // 4. If all services already exist, return conflict response
@@ -140,7 +139,9 @@ export const createLeadService = async (
 
   // 6. Create lead service entries
   for (const serviceId of newServiceIds) {
-    const questions = await ServiceWiseQuestion.find({ serviceId }).session(session ?? null);
+    const questions = await ServiceWiseQuestion.find({ serviceId }).session(
+      session ?? null,
+    );
 
     for (const question of questions) {
       const options = await Option.find({
@@ -167,9 +168,6 @@ export const createLeadService = async (
     newServiceIds,
   };
 };
-
-
-
 
 const registerUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
@@ -241,9 +239,8 @@ const registerUserIntoDB = async (payload: IUser) => {
       session,
     });
 
-        // ✅ Create lead service entries using session
-        await createLeadService(newUser?._id, lawyerServiceMap.services, session);
-
+    // ✅ Create lead service entries using session
+    await createLeadService(newUser?._id, lawyerServiceMap.services, session);
 
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
