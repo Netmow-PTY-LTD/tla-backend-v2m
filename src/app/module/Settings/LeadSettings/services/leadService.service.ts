@@ -15,7 +15,6 @@ import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
 
 import Option from '../../../Service/Option/models/option.model';
 
-
 const createLeadService = async (
   userId: string,
   payload: {
@@ -89,7 +88,6 @@ const createLeadService = async (
     newServiceIds,
   };
 };
-
 
 const getLeadServicesWithQuestions = async (userId: string) => {
   // 1. Fetch user profile
@@ -250,7 +248,9 @@ export const deleteLeadService = async (userId: string, serviceId: string) => {
   validateObjectId(serviceId, 'Service ID');
 
   // ✅ 1. Fetch user profile
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    '_id serviceIds',
+  );
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
@@ -263,20 +263,21 @@ export const deleteLeadService = async (userId: string, serviceId: string) => {
 
   // ✅ 3. Check if any were deleted
   if (deleteResult.deletedCount === 0) {
-    return sendNotFoundResponse('No lead service entries found for this service.');
+    return sendNotFoundResponse(
+      'No lead service entries found for this service.',
+    );
   }
 
   // ✅ 4. Remove serviceId from userProfile.serviceIds array
   await UserProfile.updateOne(
     { _id: userProfile._id },
-    { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } }
+    { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
   );
 
   return {
     message: `Deleted ${deleteResult.deletedCount} lead service record(s) and removed serviceId from user profile.`,
   };
 };
-
 
 const updateLeadServiceAnswersIntoDB = async (
   userId: string,
@@ -285,7 +286,7 @@ const updateLeadServiceAnswersIntoDB = async (
   selectedLocationData: Array<{
     locationsId: string;
     serviceIds: string[];
-  }>
+  }>,
 ) => {
   // ✅ Find the associated user profile
   const userProfile = await UserProfile.findOne({ user: userId });
@@ -293,12 +294,17 @@ const updateLeadServiceAnswersIntoDB = async (
     return sendNotFoundResponse('User profile not found');
   }
 
-  // ✅ Build a Map of selected options by question
   const selectedOptionMap = new Map<string, Set<string>>();
   for (const answer of answers) {
-    selectedOptionMap.set(answer.questionId, new Set(answer.selectedOptionIds));
-  }
+    const questionIdStr = answer.questionId.toString(); // Convert ObjectId to string
+    const selectedOptionIdsStr = answer.selectedOptionIds.map((id) =>
+      id.toString(),
+    ); // Convert all OptionIds to string
 
+    selectedOptionMap.set(questionIdStr, new Set(selectedOptionIdsStr));
+
+    // selectedOptionMap.set(answer.questionId, new Set(answer.selectedOptionIds));
+  }
   // ✅ Get all existing LeadService records for this user and service
   const allRecords = await LeadService.find({
     userProfileId: userProfile._id,
@@ -332,14 +338,13 @@ const updateLeadServiceAnswersIntoDB = async (
       await UserLocationServiceMap.findOneAndUpdate(
         { _id: locationsId },
         { serviceIds },
-        { new: true, upsert: false } // Avoid creating new if not found
+        { new: true, upsert: false }, // Avoid creating new if not found
       );
     }
   }
 
   return { message: 'Lead service answers and locations updated successfully' };
 };
-
 
 export const LeadServiceService = {
   createLeadService,
