@@ -39,6 +39,5 @@ export interface ILeadService {
 }
 
 export interface ILeadServiceModel extends Model<ILeadService> {
-  // eslint-disable-next-line no-unused-vars
   isLeadServiceExists(id: string): Promise<ILeadService | null>;
 }

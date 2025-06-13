@@ -7,10 +7,9 @@ const CreateRangeIntoDB = async (payload: IRange) => {
   return zipCode;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAllRangeFromDB = async () => {
   // const { zipcodeId } = query;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   // const filter: Record<string, any> = {
   //   deletedAt: null,
   // };
