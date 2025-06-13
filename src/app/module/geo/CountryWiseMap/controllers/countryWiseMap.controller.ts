@@ -1,4 +1,5 @@
 import { HTTP_STATUS } from '../../../../constant/httpStatus';
+import { TUploadedFile } from '../../../../interface/file.interface';
 import catchAsync from '../../../../utils/catchAsync';
 import sendResponse from '../../../../utils/sendResponse';
 import { countryWiseMapService } from '../services/countryWiseServiceMap.service';
@@ -132,6 +133,51 @@ const getAllCountryWiseMap = catchAsync(async (req, res) => {
   });
 });
 
+//  country service
+const manageService = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const manageServiceData = JSON.parse(req.body.data);
+  const files = req.files as TUploadedFile[];
+
+  const { result, isNew } = await countryWiseMapService.manageServiceIntoDB(
+    userId,
+    manageServiceData,
+    files,
+  );
+
+  sendResponse(res, {
+    statusCode: isNew ? HTTP_STATUS.CREATED : HTTP_STATUS.OK,
+    success: true,
+    message: isNew
+      ? 'Country Service created successfully'
+      : 'Country Service updated successfully',
+    data: result,
+  });
+});
+
+const getAllCountryServiceField = catchAsync(async (req, res) => {
+  const query = req.query;
+
+  const result =
+    await countryWiseMapService.getAllCountryServiceFieldFromDB(query);
+
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Not Exists',
+      data: [],
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All Country Service  retrieved successfully',
+    data: result,
+  });
+});
+
 export const countryWiseMapController = {
   createCountryWiseMap,
   getSingleCountryWiseMap,
@@ -139,4 +185,6 @@ export const countryWiseMapController = {
   updateSingleCountryWiseMap,
   getAllCountryWiseMap,
   getSingleCountryWiseMapById,
+  manageService,
+  getAllCountryServiceField,
 };

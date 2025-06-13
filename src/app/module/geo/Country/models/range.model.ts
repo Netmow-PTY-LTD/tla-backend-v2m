@@ -7,11 +7,11 @@ const rangeSchema = new Schema(
     //   ref: 'Country',
     //   required: true,
     // },
-    zipCodeId: {
-      type: Types.ObjectId,
-      ref: 'ZipCode',
-      required: true,
-    },
+    // zipCodeId: {
+    //   type: Types.ObjectId,
+    //   ref: 'ZipCode',
+    //   required: true,
+    // },
     name: {
       type: String,
       required: true,

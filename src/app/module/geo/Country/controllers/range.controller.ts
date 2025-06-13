@@ -79,8 +79,8 @@ const updateSingleRange = catchAsync(async (req, res) => {
 });
 
 const getAllRange = catchAsync(async (req, res) => {
-  const query = req.query;
-  const result = await rangeService.getAllRangeFromDB(query);
+  // const query = req.query;
+  const result = await rangeService.getAllRangeFromDB();
 
   if (!result.length) {
     return sendResponse(res, {

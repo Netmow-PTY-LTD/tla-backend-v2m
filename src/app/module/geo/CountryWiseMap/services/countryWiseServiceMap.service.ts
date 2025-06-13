@@ -1,9 +1,13 @@
-import { Types } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { ICountryWiseMap } from '../interfaces/countryWiseMap.interface';
 import CountryWiseMap from '../models/countryWiseMap.model';
 import { AppError } from '../../../../errors/error';
 import { HTTP_STATUS } from '../../../../constant/httpStatus';
+import CountryWiseServiceWiseField from '../models/countryWiseServiceWiseFields.model';
+import { ICountryServiceField } from '../interfaces/countryWiseServiceWiseField.interface';
+import { TUploadedFile } from '../../../../interface/file.interface';
+import { uploadToSpaces } from '../../../../config/upload';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -85,6 +89,118 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
   return result;
 };
 
+const manageServiceIntoDB = async (
+  userId: string,
+  payload: Partial<ICountryServiceField>,
+  files?: TUploadedFile[],
+): Promise<{ result: ICountryServiceField; isNew: boolean }> => {
+  if (files?.length) {
+    for (const file of files) {
+      if (file?.buffer && file?.fieldname) {
+        try {
+          const uploadedUrl = await uploadToSpaces(
+            file.buffer,
+            file.originalname,
+            userId,
+          );
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (payload as any)[file.fieldname] = uploadedUrl;
+          // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+        } catch (err) {
+          throw new AppError(
+            HTTP_STATUS.INTERNAL_SERVER_ERROR,
+            `File upload failed for ${file.fieldname}`,
+          );
+        }
+      }
+    }
+  }
+
+  const existing = await CountryWiseServiceWiseField.findOne({
+    countryId: payload.countryId,
+    serviceId: payload.serviceId,
+  });
+
+  const updated = await CountryWiseServiceWiseField.findOneAndUpdate(
+    {
+      countryId: payload.countryId,
+      serviceId: payload.serviceId,
+    },
+    { $set: payload },
+    {
+      new: true,
+      upsert: true,
+      runValidators: true,
+    },
+  );
+
+  return { result: updated, isNew: !existing };
+};
+
+interface ICountryServiceFieldQuery {
+  countryId?: string;
+  serviceId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // For additional dynamic query fields
+}
+
+const getAllCountryServiceFieldFromDB = async (
+  query: ICountryServiceFieldQuery = {},
+) => {
+  // Base query to exclude deleted records
+  const baseQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
+    deletedAt: null,
+  };
+
+  // Extract specific query parameters
+  const { countryId, serviceId, ...restQuery } = query;
+
+  // Build the final query with proper typing
+  const finalQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
+    ...baseQuery,
+    ...restQuery,
+  };
+
+  // Add countryId if provided
+  if (countryId) {
+    finalQuery.countryId = countryId;
+  }
+
+  // Add serviceId if provided
+  if (serviceId) {
+    finalQuery.serviceId = serviceId;
+  }
+
+  const result = await CountryWiseServiceWiseField.find(finalQuery);
+  return result;
+};
+
+// const getAllCountryServiceFieldFromDB = async (
+//   query: ICountryServiceFieldQuery = {},
+// ) => {
+//   const { countryId, serviceId, ...restQuery } = query;
+
+//   const finalQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
+//     deletedAt: null,
+//     ...restQuery,
+//   };
+
+//   // 🚫 Reject invalid case: serviceId provided without countryId
+//   if (serviceId && !countryId) {
+//     return []; // or throw new Error('countryId is required when serviceId is provided');
+//   }
+
+//   if (countryId) {
+//     finalQuery.countryId = countryId;
+//     if (serviceId) {
+//       finalQuery.serviceId = serviceId;
+//     }
+//   }
+
+//   const result = await CountryWiseServiceWiseField.find(finalQuery);
+//   return result;
+// };
+
 export const countryWiseMapService = {
   CreateCountryWiseMapIntoDB,
   getAllCountryWiseMapFromDB,
@@ -92,4 +208,6 @@ export const countryWiseMapService = {
   updateCountryWiseMapIntoDB,
   deleteCountryWiseMapFromDB,
   getSingleCountryWiseMapByIdFromDB,
+  manageServiceIntoDB,
+  getAllCountryServiceFieldFromDB,
 };
