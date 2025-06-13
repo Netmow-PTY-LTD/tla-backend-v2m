@@ -51,14 +51,12 @@ const updateLeadServiceAnswers = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const { leadServiceId } = req.params;
   const { answers, selectedLocationData } = req.body;
- 
 
   const result = await LeadServiceService.updateLeadServiceAnswersIntoDB(
     userId,
     leadServiceId,
     answers,
-    selectedLocationData
-    
+    selectedLocationData,
   );
 
   sendResponse(res, {
@@ -92,7 +90,10 @@ const deleteLeadService = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const { leadServiceId } = req.params;
 
-  const result = await LeadServiceService.deleteLeadService(userId,leadServiceId);
+  const result = await LeadServiceService.deleteLeadService(
+    userId,
+    leadServiceId,
+  );
 
   if (!result) {
     return sendResponse(res, {
