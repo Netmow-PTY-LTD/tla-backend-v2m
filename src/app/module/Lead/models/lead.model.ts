@@ -1,54 +1,28 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { ILead } from '../interfaces/lead.interface';
 
-import { Schema } from 'mongoose';
-import { ILead, LeadModel } from '../interfaces/lead.interface';
-
-const leadsSchema = new mongoose.Schema(
+const leadSchema = new Schema<ILead>(
   {
-    name: {
-      type: String,
+    userProfileId: {
+      type: Schema.Types.ObjectId,
+      ref: 'UserProfile',
       required: true,
-      trim: true,
     },
-    slug: {
-      type: String,
+    service_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Service',
       required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-    serviceIds: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Service',
-        required: true,
-      },
-    ],
-    deletedAt: {
-      type: Date,
-      default: null,
     },
   },
   {
-    versionKey: false,
     timestamps: true,
-    toJSON: {
-      transform(doc, ret) {
-        return ret;
-      },
-    },
-    toObject: {
-      transform(doc, ret) {
-        return ret;
-      },
-    },
+    versionKey: false,
   },
 );
 
-leadsSchema.statics.isLeadExists = async function (id: string) {
+leadSchema.statics.isLeadExists = async function (id: string) {
   return await Lead.findById(id);
 };
-
-const Lead = mongoose.model<ILead, LeadModel>('Lead', leadsSchema);
+const Lead = mongoose.model<ILead>('Lead', leadSchema);
 
 export default Lead;
