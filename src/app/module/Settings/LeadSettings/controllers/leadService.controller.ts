@@ -42,20 +42,7 @@ const updateLocations = catchAsync(async (req, res) => {
     data: result,
   });
 });
-// const updateLocations = catchAsync(async (req, res) => {
-//   const { serviceId } = req.params;
-//   const locations = req.body;
 
-//   const result = await LeadServiceService.updateLocations(serviceId, locations);
-
-//   sendResponse(res, {
-//     statusCode: HTTP_STATUS.OK,
-//     success: true,
-//     message: 'Locations updated successfully',
-//     data: result,
-//   });
-// });
-//  update answer
 const updateLeadServiceAnswers = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const { serviceId } = req.params;

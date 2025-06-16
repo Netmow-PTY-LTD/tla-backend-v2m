@@ -18,11 +18,7 @@ router.get(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadServiceController.getLeadServices,
 );
-// router.patch(
-//   '/:serviceId/locations',
-//   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-//   leadServiceController.updateLocations,
-// );
+
 router.patch(
   '/locations',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
