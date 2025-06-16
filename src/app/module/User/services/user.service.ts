@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { JwtPayload } from 'jsonwebtoken';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import User from '../../Auth/models/auth.model';
 import { IUserProfile } from '../interfaces/user.interface';
 
-import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
 import UserProfile from '../models/user.model';
@@ -16,6 +16,7 @@ import Accreditation from '../models/ProfileAccreditation';
 import ProfileCustomService from '../models/profileServiceCoustom.model';
 import ProfileQA from '../models/ProfileQAS';
 import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
+import mongoose, { Document } from 'mongoose';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -161,7 +162,10 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
 
   // 4. Convert to plain object to remove Mongoose internals
   const plainUser = userData.toObject();
-  const plainProfile = userData.profile.toObject();
+  // const plainProfile = userData?.profile?.toObject();
+  const plainProfile = (
+    userData.profile as unknown as Document & { toObject: () => any }
+  ).toObject();
 
   // Optional: Map the answers to question labels (sorted as in PROFILE_QUESTIONS)
   const sortedQA = PROFILE_QUESTIONS.map((q) => {
