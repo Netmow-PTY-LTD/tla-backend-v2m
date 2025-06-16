@@ -14,80 +14,7 @@ import ServiceWiseQuestion from '../../../Service/Question/models/ServiceWiseQue
 import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
 
 import Option from '../../../Service/Option/models/option.model';
-
-// const createLeadService = async (
-//   userId: string,
-//   payload: {
-//     serviceIds: Types.ObjectId[];
-//   },
-// ) => {
-//   // 1. Find user profile by userId
-//   const userProfile = await UserProfile.findOne({ user: userId }).select(
-//     '_id serviceIds',
-//   );
-//   if (!userProfile) {
-//     sendNotFoundResponse('User profile not found');
-//     return;
-//   }
-
-//   // 2. Validate all serviceIds
-//   payload.serviceIds.forEach((id) =>
-//     validateObjectId(id.toString(), 'service'),
-//   );
-
-//   // 3. Convert to ObjectId instances (if needed)
-//   const objectServiceIds = payload.serviceIds.map(
-//     (id) => new mongoose.Types.ObjectId(id),
-//   );
-
-//   // 4. Compare with existing serviceIds in userProfile
-//   const existingServiceIds = new Set(
-//     (userProfile.serviceIds || []).map((id: Types.ObjectId) => id.toString()),
-//   );
-
-//   const newServiceIds = objectServiceIds.filter(
-//     (id) => !existingServiceIds.has(id.toString()),
-//   );
-
-//   // 5. If all services already exist, return conflict response
-//   if (newServiceIds.length === 0) {
-//     throw {
-//       status: 409,
-//       message: 'All selected services already exist for this user',
-//       duplicates: Array.from(existingServiceIds),
-//     };
-//   }
-//   // 6. Append and save new serviceIds
-//   userProfile.serviceIds.push(...newServiceIds);
-//   await userProfile.save();
-
-//   // 7. Create lead service entries
-//   for (const serviceId of newServiceIds) {
-//     const questions = await ServiceWiseQuestion.find({ serviceId });
-
-//     for (const question of questions) {
-//       const options = await Option.find({
-//         questionId: question._id,
-//         serviceId,
-//       });
-
-//       for (const option of options) {
-//         await LeadService.create({
-//           userProfileId: userProfile._id,
-//           serviceId,
-//           questionId: question._id,
-//           optionId: option._id,
-//           isSelected: true,
-//         });
-//       }
-//     }
-//   }
-//   // ✅ New services can now be added to the profile or processed
-//   return {
-//     userProfileId: userProfile._id,
-//     newServiceIds,
-//   };
-// };
+import ZipCode from '../../../Geo/Country/models/zipcode.model';
 
 const createLeadService = async (
   userId: string,
@@ -96,12 +23,14 @@ const createLeadService = async (
   },
 ) => {
   const session = await mongoose.startSession();
+
   try {
     await session.withTransaction(async () => {
       // 1. Find user profile
       const userProfile = await UserProfile.findOne({ user: userId })
-        .select('_id serviceIds')
+        .select('_id serviceIds country')
         .session(session);
+
       if (!userProfile) {
         sendNotFoundResponse('User profile not found');
         return;
@@ -118,8 +47,9 @@ const createLeadService = async (
 
       // 3. Filter only new service IDs
       const existingServiceIds = new Set(
-        userProfile.serviceIds.map((id) => id.toString()),
+        userProfile?.serviceIds?.map((id) => id.toString()),
       );
+
       const newServiceIds = objectServiceIds.filter(
         (id) => !existingServiceIds.has(id.toString()),
       );
@@ -134,11 +64,12 @@ const createLeadService = async (
 
       const successfulServiceIds: Types.ObjectId[] = [];
 
-      // 4. Process each serviceId
+      // 4. Create LeadService documents for each new service
       for (const serviceId of newServiceIds) {
         const questions = await ServiceWiseQuestion.find({ serviceId }).session(
           session,
         );
+
         let totalCreated = 0;
 
         for (const question of questions) {
@@ -161,17 +92,47 @@ const createLeadService = async (
           }
         }
 
-        // 5. Only add serviceId if at least 1 LeadService was created
         if (totalCreated > 0) {
           successfulServiceIds.push(serviceId);
         }
       }
 
-      // 6. Finally update the userProfile with only successful serviceIds
+      // 5. Update userProfile.serviceIds
       if (successfulServiceIds.length > 0) {
         userProfile.serviceIds.push(...successfulServiceIds);
         await userProfile.save({ session });
       }
+
+      // 6. Update UserLocationServiceMap
+      const locationGroup = await ZipCode.findOne({
+        countryId: userProfile.country,
+        zipCodeType: 'default',
+      }).session(session);
+
+      if (!locationGroup) {
+        throw {
+          status: 404,
+          message: 'Default location group not found',
+        };
+      }
+
+      await UserLocationServiceMap.findOneAndUpdate(
+        {
+          userProfileId: userProfile._id,
+          locationGroupId: locationGroup._id,
+          locationType: 'nation_wide',
+        },
+        {
+          $addToSet: {
+            serviceIds: { $each: successfulServiceIds },
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+          session,
+        },
+      );
     });
 
     return {
@@ -349,6 +310,10 @@ export const deleteLeadService = async (userId: string, serviceId: string) => {
     { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
   );
 
+  await UserLocationServiceMap.findOneAndUpdate(
+    { userProfileId: userProfile._id },
+    { $pull: { serviceIds: serviceId } },
+  );
   return {
     message: `Deleted ${deleteResult.deletedCount} lead service record(s) and removed serviceId from user profile.`,
   };
