@@ -163,11 +163,9 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
   // 4. Convert to plain object to remove Mongoose internals
   const plainUser = userData.toObject();
   // const plainProfile = userData?.profile?.toObject();
-  const plainProfile =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (
-      userData.profile as unknown as Document & { toObject: () => any }
-    ).toObject();
+  const plainProfile = (
+    userData.profile as unknown as Document & { toObject: () => any }
+  ).toObject();
 
   // Optional: Map the answers to question labels (sorted as in PROFILE_QUESTIONS)
   const sortedQA = PROFILE_QUESTIONS.map((q) => {
