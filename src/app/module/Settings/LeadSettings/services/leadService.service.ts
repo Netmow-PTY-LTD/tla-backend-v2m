@@ -265,6 +265,11 @@ const updateLeadServiceAnswersIntoDB = async (
     locationsId: string;
     serviceIds: string[];
   }>,
+  selectedOptionExtraData: Array<{
+    questionId: string;
+    optionId: string;
+    idExtraData: string;
+  }>,
 ) => {
   // ✅ Find the associated user profile
   const userProfile = await UserProfile.findOne({ user: userId });
@@ -280,9 +285,15 @@ const updateLeadServiceAnswersIntoDB = async (
     ); // Convert all OptionIds to string
 
     selectedOptionMap.set(questionIdStr, new Set(selectedOptionIdsStr));
-
-    // selectedOptionMap.set(answer.questionId, new Set(answer.selectedOptionIds));
   }
+
+  // ✅ Create a lookup map for extraData
+  const extraDataMap = new Map<string, string>(); // key = `${questionId}_${optionId}`
+  for (const extra of selectedOptionExtraData || []) {
+    const key = `${extra.questionId}_${extra.optionId}`;
+    extraDataMap.set(key, extra.idExtraData);
+  }
+
   // ✅ Get all existing LeadService records for this user and service
   const allRecords = await LeadService.find({
     userProfileId: userProfile._id,
@@ -296,10 +307,18 @@ const updateLeadServiceAnswersIntoDB = async (
     const isSelected =
       selectedOptionMap.has(qId) && selectedOptionMap.get(qId)!.has(oId);
 
+    const updateData: any = { isSelected };
+
+    // ✅ Check if extraData should be added
+    const extraKey = `${qId}_${oId}`;
+    if (extraDataMap.has(extraKey)) {
+      updateData.idExtraData = extraDataMap.get(extraKey);
+    }
+
     return {
       updateOne: {
         filter: { _id: record._id },
-        update: { isSelected },
+        update: updateData,
       },
     };
   });
