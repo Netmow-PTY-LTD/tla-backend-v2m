@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose, { DeleteResult, Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 
 import UserProfile from '../../../User/models/user.model';

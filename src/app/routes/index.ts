@@ -45,7 +45,7 @@ const moduleRoutes = [
     route: OptionRouter,
   },
   {
-    path: '/lead-service',
+    path: '/settings/lead-service',
     route: leadServiceRouter,
   },
   {
