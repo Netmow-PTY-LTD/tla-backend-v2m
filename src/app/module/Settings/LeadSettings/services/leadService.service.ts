@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose, { Types } from 'mongoose';
+import mongoose, { DeleteResult, Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 
 import UserProfile from '../../../User/models/user.model';
@@ -279,44 +279,58 @@ const toggleOnlineEnabled = async (
   );
 };
 
-export const deleteLeadService = async (userId: string, serviceId: string) => {
-  // ✅ Validate ObjectId format
+const deleteLeadService = async (userId: string, serviceId: string) => {
   validateObjectId(serviceId, 'Service ID');
 
-  // ✅ 1. Fetch user profile
-  const userProfile = await UserProfile.findOne({ user: userId }).select(
-    '_id serviceIds',
-  );
-  if (!userProfile) {
-    return sendNotFoundResponse('User profile not found');
+  const session = await mongoose.startSession();
+
+  try {
+    let deleteResult: any = null;
+
+    await session.withTransaction(async () => {
+      // 1. Fetch user profile with session
+      const userProfile = await UserProfile.findOne({ user: userId })
+        .select('_id serviceIds')
+        .session(session);
+      if (!userProfile) {
+        throw new Error('User profile not found');
+      }
+
+      // 2. Delete LeadService records for user and service
+      deleteResult = await LeadService.deleteMany({
+        userProfileId: userProfile._id,
+        serviceId: new mongoose.Types.ObjectId(serviceId),
+      }).session(session);
+
+      if (deleteResult.deletedCount === 0) {
+        throw new Error('No lead service entries found for this service.');
+      }
+
+      // 3. Remove serviceId from userProfile.serviceIds array
+      await UserProfile.updateOne(
+        { _id: userProfile._id },
+        { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
+        { session },
+      );
+
+      // 4. Remove serviceId from UserLocationServiceMap.serviceIds array
+      await UserLocationServiceMap.findOneAndUpdate(
+        { userProfileId: userProfile._id },
+        { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
+        { session },
+      );
+    });
+
+    return {
+      message: `Deleted ${deleteResult.deletedCount} lead service record(s) and removed serviceId from user profile.`,
+    };
+  } catch (error) {
+    console.error('Transaction failed:', error);
+    // You can customize error handling here or rethrow
+    throw error;
+  } finally {
+    await session.endSession();
   }
-
-  // ✅ 2. Delete all LeadService records for this user and service
-  const deleteResult = await LeadService.deleteMany({
-    userProfileId: userProfile._id,
-    serviceId: new mongoose.Types.ObjectId(serviceId),
-  });
-
-  // ✅ 3. Check if any were deleted
-  if (deleteResult.deletedCount === 0) {
-    return sendNotFoundResponse(
-      'No lead service entries found for this service.',
-    );
-  }
-
-  // ✅ 4. Remove serviceId from userProfile.serviceIds array
-  await UserProfile.updateOne(
-    { _id: userProfile._id },
-    { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
-  );
-
-  await UserLocationServiceMap.findOneAndUpdate(
-    { userProfileId: userProfile._id },
-    { $pull: { serviceIds: serviceId } },
-  );
-  return {
-    message: `Deleted ${deleteResult.deletedCount} lead service record(s) and removed serviceId from user profile.`,
-  };
 };
 
 const updateLeadServiceAnswersIntoDB = async (
