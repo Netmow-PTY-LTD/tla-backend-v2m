@@ -13,8 +13,9 @@ const getPaymentMethods = async (userId: string) => {
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
-  const result = await PaymentMethod.find({
+  const result = await PaymentMethod.findOne({
     userProfileId: userProfile?._id,
+    isDefault: true,
   });
 
   return result;

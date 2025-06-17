@@ -6,12 +6,12 @@ import { paymentMethodService } from '../services/paymentMethod.service';
 const getPaymentMethods = catchAsync(async (req, res) => {
   const methods = await paymentMethodService.getPaymentMethods(req.user.userId);
 
-  if (!Array.isArray(methods) || !methods.length) {
+  if (!methods) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'No payment methods retrieved',
-      data: [],
+      data: {},
     });
   }
 

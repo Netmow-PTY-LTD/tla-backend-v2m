@@ -15,7 +15,7 @@ const paymentMethodSchema = new Schema(
     cardBrand: { type: String, required: true },
     expiryMonth: { type: Number, required: true },
     expiryYear: { type: Number, required: true },
-    isDefault: { type: Boolean, default: false },
+    isDefault: { type: Boolean, default: true },
   },
   {
     timestamps: true,
