@@ -4,7 +4,11 @@ const Schema = mongoose.Schema;
 
 const paymentMethodSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userProfileId: {
+      type: Schema.Types.ObjectId,
+      ref: 'UserProfile',
+      required: true,
+    },
     cardLastFour: { type: String, required: true },
     cardBrand: { type: String, required: true },
     expiryMonth: { type: Number, required: true },

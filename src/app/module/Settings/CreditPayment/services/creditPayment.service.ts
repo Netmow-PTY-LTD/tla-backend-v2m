@@ -133,16 +133,22 @@ const getPaymentMethods = async (userId: string) => {
 const addPaymentMethod = async (
   userId: string,
   body: IPaymentMethod,
-): Promise<InstanceType<typeof PaymentMethod>> => {
-  const { cardLastFour, cardBrand, expiryMonth, expiryYear } = body;
+): Promise<InstanceType<typeof PaymentMethod> | null> => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
 
-  return await PaymentMethod.create({
-    userId,
+  if (!userProfile) {
+    return null;
+  }
+  const { cardLastFour, cardBrand, expiryMonth, expiryYear } = body;
+  const paymentMethod = await PaymentMethod.create({
+    userProfileId: userProfile._id,
     cardLastFour,
     cardBrand,
     expiryMonth,
     expiryYear,
   });
+
+  return paymentMethod;
 };
 
 const getTransactionHistory = async (userId: string) => {

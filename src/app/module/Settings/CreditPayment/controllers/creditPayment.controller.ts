@@ -94,7 +94,7 @@ const addPaymentMethod = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Payment method added',
+    message: result ? 'Payment method added' : 'User profile not found',
     data: result,
   });
 });

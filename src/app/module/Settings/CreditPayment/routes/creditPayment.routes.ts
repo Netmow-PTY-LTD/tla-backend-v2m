@@ -36,12 +36,12 @@ router.put(
 
 // Payment methods
 router.get(
-  '/payment-methods',
+  '/payment-method',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.getPaymentMethods,
 );
 router.post(
-  '/payment-methods',
+  '/payment-method',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.addPaymentMethod,
 );
