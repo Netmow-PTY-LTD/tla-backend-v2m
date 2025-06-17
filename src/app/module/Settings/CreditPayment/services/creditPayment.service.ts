@@ -2,10 +2,8 @@ import { sendNotFoundResponse } from '../../../../errors/custom.error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IBillingAddress } from '../../../User/interfaces/user.interface';
 import UserProfile from '../../../User/models/user.model';
-import { IPaymentMethod } from '../interfaces/paymentMethod.interface';
 import Coupon from '../models/coupon.model';
 import CreditPackage from '../models/creditPackage.model';
-import PaymentMethod from '../models/paymentMethod.model';
 import Transaction from '../models/transaction.model';
 
 const getCreditPackages = async () => {
@@ -126,25 +124,6 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   return result;
 };
 
-const getPaymentMethods = async (userId: string) => {
-  return await PaymentMethod.find({ userId });
-};
-
-const addPaymentMethod = async (
-  userId: string,
-  body: IPaymentMethod,
-): Promise<InstanceType<typeof PaymentMethod>> => {
-  const { cardLastFour, cardBrand, expiryMonth, expiryYear } = body;
-
-  return await PaymentMethod.create({
-    userId,
-    cardLastFour,
-    cardBrand,
-    expiryMonth,
-    expiryYear,
-  });
-};
-
 const getTransactionHistory = async (userId: string) => {
   return await Transaction.find({ userId })
     .sort({ createdAt: -1 })
@@ -157,7 +136,6 @@ export const CreditPaymentService = {
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
-  getPaymentMethods,
-  addPaymentMethod,
+
   getTransactionHistory,
 };
