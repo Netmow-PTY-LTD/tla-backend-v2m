@@ -9,7 +9,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 const getPaymentMethods = async (userId: string) => {
-  return await PaymentMethod.find({ userId });
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
+  }
+  const result = await PaymentMethod.find({
+    userProfileId: userProfile?._id,
+  });
+
+  return result;
 };
 
 const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
