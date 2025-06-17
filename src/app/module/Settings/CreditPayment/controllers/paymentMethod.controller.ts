@@ -31,7 +31,11 @@ const addPaymentMethod = catchAsync(async (req, res) => {
 });
 
 const createSetupIntent = catchAsync(async (req, res) => {
-  const result = await paymentMethodService.createSetupIntent();
+  const user = req.user;
+  const result = await paymentMethodService.createSetupIntent(
+    user.userId,
+    user.email,
+  );
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,

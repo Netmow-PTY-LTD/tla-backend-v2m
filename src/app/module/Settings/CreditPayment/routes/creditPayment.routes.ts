@@ -48,7 +48,11 @@ router.post(
   paymentMethodController.addPaymentMethod,
 );
 
-router.post('/setup-intent', paymentMethodController.createSetupIntent);
+router.post(
+  '/setup-intent',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  paymentMethodController.createSetupIntent,
+);
 
 // Transaction history
 router.get(

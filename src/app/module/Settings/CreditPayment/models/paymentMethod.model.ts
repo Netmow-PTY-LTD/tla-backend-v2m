@@ -9,6 +9,8 @@ const paymentMethodSchema = new Schema(
       ref: 'UserProfile',
       required: true,
     },
+    stripeCustomerId: { type: String },
+    email: { type: String },
     cardLastFour: { type: String, required: true },
     cardBrand: { type: String, required: true },
     expiryMonth: { type: Number, required: true },

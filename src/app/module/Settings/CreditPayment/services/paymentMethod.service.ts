@@ -11,10 +11,7 @@ const getPaymentMethods = async (userId: string) => {
   return await PaymentMethod.find({ userId });
 };
 
-export const addPaymentMethod = async (
-  userId: string,
-  paymentMethodId: string,
-) => {
+const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   // 1. Retrieve Stripe payment method
   const stripePaymentMethod =
     await stripe.paymentMethods.retrieve(paymentMethodId);
@@ -23,21 +20,48 @@ export const addPaymentMethod = async (
     return { success: false, message: 'Invalid payment method type' };
   }
 
-  // 2. Find user profile
+  // 2. Get user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) {
     return { success: false, message: 'User profile not found' };
   }
 
-  // 3. Unset previous default cards
+  // 3. Get Stripe customerId attached to payment method (can be null)
+  const stripeCustomerId = stripePaymentMethod.customer as string | null;
+  let email: string | null = null;
+
+  if (stripeCustomerId) {
+    // 4. Retrieve customer info from Stripe to get email
+    const customer = await stripe.customers.retrieve(stripeCustomerId);
+    email = (customer as Stripe.Customer).email || null;
+  }
+
+  // 5. Check for duplicates (optional but recommended)
+  const existing = await PaymentMethod.findOne({
+    userProfileId: userProfile._id,
+    stripeCustomerId,
+    email,
+    cardLastFour: stripePaymentMethod.card?.last4,
+    cardBrand: stripePaymentMethod.card?.brand,
+    expiryMonth: stripePaymentMethod.card?.exp_month,
+    expiryYear: stripePaymentMethod.card?.exp_year,
+  });
+
+  if (existing) {
+    return { success: true, message: 'Card already exists', data: existing };
+  }
+
+  // 4. Unset previous defaults
   await PaymentMethod.updateMany(
     { userProfileId: userProfile._id },
     { isDefault: false },
   );
 
-  // 4. Save the new card
+  // 5. Save card to DB
   const savedCard = await PaymentMethod.create({
     userProfileId: userProfile._id,
+    stripeCustomerId,
+    email,
     cardLastFour: stripePaymentMethod.card?.last4,
     cardBrand: stripePaymentMethod.card?.brand,
     expiryMonth: stripePaymentMethod.card?.exp_month,
@@ -48,13 +72,39 @@ export const addPaymentMethod = async (
   return { success: true, data: savedCard };
 };
 
-const createSetupIntent = async () => {
+// Get or create a Stripe customer using email
+const getOrCreateCustomer = async (
+  userId: string,
+  email: string,
+): Promise<Stripe.Customer> => {
+  const customers = await stripe.customers.list({ email, limit: 1 });
+
+  if (customers.data.length > 0) {
+    return customers.data[0];
+  }
+
+  // Create new Stripe customer with metadata for tracking
+  return await stripe.customers.create({
+    email,
+    metadata: {
+      userId, // Good for Stripe dashboard & webhook tracing
+    },
+  });
+};
+
+const createSetupIntent = async (userId: string, email: string) => {
+  const customer = await getOrCreateCustomer(userId, email);
   const setupIntent = await stripe.setupIntents.create({
+    customer: customer.id,
     usage: 'off_session',
+    metadata: {
+      userId, // Again, good practice for tracking
+    },
   });
 
   return {
     clientSecret: setupIntent.client_secret,
+    customerId: customer.id,
   };
 };
 
