@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { creditPaymentController } from '../controllers/creditPayment.controller';
 import auth from '../../../../middlewares/auth';
 import { USER_ROLE } from '../../../../constant';
+import { paymentMethodController } from '../controllers/paymentMethod.controller';
 
 const router = Router();
 
@@ -38,12 +39,12 @@ router.put(
 router.get(
   '/payment-method',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  creditPaymentController.getPaymentMethods,
+  paymentMethodController.getPaymentMethods,
 );
 router.post(
   '/payment-method',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  creditPaymentController.addPaymentMethod,
+  paymentMethodController.addPaymentMethod,
 );
 
 // Transaction history

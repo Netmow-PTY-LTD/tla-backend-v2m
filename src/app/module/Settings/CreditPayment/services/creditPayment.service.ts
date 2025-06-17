@@ -126,31 +126,6 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   return result;
 };
 
-const getPaymentMethods = async (userId: string) => {
-  return await PaymentMethod.find({ userId });
-};
-
-const addPaymentMethod = async (
-  userId: string,
-  body: IPaymentMethod,
-): Promise<InstanceType<typeof PaymentMethod> | null> => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
-
-  if (!userProfile) {
-    return null;
-  }
-  const { cardLastFour, cardBrand, expiryMonth, expiryYear } = body;
-  const paymentMethod = await PaymentMethod.create({
-    userProfileId: userProfile._id,
-    cardLastFour,
-    cardBrand,
-    expiryMonth,
-    expiryYear,
-  });
-
-  return paymentMethod;
-};
-
 const getTransactionHistory = async (userId: string) => {
   return await Transaction.find({ userId })
     .sort({ createdAt: -1 })
@@ -163,7 +138,6 @@ export const CreditPaymentService = {
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
-  getPaymentMethods,
-  addPaymentMethod,
+
   getTransactionHistory,
 };
