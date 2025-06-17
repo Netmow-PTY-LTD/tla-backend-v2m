@@ -1,3 +1,4 @@
+import { sendNotFoundResponse } from '../../../../errors/custom.error';
 import UserProfile from '../../../User/models/user.model';
 
 import PaymentMethod from '../models/paymentMethod.model';
@@ -23,7 +24,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   // 2. Get user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) {
-    return { success: false, message: 'User profile not found' };
+    return sendNotFoundResponse('User profile not found');
   }
 
   // 3. Get Stripe customerId attached to payment method (can be null)
@@ -48,7 +49,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   });
 
   if (existing) {
-    return { success: true, message: 'Card already exists', data: existing };
+    return { success: false, message: 'Card already exists', data: existing };
   }
 
   // 4. Unset previous defaults
@@ -69,7 +70,11 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     isDefault: true,
   });
 
-  return { success: true, data: savedCard };
+  return {
+    success: true,
+    message: 'Card saved successfully',
+    data: savedCard,
+  };
 };
 
 // Get or create a Stripe customer using email

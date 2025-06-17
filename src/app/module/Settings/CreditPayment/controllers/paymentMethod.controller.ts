@@ -16,17 +16,15 @@ const getPaymentMethods = catchAsync(async (req, res) => {
 const addPaymentMethod = catchAsync(async (req, res) => {
   const { paymentMethodId } = req.body;
   const userId = req.user.userId;
-
   const result = await paymentMethodService.addPaymentMethod(
     userId,
     paymentMethodId,
   );
-
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: result.data ? 'Card saved successfully' : result.message,
-    data: result,
+    success: result.success,
+    message: result.message,
+    data: result.data,
   });
 });
 
