@@ -40,19 +40,6 @@ const createSetupIntent = catchAsync(async (req, res) => {
   });
 });
 
-// const addPaymentMethod = catchAsync(async (req, res) => {
-//   const result = await paymentMethodService.addPaymentMethod(
-//     req.user.userId,
-//     req.body,
-//   );
-//   return sendResponse(res, {
-//     statusCode: HTTP_STATUS.OK,
-//     success: true,
-//     message: result ? 'Payment method added' : 'User profile not found',
-//     data: result,
-//   });
-// });
-
 export const paymentMethodController = {
   getPaymentMethods,
   addPaymentMethod,

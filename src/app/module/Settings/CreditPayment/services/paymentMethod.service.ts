@@ -58,27 +58,6 @@ const createSetupIntent = async () => {
   };
 };
 
-// const addPaymentMethod = async (
-//   userId: string,
-//   body: IPaymentMethod,
-// ): Promise<InstanceType<typeof PaymentMethod> | null> => {
-//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
-
-//   if (!userProfile) {
-//     return null;
-//   }
-//   const { cardLastFour, cardBrand, expiryMonth, expiryYear } = body;
-//   const paymentMethod = await PaymentMethod.create({
-//     userProfileId: userProfile._id,
-//     cardLastFour,
-//     cardBrand,
-//     expiryMonth,
-//     expiryYear,
-//   });
-
-//   return paymentMethod;
-// };
-
 export const paymentMethodService = {
   getPaymentMethods,
   addPaymentMethod,
