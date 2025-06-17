@@ -4,6 +4,7 @@ import { authZodValidation } from '../validation/auth.validation';
 import validateRequest from '../../../middlewares/validateRequest';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
+import { clientRegisterController } from '../controllers/client.controller';
 const router = Router();
 
 router.post(
@@ -53,4 +54,6 @@ router.post(
 //   authController.userAuthUpdate,
 // );
 
+//  --------------- client Register  ----------------------------
+router.post('/register/client', clientRegisterController.clientRegister);
 export const authRouter = router;
