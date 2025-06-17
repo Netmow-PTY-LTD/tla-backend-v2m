@@ -2,10 +2,8 @@ import { sendNotFoundResponse } from '../../../../errors/custom.error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IBillingAddress } from '../../../User/interfaces/user.interface';
 import UserProfile from '../../../User/models/user.model';
-import { IPaymentMethod } from '../interfaces/paymentMethod.interface';
 import Coupon from '../models/coupon.model';
 import CreditPackage from '../models/creditPackage.model';
-import PaymentMethod from '../models/paymentMethod.model';
 import Transaction from '../models/transaction.model';
 
 const getCreditPackages = async () => {

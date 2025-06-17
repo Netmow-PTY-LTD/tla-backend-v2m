@@ -41,11 +41,14 @@ router.get(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   paymentMethodController.getPaymentMethods,
 );
+
 router.post(
   '/payment-method',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   paymentMethodController.addPaymentMethod,
 );
+
+router.post('/setup-intent', paymentMethodController.createSetupIntent);
 
 // Transaction history
 router.get(

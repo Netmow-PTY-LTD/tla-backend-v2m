@@ -4,7 +4,7 @@ import PaymentMethod from '../models/paymentMethod.model';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16', // Use your Stripe API version
+  // apiVersion: '2023-10-16', // Use your Stripe API version
 });
 
 const getPaymentMethods = async (userId: string) => {
@@ -48,6 +48,16 @@ export const addPaymentMethod = async (
   return { success: true, data: savedCard };
 };
 
+const createSetupIntent = async () => {
+  const setupIntent = await stripe.setupIntents.create({
+    usage: 'off_session',
+  });
+
+  return {
+    clientSecret: setupIntent.client_secret,
+  };
+};
+
 // const addPaymentMethod = async (
 //   userId: string,
 //   body: IPaymentMethod,
@@ -72,4 +82,5 @@ export const addPaymentMethod = async (
 export const paymentMethodService = {
   getPaymentMethods,
   addPaymentMethod,
+  createSetupIntent,
 };

@@ -30,6 +30,16 @@ const addPaymentMethod = catchAsync(async (req, res) => {
   });
 });
 
+const createSetupIntent = catchAsync(async (req, res) => {
+  const result = await paymentMethodService.createSetupIntent();
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Stripe setup intent created',
+    data: result,
+  });
+});
+
 // const addPaymentMethod = catchAsync(async (req, res) => {
 //   const result = await paymentMethodService.addPaymentMethod(
 //     req.user.userId,
@@ -46,4 +56,5 @@ const addPaymentMethod = catchAsync(async (req, res) => {
 export const paymentMethodController = {
   getPaymentMethods,
   addPaymentMethod,
+  createSetupIntent,
 };
