@@ -76,29 +76,6 @@ const updateBillingDetails = catchAsync(async (req, res) => {
   });
 });
 
-const getPaymentMethods = catchAsync(async (req, res) => {
-  const methods = await CreditPaymentService.getPaymentMethods(req.user.userId);
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Payment methods retrieved',
-    data: methods,
-  });
-});
-
-const addPaymentMethod = catchAsync(async (req, res) => {
-  const result = await CreditPaymentService.addPaymentMethod(
-    req.user.userId,
-    req.body,
-  );
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Payment method added',
-    data: result,
-  });
-});
-
 const getTransactionHistory = catchAsync(async (req, res) => {
   const result = await CreditPaymentService.getTransactionHistory(
     req.user.userId,
@@ -117,7 +94,6 @@ export const creditPaymentController = {
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
-  getPaymentMethods,
-  addPaymentMethod,
+
   getTransactionHistory,
 };
