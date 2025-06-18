@@ -4,7 +4,7 @@ import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
 
 import router from './app/routes';
-// import config from './app/config';
+import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 const app: Application = express();
 //parsers
@@ -18,13 +18,23 @@ app.use(cookieParser());
 //   }),
 // );
 
+const allowedOrigins = [
+  'http://localhost:3000', // local dev
+  `${config.client_url}`, // deployed frontend
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl)
       if (!origin) return callback(null, true);
       // Allow all origins
-      return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        // Allow web origins you trust
+        return callback(null, true);
+      }
+      // Reject unknown origins (optional: allow all for full open API)
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
   }),
