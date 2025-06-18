@@ -1,9 +1,11 @@
 import { Model, Types } from 'mongoose';
+import { ILeadServiceAnswer } from './leadServiceAnswer.interface';
 export interface ILead {
   _id: Types.ObjectId;
   userProfileId: Types.ObjectId;
   serviceId: Types.ObjectId;
   deletedAt?: Date | null;
+  leadAnswers?: ILeadServiceAnswer[];
 }
 
 export interface LeadModel extends Model<ILead> {
