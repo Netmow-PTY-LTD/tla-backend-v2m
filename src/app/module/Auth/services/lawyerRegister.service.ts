@@ -95,7 +95,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
-      username: newUser.username,
+      // username: newUser.username,
       role: newUser.role,
       accountStatus: newUser.accountStatus,
     };

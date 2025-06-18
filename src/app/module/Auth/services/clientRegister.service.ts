@@ -32,7 +32,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     }
 
     const userData = {
-      username: leadDetails.username,
+      // username: leadDetails.username,
       email: leadDetails.email,
       role: USER_ROLE.USER,
       regUserType: 'client',
@@ -143,7 +143,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
-      username: newUser.username,
+      // username: newUser.username,
       role: newUser.role,
       accountStatus: newUser.accountStatus,
     };

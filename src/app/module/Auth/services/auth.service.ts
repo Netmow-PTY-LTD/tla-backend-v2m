@@ -59,7 +59,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   // Create JWT tokens (access and refresh) and return them with user data
   const jwtPayload = {
     userId: user?._id,
-    username: user.username,
+    // username: user.username,
     email: user?.email,
     role: user?.role,
     status: user?.accountStatus,
@@ -250,7 +250,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
-      username: newUser.username,
+      // username: newUser.username,
       role: newUser.role,
       accountStatus: newUser.accountStatus,
     };
@@ -379,7 +379,7 @@ const changePasswordIntoDB = async (
  * @desc   Handles the forgot password process by verifying the user’s status,
  *         generating a password reset token, and sending a reset link via email.
  * @param  {string} userEmail - The email address of the user who requested a password reset.
- * @returns {Promise<void>} Returns nothing, sends an email with the reset link if successful.
+ * @returns  Returns nothing, sends an email with the reset link if successful.
  */
 const forgetPassword = async (userEmail: string) => {
   // Check if the user exists by email
@@ -388,6 +388,7 @@ const forgetPassword = async (userEmail: string) => {
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
   }
+  const userProfile = await UserProfile.findOne({ user: user._id });
 
   // Check if the user is marked as deleted
   const deletedAt = user?.deletedAt;
@@ -407,7 +408,7 @@ const forgetPassword = async (userEmail: string) => {
   // Prepare the payload for the reset token
   const jwtPayload = {
     userId: user?._id,
-    username: user.username,
+    // username: user.username,
     email: user?.email,
     role: user?.role,
   };
@@ -424,10 +425,10 @@ const forgetPassword = async (userEmail: string) => {
 
   // Prepare email content for password reset
   const subject = 'Reset Your Password';
-  const text = `Hi ${user.username},\n\nClick the link below to reset your password:\n${resetUILink}`;
+  const text = `Hi ${userProfile?.name},\n\nClick the link below to reset your password:\n${resetUILink}`;
   const html = `
     <h1>Password Reset Request</h1>
-    <p>Hello, ${user.username}!</p>
+    <p>Hello, ${userProfile?.name}!</p>
     <p>Click the button below to reset your password:</p>
     <a href="${resetUILink}" style="padding: 10px 15px; background-color: #007BFF; color: #fff; text-decoration: none; border-radius: 5px;">
       Reset Password

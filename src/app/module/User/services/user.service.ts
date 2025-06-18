@@ -82,7 +82,7 @@ const updateProfileIntoDB = async (
 const getSingleUserProfileDataIntoDB = async (id: string) => {
   // Retrieve the user's basic information and populate the profile data
   const userProfileInfo = await User.findById(id)
-    .select('username email role accountStatus regUserType') // Select fields from the User model
+    .select(' email role accountStatus regUserType') // Select fields from the User model
     .populate({
       path: 'profile', // Populate the profile field
       select: ' -_id name activeProfile country', // Select specific fields from the UserProfile model
