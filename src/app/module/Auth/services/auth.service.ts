@@ -98,7 +98,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
  * @returns  An object containing the access token, refresh token, and user data.
  */
 
-export const createLeadService = async (
+const createLeadService = async (
   userId: string,
   serviceIds: Types.ObjectId[],
   session?: mongoose.ClientSession,
