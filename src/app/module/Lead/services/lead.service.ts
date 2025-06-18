@@ -8,13 +8,17 @@ const CreateLeadIntoDB = async (payload: ILead) => {
 };
 
 const getAllLeadFromDB = async () => {
-  const countries = await Lead.find({ deletedAt: null });
+  const countries = await Lead.find({ deletedAt: null })
+    .populate('userProfileId')
+    .populate('serviceId');
   return countries;
 };
 
 const getSingleLeadFromDB = async (id: string) => {
   validateObjectId(id, 'Lead');
-  const result = await Lead.findOne({ _id: id, deletedAt: null });
+  const result = await Lead.findOne({ _id: id, deletedAt: null })
+    .populate('userProfileId')
+    .populate('serviceId');
   return result;
 };
 
