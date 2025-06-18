@@ -4,16 +4,28 @@ import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
 
 import router from './app/routes';
-import config from './app/config';
+// import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 const app: Application = express();
 //parsers
 app.use(express.json());
 app.use(cookieParser());
 
+// app.use(
+//   cors({
+//     origin: [`${config.client_url}`, 'http://localhost:3000'],
+//     credentials: true,
+//   }),
+// );
+
 app.use(
   cors({
-    origin: [`${config.client_url}`, 'http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      // Allow all origins
+      return callback(null, true);
+    },
     credentials: true,
   }),
 );
