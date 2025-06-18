@@ -1,4 +1,5 @@
 import { validateObjectId } from '../../../utils/validateObjectId';
+import User from '../../Auth/models/auth.model';
 import { ILead } from '../interfaces/lead.interface';
 import Lead from '../models/lead.model';
 import { LeadServiceAnswer } from '../models/leadServiceAnswer.model';
@@ -18,7 +19,13 @@ const getAllLeadFromDB = async () => {
 const getSingleLeadFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Lead');
   const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
-    .populate('userProfileId')
+    .populate({
+      path: 'userProfileId',
+      populate: {
+        path: 'user',
+        select: 'email ',
+      },
+    })
     .populate('serviceId');
   if (!leadDoc) return null;
   const leadAnswers = await LeadServiceAnswer.find({ leadId: leadId });
