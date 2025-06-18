@@ -11,6 +11,7 @@ import { createToken } from '../utils/auth.utils';
 import config from '../../../config';
 import { StringValue } from 'ms';
 import { USER_ROLE } from '../../../constant';
+import Lead from '../../Lead/models/lead.model';
 
 const clientRegisterUserIntoDB = async (payload: any) => {
   // Start a database session for the transaction
@@ -19,8 +20,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
   try {
     // Separate the profile data from the user data
-    const { formdata: leadDetails, countryId, serviceId, questions } = payload;
-
+    const { leadDetails, countryId, serviceId, questions } = payload;
     // Check if the user already exists by email
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
@@ -51,10 +51,18 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     newUser.profile = newProfile._id;
     await newUser.save({ session });
 
-    // lawyer service map create
+    //  create lead user
 
     if (newUser.regUserType === 'client') {
-      console.log('test');
+      const leadUser = await Lead.create(
+        [
+          {
+            userProfileId: newProfile._id,
+            serviceId,
+          },
+        ],
+        { session },
+      );
     }
 
     const locationGroup = await ZipCode.findOne({

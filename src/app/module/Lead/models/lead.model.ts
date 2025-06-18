@@ -8,7 +8,7 @@ const leadSchema = new Schema<ILead>(
       ref: 'UserProfile',
       required: true,
     },
-    service_id: {
+    serviceId: {
       type: Schema.Types.ObjectId,
       ref: 'Service',
       required: true,
