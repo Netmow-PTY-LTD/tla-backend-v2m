@@ -13,6 +13,10 @@ const leadSchema = new Schema<ILead>(
       ref: 'Service',
       required: true,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

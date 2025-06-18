@@ -11,6 +11,7 @@ import { viewRouter } from '../module/View/routes/view.router';
 import { leadServiceRouter } from '../module/Settings/LeadSettings/routes/leadService.routes';
 import { notificationRouter } from '../module/Settings/Notification/routes/notification.routes';
 import { creditPaymentRouter } from '../module/Settings/CreditPayment/routes/creditPayment.routes';
+import { leadRouter } from '../module/Lead/routes/lead.route';
 
 const router = Router();
 
@@ -55,6 +56,10 @@ const moduleRoutes = [
   {
     path: '/settings/credit-payment',
     route: creditPaymentRouter,
+  },
+  {
+    path: '/lead',
+    route: leadRouter,
   },
   {
     path: '/',
