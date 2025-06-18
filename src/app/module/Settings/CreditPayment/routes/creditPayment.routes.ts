@@ -3,11 +3,26 @@ import { creditPaymentController } from '../controllers/creditPayment.controller
 import auth from '../../../../middlewares/auth';
 import { USER_ROLE } from '../../../../constant';
 import { paymentMethodController } from '../controllers/paymentMethod.controller';
+import validateRequest from '../../../../middlewares/validateRequest';
+import { creditPackageZodValidation } from '../validations/creditPackage.validation';
 
 const router = Router();
 
 // Get available credit packages
-router.get('/packages', creditPaymentController.getCreditPackages);
+router.post(
+  '/packages/add',
+  auth(USER_ROLE.ADMIN),
+  validateRequest(creditPackageZodValidation.creditPackageValidationSchema),
+  creditPaymentController.createCreditPackages,
+);
+router.get('/packages/list', creditPaymentController.getCreditPackages);
+router.patch(
+  '/packages/edit/:creditPackageId',
+  validateRequest(
+    creditPackageZodValidation.creditPackageUpdateValidationSchema,
+  ),
+  creditPaymentController.updateCreditPackages,
+);
 
 // Purchase credits
 router.post(

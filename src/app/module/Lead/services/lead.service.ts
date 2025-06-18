@@ -1,6 +1,8 @@
 import { validateObjectId } from '../../../utils/validateObjectId';
+
 import { ILead } from '../interfaces/lead.interface';
 import Lead from '../models/lead.model';
+import { LeadServiceAnswer } from '../models/leadServiceAnswer.model';
 
 const CreateLeadIntoDB = async (payload: ILead) => {
   const lead = await Lead.create(payload);
@@ -14,12 +16,25 @@ const getAllLeadFromDB = async () => {
   return countries;
 };
 
-const getSingleLeadFromDB = async (id: string) => {
-  validateObjectId(id, 'Lead');
-  const result = await Lead.findOne({ _id: id, deletedAt: null })
-    .populate('userProfileId')
+const getSingleLeadFromDB = async (leadId: string) => {
+  validateObjectId(leadId, 'Lead');
+  const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
+    .populate({
+      path: 'userProfileId',
+      populate: {
+        path: 'user',
+        select: 'email ',
+      },
+    })
     .populate('serviceId');
-  return result;
+  if (!leadDoc) return null;
+  const leadAnswers = await LeadServiceAnswer.find({ leadId: leadId });
+  // Convert lead Mongoose document to plain JS object
+  const lead = leadDoc.toObject();
+  // Attach answers
+  lead.leadAnswers = leadAnswers;
+
+  return lead;
 };
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {

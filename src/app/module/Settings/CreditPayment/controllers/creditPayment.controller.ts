@@ -13,6 +13,31 @@ const getCreditPackages = catchAsync(async (req, res) => {
   });
 });
 
+const createCreditPackages = catchAsync(async (req, res) => {
+  const result = await CreditPaymentService.createCreditPackagesIntoDB(
+    req.body,
+  );
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: 'Credits Package Create Successfully',
+    data: result,
+  });
+});
+const updateCreditPackages = catchAsync(async (req, res) => {
+  const creditPackageId = req.params.creditPackageId;
+  const result = await CreditPaymentService.updateCreditPackagesIntoDB(
+    creditPackageId,
+    req.body,
+  );
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: 'Credits Package Create Successfully',
+    data: result,
+  });
+});
+
 const purchaseCredits = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const result = await CreditPaymentService.purchaseCredits(userId, req.body);
@@ -94,6 +119,7 @@ export const creditPaymentController = {
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
-
+  createCreditPackages,
   getTransactionHistory,
+  updateCreditPackages,
 };
