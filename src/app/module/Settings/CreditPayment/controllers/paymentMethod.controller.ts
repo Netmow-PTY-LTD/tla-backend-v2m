@@ -11,7 +11,7 @@ const getPaymentMethods = catchAsync(async (req, res) => {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'No payment methods retrieved',
-      data: {},
+      data: null,
     });
   }
 

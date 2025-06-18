@@ -12,7 +12,11 @@ import config from '../../../config';
 import { StringValue } from 'ms';
 import { USER_ROLE } from '../../../constant';
 import Lead from '../../Lead/models/lead.model';
+import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+import Option from '../../Service/Option/models/option.model';
+import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const clientRegisterUserIntoDB = async (payload: any) => {
   // Start a database session for the transaction
   const session = await mongoose.startSession();
@@ -54,7 +58,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     //  create lead user
 
     if (newUser.regUserType === 'client') {
-      const leadUser = await Lead.create(
+      // Step 1: Create a new lead entry linked to the user profile and service
+      const [leadUser] = await Lead.create(
         [
           {
             userProfileId: newProfile._id,
@@ -63,8 +68,57 @@ const clientRegisterUserIntoDB = async (payload: any) => {
         ],
         { session },
       );
-    }
 
+      // Step 2: Fetch all questions for the specified country and service
+      const allQuestions = await ServiceWiseQuestion.find({
+        countryId,
+        serviceId,
+      }).lean();
+
+      // Step 3: Extract only the question IDs from the retrieved questions
+      const questionIds = allQuestions.map((q) => q._id);
+
+      // Step 4: Fetch all options for the given service and those question IDs
+      const allOptions = await Option.find({
+        questionId: { $in: questionIds },
+        serviceId,
+      })
+        .lean()
+        .session(session);
+
+      // Step 5: Build a map of user-selected options, grouped by questionId
+      // Example: Map { 'questionId1' => Set('optionId1', 'optionId2') }
+      const selectedMap = new Map(); // Map<questionId, Set<optionId>>
+      for (const q of questions) {
+        selectedMap.set(q.questionId, new Set(q.checkedOptions));
+      }
+
+      // Step 6: Prepare documents to insert into the LeadServiceAnswer collection
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const leadDocs: any[] = [];
+
+      // Step 7: Iterate over all available options and determine if each is selected by the user
+      for (const option of allOptions) {
+        const questionId = option.questionId.toString();
+        // Check if this option was selected by the user
+        const isSelected =
+          selectedMap.has(questionId) &&
+          selectedMap.get(questionId).has(option._id.toString());
+        // Step 8: Add the option with its selection status to the list of documents
+        leadDocs.push({
+          leadId: leadUser._id,
+          serviceId,
+          questionId: option.questionId,
+          optionId: option._id,
+          isSelected,
+        });
+      }
+      // Step 9: Bulk insert all lead service answers into the database
+      if (leadDocs.length > 0) {
+        await LeadServiceAnswer.insertMany(leadDocs, { session });
+      }
+    }
+    //  default location map user wise
     const locationGroup = await ZipCode.findOne({
       countryId: newProfile?.country,
       zipCodeType: 'default',

@@ -1,5 +1,6 @@
 import { Model, Types } from 'mongoose';
 export interface ILead {
+  _id: Types.ObjectId;
   userProfileId: Types.ObjectId;
   serviceId: Types.ObjectId;
 }
