@@ -2,9 +2,27 @@ import { sendNotFoundResponse } from '../../../../errors/custom.error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IBillingAddress } from '../../../User/interfaces/user.interface';
 import UserProfile from '../../../User/models/user.model';
+import { ICreditPackage } from '../interfaces/creditPackage.interface';
 import Coupon from '../models/coupon.model';
 import CreditPackage from '../models/creditPackage.model';
 import Transaction from '../models/transaction.model';
+
+const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
+  const packageCreate = await CreditPackage.create(payload);
+  return packageCreate;
+};
+
+const updateCreditPackagesIntoDB = async (
+  creditPackageId: string,
+  payload: Partial<ICreditPackage>,
+) => {
+  const packageCreate = await CreditPackage.findByIdAndUpdate(
+    creditPackageId,
+    payload,
+    { new: true },
+  );
+  return packageCreate;
+};
 
 const getCreditPackages = async () => {
   return await CreditPackage.find({ isActive: true });
@@ -136,6 +154,7 @@ export const CreditPaymentService = {
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
-
+  createCreditPackagesIntoDB,
   getTransactionHistory,
+  updateCreditPackagesIntoDB,
 };
