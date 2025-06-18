@@ -11,13 +11,13 @@ const app: Application = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// app.use(
-//   cors({
-//     origin: [`${config.client_url}`, 'http://localhost:3000'],
-//     credentials: true,
-//   }),
-// );
-app.use(cors({ origin: '*' }));
+app.use(
+  cors({
+    origin: [`${config.client_url}`, 'http://localhost:3000', '*'],
+    credentials: true,
+  }),
+);
+// app.use(cors({ origin: '*' }));
 
 // application routes
 app.use('/api/v1', router);
