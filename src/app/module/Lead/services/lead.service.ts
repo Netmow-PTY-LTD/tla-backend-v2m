@@ -1,5 +1,5 @@
 import { validateObjectId } from '../../../utils/validateObjectId';
-import User from '../../Auth/models/auth.model';
+
 import { ILead } from '../interfaces/lead.interface';
 import Lead from '../models/lead.model';
 import { LeadServiceAnswer } from '../models/leadServiceAnswer.model';
