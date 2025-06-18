@@ -1,7 +1,8 @@
 import { Model, Types } from 'mongoose';
 export interface ILead {
+  _id: Types.ObjectId;
   userProfileId: Types.ObjectId;
-  service_id: Types.ObjectId;
+  serviceId: Types.ObjectId;
 }
 
 export interface LeadModel extends Model<ILead> {
