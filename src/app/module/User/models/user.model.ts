@@ -64,7 +64,6 @@ const userProfileSchema = new Schema<IUserProfile>(
       {
         type: Schema.Types.ObjectId,
         ref: 'Service',
-        required: true,
       },
     ],
   },

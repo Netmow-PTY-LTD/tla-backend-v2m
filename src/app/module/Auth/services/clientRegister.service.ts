@@ -10,16 +10,16 @@ import { UserLocationServiceMap } from '../../Settings/LeadSettings/models/UserL
 import { createToken } from '../utils/auth.utils';
 import config from '../../../config';
 import { StringValue } from 'ms';
-import { IUser } from '../interfaces/auth.interface';
+import { USER_ROLE } from '../../../constant';
 
-const clientRegisterUserIntoDB = async (payload: IUser) => {
+const clientRegisterUserIntoDB = async (payload: any) => {
   // Start a database session for the transaction
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     // Separate the profile data from the user data
-    const { formdata, countryId, serviceId, questions, profile } = payload;
+    const { formdata: leadDetails, countryId, serviceId, questions } = payload;
 
     // Check if the user already exists by email
     const existingUser = await User.isUserExistsByEmail(payload.email);
@@ -28,15 +28,20 @@ const clientRegisterUserIntoDB = async (payload: IUser) => {
     }
 
     const userData = {
-      email: formdata.email,
+      username: leadDetails.username,
+      email: leadDetails.email,
+      role: USER_ROLE.USER,
+      regUserType: 'client',
+      password: '123456',
     };
     // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
 
     // Prepare the profile data with a reference to the user
     const profileData = {
-      ...profile,
       user: newUser._id,
+      country: countryId,
+      name: leadDetails.name,
     };
 
     // Create the user profile document in the database
