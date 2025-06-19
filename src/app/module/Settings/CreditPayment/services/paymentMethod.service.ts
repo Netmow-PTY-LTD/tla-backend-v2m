@@ -222,7 +222,7 @@ const purchaseCredits = async (
     userId,
     type: 'purchase',
     creditPackageId: packageId,
-    creditAmount: creditPackage.creditAmount,
+    creditAmount: creditPackage.credit,
     amountPaid: finalPrice / 100,
     status: 'completed',
     couponCode,
@@ -231,7 +231,7 @@ const purchaseCredits = async (
   });
 
   // 7. Update user's credit balance and autoTopUp
-  userProfile.credits += creditPackage.creditAmount;
+  userProfile.credits += creditPackage.credit;
   userProfile.autoTopUp = autoTopUp || false;
   await userProfile.save();
 

@@ -99,6 +99,9 @@ const createLeadService = async (
 
       // 5. Update userProfile.serviceIds
       if (successfulServiceIds.length > 0) {
+        if (!userProfile.serviceIds) {
+          userProfile.serviceIds = [];
+        }
         userProfile.serviceIds.push(...successfulServiceIds);
         await userProfile.save({ session });
       }
