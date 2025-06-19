@@ -222,7 +222,7 @@ const purchaseCredits = async (
     userId,
     type: 'purchase',
     creditPackageId: packageId,
-    creditAmount: creditPackage.credit,
+    credit: creditPackage.credit,
     amountPaid: finalPrice / 100,
     status: 'completed',
     couponCode,
