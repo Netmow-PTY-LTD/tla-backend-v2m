@@ -53,7 +53,7 @@ const createSetupIntent = catchAsync(async (req, res) => {
 });
 
 const purchaseCredits = catchAsync(async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const result = await paymentMethodService.purchaseCredits(userId, req.body);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
