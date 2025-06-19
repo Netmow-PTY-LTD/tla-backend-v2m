@@ -9,4 +9,6 @@ router.get(
 );
 router.get('/question-wise-options', viewController.getQuestionWiseOptions);
 
+router.get('/public/users', viewController.getAllUserProfile);
+
 export const viewRouter = router;

@@ -50,12 +50,27 @@ const getQuestionWiseOptions = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getAllUserProfile = catchAsync(async (req, res) => {
+  const result = await viewService.getAllPublicUserProfilesIntoDB();
 
-export const questionWiseOptionsController = {
-  getQuestionWiseOptions,
-};
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: ' User Profile   not found.',
+      data: [],
+    });
+  }
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: ' Get All User Profile retrieved successfully',
+    data: result,
+  });
+});
 
 export const viewController = {
   getSingleServiceWiseQuestion,
   getQuestionWiseOptions,
+  getAllUserProfile,
 };
