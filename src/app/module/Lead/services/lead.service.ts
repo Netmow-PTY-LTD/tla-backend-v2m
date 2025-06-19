@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
 
 import { ILead } from '../interfaces/lead.interface';
@@ -26,10 +27,96 @@ const getSingleLeadFromDB = async (leadId: string) => {
         select: 'email ',
       },
     })
-    .populate('serviceId');
+    .populate({
+      path: 'serviceId',
+      select: 'name slug',
+    });
   if (!leadDoc) return null;
-  const leadAnswers = await LeadServiceAnswer.find({ leadId: leadId });
-  // Convert lead Mongoose document to plain JS object
+  // Fetch lead answers with options and questions
+  const leadAnswers = await LeadServiceAnswer.aggregate([
+    {
+      $match: {
+        leadId: new mongoose.Types.ObjectId(leadId),
+        deletedAt: null,
+      },
+    },
+    {
+      $lookup: {
+        from: 'questions',
+        localField: 'questionId',
+        foreignField: '_id',
+        as: 'question',
+      },
+    },
+    { $unwind: '$question' },
+
+    {
+      $lookup: {
+        from: 'options',
+        localField: 'optionId',
+        foreignField: '_id',
+        as: 'option',
+      },
+    },
+    { $unwind: '$option' },
+
+    // Sort first by question.order then by option.order
+    {
+      $sort: {
+        'question.order': 1,
+        'option.order': 1,
+      },
+    },
+
+    {
+      $group: {
+        _id: '$question._id',
+        questionId: { $first: '$question._id' },
+        questionText: { $first: '$question.question' },
+        questionOrder: { $first: '$question.order' },
+        options: {
+          $push: {
+            optionId: '$option._id',
+            optionText: '$option.name',
+            isSelected: '$isSelected',
+            idExtraData: '$idExtraData',
+            optionOrder: '$option.order',
+          },
+        },
+      },
+    },
+
+    // Sort again to guarantee order after grouping
+    {
+      $sort: { questionOrder: 1 },
+    },
+
+    {
+      $project: {
+        _id: 0,
+        questionId: 1,
+        question: '$questionText',
+        options: {
+          $map: {
+            input: {
+              $sortArray: {
+                input: '$options',
+                sortBy: { optionOrder: 1 },
+              },
+            },
+            as: 'opt',
+            in: {
+              optionId: '$$opt.optionId',
+              optionText: '$$opt.optionText',
+              isSelected: '$$opt.isSelected',
+              idExtraData: '$$opt.idExtraData',
+            },
+          },
+        },
+      },
+    },
+  ]);
+
   const lead = leadDoc.toObject();
   // Attach answers
   lead.leadAnswers = leadAnswers;
