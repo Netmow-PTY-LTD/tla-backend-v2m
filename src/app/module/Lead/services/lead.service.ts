@@ -72,15 +72,15 @@ const getSingleLeadFromDB = async (leadId: string) => {
       $group: {
         _id: '$question._id',
         questionId: { $first: '$question._id' },
-        questionText: { $first: '$question.question' },
-        questionOrder: { $first: '$question.order' },
+        question: { $first: '$question.question' },
+        order: { $first: '$question.order' },
         options: {
           $push: {
             optionId: '$option._id',
-            optionText: '$option.name',
+            option: '$option.name',
             isSelected: '$isSelected',
             idExtraData: '$idExtraData',
-            optionOrder: '$option.order',
+            order: '$option.order',
           },
         },
       },
@@ -88,26 +88,26 @@ const getSingleLeadFromDB = async (leadId: string) => {
 
     // Sort again to guarantee order after grouping
     {
-      $sort: { questionOrder: 1 },
+      $sort: { order: 1 },
     },
 
     {
       $project: {
         _id: 0,
         questionId: 1,
-        question: '$questionText',
+        question: '$question',
         options: {
           $map: {
             input: {
               $sortArray: {
                 input: '$options',
-                sortBy: { optionOrder: 1 },
+                sortBy: { order: 1 },
               },
             },
             as: 'opt',
             in: {
               optionId: '$$opt.optionId',
-              optionText: '$$opt.optionText',
+              option: '$$opt.option',
               isSelected: '$$opt.isSelected',
               idExtraData: '$$opt.idExtraData',
             },
