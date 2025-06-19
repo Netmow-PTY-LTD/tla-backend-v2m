@@ -25,10 +25,16 @@ router.patch(
 );
 
 // Purchase credits
+// router.post(
+//   '/purchase',
+//   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+//   creditPaymentController.purchaseCredits,
+// );
+
 router.post(
   '/purchase',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  creditPaymentController.purchaseCredits,
+  paymentMethodController.purchaseCredits,
 );
 
 // Apply coupon code
