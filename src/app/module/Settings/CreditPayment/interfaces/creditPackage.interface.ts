@@ -2,8 +2,8 @@ export interface ICreditPackage {
   name: string;
   credit: number;
   price: number;
-  priceDisplay?: string;
-  pricePerCredit?: string;
+  priceDisplay?: number;
+  pricePerCredit?: number;
   discountPercentage: number;
   isActive: boolean;
 }
