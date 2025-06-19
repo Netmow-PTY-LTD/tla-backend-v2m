@@ -21,12 +21,12 @@ export interface IUserProfile {
   profilePicture?: string;
   bio?: string;
   phone: string;
-  address: string;
+  address?: string;
   // new field
   businessName?: string;
   credits: number;
   billingAddress?: IBillingAddress;
   paymentMethods: Types.ObjectId[];
-  autoTopUp: boolean;
-  serviceIds: Types.ObjectId[];
+  autoTopUp?: boolean;
+  serviceIds?: Types.ObjectId[];
 }

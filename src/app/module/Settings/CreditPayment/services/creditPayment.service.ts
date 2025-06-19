@@ -1,3 +1,4 @@
+import Stripe from 'stripe';
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IBillingAddress } from '../../../User/interfaces/user.interface';
@@ -6,6 +7,11 @@ import { ICreditPackage } from '../interfaces/creditPackage.interface';
 import Coupon from '../models/coupon.model';
 import CreditPackage from '../models/creditPackage.model';
 import Transaction from '../models/transaction.model';
+import PaymentMethod from '../models/paymentMethod.model';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  // apiVersion: '2023-10-16', // Use your Stripe API version
+});
 
 const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
   const packageCreate = await CreditPackage.create(payload);
@@ -63,7 +69,7 @@ const purchaseCredits = async (
     userId,
     type: 'purchase',
     creditPackageId: packageId,
-    creditAmount: creditPackage.creditAmount,
+    credit: creditPackage.credit,
     amountPaid: finalPrice,
     status: 'completed',
     couponCode,
@@ -74,7 +80,7 @@ const purchaseCredits = async (
   if (!user) {
     return sendNotFoundResponse('User not found');
   }
-  user.credits += creditPackage.creditAmount;
+  user.credits += creditPackage.credit;
   user.autoTopUp = autoTopUp || false;
   await user.save();
 
@@ -138,6 +144,31 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   };
 
   const result = await user.save();
+
+  // 🔄 Sync to Stripe if customer already exists
+  const defaultPaymentMethod = await PaymentMethod.findOne({
+    userProfileId: user._id,
+    isDefault: true,
+  });
+
+  if (defaultPaymentMethod?.stripeCustomerId) {
+    await stripe.customers.update(defaultPaymentMethod.stripeCustomerId, {
+      name: body.contactName,
+      phone: body.phoneNumber,
+      address: {
+        line1: body.addressLine1,
+        line2: body.addressLine2 || undefined,
+        city: body.city,
+        postal_code: body.postcode,
+        country: 'AUD',
+      },
+      metadata: {
+        userId,
+        vatRegistered: body.isVatRegistered ? 'yes' : 'no',
+        vatNumber: body.vatNumber || '',
+      },
+    });
+  }
 
   return result;
 };

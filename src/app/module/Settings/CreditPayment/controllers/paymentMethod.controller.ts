@@ -52,8 +52,20 @@ const createSetupIntent = catchAsync(async (req, res) => {
   });
 });
 
+const purchaseCredits = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const result = await paymentMethodService.purchaseCredits(userId, req.body);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
 export const paymentMethodController = {
   getPaymentMethods,
   addPaymentMethod,
   createSetupIntent,
+  purchaseCredits,
 };
