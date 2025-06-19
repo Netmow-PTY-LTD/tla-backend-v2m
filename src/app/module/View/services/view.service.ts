@@ -133,7 +133,7 @@ const getQuestionWiseOptionsFromDB = async (questionId: string) => {
 
 const getAllPublicUserProfilesIntoDB = async () => {
   // Fetch users with profile populated, and inside profile populate serviceIds and country with their names
-  const rawUsers = await User.find({ deletedAt: null })
+  const rawUsers = await User.find({ deletedAt: null, role: 'user' })
     .select('email profile')
     .populate({
       path: 'profile',
