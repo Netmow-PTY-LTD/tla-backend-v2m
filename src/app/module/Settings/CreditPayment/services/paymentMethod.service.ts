@@ -103,11 +103,29 @@ const getOrCreateCustomer = async (
     return customers.data[0];
   }
 
-  // Create new Stripe customer with metadata for tracking
+  // Get billing address from DB
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    'billingAddress',
+  );
+  const billing = userProfile?.billingAddress;
+
   return await stripe.customers.create({
     email,
+    name: billing?.contactName,
+    phone: billing?.phoneNumber,
+    address: billing
+      ? {
+          line1: billing.addressLine1,
+          line2: billing.addressLine2 || undefined,
+          city: billing.city,
+          postal_code: billing.postcode,
+          country: 'AUD', // You can customize by user country
+        }
+      : undefined,
     metadata: {
-      userId, // Good for Stripe dashboard & webhook tracing
+      userId,
+      vatRegistered: billing?.isVatRegistered ? 'yes' : 'no',
+      vatNumber: billing?.vatNumber || '',
     },
   });
 };
