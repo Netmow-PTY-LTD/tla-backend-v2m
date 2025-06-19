@@ -50,6 +50,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   const existing = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     stripeCustomerId,
+    paymentMethodId: stripePaymentMethod.id,
     email,
     cardLastFour: stripePaymentMethod.card?.last4,
     cardBrand: stripePaymentMethod.card?.brand,
@@ -71,6 +72,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   const savedCard = await PaymentMethod.create({
     userProfileId: userProfile._id,
     stripeCustomerId,
+    paymentMethodId: stripePaymentMethod.id,
     email,
     cardLastFour: stripePaymentMethod.card?.last4,
     cardBrand: stripePaymentMethod.card?.brand,

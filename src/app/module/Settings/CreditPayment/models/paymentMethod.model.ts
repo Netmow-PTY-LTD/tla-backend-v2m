@@ -10,6 +10,7 @@ const paymentMethodSchema = new Schema(
       required: true,
     },
     stripeCustomerId: { type: String },
+    paymentMethodId: { type: String, required: true },
     email: { type: String },
     cardLastFour: { type: String, required: true },
     cardBrand: { type: String, required: true },
