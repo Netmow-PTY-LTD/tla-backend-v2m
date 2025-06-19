@@ -37,7 +37,7 @@ const updateCreditPackages = catchAsync(async (req, res) => {
     data: result,
   });
 });
-
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 const purchaseCredits = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const result = await CreditPaymentService.purchaseCredits(userId, req.body);
@@ -115,7 +115,7 @@ const getTransactionHistory = catchAsync(async (req, res) => {
 
 export const creditPaymentController = {
   getCreditPackages,
-  purchaseCredits,
+  // purchaseCredits,
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
