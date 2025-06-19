@@ -4,6 +4,7 @@ export interface ILead {
   _id: Types.ObjectId;
   userProfileId: Types.ObjectId;
   serviceId: Types.ObjectId;
+  additionalDetails: string;
   deletedAt?: Date | null;
   leadAnswers?: ILeadServiceAnswer[];
 }
