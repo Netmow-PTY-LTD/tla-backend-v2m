@@ -12,6 +12,7 @@ const view_router_1 = require("../module/View/routes/view.router");
 const leadService_routes_1 = require("../module/Settings/LeadSettings/routes/leadService.routes");
 const notification_routes_1 = require("../module/Settings/Notification/routes/notification.routes");
 const creditPayment_routes_1 = require("../module/Settings/CreditPayment/routes/creditPayment.routes");
+const lead_route_1 = require("../module/Lead/routes/lead.route");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -53,6 +54,10 @@ const moduleRoutes = [
     {
         path: '/settings/credit-payment',
         route: creditPayment_routes_1.creditPaymentRouter,
+    },
+    {
+        path: '/lead',
+        route: lead_route_1.leadRouter,
     },
     {
         path: '/',
