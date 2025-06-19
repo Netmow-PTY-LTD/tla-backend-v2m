@@ -1,6 +1,6 @@
 export interface ICreditPackage {
   name: string;
-  creditAmount: number;
+  credit: number;
   price: number;
   priceDisplay?: string;
   pricePerCredit?: string;

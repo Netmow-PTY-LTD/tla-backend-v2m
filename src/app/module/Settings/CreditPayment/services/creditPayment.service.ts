@@ -69,7 +69,7 @@ const purchaseCredits = async (
     userId,
     type: 'purchase',
     creditPackageId: packageId,
-    creditAmount: creditPackage.creditAmount,
+    credit: creditPackage.credit,
     amountPaid: finalPrice,
     status: 'completed',
     couponCode,
@@ -80,7 +80,7 @@ const purchaseCredits = async (
   if (!user) {
     return sendNotFoundResponse('User not found');
   }
-  user.credits += creditPackage.creditAmount;
+  user.credits += creditPackage.credit;
   user.autoTopUp = autoTopUp || false;
   await user.save();
 

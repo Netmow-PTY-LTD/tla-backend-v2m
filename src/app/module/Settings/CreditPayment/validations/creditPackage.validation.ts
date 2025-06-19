@@ -3,7 +3,7 @@ import { z } from 'zod';
 const creditPackageValidationSchema = z.object({
   body: z.object({
     name: z.string().min(1, 'Package name is required'),
-    creditAmount: z.number().min(1, 'Credit amount must be at least 1'),
+    credit: z.number().min(1, 'Credit amount must be at least 1'),
     price: z.number().min(0, 'Price is required and must be a positive number'),
     priceDisplay: z.string().optional(), // Optional display string
     pricePerCredit: z.string().optional(), // Optional string like "£0.50/credit"
@@ -21,10 +21,7 @@ export const creditPackageUpdateValidationSchema = z.object({
   body: z
     .object({
       name: z.string().min(1, 'Package name is required').optional(),
-      creditAmount: z
-        .number()
-        .min(1, 'Credit amount must be at least 1')
-        .optional(),
+      credit: z.number().min(1, 'Credit amount must be at least 1').optional(),
       price: z.number().min(0, 'Price must be a positive number').optional(),
       priceDisplay: z.string().optional(),
       pricePerCredit: z.string().optional(),
