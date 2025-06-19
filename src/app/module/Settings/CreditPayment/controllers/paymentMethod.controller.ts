@@ -57,9 +57,9 @@ const purchaseCredits = catchAsync(async (req, res) => {
   const result = await paymentMethodService.purchaseCredits(userId, req.body);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Credits purchased successfully',
-    data: result,
+    success: result.success,
+    message: result.message,
+    data: result.data,
   });
 });
 

@@ -214,7 +214,7 @@ const purchaseCredits = async (
   });
 
   if (paymentIntent.status !== 'succeeded') {
-    return { success: false, message: 'Payment failed', paymentIntent };
+    return { success: false, message: 'Payment failed', data: paymentIntent };
   }
 
   // 6. Create transaction
@@ -238,9 +238,11 @@ const purchaseCredits = async (
   return {
     success: true,
     message: 'Credits purchased successfully',
-    newBalance: userProfile.credits,
-    transactionId: transaction._id,
-    paymentIntentId: paymentIntent.id,
+    data: {
+      newBalance: userProfile.credits,
+      transactionId: transaction._id,
+      paymentIntentId: paymentIntent.id,
+    },
   };
 };
 
