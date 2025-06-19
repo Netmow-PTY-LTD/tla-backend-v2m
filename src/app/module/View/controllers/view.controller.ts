@@ -69,8 +69,31 @@ const getAllUserProfile = catchAsync(async (req, res) => {
   });
 });
 
+const getSingleUserProfileById = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+
+  const result = await viewService.getPublicUserProfileById(userId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'User Profile not found.',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'User Profile retrieved successfully.',
+    data: result,
+  });
+});
+
 export const viewController = {
   getSingleServiceWiseQuestion,
   getQuestionWiseOptions,
   getAllUserProfile,
+  getSingleUserProfileById,
 };

@@ -202,8 +202,67 @@ const getAllPublicUserProfilesIntoDB = async () => {
   return publicProfiles;
 };
 
+const getPublicUserProfileById = async (userId: string) => {
+  // Fetch a single user by ID, including populated profile → serviceIds + country
+  const rawUser = await User.findOne({
+    _id: userId,
+    deletedAt: null,
+    role: 'user',
+  })
+    .select('email profile')
+    .populate({
+      path: 'profile',
+      match: { deletedAt: null },
+      select:
+        'name bio address profilePicture activeProfile autoTopUp credits serviceIds country',
+      populate: [
+        { path: 'serviceIds', select: 'name' },
+        { path: 'country', select: 'name' },
+      ],
+    })
+    .lean();
+
+  if (!rawUser || !rawUser.profile) return null;
+
+  // Type override
+  const user = rawUser as unknown as Omit<IUser, 'profile'> & {
+    email: string;
+    profile: IUserProfile;
+  };
+
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
+  const name = user.profile.name || '';
+  const slug = generateSlug(name);
+
+  const country = user.profile.country as { name: string } | undefined;
+  const serviceIds =
+    (user.profile.serviceIds as { name: string }[] | undefined) || [];
+
+  return {
+    email: user.email,
+    name,
+    slug,
+    bio: user.profile.bio || '',
+    address: user.profile.address || '',
+    profilePicture: user.profile.profilePicture || '',
+    activeProfile: user.profile.activeProfile || '',
+    autoTopUp: user.profile.autoTopUp || false,
+    credits: user.profile.credits || 0,
+    country: country?.name || '',
+    services: serviceIds.map((service) => service.name || ''),
+  };
+};
+
 export const viewService = {
   getSingleServiceWiseQuestionFromDB,
   getQuestionWiseOptionsFromDB,
   getAllPublicUserProfilesIntoDB,
+  getPublicUserProfileById,
 };
