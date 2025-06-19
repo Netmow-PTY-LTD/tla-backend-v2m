@@ -134,6 +134,7 @@ const createLeadService = async (
   }
 
   // 5. Append and save new serviceIds
+  userProfile.serviceIds = userProfile.serviceIds || [];
   userProfile.serviceIds.push(...newServiceIds);
   await userProfile.save({ session });
 
