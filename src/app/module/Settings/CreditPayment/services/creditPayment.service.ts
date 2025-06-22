@@ -1,12 +1,34 @@
+import Stripe from 'stripe';
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import { IBillingAddress } from '../../../User/interfaces/user.interface';
 import UserProfile from '../../../User/models/user.model';
-import { IPaymentMethod } from '../interfaces/paymentMethod.interface';
+import { ICreditPackage } from '../interfaces/creditPackage.interface';
 import Coupon from '../models/coupon.model';
 import CreditPackage from '../models/creditPackage.model';
-import PaymentMethod from '../models/paymentMethod.model';
 import Transaction from '../models/transaction.model';
+import PaymentMethod from '../models/paymentMethod.model';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  // apiVersion: '2023-10-16', // Use your Stripe API version
+});
+
+const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
+  const packageCreate = await CreditPackage.create(payload);
+  return packageCreate;
+};
+
+const updateCreditPackagesIntoDB = async (
+  creditPackageId: string,
+  payload: Partial<ICreditPackage>,
+) => {
+  const packageCreate = await CreditPackage.findByIdAndUpdate(
+    creditPackageId,
+    payload,
+    { new: true },
+  );
+  return packageCreate;
+};
 
 const getCreditPackages = async () => {
   return await CreditPackage.find({ isActive: true });
@@ -47,7 +69,7 @@ const purchaseCredits = async (
     userId,
     type: 'purchase',
     creditPackageId: packageId,
-    creditAmount: creditPackage.creditAmount,
+    credit: creditPackage.credit,
     amountPaid: finalPrice,
     status: 'completed',
     couponCode,
@@ -58,7 +80,7 @@ const purchaseCredits = async (
   if (!user) {
     return sendNotFoundResponse('User not found');
   }
-  user.credits += creditPackage.creditAmount;
+  user.credits += creditPackage.credit;
   user.autoTopUp = autoTopUp || false;
   await user.save();
 
@@ -123,26 +145,32 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
 
   const result = await user.save();
 
-  return result;
-};
-
-const getPaymentMethods = async (userId: string) => {
-  return await PaymentMethod.find({ userId });
-};
-
-const addPaymentMethod = async (
-  userId: string,
-  body: IPaymentMethod,
-): Promise<InstanceType<typeof PaymentMethod>> => {
-  const { cardLastFour, cardBrand, expiryMonth, expiryYear } = body;
-
-  return await PaymentMethod.create({
-    userId,
-    cardLastFour,
-    cardBrand,
-    expiryMonth,
-    expiryYear,
+  // 🔄 Sync to Stripe if customer already exists
+  const defaultPaymentMethod = await PaymentMethod.findOne({
+    userProfileId: user._id,
+    isDefault: true,
   });
+
+  if (defaultPaymentMethod?.stripeCustomerId) {
+    await stripe.customers.update(defaultPaymentMethod.stripeCustomerId, {
+      name: body.contactName,
+      phone: body.phoneNumber,
+      address: {
+        line1: body.addressLine1,
+        line2: body.addressLine2 || undefined,
+        city: body.city,
+        postal_code: body.postcode,
+        country: 'AUD',
+      },
+      metadata: {
+        userId,
+        vatRegistered: body.isVatRegistered ? 'yes' : 'no',
+        vatNumber: body.vatNumber || '',
+      },
+    });
+  }
+
+  return result;
 };
 
 const getTransactionHistory = async (userId: string) => {
@@ -157,7 +185,7 @@ export const CreditPaymentService = {
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
-  getPaymentMethods,
-  addPaymentMethod,
+  createCreditPackagesIntoDB,
   getTransactionHistory,
+  updateCreditPackagesIntoDB,
 };

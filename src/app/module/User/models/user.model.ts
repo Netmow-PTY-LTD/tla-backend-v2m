@@ -33,6 +33,14 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
     },
+    address: {
+      type: String,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
     deletedAt: {
       type: Date,
       default: null,
@@ -52,6 +60,12 @@ const userProfileSchema = new Schema<IUserProfile>(
     },
     paymentMethods: [{ type: Schema.Types.ObjectId, ref: 'PaymentMethod' }],
     autoTopUp: { type: Boolean, default: false },
+    serviceIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Service',
+      },
+    ],
   },
   {
     versionKey: false,

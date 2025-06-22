@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { JwtPayload } from 'jsonwebtoken';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import User from '../../Auth/models/auth.model';
 import { IUserProfile } from '../interfaces/user.interface';
 
-import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
 import UserProfile from '../models/user.model';
@@ -16,6 +16,7 @@ import Accreditation from '../models/ProfileAccreditation';
 import ProfileCustomService from '../models/profileServiceCoustom.model';
 import ProfileQA from '../models/ProfileQAS';
 import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
+import mongoose, { Document } from 'mongoose';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -81,7 +82,7 @@ const updateProfileIntoDB = async (
 const getSingleUserProfileDataIntoDB = async (id: string) => {
   // Retrieve the user's basic information and populate the profile data
   const userProfileInfo = await User.findById(id)
-    .select('username email role accountStatus regUserType') // Select fields from the User model
+    .select(' email role accountStatus regUserType') // Select fields from the User model
     .populate({
       path: 'profile', // Populate the profile field
       select: ' -_id name activeProfile country', // Select specific fields from the UserProfile model
@@ -125,11 +126,14 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
   }
 
   // 2. Get the user + profile
-  const userData = await User.findById(user.userId)
-
-    .populate<{ profile: mongoose.Document }>({
-      path: 'profile',
-    });
+  const userData = await User.findById(user.userId).populate({
+    path: 'profile',
+    model: 'UserProfile',
+    populate: {
+      path: 'serviceIds',
+      model: 'Service', // or whatever your actual model name is
+    },
+  });
 
   if (!userData || !userData.profile || typeof userData.profile === 'string') {
     return sendNotFoundResponse('user profile data not found');
@@ -158,7 +162,10 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
 
   // 4. Convert to plain object to remove Mongoose internals
   const plainUser = userData.toObject();
-  const plainProfile = userData.profile.toObject();
+  // const plainProfile = userData?.profile?.toObject();
+  const plainProfile = (
+    userData.profile as unknown as Document & { toObject: () => any }
+  ).toObject();
 
   // Optional: Map the answers to question labels (sorted as in PROFILE_QUESTIONS)
   const sortedQA = PROFILE_QUESTIONS.map((q) => {

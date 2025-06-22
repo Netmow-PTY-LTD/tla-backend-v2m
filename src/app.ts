@@ -11,9 +11,31 @@ const app: Application = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// app.use(
+//   cors({
+//     origin: [`${config.client_url}`, 'http://localhost:3000'],
+//     credentials: true,
+//   }),
+// );
+
+const allowedOrigins = [
+  'http://localhost:3000', // local dev
+  `${config.client_url}`, // deployed frontend
+];
+
 app.use(
   cors({
-    origin: [`${config.client_url}`, 'http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      // Allow all origins
+      if (allowedOrigins.includes(origin)) {
+        // Allow web origins you trust
+        return callback(null, true);
+      }
+      // Reject unknown origins (optional: allow all for full open API)
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   }),
 );

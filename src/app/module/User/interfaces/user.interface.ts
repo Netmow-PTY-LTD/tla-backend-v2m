@@ -20,10 +20,13 @@ export interface IUserProfile {
   deletedAt?: Date | null;
   profilePicture?: string;
   bio?: string;
+  phone: string;
+  address?: string;
   // new field
   businessName?: string;
   credits: number;
   billingAddress?: IBillingAddress;
   paymentMethods: Types.ObjectId[];
-  autoTopUp: boolean;
+  autoTopUp?: boolean;
+  serviceIds?: Types.ObjectId[];
 }

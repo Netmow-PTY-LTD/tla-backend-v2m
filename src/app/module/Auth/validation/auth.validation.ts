@@ -4,7 +4,7 @@ import { profileValidationSchema } from '../../User/validations/user.validation'
 // Validation schema for creating or updating a user
 const userZodValidationSchema = z.object({
   body: z.object({
-    username: z.string({ required_error: 'username is Required' }),
+    // username: z.string({ required_error: 'username is Required' }),
     email: z.string().email('Invalid email address'),
     role: z.string().min(1, 'Role is required'),
     regUserType: z.enum(['client', 'lawyer', 'admin']),

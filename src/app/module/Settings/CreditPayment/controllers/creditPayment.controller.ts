@@ -13,6 +13,31 @@ const getCreditPackages = catchAsync(async (req, res) => {
   });
 });
 
+const createCreditPackages = catchAsync(async (req, res) => {
+  const result = await CreditPaymentService.createCreditPackagesIntoDB(
+    req.body,
+  );
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: 'Credits Package Create Successfully',
+    data: result,
+  });
+});
+const updateCreditPackages = catchAsync(async (req, res) => {
+  const creditPackageId = req.params.creditPackageId;
+  const result = await CreditPaymentService.updateCreditPackagesIntoDB(
+    creditPackageId,
+    req.body,
+  );
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: 'Credits Package Create Successfully',
+    data: result,
+  });
+});
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 const purchaseCredits = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const result = await CreditPaymentService.purchaseCredits(userId, req.body);
@@ -76,29 +101,6 @@ const updateBillingDetails = catchAsync(async (req, res) => {
   });
 });
 
-const getPaymentMethods = catchAsync(async (req, res) => {
-  const methods = await CreditPaymentService.getPaymentMethods(req.user.userId);
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Payment methods retrieved',
-    data: methods,
-  });
-});
-
-const addPaymentMethod = catchAsync(async (req, res) => {
-  const result = await CreditPaymentService.addPaymentMethod(
-    req.user.userId,
-    req.body,
-  );
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Payment method added',
-    data: result,
-  });
-});
-
 const getTransactionHistory = catchAsync(async (req, res) => {
   const result = await CreditPaymentService.getTransactionHistory(
     req.user.userId,
@@ -113,11 +115,11 @@ const getTransactionHistory = catchAsync(async (req, res) => {
 
 export const creditPaymentController = {
   getCreditPackages,
-  purchaseCredits,
+  // purchaseCredits,
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
-  getPaymentMethods,
-  addPaymentMethod,
+  createCreditPackages,
   getTransactionHistory,
+  updateCreditPackages,
 };

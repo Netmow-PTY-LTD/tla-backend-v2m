@@ -6,7 +6,7 @@ const transactionSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   type: { type: String, enum: ['purchase', 'refund', 'usage'], required: true },
   creditPackageId: { type: Schema.Types.ObjectId, ref: 'CreditPackage' },
-  creditAmount: { type: Number, required: true },
+  credit: { type: Number, required: true },
   amountPaid: { type: Number }, // in base currency (e.g., pence/cents)
   currency: { type: String, default: 'GBP' },
   status: {

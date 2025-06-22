@@ -8,6 +8,13 @@ export interface ICountry {
   deletedAt?: Date | null;
 }
 
+export interface ICountryWiseLocationGroup {
+  countryId: Types.ObjectId;
+  locationGroupName?: string; // e.g., 'nation', '1000', '2000'
+  latitude?: number;
+  longitude?: number;
+}
+
 export interface CountryModel extends Model<ICountry> {
   // eslint-disable-next-line no-unused-vars
   isCountryExists(id: string): Promise<ICountry>;

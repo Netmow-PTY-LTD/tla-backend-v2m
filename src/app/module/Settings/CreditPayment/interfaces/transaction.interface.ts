@@ -4,7 +4,7 @@ export interface ITransaction {
   userId: Types.ObjectId;
   type: 'purchase' | 'refund' | 'usage';
   creditPackageId?: Types.ObjectId;
-  creditAmount: number;
+  credit: number;
   amountPaid?: number;
   currency: string;
   status: 'pending' | 'completed' | 'failed';

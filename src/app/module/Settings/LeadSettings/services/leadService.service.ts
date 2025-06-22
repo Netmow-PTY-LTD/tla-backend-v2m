@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../../../errors/custom.error';
 
@@ -5,196 +6,269 @@ import UserProfile from '../../../User/models/user.model';
 import {
   ILeadService,
   IUpdateLeadServiceAnswers,
+  IUserLocationServiceMap,
 } from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
 import { validateObjectId } from '../../../../utils/validateObjectId';
 import ServiceWiseQuestion from '../../../Service/Question/models/ServiceWiseQuestion.model';
+import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
+
+import Option from '../../../Service/Option/models/option.model';
+import ZipCode from '../../../Geo/Country/models/zipcode.model';
 
 const createLeadService = async (
   userId: string,
   payload: {
     serviceIds: Types.ObjectId[];
-    locations: string[];
-    onlineEnabled: boolean;
   },
 ) => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
-  if (!userProfile) sendNotFoundResponse('User profile not found');
+  const session = await mongoose.startSession();
 
-  payload.serviceIds.forEach((id) =>
-    validateObjectId(id.toString(), 'service'),
-  );
+  try {
+    await session.withTransaction(async () => {
+      // 1. Find user profile
+      const userProfile = await UserProfile.findOne({ user: userId })
+        .select('_id serviceIds country')
+        .session(session);
 
-  const objectServiceIds = payload.serviceIds.map(
-    (id) => new mongoose.Types.ObjectId(id),
-  );
+      if (!userProfile) {
+        sendNotFoundResponse('User profile not found');
+        return;
+      }
 
-  const existing = await LeadService.find({
-    userProfileId: userProfile?._id,
-    serviceId: { $in: objectServiceIds },
-  }).select('serviceId');
+      // 2. Validate service IDs
+      payload.serviceIds.forEach((id) =>
+        validateObjectId(id.toString(), 'service'),
+      );
 
-  const existingServiceIds = new Set(
-    existing.map((e) => e.serviceId.toString()),
-  );
-  const newServiceIds = objectServiceIds.filter(
-    (id) => !existingServiceIds.has(id.toString()),
-  );
+      const objectServiceIds = payload.serviceIds.map(
+        (id) => new mongoose.Types.ObjectId(id),
+      );
 
-  if (newServiceIds.length === 0) {
-    throw {
-      status: 409,
-      message: 'All selected services already exist for this user',
-      duplicates: Array.from(existingServiceIds),
-    };
-  }
+      // 3. Filter only new service IDs
+      const existingServiceIds = new Set(
+        userProfile?.serviceIds?.map((id) => id.toString()),
+      );
 
-  // Fetch questions for each new service and attach with empty selectedOptionIds
-  const allQuestions = await ServiceWiseQuestion.find({
-    serviceId: { $in: newServiceIds },
-    deletedAt: null,
-  }).select('_id serviceId');
+      const newServiceIds = objectServiceIds.filter(
+        (id) => !existingServiceIds.has(id.toString()),
+      );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const groupedQuestions: Record<string, any[]> = {};
-  allQuestions.forEach((q) => {
-    const serviceIdStr = q.serviceId.toString();
-    if (!groupedQuestions[serviceIdStr]) groupedQuestions[serviceIdStr] = [];
-    groupedQuestions[serviceIdStr].push({
-      questionId: q._id,
-      selectedOptionIds: [],
+      if (newServiceIds.length === 0) {
+        throw {
+          status: 409,
+          message: 'All selected services already exist for this user',
+          duplicates: Array.from(existingServiceIds),
+        };
+      }
+
+      const successfulServiceIds: Types.ObjectId[] = [];
+
+      // 4. Create LeadService documents for each new service
+      for (const serviceId of newServiceIds) {
+        const questions = await ServiceWiseQuestion.find({ serviceId }).session(
+          session,
+        );
+
+        let totalCreated = 0;
+
+        for (const question of questions) {
+          const options = await Option.find({
+            questionId: question._id,
+            serviceId,
+          }).session(session);
+
+          if (options.length > 0) {
+            const docs = options.map((option) => ({
+              userProfileId: userProfile._id,
+              serviceId,
+              questionId: question._id,
+              optionId: option._id,
+              isSelected: true,
+            }));
+
+            const result = await LeadService.insertMany(docs, { session });
+            totalCreated += result.length;
+          }
+        }
+
+        if (totalCreated > 0) {
+          successfulServiceIds.push(serviceId);
+        }
+      }
+
+      // 5. Update userProfile.serviceIds
+      if (successfulServiceIds.length > 0) {
+        if (!userProfile.serviceIds) {
+          userProfile.serviceIds = [];
+        }
+        userProfile.serviceIds.push(...successfulServiceIds);
+        await userProfile.save({ session });
+      }
+
+      // 6. Update UserLocationServiceMap
+      const locationGroup = await ZipCode.findOne({
+        countryId: userProfile.country,
+        zipCodeType: 'default',
+      }).session(session);
+
+      if (!locationGroup) {
+        throw {
+          status: 404,
+          message: 'Default location group not found',
+        };
+      }
+
+      await UserLocationServiceMap.findOneAndUpdate(
+        {
+          userProfileId: userProfile._id,
+          locationGroupId: locationGroup._id,
+          locationType: 'nation_wide',
+        },
+        {
+          $addToSet: {
+            serviceIds: { $each: successfulServiceIds },
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+          session,
+        },
+      );
     });
-  });
 
-  const newLeadServices = newServiceIds.map((serviceId) => ({
-    serviceId,
-    userProfileId: userProfile?._id,
-    locations: payload.locations,
-    onlineEnabled: payload.onlineEnabled,
-    questions: groupedQuestions[serviceId.toString()] || [],
-  }));
-
-  const created = await LeadService.insertMany(newLeadServices);
-  return created;
+    return {
+      success: true,
+      message: 'Lead services created and profile updated successfully',
+    };
+  } catch (error) {
+    console.error('Transaction failed:', error);
+    throw error;
+  } finally {
+    await session.endSession();
+  }
 };
 
 const getLeadServicesWithQuestions = async (userId: string) => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
-  if (!userProfile) sendNotFoundResponse('User profile not found');
+  // 1. Fetch user profile
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    '_id serviceIds',
+  );
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
+  }
 
-  const leadServices = await LeadService.aggregate([
-    { $match: { userProfileId: userProfile?._id } },
-    {
-      $addFields: {
-        originalQuestions: '$questions', // preserve leadService.questions
-      },
-    },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'serviceId',
-        foreignField: '_id',
-        as: 'service',
-      },
-    },
-    { $unwind: '$service' },
-    {
-      $lookup: {
-        from: 'questions',
-        let: { serviceId: '$service._id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ['$serviceId', '$$serviceId'] },
-              deletedAt: null,
-            },
-          },
-          {
-            $lookup: {
-              from: 'options',
-              localField: '_id',
-              foreignField: 'questionId',
-              as: 'options',
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              question: 1,
-              slug: 1,
-              questionType: 1,
-              options: { _id: 1, name: 1, slug: 1 },
-            },
-          },
-        ],
-        as: 'questions',
-      },
-    },
-    {
-      $addFields: {
-        questions: {
-          $map: {
-            input: '$questions',
-            as: 'q',
-            in: {
-              $mergeObjects: [
-                '$$q',
-                {
-                  selectedOptionIds: {
-                    $let: {
-                      vars: {
-                        matched: {
-                          $first: {
-                            $filter: {
-                              input: '$originalQuestions',
-                              as: 'oq',
-                              cond: {
-                                $eq: ['$$oq.questionId', '$$q._id'],
-                              },
-                            },
-                          },
-                        },
-                      },
-                      in: {
-                        $ifNull: ['$$matched.selectedOptionIds', []],
-                      },
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        serviceName: '$service.name',
-        serviceId: '$service._id',
-        locations: 1,
-        onlineEnabled: 1,
-        questions: 1,
-      },
-    },
-  ]);
+  // 2. Fetch relevant lead services
+  const leadServices = await LeadService.find({
+    userProfileId: userProfile._id,
+    serviceId: { $in: userProfile.serviceIds },
+  })
+    .populate('serviceId')
+    .populate('questionId')
+    .populate('optionId');
 
-  return leadServices;
+  // 3. Organize data
+  const grouped: Record<
+    string,
+    {
+      service: any;
+      questionsMap: Record<string, { question: any; options: any[] }>;
+    }
+  > = {};
+
+  for (const item of leadServices) {
+    const serviceId = (item.serviceId as any)._id.toString();
+    const questionId = (item.questionId as any)._id.toString();
+
+    // Initialize service group
+    if (!grouped[serviceId]) {
+      grouped[serviceId] = {
+        service: item.serviceId,
+        questionsMap: {},
+      };
+    }
+
+    // Initialize question group
+    if (!grouped[serviceId].questionsMap[questionId]) {
+      grouped[serviceId].questionsMap[questionId] = {
+        question: item.questionId,
+        options: [],
+      };
+    }
+
+    // Push the option
+    grouped[serviceId].questionsMap[questionId].options.push({
+      option: item.optionId,
+      isSelected: item.isSelected,
+      idExtraData: item.idExtraData,
+    });
+  }
+
+  // 4. Convert grouped object to array structure
+  const service = Object.values(grouped).map(({ service, questionsMap }) => ({
+    service,
+    questions: Object.values(questionsMap).map(({ question, options }) => ({
+      question,
+      options,
+    })),
+  }));
+
+  const locations = await UserLocationServiceMap.find({
+    userProfileId: userProfile._id,
+  }).populate({
+    path: 'locationGroupId',
+    populate: {
+      path: 'countryId',
+      model: 'Country',
+    },
+  });
+
+  return {
+    service,
+    locations,
+  };
 };
+
+// const updateLocations = async (
 
 const updateLocations = async (
-  serviceId: string,
-  locations: string[],
-): Promise<ILeadService | null> => {
-  // Validate ObjectId format
-  validateObjectId(serviceId, 'lead Service ID');
-  return await LeadService.findByIdAndUpdate(
-    serviceId,
-    { locations },
-    { new: true },
+  userId: string,
+  locations: Partial<IUserLocationServiceMap>,
+) => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
+  }
+
+  if (!locations.locationGroupId || !locations.locationType) {
+    throw new Error(
+      'Both locationGroupId and locationType are required to update location',
+    );
+  }
+
+  const result = await UserLocationServiceMap.findOneAndUpdate(
+    {
+      userProfileId: userProfile._id,
+      locationGroupId: locations.locationGroupId,
+      locationType: locations.locationType,
+    },
+    {
+      $set: {
+        ...locations,
+        userProfileId: userProfile._id,
+      },
+    },
+    {
+      new: true,
+      upsert: true, // create if not exists
+      setDefaultsOnInsert: true,
+    },
   );
+
+  return result;
 };
 
-// Toggle online status
 const toggleOnlineEnabled = async (
   leadServiceId: string,
   onlineEnabled: boolean,
@@ -208,41 +282,144 @@ const toggleOnlineEnabled = async (
   );
 };
 
-export const deleteLeadService = async (leadServiceId: string) => {
-  // Validate ObjectId format
-  validateObjectId(leadServiceId, 'lead Service ID');
+const deleteLeadService = async (userId: string, serviceId: string) => {
+  validateObjectId(serviceId, 'Service ID');
 
-  // Check if the service exists
-  const service = await LeadService.findById(leadServiceId);
-  if (!service) {
-    sendNotFoundResponse('Lead service not found');
+  const session = await mongoose.startSession();
+
+  try {
+    let deleteResult: any = null;
+
+    await session.withTransaction(async () => {
+      // 1. Fetch user profile with session
+      const userProfile = await UserProfile.findOne({ user: userId })
+        .select('_id serviceIds')
+        .session(session);
+      if (!userProfile) {
+        throw new Error('User profile not found');
+      }
+
+      // 2. Delete LeadService records for user and service
+      deleteResult = await LeadService.deleteMany({
+        userProfileId: userProfile._id,
+        serviceId: new mongoose.Types.ObjectId(serviceId),
+      }).session(session);
+
+      if (deleteResult.deletedCount === 0) {
+        throw new Error('No lead service entries found for this service.');
+      }
+
+      // 3. Remove serviceId from userProfile.serviceIds array
+      await UserProfile.updateOne(
+        { _id: userProfile._id },
+        { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
+        { session },
+      );
+
+      // 4. Remove serviceId from UserLocationServiceMap.serviceIds array
+      await UserLocationServiceMap.findOneAndUpdate(
+        { userProfileId: userProfile._id },
+        { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
+        { session },
+      );
+    });
+
+    return {
+      message: `Deleted ${deleteResult.deletedCount} lead service record(s) and removed serviceId from user profile.`,
+    };
+  } catch (error) {
+    console.error('Transaction failed:', error);
+    // You can customize error handling here or rethrow
+    throw error;
+  } finally {
+    await session.endSession();
   }
-
-  // Delete the service
-  const result = await LeadService.findByIdAndDelete(leadServiceId);
-  return result;
 };
 
-//  udate api
-
 const updateLeadServiceAnswersIntoDB = async (
-  leadServiceId: string,
+  userId: string,
+  serviceId: string,
   answers: IUpdateLeadServiceAnswers[],
+  selectedLocationData: Array<{
+    locationsId: string;
+    serviceIds: string[];
+  }>,
+  selectedOptionExtraData: Array<{
+    questionId: string;
+    optionId: string;
+    idExtraData: string;
+  }>,
 ) => {
-  // console.log('leadServiceId,answers', leadServiceId, answers);
-  const leadService = await LeadService.findById(leadServiceId);
-  if (!leadService) {
-    return sendNotFoundResponse('Lead service not found');
+  // ✅ Find the associated user profile
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
   }
 
-  // Update answers
-  leadService.questions = answers?.map((q) => ({
-    questionId: q.questionId,
-    selectedOptionIds: q.selectedOptionIds,
-  }));
+  const selectedOptionMap = new Map<string, Set<string>>();
+  for (const answer of answers) {
+    const questionIdStr = answer.questionId.toString(); // Convert ObjectId to string
+    const selectedOptionIdsStr = answer.selectedOptionIds.map((id) =>
+      id.toString(),
+    ); // Convert all OptionIds to string
 
-  await leadService.save();
-  return leadService;
+    selectedOptionMap.set(questionIdStr, new Set(selectedOptionIdsStr));
+  }
+
+  // ✅ Create a lookup map for extraData
+  const extraDataMap = new Map<string, string>(); // key = `${questionId}_${optionId}`
+  for (const extra of selectedOptionExtraData || []) {
+    const key = `${extra.questionId}_${extra.optionId}`;
+    extraDataMap.set(key, extra.idExtraData);
+  }
+
+  // ✅ Get all existing LeadService records for this user and service
+  const allRecords = await LeadService.find({
+    userProfileId: userProfile._id,
+    serviceId,
+  });
+
+  // ✅ Prepare bulk update operations
+  const bulkOps = allRecords.map((record) => {
+    const qId = record.questionId.toString();
+    const oId = record.optionId.toString();
+    const isSelected =
+      selectedOptionMap.has(qId) && selectedOptionMap.get(qId)!.has(oId);
+
+    const updateData: any = { isSelected };
+
+    // ✅ Check if extraData should be added
+    const extraKey = `${qId}_${oId}`;
+    if (extraDataMap.has(extraKey)) {
+      updateData.idExtraData = extraDataMap.get(extraKey);
+    }
+
+    return {
+      updateOne: {
+        filter: { _id: record._id },
+        update: updateData,
+      },
+    };
+  });
+
+  // ✅ Execute in bulk if there's anything to update
+  if (bulkOps.length > 0) {
+    await LeadService.bulkWrite(bulkOps);
+  }
+
+  // ✅ Update location-service mappings
+  if (Array.isArray(selectedLocationData) && selectedLocationData.length > 0) {
+    for (const location of selectedLocationData) {
+      const { locationsId, serviceIds } = location;
+      await UserLocationServiceMap.findOneAndUpdate(
+        { _id: locationsId },
+        { serviceIds },
+        { new: true, upsert: false }, // Avoid creating new if not found
+      );
+    }
+  }
+
+  return { message: 'Lead service answers and locations updated successfully' };
 };
 
 export const LeadServiceService = {

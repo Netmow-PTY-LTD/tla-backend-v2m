@@ -12,7 +12,7 @@ export interface ILoginUser {
 
 export interface IUser {
   _id?: string;
-  username: string;
+  // username: string;
   email: string;
   role: TUserRole;
   password: string;

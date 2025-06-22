@@ -8,11 +8,20 @@ import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
 import CompanyProfile from '../../User/models/companyProfile.model';
+import { UserLocationServiceMap } from '../../Settings/LeadSettings/models/UserLocationServiceMap.model';
+
+import { validateObjectId } from '../../../utils/validateObjectId';
+import LeadService from '../../Settings/LeadSettings/models/leadService.model';
+import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+import ZipCode from '../../Geo/Country/models/zipcode.model';
+import Option from '../../Service/Option/models/option.model';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
  *         Checks if the user exists, if the account is deleted or suspended,
@@ -50,7 +59,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   // Create JWT tokens (access and refresh) and return them with user data
   const jwtPayload = {
     userId: user?._id,
-    username: user.username,
+    // username: user.username,
     email: user?.email,
     role: user?.role,
     status: user?.accountStatus,
@@ -88,6 +97,79 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
  * @param  {IUser} payload - The user registration data.
  * @returns  An object containing the access token, refresh token, and user data.
  */
+
+const createLeadService = async (
+  userId: string,
+  serviceIds: Types.ObjectId[],
+  session?: mongoose.ClientSession,
+) => {
+  // 1. Find user profile by userId
+  const userProfile = await UserProfile.findOne({ user: userId })
+    .select('_id serviceIds')
+    .session(session || null);
+
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
+  }
+
+  // 2. Validate all serviceIds
+  serviceIds.forEach((id) => validateObjectId(id.toString(), 'service'));
+
+  // 3. Compare with existing serviceIds in userProfile
+  const existingServiceIds = new Set(
+    (userProfile.serviceIds || []).map((id: Types.ObjectId) => id.toString()),
+  );
+
+  const newServiceIds = serviceIds.filter(
+    (id) => !existingServiceIds.has(id.toString()),
+  );
+
+  // 4. If all services already exist, return conflict response
+  if (newServiceIds.length === 0) {
+    throw {
+      status: 409,
+      message: 'All selected services already exist for this user',
+      duplicates: Array.from(existingServiceIds),
+    };
+  }
+
+  // 5. Append and save new serviceIds
+  userProfile.serviceIds = userProfile.serviceIds || [];
+  userProfile.serviceIds.push(...newServiceIds);
+  await userProfile.save({ session });
+
+  // 6. Create lead service entries
+  for (const serviceId of newServiceIds) {
+    const questions = await ServiceWiseQuestion.find({ serviceId }).session(
+      session ?? null,
+    );
+
+    for (const question of questions) {
+      const options = await Option.find({
+        questionId: question._id,
+        serviceId,
+      }).session(session ?? null);
+
+      const leadServiceInserts = options.map((option) => ({
+        userProfileId: userProfile._id,
+        serviceId,
+        questionId: question._id,
+        optionId: option._id,
+        isSelected: true,
+      }));
+
+      if (leadServiceInserts.length) {
+        await LeadService.insertMany(leadServiceInserts, { session });
+      }
+    }
+  }
+
+  return {
+    userProfileId: userProfile._id,
+    newServiceIds,
+  };
+};
+
 const registerUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
   const session = await mongoose.startSession();
@@ -132,6 +214,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     }
 
     // lawyer service map create
+
     if (newUser.regUserType === 'lawyer') {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
@@ -141,6 +224,25 @@ const registerUserIntoDB = async (payload: IUser) => {
       await LawyerServiceMap.create([lawyerServiceMapData], { session });
     }
 
+    const locationGroup = await ZipCode.findOne({
+      countryId: newProfile?.country,
+      zipCodeType: 'default',
+    });
+
+    const userLocationServiceMapData = {
+      userProfileId: newProfile._id,
+      locationGroupId: locationGroup?._id,
+      locationType: 'nation_wide',
+      serviceIds: lawyerServiceMap.services || [],
+    };
+
+    await UserLocationServiceMap.create([userLocationServiceMapData], {
+      session,
+    });
+
+    // ✅ Create lead service entries using session
+    await createLeadService(newUser?._id, lawyerServiceMap.services, session);
+
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
     session.endSession();
@@ -149,7 +251,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
-      username: newUser.username,
+      // username: newUser.username,
       role: newUser.role,
       accountStatus: newUser.accountStatus,
     };
@@ -278,7 +380,7 @@ const changePasswordIntoDB = async (
  * @desc   Handles the forgot password process by verifying the user’s status,
  *         generating a password reset token, and sending a reset link via email.
  * @param  {string} userEmail - The email address of the user who requested a password reset.
- * @returns {Promise<void>} Returns nothing, sends an email with the reset link if successful.
+ * @returns  Returns nothing, sends an email with the reset link if successful.
  */
 const forgetPassword = async (userEmail: string) => {
   // Check if the user exists by email
@@ -287,6 +389,7 @@ const forgetPassword = async (userEmail: string) => {
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
   }
+  const userProfile = await UserProfile.findOne({ user: user._id });
 
   // Check if the user is marked as deleted
   const deletedAt = user?.deletedAt;
@@ -306,7 +409,7 @@ const forgetPassword = async (userEmail: string) => {
   // Prepare the payload for the reset token
   const jwtPayload = {
     userId: user?._id,
-    username: user.username,
+    // username: user.username,
     email: user?.email,
     role: user?.role,
   };
@@ -323,10 +426,10 @@ const forgetPassword = async (userEmail: string) => {
 
   // Prepare email content for password reset
   const subject = 'Reset Your Password';
-  const text = `Hi ${user.username},\n\nClick the link below to reset your password:\n${resetUILink}`;
+  const text = `Hi ${userProfile?.name},\n\nClick the link below to reset your password:\n${resetUILink}`;
   const html = `
     <h1>Password Reset Request</h1>
-    <p>Hello, ${user.username}!</p>
+    <p>Hello, ${userProfile?.name}!</p>
     <p>Click the button below to reset your password:</p>
     <a href="${resetUILink}" style="padding: 10px 15px; background-color: #007BFF; color: #fff; text-decoration: none; border-radius: 5px;">
       Reset Password
