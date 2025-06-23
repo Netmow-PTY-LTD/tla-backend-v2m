@@ -33,6 +33,88 @@ const getSingleLeadFromDB = async (leadId: string) => {
     });
   if (!leadDoc) return null;
   // Fetch lead answers with options and questions
+  // const leadAnswers = await LeadServiceAnswer.aggregate([
+  //   {
+  //     $match: {
+  //       leadId: new mongoose.Types.ObjectId(leadId),
+  //       deletedAt: null,
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: 'questions',
+  //       localField: 'questionId',
+  //       foreignField: '_id',
+  //       as: 'question',
+  //     },
+  //   },
+  //   { $unwind: '$question' },
+
+  //   {
+  //     $lookup: {
+  //       from: 'options',
+  //       localField: 'optionId',
+  //       foreignField: '_id',
+  //       as: 'option',
+  //     },
+  //   },
+  //   { $unwind: '$option' },
+
+  //   // Sort first by question.order then by option.order
+  //   {
+  //     $sort: {
+  //       'question.order': 1,
+  //       'option.order': 1,
+  //     },
+  //   },
+
+  //   {
+  //     $group: {
+  //       _id: '$question._id',
+  //       questionId: { $first: '$question._id' },
+  //       question: { $first: '$question.question' },
+  //       order: { $first: '$question.order' },
+  //       options: {
+  //         $push: {
+  //           optionId: '$option._id',
+  //           option: '$option.name',
+  //           isSelected: '$isSelected',
+  //           idExtraData: '$idExtraData',
+  //         },
+  //       },
+  //     },
+  //   },
+
+  //   // Sort again to guarantee order after grouping
+  //   {
+  //     $sort: { order: 1 },
+  //   },
+
+  //   {
+  //     $project: {
+  //       _id: 0,
+  //       questionId: 1,
+  //       question: '$question',
+  //       options: {
+  //         $map: {
+  //           input: {
+  //             $sortArray: {
+  //               input: '$options',
+  //               sortBy: { order: 1 },
+  //             },
+  //           },
+  //           as: 'opt',
+  //           in: {
+  //             optionId: '$$opt.optionId',
+  //             option: '$$opt.option',
+  //             isSelected: '$$opt.isSelected',
+  //             idExtraData: '$$opt.idExtraData',
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // ]);
   const leadAnswers = await LeadServiceAnswer.aggregate([
     {
       $match: {
@@ -49,7 +131,6 @@ const getSingleLeadFromDB = async (leadId: string) => {
       },
     },
     { $unwind: '$question' },
-
     {
       $lookup: {
         from: 'options',
@@ -68,6 +149,7 @@ const getSingleLeadFromDB = async (leadId: string) => {
       },
     },
 
+    // Group by question and push only selected options
     {
       $group: {
         _id: '$question._id',
@@ -76,34 +158,59 @@ const getSingleLeadFromDB = async (leadId: string) => {
         order: { $first: '$question.order' },
         options: {
           $push: {
-            optionId: '$option._id',
-            option: '$option.name',
-            isSelected: '$isSelected',
-            idExtraData: '$idExtraData',
-            order: '$option.order',
+            $cond: [
+              { $eq: ['$isSelected', true] },
+              {
+                optionId: '$option._id',
+                option: '$option.name',
+                isSelected: '$isSelected',
+                idExtraData: '$idExtraData',
+                order: '$option.order',
+              },
+              null,
+            ],
           },
         },
       },
     },
 
-    // Sort again to guarantee order after grouping
-    {
-      $sort: { order: 1 },
-    },
-
+    // Filter out nulls from options (non-selected)
     {
       $project: {
         _id: 0,
         questionId: 1,
-        question: '$question',
+        question: 1,
+        order: 1,
+        options: {
+          $filter: {
+            input: '$options',
+            as: 'opt',
+            cond: { $ne: ['$$opt', null] },
+          },
+        },
+      },
+    },
+
+    // Sort grouped options inside each question by order
+    {
+      $addFields: {
+        options: {
+          $sortArray: {
+            input: '$options',
+            sortBy: { order: 1 },
+          },
+        },
+      },
+    },
+
+    // Remove "order" from individual option output if not needed
+    {
+      $project: {
+        questionId: 1,
+        question: 1,
         options: {
           $map: {
-            input: {
-              $sortArray: {
-                input: '$options',
-                sortBy: { order: 1 },
-              },
-            },
+            input: '$options',
             as: 'opt',
             in: {
               optionId: '$$opt.optionId',
@@ -114,6 +221,11 @@ const getSingleLeadFromDB = async (leadId: string) => {
           },
         },
       },
+    },
+
+    // Final question-level sort (optional but keeps order clean)
+    {
+      $sort: { order: 1 },
     },
   ]);
 
