@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
-import Option from '../../Service/Option/models/option.model';
-import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+import Option from '../../Option/models/option.model';
+import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import User from '../../Auth/models/auth.model';
 import { IUser } from '../../Auth/interfaces/auth.interface';
 import { IUserProfile } from '../../User/interfaces/user.interface';

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import validateRequest from '../../../../middlewares/validateRequest';
+import validateRequest from '../../../middlewares/validateRequest';
 
 import { serviceController } from '../controllers/service.controller';
 import { serviceZodValidation } from '../validations/service.validation';
-import auth from '../../../../middlewares/auth';
-import { USER_ROLE } from '../../../../constant';
+import auth from '../../../middlewares/auth';
+import { USER_ROLE } from '../../../constant';
 
 const router = Router();
 
