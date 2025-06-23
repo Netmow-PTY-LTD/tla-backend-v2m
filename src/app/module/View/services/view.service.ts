@@ -236,7 +236,7 @@ const getPublicUserProfileById = async (userId: string) => {
     userProfileId: user.profile._id,
     deletedAt: null,
   });
-  const faq = await Faq.findOne({
+  const faq = await Faq.find({
     userProfileId: user.profile._id,
     deletedAt: null,
   });

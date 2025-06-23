@@ -163,7 +163,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     ProfileCustomService.find({ userProfileId: userProfileId }).select('+_id '),
     ProfileQA.find({ userProfileId }), // ← fetch all Q&A
     Experience.findOne({ userProfileId: userProfileId }).select('+_id '),
-    Faq.findOne({ userProfileId: userProfileId }).select('+_id '),
+    Faq.find({ userProfileId: userProfileId }).select('+_id '),
   ]);
 
   // 4. Convert to plain object to remove Mongoose internals
