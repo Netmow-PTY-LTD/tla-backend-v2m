@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { IExperience } from '../interfaces/experience.interface';
 
 const experienceSchema = new Schema(
   {
@@ -26,5 +27,5 @@ const experienceSchema = new Schema(
     versionKey: false,
   },
 );
-const Experience = mongoose.model('Experience', experienceSchema);
+const Experience = mongoose.model<IExperience>('Experience', experienceSchema);
 export default Experience;
