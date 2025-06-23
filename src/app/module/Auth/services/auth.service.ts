@@ -198,7 +198,7 @@ const registerUserIntoDB = async (payload: IUser) => {
     const [newProfile] = await UserProfile.create([profileData], { session });
 
     // Link the profile to the newly created user
-    newUser.profile = newProfile._id;
+    newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
     // compnay profile map create
