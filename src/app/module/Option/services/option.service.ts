@@ -1,4 +1,4 @@
-import { validateObjectId } from '../../../../utils/validateObjectId';
+import { validateObjectId } from '../../../utils/validateObjectId';
 import { IOption } from '../interfaces/option.interface';
 import Option from '../models/option.model';
 

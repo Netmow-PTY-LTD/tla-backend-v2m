@@ -17,9 +17,9 @@ import { UserLocationServiceMap } from '../../LeadSettings/models/UserLocationSe
 
 import { validateObjectId } from '../../../utils/validateObjectId';
 import LeadService from '../../LeadSettings/models/leadService.model';
-import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import ZipCode from '../../Country/models/zipcode.model';
-import Option from '../../Service/Option/models/option.model';
+import Option from '../../Option/models/option.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
 /**

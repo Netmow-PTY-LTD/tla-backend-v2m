@@ -1,6 +1,6 @@
-import { HTTP_STATUS } from '../../../../constant/httpStatus';
-import catchAsync from '../../../../utils/catchAsync';
-import sendResponse from '../../../../utils/sendResponse';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
 import { ServiceWiseQuestionService } from '../services/ServiceWiseStep.service';
 
 const createServiceWiseQuestion = catchAsync(async (req, res) => {
