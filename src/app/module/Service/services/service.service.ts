@@ -1,5 +1,5 @@
-import { HTTP_STATUS } from '../../../../constant/httpStatus';
-import { AppError } from '../../../../errors/error';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { AppError } from '../../../errors/error';
 import { IService } from '../interfaces/service.interface';
 import Service from '../models/service.model';
 

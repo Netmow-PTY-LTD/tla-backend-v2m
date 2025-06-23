@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { validateObjectId } from '../../../../utils/validateObjectId';
+import { validateObjectId } from '../../../utils/validateObjectId';
 import { IServiceWiseQuestion } from '../interfaces/ServiceWiseQuestion.interface';
 import ServiceWiseQuestion from '../models/ServiceWiseQuestion.model';
 

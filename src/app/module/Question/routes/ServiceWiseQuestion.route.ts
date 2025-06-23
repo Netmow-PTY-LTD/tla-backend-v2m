@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import validateRequest from '../../../../middlewares/validateRequest';
+import validateRequest from '../../../middlewares/validateRequest';
 import { serviceWiseStepZodValidation } from '../validations/ServiceWiseStep.validation';
 import { ServiceWiseQuestionController } from '../controllers/ServiceWiseQuestion.controller';
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { optionController } from '../controllers/option.controller';
-import validateRequest from '../../../../middlewares/validateRequest';
+import validateRequest from '../../../middlewares/validateRequest';
 import { OptionZodValidation } from '../validations/option.validation';
 
 const router = Router();

@@ -10,10 +10,10 @@ import {
 } from '../interfaces/leadService.interface';
 import LeadService from '../models/leadService.model';
 import { validateObjectId } from '../../../utils/validateObjectId';
-import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
 
-import Option from '../../Service/Option/models/option.model';
+import Option from '../../Option/models/option.model';
 import ZipCode from '../../Country/models/zipcode.model';
 
 const createLeadService = async (
