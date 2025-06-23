@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 
 import { AppError } from '../../../errors/error';
@@ -42,7 +42,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     const [newProfile] = await UserProfile.create([profileData], { session });
 
     // Link the profile to the newly created user
-    newUser.profile = newProfile._id;
+    newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
     // compnay profile map create
