@@ -13,6 +13,7 @@ export interface IBillingAddress {
 }
 
 export interface IUserProfile {
+  _id: string;
   user: Types.ObjectId;
   name: string;
   activeProfile: UserProfile;

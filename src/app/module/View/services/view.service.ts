@@ -5,6 +5,7 @@ import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model
 import User from '../../Auth/models/auth.model';
 import { IUser } from '../../Auth/interfaces/auth.interface';
 import { IUserProfile } from '../../User/interfaces/user.interface';
+import Experience from '../../User/models/experience.model';
 
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
@@ -193,7 +194,7 @@ const getAllPublicUserProfilesIntoDB = async () => {
         profilePicture: profile.profilePicture || '',
         activeProfile: profile.activeProfile || '',
         autoTopUp: profile.autoTopUp || false,
-        credits: profile.credits || 0,
+        credits: profile?.credits || 0,
         country: country?.name,
         services: serviceIds.map((service) => service.name || ''),
       };
@@ -230,6 +231,11 @@ const getPublicUserProfileById = async (userId: string) => {
     profile: IUserProfile;
   };
 
+  const experience = await Experience.findOne({
+    userProfileId: user.profile._id,
+    deletedAt: null,
+  });
+
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -243,7 +249,7 @@ const getPublicUserProfileById = async (userId: string) => {
 
   const country = user.profile.country as { name: string } | undefined;
   const serviceIds =
-    (user.profile.serviceIds as { name: string }[] | undefined) || [];
+    (user?.profile?.serviceIds as { name: string }[] | undefined) || [];
 
   return {
     email: user.email,
@@ -256,7 +262,8 @@ const getPublicUserProfileById = async (userId: string) => {
     autoTopUp: user.profile.autoTopUp || false,
     credits: user.profile.credits || 0,
     country: country?.name || '',
-    services: serviceIds.map((service) => service.name || ''),
+    services: serviceIds?.map((service) => service.name || ''),
+    experience: experience,
   };
 };
 
