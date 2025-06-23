@@ -224,9 +224,11 @@ const purchaseCredits = async (
     creditPackageId: packageId,
     credit: creditPackage.credit,
     amountPaid: finalPrice / 100,
+    // invoiceId: paymentIntent.id,
+    currency: paymentIntent.currency,
     status: 'completed',
     couponCode,
-    discountApplied: discount,
+    discountApplied: discount || 0,
     stripePaymentIntentId: paymentIntent.id,
   });
 

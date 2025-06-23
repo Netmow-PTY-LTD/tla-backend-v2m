@@ -17,6 +17,7 @@ import ProfileCustomService from '../models/profileServiceCoustom.model';
 import ProfileQA from '../models/ProfileQAS';
 import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
 import mongoose, { Document } from 'mongoose';
+import Experience from '../models/experience.model';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
@@ -149,6 +150,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     socialMedia,
     customService,
     profileQAAnswers,
+    experience,
   ] = await Promise.all([
     CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
     Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
@@ -158,6 +160,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
       .select('+_id '),
     ProfileCustomService.find({ userProfileId: userProfileId }).select('+_id '),
     ProfileQA.find({ userProfileId }), // ← fetch all Q&A
+    Experience.findOne({ userProfileId: userProfileId }).select('+_id '),
   ]);
 
   // 4. Convert to plain object to remove Mongoose internals
@@ -185,6 +188,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     socialMedia,
     accreditation,
     profileQA: sortedQA,
+    experience,
   };
 
   return plainUser;

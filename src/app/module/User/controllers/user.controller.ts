@@ -9,6 +9,7 @@ import { accreditationService } from '../services/profileAccreditation.service';
 import { profileSocialMediaService } from '../services/profileSocialMedia.service';
 import { profileCustomService } from '../services/ProfileCustomService.service';
 import { profileQAService } from '../services/profileQA.service';
+import { profileExperienceService } from '../services/profileExperience.service';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -38,6 +39,7 @@ const updateProfile = catchAsync(async (req, res) => {
   let socialMediaResult = null;
   let serviceInfoResult = null;
   let profileQAResult = null;
+  let profileExperienceResult = null;
 
   if (parsedData?.userProfile) {
     userProfileResult = await UserProfileService.updateProfileIntoDB(
@@ -96,6 +98,15 @@ const updateProfile = catchAsync(async (req, res) => {
     );
   }
 
+  if (parsedData?.experience) {
+    // Assuming profileCustomService is used for custom services
+    profileExperienceResult =
+      await profileExperienceService.updateProfileExperienceIntoDB(
+        userId,
+        parsedData.experience,
+      );
+  }
+
   const result =
     userProfileResult ||
     companyProfileResult ||
@@ -103,6 +114,7 @@ const updateProfile = catchAsync(async (req, res) => {
     accreditationResult ||
     serviceInfoResult ||
     profileQAResult ||
+    profileExperienceResult ||
     socialMediaResult;
 
   if (!result) {
@@ -124,7 +136,9 @@ const updateProfile = catchAsync(async (req, res) => {
           ? 'Profile social media updated successfully.'
           : serviceInfoResult
             ? 'Service info updated successfully.'
-            : 'Profile photos updated successfully.';
+            : profileExperienceResult
+              ? 'Experience updated successfully.'
+              : 'Profile photos updated successfully.';
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
