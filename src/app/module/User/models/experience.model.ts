@@ -2,6 +2,11 @@ import mongoose, { Schema } from 'mongoose';
 
 const experienceSchema = new Schema(
   {
+    userProfileId: {
+      type: Schema.Types.ObjectId,
+      ref: 'UserProfile',
+      required: true,
+    },
     organization: { type: String },
     position: { type: String },
     startDate: { type: String },
