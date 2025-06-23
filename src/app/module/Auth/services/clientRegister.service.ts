@@ -15,6 +15,7 @@ import { USER_ROLE } from '../../../constant';
 import Lead from '../../Lead/models/lead.model';
 
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
+import { Types } from 'mongoose';
 
 const clientRegisterUserIntoDB = async (payload: any) => {
   const session = await mongoose.startSession();
@@ -46,7 +47,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     const [newProfile] = await UserProfile.create([profileData], { session });
 
-    newUser.profile = newProfile._id;
+    newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
     if (newUser.regUserType === 'client') {
