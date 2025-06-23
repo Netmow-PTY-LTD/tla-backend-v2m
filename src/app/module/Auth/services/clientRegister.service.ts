@@ -13,8 +13,8 @@ import config from '../../../config';
 import { StringValue } from 'ms';
 import { USER_ROLE } from '../../../constant';
 import Lead from '../../Lead/models/lead.model';
-import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
-import Option from '../../Service/Option/models/option.model';
+// import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
+// import Option from '../../Service/Option/models/option.model';
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 
 const clientRegisterUserIntoDB = async (payload: any) => {
@@ -42,6 +42,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       user: newUser._id,
       country: countryId,
       name: leadDetails.name,
+      phone: leadDetails.phone,
     };
 
     const [newProfile] = await UserProfile.create([profileData], { session });
@@ -61,61 +62,78 @@ const clientRegisterUserIntoDB = async (payload: any) => {
         { session },
       );
 
-      const allQuestions = await ServiceWiseQuestion.find({
-        countryId,
-        serviceId,
-      }).lean();
+      // const allQuestions = await ServiceWiseQuestion.find({
+      //   countryId,
+      //   serviceId,
+      // }).lean();
 
-      const questionIds = allQuestions.map((q) => q._id);
+      // const questionIds = allQuestions.map((q) => q._id);
 
-      const allOptions = await Option.find({
-        questionId: { $in: questionIds },
-        serviceId,
-      })
-        .lean()
-        .session(session);
+      // const allOptions = await Option.find({
+      //   questionId: { $in: questionIds },
+      //   serviceId,
+      // })
+      //   .lean()
+      //   .session(session);
 
-      const selectedMap = new Map(); // Map<questionId, Set<optionId>>
-      for (const q of questions) {
-        selectedMap.set(
-          q.questionId,
-          new Set(q.checkedOptionsDetails.map((o: any) => o.id)),
-        );
-      }
+      // const selectedMap = new Map(); // Map<questionId, Set<optionId>>
+      // for (const q of questions) {
+      //   selectedMap.set(
+      //     q.questionId,
+      //     new Set(q.checkedOptionsDetails.map((o: any) => o.id)),
+      //   );
+      // }
 
+      // const leadDocs: any[] = [];
+
+      // for (const option of allOptions) {
+      //   const questionId = option.questionId.toString();
+      //   const optionIdStr = option._id.toString();
+
+      //   const isSelected =
+      //     selectedMap.has(questionId) &&
+      //     selectedMap.get(questionId).has(optionIdStr);
+
+      //   let idExtraData = '';
+
+      //   if (isSelected) {
+      //     const matchedQuestion = questions.find(
+      //       (q: any) => q.questionId === questionId,
+      //     );
+      //     if (matchedQuestion) {
+      //       const matchedOptionDetail =
+      //         matchedQuestion.checkedOptionsDetails.find(
+      //           (opt: any) => opt.id === optionIdStr,
+      //         );
+      //       idExtraData = matchedOptionDetail?.idExtraData || '';
+      //     }
+      //   }
+
+      //   leadDocs.push({
+      //     leadId: leadUser._id,
+      //     serviceId,
+      //     questionId: option.questionId,
+      //     optionId: option._id,
+      //     isSelected,
+      //     idExtraData,
+      //   });
+      // }
+
+      // ✅ Only insert selected answers from `questions` (frontend)
       const leadDocs: any[] = [];
 
-      for (const option of allOptions) {
-        const questionId = option.questionId.toString();
-        const optionIdStr = option._id.toString();
-
-        const isSelected =
-          selectedMap.has(questionId) &&
-          selectedMap.get(questionId).has(optionIdStr);
-
-        let idExtraData = '';
-
-        if (isSelected) {
-          const matchedQuestion = questions.find(
-            (q: any) => q.questionId === questionId,
-          );
-          if (matchedQuestion) {
-            const matchedOptionDetail =
-              matchedQuestion.checkedOptionsDetails.find(
-                (opt: any) => opt.id === optionIdStr,
-              );
-            idExtraData = matchedOptionDetail?.idExtraData || '';
-          }
+      for (const q of questions) {
+        const questionId = q.questionId;
+        for (const opt of q.checkedOptionsDetails) {
+          leadDocs.push({
+            leadId: leadUser._id,
+            serviceId,
+            questionId,
+            optionId: opt.id,
+            isSelected: opt.is_checked,
+            idExtraData: opt.idExtraData || '',
+          });
         }
-
-        leadDocs.push({
-          leadId: leadUser._id,
-          serviceId,
-          questionId: option.questionId,
-          optionId: option._id,
-          isSelected,
-          idExtraData,
-        });
       }
 
       if (leadDocs.length > 0) {
