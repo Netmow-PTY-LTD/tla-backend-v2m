@@ -6,6 +6,7 @@ import User from '../../Auth/models/auth.model';
 import { IUser } from '../../Auth/interfaces/auth.interface';
 import { IUserProfile } from '../../User/interfaces/user.interface';
 import Experience from '../../User/models/experience.model';
+import Faq from '../../User/models/faq.model';
 
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
@@ -235,6 +236,10 @@ const getPublicUserProfileById = async (userId: string) => {
     userProfileId: user.profile._id,
     deletedAt: null,
   });
+  const faq = await Faq.findOne({
+    userProfileId: user.profile._id,
+    deletedAt: null,
+  });
 
   const generateSlug = (name: string) => {
     return name
@@ -264,6 +269,7 @@ const getPublicUserProfileById = async (userId: string) => {
     country: country?.name || '',
     services: serviceIds?.map((service) => service.name || ''),
     experience: experience,
+    faq: faq,
   };
 };
 
