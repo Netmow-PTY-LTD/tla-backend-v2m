@@ -13,12 +13,12 @@ import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../config/emailTranspoter';
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
 import CompanyProfile from '../../User/models/companyProfile.model';
-import { UserLocationServiceMap } from '../../Settings/LeadSettings/models/UserLocationServiceMap.model';
+import { UserLocationServiceMap } from '../../LeadSettings/models/UserLocationServiceMap.model';
 
 import { validateObjectId } from '../../../utils/validateObjectId';
-import LeadService from '../../Settings/LeadSettings/models/leadService.model';
+import LeadService from '../../LeadSettings/models/leadService.model';
 import ServiceWiseQuestion from '../../Service/Question/models/ServiceWiseQuestion.model';
-import ZipCode from '../../Geo/Country/models/zipcode.model';
+import ZipCode from '../../Country/models/zipcode.model';
 import Option from '../../Service/Option/models/option.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
