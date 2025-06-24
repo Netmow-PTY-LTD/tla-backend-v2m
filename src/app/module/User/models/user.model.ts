@@ -1,6 +1,7 @@
 import mongoose, { Schema, model } from 'mongoose';
 import { USER_PROFILE } from '../constants/user.constant';
 import { IUserProfile } from '../interfaces/user.interface';
+import slugify from 'slugify';
 
 // Define the schema for the user profile
 const userProfileSchema = new Schema<IUserProfile>(
@@ -11,10 +12,14 @@ const userProfileSchema = new Schema<IUserProfile>(
       required: true,
       unique: true, // 1:1 relationship
     },
+
     name: {
       type: String,
       required: true,
       trim: true,
+    },
+    slug: {
+      type: String,
     },
     activeProfile: {
       type: String,
@@ -83,6 +88,43 @@ const userProfileSchema = new Schema<IUserProfile>(
   },
 );
 
+// 🔁 Pre-save hook to generate unique slug
+userProfileSchema.pre('save', async function (next) {
+  if (!this.isModified('name')) return next();
+
+  const baseSlug = slugify(this.name, { lower: true, strict: true });
+  let slug = baseSlug;
+  let count = 0;
+
+  // Ensure uniqueness
+  while (await mongoose.models.UserProfile.exists({ slug })) {
+    count++;
+    slug = `${baseSlug}-${count}`;
+  }
+
+  this.slug = slug;
+  next();
+});
+
+userProfileSchema.pre('findOneAndUpdate', async function (next) {
+  const update = this.getUpdate();
+
+  // Only proceed if it's a plain object (not aggregation pipeline)
+  if (update && !Array.isArray(update) && 'name' in update) {
+    const baseSlug = slugify(update.name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let count = 0;
+
+    while (await mongoose.models.UserProfile.exists({ slug })) {
+      count++;
+      slug = `${baseSlug}-${count}`;
+    }
+
+    this.setUpdate({ ...update, slug });
+  }
+
+  next();
+});
 // Creating the model for UserProfile
 export const UserProfile = model<IUserProfile>(
   'UserProfile',
