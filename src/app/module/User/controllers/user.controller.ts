@@ -64,7 +64,7 @@ const updateProfile = catchAsync(async (req, res) => {
     profilePhotosResult = await ProfilePhotosService.updateProfilePhotosIntoDB(
       userId,
       parsedData.photos,
-      fileMap['photo']?.[0],
+      fileMap['photos'],
     );
   }
 
