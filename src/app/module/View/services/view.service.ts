@@ -7,6 +7,7 @@ import { IUser } from '../../Auth/interfaces/auth.interface';
 import { IUserProfile } from '../../User/interfaces/user.interface';
 import Experience from '../../User/models/experience.model';
 import Faq from '../../User/models/faq.model';
+import UserProfile from '../../User/models/user.model';
 
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
@@ -241,16 +242,8 @@ const getPublicUserProfileById = async (userId: string) => {
     deletedAt: null,
   });
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
-
   const name = user.profile.name || '';
-  const slug = generateSlug(name);
+  const slug = user.profile.slug || '';
 
   const country = user.profile.country as { name: string } | undefined;
   const serviceIds =
@@ -273,9 +266,78 @@ const getPublicUserProfileById = async (userId: string) => {
   };
 };
 
+const getPublicUserProfileBySlug = async (slug: string) => {
+  // Step 1: Find profile by slug
+  const profile = await UserProfile.findOne({
+    slug,
+    deletedAt: null,
+  }).select('_id');
+
+  if (!profile) return null;
+
+  // Step 2: Find the user using the profile ID
+  const rawUser = await User.findOne({
+    profile: profile._id,
+    deletedAt: null,
+    role: 'user',
+  })
+    .select('email profile')
+    .populate({
+      path: 'profile',
+      match: { deletedAt: null },
+      select:
+        'name slug bio address profilePicture activeProfile autoTopUp credits serviceIds country',
+      populate: [
+        { path: 'serviceIds', select: 'name' },
+        { path: 'country', select: 'name' },
+      ],
+    })
+    .lean();
+
+  if (!rawUser || !rawUser.profile) return null;
+
+  // Type override
+  const user = rawUser as unknown as Omit<IUser, 'profile'> & {
+    email: string;
+    profile: IUserProfile;
+  };
+
+  const experience = await Experience.findOne({
+    userProfileId: user.profile._id,
+    deletedAt: null,
+  });
+
+  const faq = await Faq.find({
+    userProfileId: user.profile._id,
+    deletedAt: null,
+  });
+
+  const name = user.profile.name || '';
+  const slugResult = user.profile.slug || '';
+  const country = user.profile.country as { name: string } | undefined;
+  const serviceIds =
+    (user?.profile?.serviceIds as { name: string }[] | undefined) || [];
+
+  return {
+    email: user.email,
+    name,
+    slug: slugResult,
+    bio: user.profile.bio || '',
+    address: user.profile.address || '',
+    profilePicture: user.profile.profilePicture || '',
+    activeProfile: user.profile.activeProfile || '',
+    autoTopUp: user.profile.autoTopUp || false,
+    credits: user.profile.credits || 0,
+    country: country?.name || '',
+    services: serviceIds?.map((service) => service.name || ''),
+    experience,
+    faq,
+  };
+};
 export const viewService = {
   getSingleServiceWiseQuestionFromDB,
   getQuestionWiseOptionsFromDB,
   getAllPublicUserProfilesIntoDB,
   getPublicUserProfileById,
+  getPublicUserProfileBySlug,
 };
