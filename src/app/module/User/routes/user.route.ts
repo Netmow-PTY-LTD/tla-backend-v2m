@@ -5,6 +5,9 @@ import { userProfileController } from '../controllers/user.controller';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
 import { upload } from '../../../config/upload';
+import { customServiceController } from '../controllers/customService.controller';
+import { accreditationController } from '../controllers/accrediation.controller';
+import { faqController } from '../controllers/faq.controller';
 const router = Router();
 
 router.get(
@@ -36,5 +39,22 @@ router.patch(
   userProfileController.updateProfile,
 );
 router.get('/:userId', userProfileController.getSingleUserProfileData);
+router.delete(
+  '/service/delete/:customServiceId',
+
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  customServiceController.deleteCustomService,
+);
+router.delete(
+  '/accreditation/delete/:accreditationId',
+
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  accreditationController.deleteProfileAccreditation,
+);
+router.delete(
+  '/faq/delete/:faqId',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  faqController.deleteFaq,
+);
 
 export const UserProfileRouter = router;
