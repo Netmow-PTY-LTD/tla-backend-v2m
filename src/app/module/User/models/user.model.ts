@@ -20,6 +20,11 @@ const userProfileSchema = new Schema<IUserProfile>(
     },
     slug: {
       type: String,
+      trim: true,
+    },
+    designation: {
+      type: String,
+      trim: true,
     },
     activeProfile: {
       type: String,
@@ -46,10 +51,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+
     // Add more profile-specific fields here
     businessName: { type: String },
     credits: { type: Number, default: 0 },
@@ -71,6 +73,10 @@ const userProfileSchema = new Schema<IUserProfile>(
         ref: 'Service',
       },
     ],
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     versionKey: false,

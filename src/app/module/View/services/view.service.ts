@@ -322,6 +322,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     email: user.email,
     name,
     slug: slugResult,
+    designation: user.profile.designation || '',
     bio: user.profile.bio || '',
     address: user.profile.address || '',
     profilePicture: user.profile.profilePicture || '',

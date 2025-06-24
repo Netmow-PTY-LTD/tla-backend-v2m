@@ -17,6 +17,7 @@ export interface IUserProfile {
   user: Types.ObjectId;
   name: string;
   slug?: string;
+  designation?: string;
   activeProfile: UserProfile;
   country?: Types.ObjectId;
   profilePicture?: string;
