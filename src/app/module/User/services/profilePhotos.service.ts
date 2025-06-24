@@ -12,24 +12,27 @@ import UserProfile from '../models/user.model';
 const updateProfilePhotosIntoDB = async (
   userId: string,
   payload: Partial<IProfilePhotos>,
-  file: TUploadedFile,
+  files: TUploadedFile[],
 ) => {
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {
-    // Return early if userProfile is not found — no error
     return sendNotFoundResponse('user profile data');
   }
 
-  // ✅ Handle file upload if provided
-  if (file?.buffer) {
+  if (Array.isArray(files) && files.length > 0) {
     try {
-      const uploadedUrl = await uploadToSpaces(
-        file.buffer,
-        file.originalname,
-        userId,
-      );
-      payload.photo = uploadedUrl;
+      // Filter files with valid buffer and upload them in parallel
+      const uploadPromises = files
+        .filter((file) => file?.buffer)
+        .map((file) =>
+          uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
+        );
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      // Assign uploaded URLs to payload.photos array
+      payload.photos = uploadedUrls;
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
       throw new AppError(
@@ -38,9 +41,8 @@ const updateProfilePhotosIntoDB = async (
       );
     }
   }
-  // Update the company  profile in the database
 
-  const updateProfilePhotos = await ProfilePhotos.findOneAndUpdate(
+  const updatedProfilePhotos = await ProfilePhotos.findOneAndUpdate(
     { userProfileId: userProfile._id },
     payload,
     {
@@ -49,9 +51,8 @@ const updateProfilePhotosIntoDB = async (
     },
   );
 
-  return updateProfilePhotos;
+  return updatedProfilePhotos;
 };
-
 export const ProfilePhotosService = {
   updateProfilePhotosIntoDB,
 };
