@@ -6,6 +6,7 @@ import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
 import { upload } from '../../../config/upload';
 import { customServiceController } from '../controllers/customService.controller';
+import { accreditationController } from '../controllers/accrediation.controller';
 const router = Router();
 
 router.get(
@@ -38,5 +39,9 @@ router.patch(
 );
 router.get('/:userId', userProfileController.getSingleUserProfileData);
 router.delete('/:customServiceId', customServiceController.deleteCustomService);
+router.delete(
+  '/:accreditationId',
+  accreditationController.deleteProfileAccreditation,
+);
 
 export const UserProfileRouter = router;
