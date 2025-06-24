@@ -5,10 +5,11 @@ import { profileCustomService } from '../services/ProfileCustomService.service';
 
 const deleteCustomService = catchAsync(async (req, res) => {
   // Extract the user ID from the request parameters
-  const userId = req.params.customServiceId;
+  const { customServiceId } = req.params;
 
   // Call the service function to retrieve the user's profile data from the database
-  const result = await profileCustomService.deleteCustomServiceIntoDB(userId);
+  const result =
+    await profileCustomService.deleteCustomServiceIntoDB(customServiceId);
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
