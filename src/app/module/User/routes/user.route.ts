@@ -5,6 +5,7 @@ import { userProfileController } from '../controllers/user.controller';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
 import { upload } from '../../../config/upload';
+import { customServiceController } from '../controllers/customService.controller';
 const router = Router();
 
 router.get(
@@ -36,5 +37,6 @@ router.patch(
   userProfileController.updateProfile,
 );
 router.get('/:userId', userProfileController.getSingleUserProfileData);
+router.delete('/:customServiceId', customServiceController.deleteCustomService);
 
 export const UserProfileRouter = router;
