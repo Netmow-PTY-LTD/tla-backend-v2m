@@ -3,6 +3,7 @@ import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
+import { validateObjectId } from '../../../utils/validateObjectId';
 
 import { IAccreditation } from '../interfaces/profileAccreditation';
 
@@ -64,6 +65,14 @@ const updateProfileAccreditationIntoDB = async (
   return accreditation;
 };
 
+const deleteAccreditationIntoDB = async (id: string) => {
+  validateObjectId(id, 'Accreditation ');
+  const customServiceDelete = await Accreditation.findByIdAndDelete(id);
+
+  return customServiceDelete;
+};
+
 export const accreditationService = {
   updateProfileAccreditationIntoDB,
+  deleteAccreditationIntoDB,
 };

@@ -1,4 +1,5 @@
 import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { validateObjectId } from '../../../utils/validateObjectId';
 import Faq, { IFaq } from '../models/faq.model';
 import UserProfile from '../models/user.model';
 
@@ -37,6 +38,14 @@ const updateProfileFaqIntoDB = async (
   return faq;
 };
 
+const deleteFaqIntoDB = async (id: string) => {
+  validateObjectId(id, 'Faq ');
+  const faqDelete = await Faq.findByIdAndDelete(id);
+
+  return faqDelete;
+};
+
 export const profileFaqService = {
   updateProfileFaqIntoDB,
+  deleteFaqIntoDB,
 };

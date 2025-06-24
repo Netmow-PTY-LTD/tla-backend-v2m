@@ -1,4 +1,5 @@
 import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { validateObjectId } from '../../../utils/validateObjectId';
 import { IProfileCustomService } from '../interfaces/profileCustomService.interface';
 import ProfileCustomService from '../models/profileServiceCoustom.model';
 import UserProfile from '../models/user.model';
@@ -39,6 +40,14 @@ const updateProfileCustomServiceIntoDB = async (
   return accreditation;
 };
 
+const deleteCustomServiceIntoDB = async (id: string) => {
+  validateObjectId(id, 'Custom Service ');
+  const customServiceDelete = await ProfileCustomService.findByIdAndDelete(id);
+
+  return customServiceDelete;
+};
+
 export const profileCustomService = {
   updateProfileCustomServiceIntoDB,
+  deleteCustomServiceIntoDB,
 };
