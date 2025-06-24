@@ -91,9 +91,32 @@ const getSingleUserProfileById = catchAsync(async (req, res) => {
   });
 });
 
+const getSingleUserProfileBySlug = catchAsync(async (req, res) => {
+  const { slug } = req.params;
+
+  const result = await viewService.getPublicUserProfileBySlug(slug);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'User Profile not found.',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'User Profile retrieved successfully.',
+    data: result,
+  });
+});
+
 export const viewController = {
   getSingleServiceWiseQuestion,
   getQuestionWiseOptions,
   getAllUserProfile,
   getSingleUserProfileById,
+  getSingleUserProfileBySlug,
 };
