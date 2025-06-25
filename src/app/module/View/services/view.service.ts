@@ -142,7 +142,7 @@ const getAllPublicUserProfilesIntoDB = async () => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name bio address profilePicture activeProfile autoTopUp credits serviceIds country',
+        'name bio address profilePicture activeProfile autoTopUp credits serviceIds country phone slug',
       populate: [
         { path: 'serviceIds', select: 'name' },
         { path: 'country', select: 'name' },
@@ -155,27 +155,6 @@ const getAllPublicUserProfilesIntoDB = async () => {
     email: string;
     profile: IUserProfile | null;
   })[];
-  // Helper function to generate slugs
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
-
-  // Set to keep track of used slugs to ensure uniqueness
-  const seenSlugs = new Set<string>();
-  const getUniqueSlug = (base: string) => {
-    let slug = base;
-    let counter = 1;
-    while (seenSlugs.has(slug)) {
-      slug = `${base}-${counter}`;
-      counter++;
-    }
-    seenSlugs.add(slug);
-    return slug;
-  };
 
   // Map to public profile format
   const publicProfiles = users
@@ -183,7 +162,7 @@ const getAllPublicUserProfilesIntoDB = async () => {
     .map((user) => {
       const profile = user.profile!;
       const name = profile.name || '';
-      const slug = getUniqueSlug(generateSlug(name));
+      const slug = profile.slug || '';
       const country = profile.country as { name: string } | undefined;
       const serviceIds =
         (profile.serviceIds as { name: string }[] | undefined) || [];
@@ -199,6 +178,7 @@ const getAllPublicUserProfilesIntoDB = async () => {
         credits: profile?.credits || 0,
         country: country?.name,
         services: serviceIds.map((service) => service.name || ''),
+        phone: profile.phone || '',
       };
     });
 
@@ -216,7 +196,7 @@ const getPublicUserProfileById = async (userId: string) => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name bio address profilePicture activeProfile autoTopUp credits serviceIds country',
+        'name bio address profilePicture activeProfile autoTopUp credits serviceIds country phone slug',
       populate: [
         { path: 'serviceIds', select: 'name' },
         { path: 'country', select: 'name' },
@@ -262,6 +242,7 @@ const getPublicUserProfileById = async (userId: string) => {
     services: serviceIds?.map((service) => service.name || ''),
     experience: experience,
     faq: faq,
+    phone: user.profile.phone || '',
   };
 };
 
@@ -284,7 +265,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name slug bio address profilePicture activeProfile autoTopUp credits serviceIds country',
+        'name slug bio address profilePicture activeProfile autoTopUp credits serviceIds country phone',
       populate: [
         { path: 'serviceIds', select: 'name' },
         { path: 'country', select: 'name' },
@@ -331,6 +312,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     services: serviceIds?.map((service) => service.name || ''),
     experience,
     faq,
+    phone: user.profile.phone || '',
   };
 };
 export const viewService = {
