@@ -16,6 +16,7 @@ import Lead from '../../Lead/models/lead.model';
 
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import { Types } from 'mongoose';
+import { REGISTER_USER_TYPE } from '../constant/auth.constant';
 
 const clientRegisterUserIntoDB = async (payload: any) => {
   const session = await mongoose.startSession();
@@ -32,17 +33,20 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const userData = {
       email: leadDetails.email,
       role: USER_ROLE.USER,
-      regUserType: 'client',
-      password: '123456',
+      regUserType: REGISTER_USER_TYPE.CLIENT,
+      password: config.default_password,
     };
 
     const [newUser] = await User.create([userData], { session });
+
+    const address = await ZipCode.findById(leadDetails.zipCode);
 
     const profileData = {
       user: newUser._id,
       country: countryId,
       name: leadDetails.name,
       phone: leadDetails.phone,
+      address: address ? address.zipcode : '',
     };
 
     const [newProfile] = await UserProfile.create([profileData], { session });
@@ -50,7 +54,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
-    if (newUser.regUserType === 'client') {
+    if (newUser.regUserType === REGISTER_USER_TYPE.CLIENT) {
       const [leadUser] = await Lead.create(
         [
           {
