@@ -8,6 +8,7 @@ import { IUserProfile } from '../../User/interfaces/user.interface';
 import Experience from '../../User/models/experience.model';
 import Faq from '../../User/models/faq.model';
 import UserProfile from '../../User/models/user.model';
+import ProfilePhotos from '../../User/models/profilePhotos';
 
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
@@ -221,6 +222,10 @@ const getPublicUserProfileById = async (userId: string) => {
     deletedAt: null,
   });
 
+  const photosVideos = await ProfilePhotos.findOne({
+    userProfileId: user.profile._id,
+  }).select('-_id photos videos');
+
   const name = user.profile.name || '';
   const slug = user.profile.slug || '';
 
@@ -243,6 +248,7 @@ const getPublicUserProfileById = async (userId: string) => {
     experience: experience,
     faq: faq,
     phone: user.profile.phone || '',
+    photosVideos: photosVideos || {},
   };
 };
 
@@ -290,6 +296,9 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     userProfileId: user.profile._id,
     deletedAt: null,
   });
+  const photosVideos = await ProfilePhotos.findOne({
+    userProfileId: user.profile._id,
+  }).select('-_id photos videos');
 
   const name = user.profile.name || '';
   const slugResult = user.profile.slug || '';
@@ -313,6 +322,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     experience,
     faq,
     phone: user.profile.phone || '',
+    photosVideos: photosVideos || {},
   };
 };
 export const viewService = {
