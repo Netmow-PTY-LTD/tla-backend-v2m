@@ -210,7 +210,6 @@ const getPublicUserProfileById = async (userId: string) => {
   const rawUser = await User.findOne({
     _id: userId,
     deletedAt: null,
-    role: 'user',
   })
     .select('email profile')
     .populate({
@@ -279,7 +278,6 @@ const getPublicUserProfileBySlug = async (slug: string) => {
   const rawUser = await User.findOne({
     profile: profile._id,
     deletedAt: null,
-    role: 'user',
   })
     .select('email profile')
     .populate({

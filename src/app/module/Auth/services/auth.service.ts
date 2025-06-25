@@ -3,7 +3,7 @@ import { AppError } from '../../../errors/error';
 import { ILoginUser, IUser } from '../interfaces/auth.interface';
 import User from '../models/auth.model';
 import { createToken, verifyToken } from '../utils/auth.utils';
-import { USER_STATUS } from '../constant/auth.constant';
+import { REGISTER_USER_TYPE, USER_STATUS } from '../constant/auth.constant';
 import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
@@ -188,10 +188,12 @@ const registerUserIntoDB = async (payload: IUser) => {
     // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
 
+    const address = await ZipCode.findById(lawyerServiceMap?.zipCode);
     // Prepare the profile data with a reference to the user
     const profileData = {
       ...profile,
       user: newUser._id,
+      address: address ? address.zipcode : '',
     };
 
     // Create the user profile document in the database
@@ -215,7 +217,7 @@ const registerUserIntoDB = async (payload: IUser) => {
 
     // lawyer service map create
 
-    if (newUser.regUserType === 'lawyer') {
+    if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
         userProfile: newProfile._id,

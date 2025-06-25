@@ -13,3 +13,9 @@ export const PHONE_VERIFICATION_STATUS = {
 
 export type PhoneVerificationStatus =
   (typeof PHONE_VERIFICATION_STATUS)[keyof typeof PHONE_VERIFICATION_STATUS];
+
+export const REGISTER_USER_TYPE = {
+  CLIENT: 'client',
+  LAWYER: 'lawyer',
+  ADMIN: 'admin',
+} as const;
