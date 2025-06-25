@@ -38,6 +38,23 @@ const addPaymentMethod = catchAsync(async (req, res) => {
   });
 });
 
+const removePaymentMethod = catchAsync(async (req, res) => {
+  const { paymentMethodId } = req.params;
+  const userId = req.user.userId;
+
+  const result = await paymentMethodService.removePaymentMethod(
+    userId,
+    paymentMethodId,
+  );
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
 const createSetupIntent = catchAsync(async (req, res) => {
   const user = req.user;
   const result = await paymentMethodService.createSetupIntent(
@@ -68,4 +85,5 @@ export const paymentMethodController = {
   addPaymentMethod,
   createSetupIntent,
   purchaseCredits,
+  removePaymentMethod,
 };
