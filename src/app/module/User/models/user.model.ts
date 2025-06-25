@@ -115,22 +115,29 @@ userProfileSchema.pre('save', async function (next) {
 userProfileSchema.pre('findOneAndUpdate', async function (next) {
   const update = this.getUpdate();
 
-  // Only proceed if it's a plain object (not aggregation pipeline)
   if (update && !Array.isArray(update) && 'name' in update) {
-    const baseSlug = slugify(update.name, { lower: true, strict: true });
-    let slug = baseSlug;
-    let count = 0;
+    // Get the current document
+    const existing = await this.model.findOne(this.getQuery()).select('name');
 
-    while (await mongoose.models.UserProfile.exists({ slug })) {
-      count++;
-      slug = `${baseSlug}-${count}`;
+    // Only update slug if name is actually changing
+    if (existing && update.name !== existing.name) {
+      const baseSlug = slugify(update.name, { lower: true, strict: true });
+      let slug = baseSlug;
+      let count = 0;
+
+      while (await mongoose.models.UserProfile.exists({ slug })) {
+        count++;
+        slug = `${baseSlug}-${count}`;
+      }
+
+      // Preserve existing update and just update slug
+      this.setUpdate({ ...update, slug });
     }
-
-    this.setUpdate({ ...update, slug });
   }
 
   next();
 });
+
 // Creating the model for UserProfile
 export const UserProfile = model<IUserProfile>(
   'UserProfile',
