@@ -69,6 +69,10 @@ router.post(
   paymentMethodController.addPaymentMethod,
 );
 
+router.delete(
+  '/payment-method/:paymentMethodId',
+  paymentMethodController.removePaymentMethod,
+);
 router.post(
   '/setup-intent',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
