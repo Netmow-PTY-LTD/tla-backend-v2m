@@ -96,6 +96,7 @@ const getAllLeadFromDB = async () => {
             createdAt: '$serviceData.createdAt',
             updatedAt: '$serviceData.updatedAt',
           },
+          additionalDetails: 1,
           deletedAt: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -138,33 +139,15 @@ const getMyAllLeadFromDB = async (userId: string) => {
 const getSingleLeadFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Lead');
 
-  // const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
-  //   .populate({
-  //     path: 'userProfileId',
-  //     populate: {
-  //       path: 'user',
-  //       select: 'email',
-  //     },
-  //   })
-  //   .populate({
-  //     path: 'serviceId',
-  //     select: 'name slug',
-  //   });
-
-  // if (!leadDoc) return null;
-
-  // 1. Get lead with populated user and service data
   const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
     .populate({
       path: 'userProfileId',
       populate: {
         path: 'user',
-        select: 'email',
       },
     })
     .populate({
       path: 'serviceId',
-      select: 'name slug',
     })
     .lean(); // Convert to plain JS object
 
