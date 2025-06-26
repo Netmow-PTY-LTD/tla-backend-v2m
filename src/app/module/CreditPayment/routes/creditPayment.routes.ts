@@ -71,6 +71,7 @@ router.post(
 
 router.delete(
   '/payment-method/:paymentMethodId',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   paymentMethodController.removePaymentMethod,
 );
 router.post(
