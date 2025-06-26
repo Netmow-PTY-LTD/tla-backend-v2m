@@ -86,5 +86,10 @@ router.get(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.getTransactionHistory,
 );
+router.get(
+  '/transaction/list',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditPaymentController.getTransactionHistory,
+);
 
 export const creditPaymentRouter = router;

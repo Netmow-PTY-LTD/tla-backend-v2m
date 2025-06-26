@@ -179,6 +179,12 @@ const getTransactionHistory = async (userId: string) => {
     .populate('creditPackageId');
 };
 
+const getAllTransactionHistory = async () => {
+  return await Transaction.find()
+    .sort({ createdAt: -1 })
+    .populate('creditPackageId');
+};
+
 export const CreditPaymentService = {
   getCreditPackages,
   purchaseCredits,
@@ -188,4 +194,5 @@ export const CreditPaymentService = {
   createCreditPackagesIntoDB,
   getTransactionHistory,
   updateCreditPackagesIntoDB,
+  getAllTransactionHistory,
 };
