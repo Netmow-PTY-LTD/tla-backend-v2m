@@ -7,6 +7,8 @@ import Transaction from '../models/transaction.model';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import CreditPackage from '../models/creditPackage.model';
 import Coupon from '../models/coupon.model';
+import { AppError } from '../../../errors/error';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -23,6 +25,57 @@ const getPaymentMethods = async (userId: string) => {
   });
 
   return result;
+};
+
+const removePaymentMethod = async (userId: string, paymentMethodId: string) => {
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
+  }
+
+  const existingCard = await PaymentMethod.findOne({
+    userProfileId: userProfile._id,
+    paymentMethodId,
+    isActive: true,
+  });
+
+  if (!existingCard) {
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      'Payment method not found or already removed',
+    );
+  }
+
+  try {
+    await stripe.paymentMethods.detach(paymentMethodId);
+    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+  } catch (err) {
+    console.warn('Stripe detach failed (maybe already detached):');
+  }
+
+  // Soft delete: mark inactive and unset default
+  existingCard.isActive = false;
+  existingCard.isDefault = false;
+  await existingCard.save();
+
+  // If removed card was default, make another active card default
+  // if (existingCard.isDefault) {
+  //   const fallbackCard = await PaymentMethod.findOne({
+  //     userProfileId: userProfile._id,
+  //     isActive: true,
+  //   }).sort({ createdAt: -1 });
+
+  //   if (fallbackCard) {
+  //     fallbackCard.isDefault = true;
+  //     await fallbackCard.save();
+  //   }
+  // }
+
+  return {
+    success: true,
+    message: 'Payment method removed (soft-deleted) successfully',
+    data: null,
+  };
 };
 
 const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
@@ -253,4 +306,5 @@ export const paymentMethodService = {
   addPaymentMethod,
   createSetupIntent,
   purchaseCredits,
+  removePaymentMethod,
 };

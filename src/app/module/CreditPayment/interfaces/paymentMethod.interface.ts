@@ -10,4 +10,5 @@ export interface IPaymentMethod {
   expiryMonth: number;
   expiryYear: number;
   isDefault: boolean;
+  isActive?: boolean; // Optional flag for soft delete
 }

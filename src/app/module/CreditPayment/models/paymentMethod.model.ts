@@ -16,7 +16,8 @@ const paymentMethodSchema = new Schema(
     cardBrand: { type: String, required: true },
     expiryMonth: { type: Number, required: true },
     expiryYear: { type: Number, required: true },
-    isDefault: { type: Boolean, default: true },
+    isDefault: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true }, // new flag for soft delete
   },
   {
     timestamps: true,
