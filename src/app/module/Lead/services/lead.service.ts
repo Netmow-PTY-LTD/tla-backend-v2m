@@ -159,12 +159,10 @@ const getSingleLeadFromDB = async (leadId: string) => {
       path: 'userProfileId',
       populate: {
         path: 'user',
-        select: 'email',
       },
     })
     .populate({
       path: 'serviceId',
-      select: 'name slug',
     })
     .lean(); // Convert to plain JS object
 
