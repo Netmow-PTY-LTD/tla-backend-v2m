@@ -96,6 +96,7 @@ const getAllLeadFromDB = async () => {
             createdAt: '$serviceData.createdAt',
             updatedAt: '$serviceData.updatedAt',
           },
+          additionalDetails: 1,
           deletedAt: 1,
           createdAt: 1,
           updatedAt: 1,
