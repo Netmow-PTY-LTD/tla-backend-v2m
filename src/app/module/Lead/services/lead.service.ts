@@ -13,10 +13,110 @@ const CreateLeadIntoDB = async (payload: ILead) => {
 };
 
 const getAllLeadFromDB = async () => {
-  const leads = await Lead.find({ deletedAt: null })
-    .populate('userProfileId')
-    .populate('serviceId');
-  return leads;
+  try {
+    const result = await Lead.aggregate([
+      // Stage 1: Filter active leads
+      { $match: { deletedAt: null } },
+
+      // Stage 2: Lookup userProfile data (replaces populate)
+      {
+        $lookup: {
+          from: 'userprofiles',
+          localField: 'userProfileId',
+          foreignField: '_id',
+          as: 'userProfileData',
+        },
+      },
+      { $unwind: '$userProfileData' },
+
+      // Stage 3: Lookup service data (replaces populate)
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'serviceId',
+          foreignField: '_id',
+          as: 'serviceData',
+        },
+      },
+      { $unwind: '$serviceData' },
+
+      // Stage 4: Lookup credit information
+      {
+        $lookup: {
+          from: 'countrywiseservicewisefields',
+          let: {
+            countryId: '$userProfileData.country',
+            serviceId: '$serviceId',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$countryId', '$$countryId'] },
+                    { $eq: ['$serviceId', '$$serviceId'] },
+                    { $eq: ['$deletedAt', null] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'creditInfo',
+        },
+      },
+
+      // Stage 5: Shape the output to match your original format
+      {
+        $project: {
+          _id: 1,
+          userProfileId: {
+            _id: '$userProfileData._id',
+            user: '$userProfileData.user',
+            name: '$userProfileData.name',
+            activeProfile: '$userProfileData.activeProfile',
+            country: '$userProfileData.country',
+            deletedAt: '$userProfileData.deletedAt',
+            credits: '$userProfileData.credits',
+            paymentMethods: '$userProfileData.paymentMethods',
+            autoTopUp: '$userProfileData.autoTopUp',
+            serviceIds: '$userProfileData.serviceIds',
+            createdAt: '$userProfileData.createdAt',
+            updatedAt: '$userProfileData.updatedAt',
+            address: '$userProfileData.address',
+            bio: '$userProfileData.bio',
+            phone: '$userProfileData.phone',
+            profilePicture: '$userProfileData.profilePicture',
+          },
+          serviceId: {
+            _id: '$serviceData._id',
+            name: '$serviceData.name',
+            slug: '$serviceData.slug',
+            deletedAt: '$serviceData.deletedAt',
+            createdAt: '$serviceData.createdAt',
+            updatedAt: '$serviceData.updatedAt',
+          },
+          deletedAt: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          credit: {
+            $ifNull: [{ $arrayElemAt: ['$creditInfo.baseCredit', 0] }, 0],
+          },
+          creditSource: {
+            $cond: {
+              if: { $gt: [{ $size: '$creditInfo' }, 0] },
+              then: 'CountryServiceField',
+              else: 'Default',
+            },
+          },
+        },
+      },
+    ]);
+
+    return result;
+  } catch (error) {
+    console.error('Aggregation error:', error);
+    throw error;
+  }
 };
 
 const getMyAllLeadFromDB = async (userId: string) => {
