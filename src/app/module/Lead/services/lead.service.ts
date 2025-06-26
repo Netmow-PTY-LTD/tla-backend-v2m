@@ -6,6 +6,7 @@ import Lead from '../models/lead.model';
 import { LeadServiceAnswer } from '../models/leadServiceAnswer.model';
 import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
+import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 
 const CreateLeadIntoDB = async (payload: ILead) => {
   const lead = await Lead.create(payload);
@@ -137,6 +138,22 @@ const getMyAllLeadFromDB = async (userId: string) => {
 const getSingleLeadFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Lead');
 
+  // const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
+  //   .populate({
+  //     path: 'userProfileId',
+  //     populate: {
+  //       path: 'user',
+  //       select: 'email',
+  //     },
+  //   })
+  //   .populate({
+  //     path: 'serviceId',
+  //     select: 'name slug',
+  //   });
+
+  // if (!leadDoc) return null;
+
+  // 1. Get lead with populated user and service data
   const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
     .populate({
       path: 'userProfileId',
@@ -148,9 +165,22 @@ const getSingleLeadFromDB = async (leadId: string) => {
     .populate({
       path: 'serviceId',
       select: 'name slug',
-    });
+    })
+    .lean(); // Convert to plain JS object
 
   if (!leadDoc) return null;
+
+  // 2. Fetch credit information in parallel
+  const [creditInfo] = await Promise.all([
+    CountryWiseServiceWiseField.findOne({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      countryId: (leadDoc.userProfileId as any).country,
+      serviceId: leadDoc.serviceId._id,
+      deletedAt: null,
+    }).lean(),
+
+    // Add other parallel queries here if needed
+  ]);
 
   const leadAnswers = await LeadServiceAnswer.aggregate([
     {
@@ -277,10 +307,12 @@ const getSingleLeadFromDB = async (leadId: string) => {
     },
   ]);
 
-  const lead = leadDoc.toObject();
-  lead.leadAnswers = leadAnswers;
-
-  return lead;
+  return {
+    ...leadDoc,
+    leadAnswers,
+    credit: creditInfo?.baseCredit ?? 0,
+    creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+  };
 };
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
