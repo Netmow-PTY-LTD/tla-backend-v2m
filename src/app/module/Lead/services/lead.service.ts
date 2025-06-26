@@ -6,6 +6,7 @@ import Lead from '../models/lead.model';
 import { LeadServiceAnswer } from '../models/leadServiceAnswer.model';
 import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
+import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 
 const CreateLeadIntoDB = async (payload: ILead) => {
   const lead = await Lead.create(payload);
@@ -13,10 +14,110 @@ const CreateLeadIntoDB = async (payload: ILead) => {
 };
 
 const getAllLeadFromDB = async () => {
-  const leads = await Lead.find({ deletedAt: null })
-    .populate('userProfileId')
-    .populate('serviceId');
-  return leads;
+  try {
+    const result = await Lead.aggregate([
+      // Stage 1: Filter active leads
+      { $match: { deletedAt: null } },
+
+      // Stage 2: Lookup userProfile data (replaces populate)
+      {
+        $lookup: {
+          from: 'userprofiles',
+          localField: 'userProfileId',
+          foreignField: '_id',
+          as: 'userProfileData',
+        },
+      },
+      { $unwind: '$userProfileData' },
+
+      // Stage 3: Lookup service data (replaces populate)
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'serviceId',
+          foreignField: '_id',
+          as: 'serviceData',
+        },
+      },
+      { $unwind: '$serviceData' },
+
+      // Stage 4: Lookup credit information
+      {
+        $lookup: {
+          from: 'countrywiseservicewisefields',
+          let: {
+            countryId: '$userProfileData.country',
+            serviceId: '$serviceId',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$countryId', '$$countryId'] },
+                    { $eq: ['$serviceId', '$$serviceId'] },
+                    { $eq: ['$deletedAt', null] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'creditInfo',
+        },
+      },
+
+      // Stage 5: Shape the output to match your original format
+      {
+        $project: {
+          _id: 1,
+          userProfileId: {
+            _id: '$userProfileData._id',
+            user: '$userProfileData.user',
+            name: '$userProfileData.name',
+            activeProfile: '$userProfileData.activeProfile',
+            country: '$userProfileData.country',
+            deletedAt: '$userProfileData.deletedAt',
+            credits: '$userProfileData.credits',
+            paymentMethods: '$userProfileData.paymentMethods',
+            autoTopUp: '$userProfileData.autoTopUp',
+            serviceIds: '$userProfileData.serviceIds',
+            createdAt: '$userProfileData.createdAt',
+            updatedAt: '$userProfileData.updatedAt',
+            address: '$userProfileData.address',
+            bio: '$userProfileData.bio',
+            phone: '$userProfileData.phone',
+            profilePicture: '$userProfileData.profilePicture',
+          },
+          serviceId: {
+            _id: '$serviceData._id',
+            name: '$serviceData.name',
+            slug: '$serviceData.slug',
+            deletedAt: '$serviceData.deletedAt',
+            createdAt: '$serviceData.createdAt',
+            updatedAt: '$serviceData.updatedAt',
+          },
+          deletedAt: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          credit: {
+            $ifNull: [{ $arrayElemAt: ['$creditInfo.baseCredit', 0] }, 0],
+          },
+          creditSource: {
+            $cond: {
+              if: { $gt: [{ $size: '$creditInfo' }, 0] },
+              then: 'CountryServiceField',
+              else: 'Default',
+            },
+          },
+        },
+      },
+    ]);
+
+    return result;
+  } catch (error) {
+    console.error('Aggregation error:', error);
+    throw error;
+  }
 };
 
 const getMyAllLeadFromDB = async (userId: string) => {
@@ -37,6 +138,22 @@ const getMyAllLeadFromDB = async (userId: string) => {
 const getSingleLeadFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Lead');
 
+  // const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
+  //   .populate({
+  //     path: 'userProfileId',
+  //     populate: {
+  //       path: 'user',
+  //       select: 'email',
+  //     },
+  //   })
+  //   .populate({
+  //     path: 'serviceId',
+  //     select: 'name slug',
+  //   });
+
+  // if (!leadDoc) return null;
+
+  // 1. Get lead with populated user and service data
   const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
     .populate({
       path: 'userProfileId',
@@ -48,9 +165,22 @@ const getSingleLeadFromDB = async (leadId: string) => {
     .populate({
       path: 'serviceId',
       select: 'name slug',
-    });
+    })
+    .lean(); // Convert to plain JS object
 
   if (!leadDoc) return null;
+
+  // 2. Fetch credit information in parallel
+  const [creditInfo] = await Promise.all([
+    CountryWiseServiceWiseField.findOne({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      countryId: (leadDoc.userProfileId as any).country,
+      serviceId: leadDoc.serviceId._id,
+      deletedAt: null,
+    }).lean(),
+
+    // Add other parallel queries here if needed
+  ]);
 
   const leadAnswers = await LeadServiceAnswer.aggregate([
     {
@@ -177,10 +307,12 @@ const getSingleLeadFromDB = async (leadId: string) => {
     },
   ]);
 
-  const lead = leadDoc.toObject();
-  lead.leadAnswers = leadAnswers;
-
-  return lead;
+  return {
+    ...leadDoc,
+    leadAnswers,
+    credit: creditInfo?.baseCredit ?? 0,
+    creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+  };
 };
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
