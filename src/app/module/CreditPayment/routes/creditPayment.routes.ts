@@ -106,4 +106,10 @@ router.post(
   creditController.spendCredits,
 );
 
+router.get(
+  '/user-credit-stats',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditController.getUserCreditStats,
+);
+
 export const creditPaymentRouter = router;

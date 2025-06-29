@@ -4,8 +4,9 @@ import sendResponse from '../../../utils/sendResponse';
 import { leadService } from '../services/lead.service';
 
 const createLead = catchAsync(async (req, res) => {
-  const leadData = req.body;
-  const result = await leadService.CreateLeadIntoDB(leadData);
+  const userId = req.user.userId;
+  const payload = req.body;
+  const result = await leadService.CreateLeadIntoDB(userId, payload);
   sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
