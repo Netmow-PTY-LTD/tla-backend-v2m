@@ -92,4 +92,11 @@ router.get(
   creditPaymentController.getTransactionHistory,
 );
 
+//  offer
+router.get(
+  '/next-offer',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditPaymentController.getNextCreditOffer,
+);
+
 export const creditPaymentRouter = router;

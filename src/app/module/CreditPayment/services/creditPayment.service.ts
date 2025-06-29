@@ -185,6 +185,35 @@ const getAllTransactionHistory = async () => {
     .populate('creditPackageId');
 };
 
+const findNextCreditOffer = async (userId: string) => {
+  // Get latest completed purchase
+  const lastTransaction = await Transaction.findOne({
+    userId,
+    type: 'purchase',
+    status: 'completed',
+  })
+    .sort({ createdAt: -1 })
+    .populate('creditPackageId');
+
+  if (!lastTransaction || !lastTransaction.creditPackageId) {
+    // No purchases: return cheapest active package
+    return await CreditPackage.findOne({ isActive: true }).sort({ price: 1 });
+  }
+
+  const lastPackage = lastTransaction?.creditPackageId;
+
+  // Find next higher offer (by credit or price)
+  const nextOffer = await CreditPackage.findOne({
+    isActive: true,
+    $or: [
+      { credit: { $gt: lastPackage.credit } },
+      { price: { $gt: lastPackage.price } },
+    ],
+  }).sort({ price: 1 });
+
+  return nextOffer || null;
+};
+
 export const CreditPaymentService = {
   getCreditPackages,
   purchaseCredits,
@@ -195,4 +224,5 @@ export const CreditPaymentService = {
   getTransactionHistory,
   updateCreditPackagesIntoDB,
   getAllTransactionHistory,
+  findNextCreditOffer,
 };
