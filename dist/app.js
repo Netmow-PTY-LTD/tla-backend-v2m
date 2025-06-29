@@ -42,7 +42,7 @@ app.use((0, cors_1.default)({
 // application routes
 app.use('/api/v1', routes_1.default);
 app.get('/', (req, res) => {
-    res.send('Welcome to TLA Backend World');
+    res.send('Welcome to TLA Backend 1.0');
 });
 app.use(globalErrorhandler_1.default);
 //Not Found
