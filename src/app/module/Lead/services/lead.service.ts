@@ -7,6 +7,7 @@ import { LeadServiceAnswer } from '../models/leadServiceAnswer.model';
 import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
+import { customCreditLogic } from '../utils/customCreditLogic';
 
 const CreateLeadIntoDB = async (payload: ILead) => {
   const lead = await Lead.create(payload);
@@ -15,7 +16,7 @@ const CreateLeadIntoDB = async (payload: ILead) => {
 
 const getAllLeadFromDB = async () => {
   try {
-    const result = await Lead.aggregate([
+    const pipeline = [
       // Stage 1: Filter active leads
       { $match: { deletedAt: null } },
 
@@ -112,9 +113,15 @@ const getAllLeadFromDB = async () => {
           },
         },
       },
-    ]);
+    ];
 
-    return result;
+    const result = await Lead.aggregate(pipeline);
+
+    const combineCredit = result.map((lead) => ({
+      ...lead,
+      credit: customCreditLogic(lead.credit),
+    }));
+    return combineCredit;
   } catch (error) {
     console.error('Aggregation error:', error);
     throw error;
