@@ -112,6 +112,15 @@ const getTransactionHistory = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getAllTransactionHistory = catchAsync(async (req, res) => {
+  const result = await CreditPaymentService.getAllTransactionHistory();
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Transaction history fetched',
+    data: result,
+  });
+});
 
 export const creditPaymentController = {
   getCreditPackages,
@@ -122,4 +131,5 @@ export const creditPaymentController = {
   createCreditPackages,
   getTransactionHistory,
   updateCreditPackages,
+  getAllTransactionHistory,
 };

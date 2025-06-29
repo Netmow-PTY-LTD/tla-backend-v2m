@@ -71,6 +71,7 @@ router.post(
 
 router.delete(
   '/payment-method/:paymentMethodId',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   paymentMethodController.removePaymentMethod,
 );
 router.post(
@@ -82,6 +83,11 @@ router.post(
 // Transaction history
 router.get(
   '/transactions',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditPaymentController.getTransactionHistory,
+);
+router.get(
+  '/transaction/list',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.getTransactionHistory,
 );

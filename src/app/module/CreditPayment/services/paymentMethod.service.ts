@@ -22,6 +22,7 @@ const getPaymentMethods = async (userId: string) => {
   const result = await PaymentMethod.findOne({
     userProfileId: userProfile?._id,
     isDefault: true,
+    isActive: true,
   });
 
   return result;
@@ -50,7 +51,7 @@ const removePaymentMethod = async (userId: string, paymentMethodId: string) => {
     await stripe.paymentMethods.detach(paymentMethodId);
     // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   } catch (err) {
-    console.warn('Stripe detach failed (maybe already detached):');
+    console.warn('Stripe detach failed (maybe already detached):', err);
   }
 
   // Soft delete: mark inactive and unset default
@@ -242,6 +243,7 @@ const purchaseCredits = async (
   const paymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
+    isActive: true,
   });
 
   if (
