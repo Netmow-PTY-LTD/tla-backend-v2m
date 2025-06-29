@@ -2,14 +2,14 @@ import mongoose from 'mongoose';
 
 const creditTransactionSchema = new mongoose.Schema(
   {
-    userId: {
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'UserProfile',
       required: true,
     },
     type: {
       type: String,
-      enum: ['purchase', 'use', 'refund', 'adjustment'],
+      enum: ['purchase', 'usage', 'refund', 'adjustment'],
       required: true,
     },
     amount: { type: Number, required: true },

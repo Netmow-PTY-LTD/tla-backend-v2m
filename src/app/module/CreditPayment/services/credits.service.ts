@@ -1,5 +1,7 @@
+import { Types } from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 import CreditTransaction from '../models/creditTransaction.model';
+import Transaction from '../models/transaction.model';
 
 interface SpendCreditsPayload {
   relatedLeadId?: string;
@@ -21,8 +23,8 @@ const spendCredits = async (userId: string, payload: SpendCreditsPayload) => {
   await user.save();
 
   await CreditTransaction.create({
-    userId,
-    type: 'use',
+    userProfileId: user._id,
+    type: 'usage',
     amount: -amount,
     creditsBefore,
     creditsAfter,
@@ -33,6 +35,40 @@ const spendCredits = async (userId: string, payload: SpendCreditsPayload) => {
   return creditsAfter;
 };
 
+const getUserCreditStats = async (userId: string) => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    'credits',
+  );
+  if (!userProfile) throw new Error('User profile not found');
+
+  const userObjectId = new Types.ObjectId(userId);
+
+  const [purchases, usages] = await Promise.all([
+    Transaction.aggregate([
+      {
+        $match: { userId: userObjectId, type: 'purchase', status: 'completed' },
+      },
+      { $group: { _id: null, total: { $sum: '$credit' } } },
+    ]),
+    CreditTransaction.aggregate([
+      { $match: { userProfileId: userProfile._id, type: 'usage' } },
+      { $group: { _id: null, total: { $sum: { $abs: '$amount' } } } },
+    ]),
+  ]);
+
+  const currentCredits = userProfile.credits;
+  const totalPurchasedCredits = purchases[0]?.total || 0;
+  const totalUsedCredits = usages[0]?.total || 0;
+
+  return {
+    currentCredits,
+    totalPurchasedCredits,
+    totalUsedCredits,
+    remainingCredits: currentCredits,
+  };
+};
+
 export const creditService = {
   spendCredits,
+  getUserCreditStats,
 };
