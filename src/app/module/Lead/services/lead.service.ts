@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
 
@@ -9,9 +10,65 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
 
-const CreateLeadIntoDB = async (payload: ILead) => {
-  const lead = await Lead.create(payload);
-  return lead;
+const CreateLeadIntoDB = async (userId: string, payload: any) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const userProfile = await UserProfile.findOne({ user: userId })
+      .select('_id')
+      .session(session);
+
+    if (!userProfile) {
+      await session.abortTransaction();
+      session.endSession();
+      return sendNotFoundResponse('User profile not found');
+    }
+
+    const { questions, serviceId, additionalDetails } = payload;
+
+    const [leadUser] = await Lead.create(
+      [
+        {
+          userProfileId: userProfile._id,
+          serviceId,
+          additionalDetails,
+        },
+      ],
+      { session },
+    );
+
+    const leadDocs: any[] = [];
+
+    for (const q of questions) {
+      const questionId = q.questionId;
+      for (const opt of q.checkedOptionsDetails) {
+        leadDocs.push({
+          leadId: leadUser._id,
+          serviceId,
+          questionId,
+          optionId: opt.id,
+          isSelected: opt.is_checked,
+          idExtraData: opt.idExtraData || '',
+        });
+      }
+    }
+
+    if (leadDocs.length > 0) {
+      await LeadServiceAnswer.insertMany(leadDocs, { session });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return leadUser;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Error creating lead with transaction:', error);
+    throw error;
+  }
 };
 
 const getAllLeadFromDB = async () => {
