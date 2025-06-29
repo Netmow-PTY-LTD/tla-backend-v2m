@@ -6,26 +6,26 @@ import Transaction from '../models/transaction.model';
 interface SpendCreditsPayload {
   relatedLeadId?: string;
   description?: string;
-  amount: number;
+  credit: number;
 }
 
 const spendCredits = async (userId: string, payload: SpendCreditsPayload) => {
   const user = await UserProfile.findOne({ user: userId });
   if (!user) throw new Error('User not found');
 
-  const { amount, description, relatedLeadId } = payload;
+  const { credit, description, relatedLeadId } = payload;
 
-  if (user.credits < amount) throw new Error('Insufficient credits');
+  if (user.credits < credit) throw new Error('Insufficient credits');
 
   const creditsBefore = user.credits;
-  user.credits -= amount;
+  user.credits -= credit;
   const creditsAfter = user.credits;
   await user.save();
 
   await CreditTransaction.create({
     userProfileId: user._id,
     type: 'usage',
-    amount: -amount,
+    credit: -credit,
     creditsBefore,
     creditsAfter,
     description: description || 'Credit spent',
@@ -52,7 +52,7 @@ const getUserCreditStats = async (userId: string) => {
     ]),
     CreditTransaction.aggregate([
       { $match: { userProfileId: userProfile._id, type: 'usage' } },
-      { $group: { _id: null, total: { $sum: { $abs: '$amount' } } } },
+      { $group: { _id: null, total: { $sum: { $abs: '$credit' } } } },
     ]),
   ]);
 

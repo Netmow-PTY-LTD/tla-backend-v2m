@@ -12,7 +12,7 @@ const creditTransactionSchema = new mongoose.Schema(
       enum: ['purchase', 'usage', 'refund', 'adjustment'],
       required: true,
     },
-    amount: { type: Number, required: true },
+    credit: { type: Number, required: true },
     creditsBefore: Number,
     creditsAfter: Number,
     description: String,
