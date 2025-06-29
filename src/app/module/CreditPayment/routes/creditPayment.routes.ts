@@ -5,6 +5,7 @@ import { USER_ROLE } from '../../../constant';
 import { paymentMethodController } from '../controllers/paymentMethod.controller';
 import validateRequest from '../../../middlewares/validateRequest';
 import { creditPackageZodValidation } from '../validations/creditPackage.validation';
+import { creditController } from '../controllers/credit.controller';
 
 const router = Router();
 
@@ -71,6 +72,7 @@ router.post(
 
 router.delete(
   '/payment-method/:paymentMethodId',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   paymentMethodController.removePaymentMethod,
 );
 router.post(
@@ -84,6 +86,24 @@ router.get(
   '/transactions',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.getTransactionHistory,
+);
+router.get(
+  '/transaction/list',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditPaymentController.getTransactionHistory,
+);
+
+//  offer
+router.get(
+  '/next-offer',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditPaymentController.getNextCreditOffer,
+);
+
+router.post(
+  '/spendCredits',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditController.spendCredits,
 );
 
 export const creditPaymentRouter = router;

@@ -179,6 +179,42 @@ const getTransactionHistory = async (userId: string) => {
     .populate('creditPackageId');
 };
 
+const getAllTransactionHistory = async () => {
+  return await Transaction.find()
+    .sort({ createdAt: -1 })
+    .populate('creditPackageId');
+};
+
+const findNextCreditOffer = async (userId: string) => {
+  // Get latest completed purchase
+  const lastTransaction = await Transaction.findOne({
+    userId,
+    type: 'purchase',
+    status: 'completed',
+  })
+    .sort({ createdAt: -1 })
+    .populate('creditPackageId');
+
+  if (!lastTransaction || !lastTransaction.creditPackageId) {
+    // No purchases: return cheapest active package
+    return await CreditPackage.findOne({ isActive: true }).sort({ price: 1 });
+  }
+
+  const lastPackage =
+    lastTransaction?.creditPackageId as unknown as ICreditPackage;
+
+  // Find next higher offer (by credit or price)
+  const nextOffer = await CreditPackage.findOne({
+    isActive: true,
+    $or: [
+      { credit: { $gt: lastPackage.credit } },
+      { price: { $gt: lastPackage.price } },
+    ],
+  }).sort({ price: 1 });
+
+  return nextOffer || null;
+};
+
 export const CreditPaymentService = {
   getCreditPackages,
   purchaseCredits,
@@ -188,4 +224,6 @@ export const CreditPaymentService = {
   createCreditPackagesIntoDB,
   getTransactionHistory,
   updateCreditPackagesIntoDB,
+  getAllTransactionHistory,
+  findNextCreditOffer,
 };

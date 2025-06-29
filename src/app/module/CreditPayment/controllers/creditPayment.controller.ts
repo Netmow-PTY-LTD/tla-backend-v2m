@@ -113,6 +113,28 @@ const getTransactionHistory = catchAsync(async (req, res) => {
   });
 });
 
+const getAllTransactionHistory = catchAsync(async (req, res) => {
+  const result = await CreditPaymentService.getAllTransactionHistory();
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Transaction history fetched',
+    data: result,
+  });
+});
+
+const getNextCreditOffer = catchAsync(async (req, res) => {
+  const result = await CreditPaymentService.findNextCreditOffer(
+    req.user.userId,
+  );
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Get Next Credit Offer',
+    data: result,
+  });
+});
+
 export const creditPaymentController = {
   getCreditPackages,
   // purchaseCredits,
@@ -122,4 +144,6 @@ export const creditPaymentController = {
   createCreditPackages,
   getTransactionHistory,
   updateCreditPackages,
+  getAllTransactionHistory,
+  getNextCreditOffer,
 };
