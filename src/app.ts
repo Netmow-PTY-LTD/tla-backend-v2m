@@ -44,7 +44,7 @@ app.use(
 app.use('/api/v1', router);
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Welcome to TLA Backend 1.0');
+  res.send('Welcome to TLA Backend 2.0');
 });
 
 app.use(globalErrorHandler);
