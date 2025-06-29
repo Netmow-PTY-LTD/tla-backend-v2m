@@ -200,7 +200,8 @@ const findNextCreditOffer = async (userId: string) => {
     return await CreditPackage.findOne({ isActive: true }).sort({ price: 1 });
   }
 
-  const lastPackage = lastTransaction?.creditPackageId;
+  const lastPackage =
+    lastTransaction?.creditPackageId as unknown as ICreditPackage;
 
   // Find next higher offer (by credit or price)
   const nextOffer = await CreditPackage.findOne({

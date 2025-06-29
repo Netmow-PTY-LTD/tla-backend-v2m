@@ -3,11 +3,10 @@ import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
 import { creditService } from '../services/credits.service';
 
-const getNextCreditOffer = catchAsync(async (req, res) => {
-  const userId = req.user.userId; // assuming authentication middleware
-  const { leadId } = req.params;
+const spendCredits = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
   const payload = req.body;
-  const result = await creditService.spendCredits(userId, leadId, payload);
+  const result = await creditService.spendCredits(userId, payload);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -17,5 +16,5 @@ const getNextCreditOffer = catchAsync(async (req, res) => {
 });
 
 export const creditController = {
-  getNextCreditOffer,
+  spendCredits,
 };

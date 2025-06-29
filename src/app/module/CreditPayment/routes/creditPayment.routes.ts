@@ -5,6 +5,7 @@ import { USER_ROLE } from '../../../constant';
 import { paymentMethodController } from '../controllers/paymentMethod.controller';
 import validateRequest from '../../../middlewares/validateRequest';
 import { creditPackageZodValidation } from '../validations/creditPackage.validation';
+import { creditController } from '../controllers/credit.controller';
 
 const router = Router();
 
@@ -97,6 +98,12 @@ router.get(
   '/next-offer',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.getNextCreditOffer,
+);
+
+router.post(
+  '/spendCredits',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditController.spendCredits,
 );
 
 export const creditPaymentRouter = router;
