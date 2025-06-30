@@ -4,8 +4,9 @@ import sendResponse from '../../../utils/sendResponse';
 import { leadService } from '../services/lead.service';
 
 const createLead = catchAsync(async (req, res) => {
-  const leadData = req.body;
-  const result = await leadService.CreateLeadIntoDB(leadData);
+  const userId = req.user.userId;
+  const payload = req.body;
+  const result = await leadService.CreateLeadIntoDB(userId, payload);
   sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -98,10 +99,32 @@ const getAllLead = catchAsync(async (req, res) => {
   });
 });
 
+const getMyAllLead = catchAsync(async (req, res) => {
+  const userId = req.user.userId; // Assuming user ID is available in req.user
+  const result = await leadService.getMyAllLeadFromDB(userId);
+
+  if (!Array.isArray(result) || !result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Leads  not found.',
+      data: [],
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'My All Lead is retrieved successfully',
+    data: result,
+  });
+});
+
 export const leadController = {
   createLead,
   getSingleLead,
   deleteSingleLead,
   updateSingleLead,
   getAllLead,
+  getMyAllLead,
 };

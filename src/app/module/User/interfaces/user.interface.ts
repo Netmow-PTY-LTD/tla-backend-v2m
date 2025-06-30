@@ -13,11 +13,13 @@ export interface IBillingAddress {
 }
 
 export interface IUserProfile {
+  _id: string;
   user: Types.ObjectId;
   name: string;
+  slug?: string;
+  designation?: string;
   activeProfile: UserProfile;
   country?: Types.ObjectId;
-  deletedAt?: Date | null;
   profilePicture?: string;
   bio?: string;
   phone: string;
@@ -29,4 +31,5 @@ export interface IUserProfile {
   paymentMethods: Types.ObjectId[];
   autoTopUp?: boolean;
   serviceIds?: Types.ObjectId[];
+  deletedAt?: Date | null;
 }

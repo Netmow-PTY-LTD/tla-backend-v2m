@@ -5,7 +5,7 @@ export interface ILawyerServiceMap {
   userProfile: Types.ObjectId;
   services: Types.ObjectId[];
   country: Types.ObjectId;
-  zipCodes: Types.ObjectId[];
+  zipCode: Types.ObjectId;
   rangeInKm: number;
   practiceWithin: boolean;
   practiceInternationally: boolean;

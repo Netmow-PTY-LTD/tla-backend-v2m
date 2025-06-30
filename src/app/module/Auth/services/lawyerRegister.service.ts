@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import UserProfile from '../../User/models/user.model';
 
 import { AppError } from '../../../errors/error';
@@ -6,13 +6,14 @@ import { HTTP_STATUS } from '../../../constant/httpStatus';
 import User from '../models/auth.model';
 import CompanyProfile from '../../User/models/companyProfile.model';
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
-import ZipCode from '../../Geo/Country/models/zipcode.model';
-import { UserLocationServiceMap } from '../../Settings/LeadSettings/models/UserLocationServiceMap.model';
+import ZipCode from '../../Country/models/zipcode.model';
+import { UserLocationServiceMap } from '../../LeadSettings/models/UserLocationServiceMap.model';
 import { createToken } from '../utils/auth.utils';
 import config from '../../../config';
 import { StringValue } from 'ms';
 import { IUser } from '../interfaces/auth.interface';
 import { createLeadService } from '../utils/lawyerRegister.utils';
+import { REGISTER_USER_TYPE } from '../constant/auth.constant';
 
 const lawyerRegisterUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
@@ -32,17 +33,19 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
 
+    const address = await ZipCode.findById(lawyerServiceMap?.zipCode);
     // Prepare the profile data with a reference to the user
     const profileData = {
       ...profile,
       user: newUser._id,
+      address: address ? address.zipcode : '',
     };
 
     // Create the user profile document in the database
     const [newProfile] = await UserProfile.create([profileData], { session });
 
     // Link the profile to the newly created user
-    newUser.profile = newProfile._id;
+    newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
     // compnay profile map create
@@ -59,7 +62,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     // lawyer service map create
 
-    if (newUser.regUserType === 'lawyer') {
+    if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
         userProfile: newProfile._id,

@@ -8,10 +8,14 @@ const router = Router();
 router.post(
   '/add',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-
   leadController.createLead,
 );
 router.get('/list', leadController.getAllLead);
+router.get(
+  '/my',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  leadController.getMyAllLead,
+);
 router.get(
   '/:leadId',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),

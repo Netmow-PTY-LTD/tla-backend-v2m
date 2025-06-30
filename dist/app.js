@@ -23,6 +23,7 @@ app.use((0, cookie_parser_1.default)());
 const allowedOrigins = [
     'http://localhost:3000', // local dev
     `${config_1.default.client_url}`, // deployed frontend
+    'https://thelawapp.netlify.app',
 ];
 app.use((0, cors_1.default)({
     origin: (origin, callback) => {
@@ -42,7 +43,7 @@ app.use((0, cors_1.default)({
 // application routes
 app.use('/api/v1', routes_1.default);
 app.get('/', (req, res) => {
-    res.send('Welcome to TLA Backend World');
+    res.send('Welcome to TLA Backend 3.0');
 });
 app.use(globalErrorhandler_1.default);
 //Not Found

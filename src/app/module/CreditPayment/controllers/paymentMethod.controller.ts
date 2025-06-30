@@ -1,0 +1,89 @@
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { paymentMethodService } from '../services/paymentMethod.service';
+
+const getPaymentMethods = catchAsync(async (req, res) => {
+  const methods = await paymentMethodService.getPaymentMethods(req.user.userId);
+
+  if (!methods) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'No payment methods retrieved',
+      data: null,
+    });
+  }
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Payment methods retrieved',
+    data: methods,
+  });
+});
+
+const addPaymentMethod = catchAsync(async (req, res) => {
+  const { paymentMethodId } = req.body;
+  const userId = req.user.userId;
+  const result = await paymentMethodService.addPaymentMethod(
+    userId,
+    paymentMethodId,
+  );
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
+const removePaymentMethod = catchAsync(async (req, res) => {
+  const { paymentMethodId } = req.params;
+  const userId = req.user.userId;
+
+  const result = await paymentMethodService.removePaymentMethod(
+    userId,
+    paymentMethodId,
+  );
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
+const createSetupIntent = catchAsync(async (req, res) => {
+  const user = req.user;
+  const result = await paymentMethodService.createSetupIntent(
+    user.userId,
+    user.email,
+  );
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Stripe setup intent created',
+    data: result,
+  });
+});
+
+const purchaseCredits = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const result = await paymentMethodService.purchaseCredits(userId, req.body);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
+export const paymentMethodController = {
+  getPaymentMethods,
+  addPaymentMethod,
+  createSetupIntent,
+  purchaseCredits,
+  removePaymentMethod,
+};

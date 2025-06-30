@@ -2,16 +2,17 @@ import { Router } from 'express';
 
 import { authRouter } from '../module/Auth/routes/auth.route';
 import { UserProfileRouter } from '../module/User/routes/user.route';
-import { countryRouter } from '../module/Geo/Country/routes/country.route';
-import { serviceRouter } from '../module/Service/Service/routes/service.route';
-import { OptionRouter } from '../module/Service/Option/routes/option.route';
-import { CountryWiseMapRouter } from '../module/Geo/CountryWiseMap/routes/countryWiseMap.route';
-import { questionRouter } from '../module/Service/Question/routes/ServiceWiseQuestion.route';
+import { countryRouter } from '../module/Country/routes/country.route';
+import { serviceRouter } from '../module/Service/routes/service.route';
+import { OptionRouter } from '../module/Option/routes/option.route';
+import { CountryWiseMapRouter } from '../module/CountryWiseMap/routes/countryWiseMap.route';
+import { questionRouter } from '../module/Question/routes/ServiceWiseQuestion.route';
 import { viewRouter } from '../module/View/routes/view.router';
-import { leadServiceRouter } from '../module/Settings/LeadSettings/routes/leadService.routes';
-import { notificationRouter } from '../module/Settings/Notification/routes/notification.routes';
-import { creditPaymentRouter } from '../module/Settings/CreditPayment/routes/creditPayment.routes';
+import { leadServiceRouter } from '../module/LeadSettings/routes/leadService.routes';
+import { notificationRouter } from '../module/Notification/routes/notification.routes';
+import { creditPaymentRouter } from '../module/CreditPayment/routes/creditPayment.routes';
 import { leadRouter } from '../module/Lead/routes/lead.route';
+import { responseRouter } from '../module/LeadResponse/routes/response.route';
 
 const router = Router();
 
@@ -60,6 +61,10 @@ const moduleRoutes = [
   {
     path: '/lead',
     route: leadRouter,
+  },
+  {
+    path: '/response',
+    route: responseRouter,
   },
   {
     path: '/',

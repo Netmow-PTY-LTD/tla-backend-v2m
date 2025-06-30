@@ -21,6 +21,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:3000', // local dev
   `${config.client_url}`, // deployed frontend
+  'https://thelawapp.netlify.app',
 ];
 
 app.use(
@@ -44,7 +45,7 @@ app.use(
 app.use('/api/v1', router);
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Welcome to TLA Backend World');
+  res.send('Welcome to TLA Backend 3.0');
 });
 
 app.use(globalErrorHandler);

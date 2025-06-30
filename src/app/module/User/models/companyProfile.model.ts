@@ -54,6 +54,9 @@ const companyProfileSchema = new mongoose.Schema(
         type: String,
         enum: ['no_location', 'online_only', 'multiple_location'],
         default: 'no_location',
+        set: (value: string) => {
+          return value === '' ? 'no_location' : value;
+        },
       },
     },
     companySize: {
@@ -66,6 +69,9 @@ const companyProfileSchema = new mongoose.Schema(
         'over_100_employees',
       ],
       default: 'self_employed',
+      set: (value: string) => {
+        return value === '' ? 'self_employed' : value;
+      },
     },
     yearsInBusiness: {
       type: Number,
