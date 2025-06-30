@@ -6,7 +6,6 @@ export interface ILeadResponse {
   userProfileId: Types.ObjectId;
   leadId: Types.ObjectId;
   serviceId: Types.ObjectId;
-  additionalDetails: string;
   deletedAt?: Date | null;
   leadAnswers?: ILeadServiceAnswer[];
 }

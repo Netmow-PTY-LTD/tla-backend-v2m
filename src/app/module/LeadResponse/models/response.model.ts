@@ -18,10 +18,6 @@ const responseSchema = new Schema<ILeadResponse>(
       ref: 'Service',
       required: true,
     },
-    additionalDetails: {
-      type: String,
-      default: '',
-    },
     deletedAt: {
       type: Date,
       default: null,

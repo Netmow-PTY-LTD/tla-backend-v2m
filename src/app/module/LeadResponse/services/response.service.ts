@@ -11,65 +11,18 @@ import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
-  const session = await mongoose.startSession();
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
 
-  try {
-    session.startTransaction();
-
-    const userProfile = await UserProfile.findOne({ user: userId })
-      .select('_id')
-      .session(session);
-
-    if (!userProfile) {
-      await session.abortTransaction();
-      session.endSession();
-      return sendNotFoundResponse('User profile not found');
-    }
-
-    const { leadId, questions, serviceId, additionalDetails } = payload;
-
-    const [responseUser] = await LeadResponse.create(
-      [
-        {
-          leadId: leadId,
-          userProfileId: userProfile._id,
-          serviceId,
-          additionalDetails,
-        },
-      ],
-      { session },
-    );
-
-    const responseDocs: any[] = [];
-
-    for (const q of questions) {
-      const questionId = q.questionId;
-      for (const opt of q.checkedOptionsDetails) {
-        responseDocs.push({
-          leadId: leadId,
-          serviceId,
-          questionId,
-          optionId: opt.id,
-          isSelected: opt.is_checked,
-          idExtraData: opt.idExtraData || '',
-        });
-      }
-    }
-
-    if (responseDocs.length > 0) {
-      await LeadServiceAnswer.insertMany(responseDocs, { session });
-    }
-
-    await session.commitTransaction();
-    session.endSession();
-
-    return responseUser;
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error('Error creating response with transaction:', error);
-    throw error;
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
   }
+  const responseUser = await LeadResponse.create({
+    leadId: payload.leadId,
+    userProfileId: userProfile._id,
+    serviceId: payload.serviceId,
+  });
+
+  return responseUser;
 };
 
 const getAllResponseFromDB = async () => {
