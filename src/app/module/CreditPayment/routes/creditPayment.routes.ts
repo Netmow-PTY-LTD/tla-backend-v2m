@@ -107,9 +107,9 @@ router.post(
 );
 
 router.get(
-  '/user-credit-stats',
+  '/user-credit-transactions',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  creditController.getUserCreditStats,
+  creditController.getUserCreditTransactions,
 );
 
 export const creditPaymentRouter = router;

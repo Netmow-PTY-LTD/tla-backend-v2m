@@ -13,6 +13,7 @@ const leadService_routes_1 = require("../module/LeadSettings/routes/leadService.
 const notification_routes_1 = require("../module/Notification/routes/notification.routes");
 const creditPayment_routes_1 = require("../module/CreditPayment/routes/creditPayment.routes");
 const lead_route_1 = require("../module/Lead/routes/lead.route");
+const response_route_1 = require("../module/LeadResponse/routes/response.route");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -58,6 +59,10 @@ const moduleRoutes = [
     {
         path: '/lead',
         route: lead_route_1.leadRouter,
+    },
+    {
+        path: '/response',
+        route: response_route_1.responseRouter,
     },
     {
         path: '/',

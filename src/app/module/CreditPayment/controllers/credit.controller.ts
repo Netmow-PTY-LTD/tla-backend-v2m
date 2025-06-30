@@ -27,7 +27,20 @@ const getUserCreditStats = catchAsync(async (req, res) => {
   });
 });
 
+const getUserCreditTransactions = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+
+  const result = await creditService.getUserCreditTransactions(userId);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Get User Credit Transaction history',
+    data: result,
+  });
+});
+
 export const creditController = {
   spendCredits,
   getUserCreditStats,
+  getUserCreditTransactions,
 };

@@ -68,7 +68,18 @@ const getUserCreditStats = async (userId: string) => {
   };
 };
 
+const getUserCreditTransactions = async (userId: string) => {
+  const user = await UserProfile.findOne({ user: userId }).select('_id');
+  if (!user) throw new Error('User profile not found');
+  const transactions = await CreditTransaction.find({
+    userProfileId: user?._id,
+  }).sort({ createdAt: -1 }); // newest first
+
+  return transactions;
+};
+
 export const creditService = {
   spendCredits,
   getUserCreditStats,
+  getUserCreditTransactions,
 };
