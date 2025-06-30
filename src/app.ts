@@ -21,6 +21,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:3000', // local dev
   `${config.client_url}`, // deployed frontend
+  'https://thelawapp.netlify.app',
 ];
 
 app.use(
