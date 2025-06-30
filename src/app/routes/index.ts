@@ -12,6 +12,7 @@ import { leadServiceRouter } from '../module/LeadSettings/routes/leadService.rou
 import { notificationRouter } from '../module/Notification/routes/notification.routes';
 import { creditPaymentRouter } from '../module/CreditPayment/routes/creditPayment.routes';
 import { leadRouter } from '../module/Lead/routes/lead.route';
+import { responseRouter } from '../module/Response/routes/response.route';
 
 const router = Router();
 
@@ -60,6 +61,10 @@ const moduleRoutes = [
   {
     path: '/lead',
     route: leadRouter,
+  },
+  {
+    path: '/response',
+    route: responseRouter,
   },
   {
     path: '/',
