@@ -1,11 +1,16 @@
 import mongoose, { Schema } from 'mongoose';
-import { IResponse } from '../interfaces/response.interface';
+import { ILeadResponse } from '../interfaces/response.interface';
 
-const responseSchema = new Schema<IResponse>(
+const responseSchema = new Schema<ILeadResponse>(
   {
     userProfileId: {
       type: Schema.Types.ObjectId,
       ref: 'UserProfile',
+      required: true,
+    },
+    leadId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Lead',
       required: true,
     },
     serviceId: {
@@ -29,8 +34,11 @@ const responseSchema = new Schema<IResponse>(
 );
 
 responseSchema.statics.isLeadExists = async function (id: string) {
-  return await Response.findById(id);
+  return await LeadResponse.findById(id);
 };
-const Response = mongoose.model<IResponse>('Response', responseSchema);
+const LeadResponse = mongoose.model<ILeadResponse>(
+  'LeadResponse',
+  responseSchema,
+);
 
-export default Response;
+export default LeadResponse;
