@@ -5,9 +5,10 @@ import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
-import { IResponse } from '../interfaces/response.interface';
-import Response from '../models/response.model';
+import { ILeadResponse } from '../interfaces/response.interface';
+
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
+import LeadResponse from '../models/response.model';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -25,11 +26,12 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
       return sendNotFoundResponse('User profile not found');
     }
 
-    const { questions, serviceId, additionalDetails } = payload;
+    const { leadId, questions, serviceId, additionalDetails } = payload;
 
-    const [responseUser] = await Response.create(
+    const [responseUser] = await LeadResponse.create(
       [
         {
+          leadId: leadId,
           userProfileId: userProfile._id,
           serviceId,
           additionalDetails,
@@ -44,7 +46,7 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
       const questionId = q.questionId;
       for (const opt of q.checkedOptionsDetails) {
         responseDocs.push({
-          leadId: responseUser._id,
+          leadId: leadId,
           serviceId,
           questionId,
           optionId: opt.id,
@@ -171,7 +173,7 @@ const getAllResponseFromDB = async () => {
       },
     ];
 
-    const result = await Response.aggregate(pipeline);
+    const result = await LeadResponse.aggregate(pipeline);
 
     const combineCredit = result.map((response) => ({
       ...response,
@@ -190,7 +192,7 @@ const getMyAllResponseFromDB = async (userId: string) => {
     return sendNotFoundResponse('User profile not found');
   }
 
-  const responses = await Response.find({
+  const responses = await LeadResponse.find({
     userProfileId: userProfile?._id,
     deletedAt: null,
   })
@@ -202,7 +204,10 @@ const getMyAllResponseFromDB = async (userId: string) => {
 const getSingleResponseFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Response');
 
-  const responseDoc = await Response.findOne({ _id: leadId, deletedAt: null })
+  const responseDoc = await LeadResponse.findOne({
+    _id: leadId,
+    deletedAt: null,
+  })
     .populate({
       path: 'userProfileId',
       populate: {
@@ -363,10 +368,10 @@ const getSingleResponseFromDB = async (leadId: string) => {
 
 const updateResponseIntoDB = async (
   id: string,
-  payload: Partial<IResponse>,
+  payload: Partial<ILeadResponse>,
 ) => {
   validateObjectId(id, 'Response');
-  const result = await Response.findOneAndUpdate(
+  const result = await LeadResponse.findOneAndUpdate(
     { _id: id, deletedAt: null },
     payload,
     {
@@ -380,7 +385,7 @@ const deleteResponseFromDB = async (id: string) => {
   validateObjectId(id, 'Response');
   const deletedAt = new Date().toISOString();
 
-  const result = await Response.findByIdAndUpdate(
+  const result = await LeadResponse.findByIdAndUpdate(
     id,
     { deletedAt: deletedAt },
     {
