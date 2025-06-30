@@ -149,6 +149,7 @@ const getMyAllResponseFromDB = async (userId: string) => {
     userProfileId: userProfile?._id,
     deletedAt: null,
   })
+    .populate('leadId')
     .populate('userProfileId')
     .populate('serviceId');
   return responses;
