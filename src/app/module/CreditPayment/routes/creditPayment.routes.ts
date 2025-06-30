@@ -83,7 +83,7 @@ router.post(
 
 // Transaction history
 router.get(
-  '/transactions',
+  '/user-transactions',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.getTransactionHistory,
 );
@@ -106,6 +106,11 @@ router.post(
   creditController.spendCredits,
 );
 
+router.get(
+  '/user-credit-transactions',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  creditController.getUserCreditTransactions,
+);
 router.get(
   '/user-credit-stats',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
