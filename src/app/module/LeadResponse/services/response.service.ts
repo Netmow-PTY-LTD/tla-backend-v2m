@@ -188,6 +188,12 @@ const getSingleResponseFromDB = async (leadId: string) => {
     })
     .populate({
       path: 'leadId',
+       populate: {
+        path: 'userProfileId',
+        populate: {
+        path: 'user',
+      },
+      },
     })
     .lean(); // Convert to plain JS object
 
