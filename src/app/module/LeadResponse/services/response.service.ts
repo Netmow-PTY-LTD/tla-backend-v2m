@@ -35,7 +35,7 @@ const getAllResponseFromDB = async () => {
       {
         $lookup: {
           from: 'userprofiles',
-          localField: 'userProfileId',
+          localField: 'leadId',
           foreignField: '_id',
           as: 'userProfileData',
         },
@@ -166,11 +166,12 @@ const getMyAllResponseFromDB = async (userId: string) => {
   return responses;
 };
 
+
 const getSingleResponseFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Response');
 
   const responseDoc = await LeadResponse.findOne({
-    _id: leadId,
+   leadId: leadId,
     deletedAt: null,
   })
     .populate({
