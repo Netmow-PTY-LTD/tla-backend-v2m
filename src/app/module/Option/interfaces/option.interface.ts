@@ -1,7 +1,7 @@
 import { Model, Types } from 'mongoose';
 
 export interface IOption {
-  _id: string;
+  _id: Types.ObjectId;
   name: string;
   slug: string;
   countryId: Types.ObjectId;

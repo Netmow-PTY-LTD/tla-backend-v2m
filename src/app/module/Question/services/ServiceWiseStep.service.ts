@@ -11,26 +11,19 @@ const CreateServiceWiseQuestionIntoDB = async (
 };
 
 const getAllServiceWiseQuestionFromDB = async () => {
-  const result = await ServiceWiseQuestion.find({ deletedAt: null });
+  const result = await ServiceWiseQuestion.find();
   return result;
 };
 
 const getSingleQuestionFromDB = async (id: string) => {
   validateObjectId(id, 'Question');
-  const result = await ServiceWiseQuestion.findOne({
-    _id: id,
-    deletedAt: null,
-  }).populate('serviceId countryId');
+  const result = await ServiceWiseQuestion.findById(id).populate('serviceId countryId');
   return result;
 };
 
 const getSingleServiceWiseQuestionFromDB = async (id: string) => {
   validateObjectId(id, 'Service');
-  const result = await ServiceWiseQuestion.find({
-    serviceId: id,
-    deletedAt: null,
-  });
-
+  const result = await ServiceWiseQuestion.find({ serviceId: id });
   return result;
 };
 
@@ -40,8 +33,7 @@ const updateServiceWiseQuestionIntoDB = async (
 ) => {
   validateObjectId(id, 'Question');
 
-  const result = await ServiceWiseQuestion.findOneAndUpdate(
-    { _id: id, deletedAt: null },
+  const result = await ServiceWiseQuestion.findByIdAndUpdate(id,
     payload,
     {
       new: true,
@@ -52,14 +44,9 @@ const updateServiceWiseQuestionIntoDB = async (
 
 const deleteServiceWiseQuestionFromDB = async (id: string) => {
   validateObjectId(id, 'Question');
-  const deletedAt = new Date().toISOString();
-  const result = await ServiceWiseQuestion.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
-  );
+
+  const result = await ServiceWiseQuestion.findByIdAndDelete(id)
+
   return result;
 };
 
