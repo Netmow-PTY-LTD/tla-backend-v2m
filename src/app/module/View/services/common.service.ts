@@ -5,6 +5,7 @@ import CreditTransaction from "../../CreditPayment/models/creditTransaction.mode
 import LeadResponse from "../../LeadResponse/models/response.model";
 import { HTTP_STATUS } from "../../../constant/httpStatus";
 import CreditPackage from "../../CreditPayment/models/creditPackage.model";
+import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
 
 
 
@@ -76,6 +77,8 @@ import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 
 
 
+
+
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
 //   payload: { leadId: Types.ObjectId; credit: number; serviceId: Types.ObjectId }
@@ -83,6 +86,7 @@ import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 //   const session = await mongoose.startSession();
 
 //   try {
+//     // First, find user outside transaction
 //     let user = await UserProfile.findOne({ user: userId });
 //     if (!user) {
 //       return { success: false, status: HTTP_STATUS.NOT_FOUND, message: 'User not found' };
@@ -92,25 +96,29 @@ import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 
 //     // Check if credits are enough
 //     if (user.credits < credit) {
-//       // 1. Suggest credit package
+//       // Suggest credit package
 //       const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
-//       const recommendedPackage = creditPackages.find(pkg => pkg.credit >= credit - user.credits);
+//       const requiredCredits = credit - user.credits;
+//       const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
 
 //       return {
 //         success: false,
 //         status: HTTP_STATUS.BAD_REQUEST,
 //         message: 'Insufficient credits',
-//         requiredCredits: credit - user.credits,
+//         requiredCredits,
 //         recommendedPackage,
-//         showCheckout: true, // let frontend trigger Stripe checkout flow
+//         showCheckout: true, // frontend triggers Stripe checkout flow
 //       };
 //     }
 
-//     // 2. Begin Transaction
+//     // Begin transaction
 //     await session.withTransaction(async () => {
-     
+//       // Re-fetch user inside transaction and check null
+//       user = await UserProfile.findOne({ user: userId }).session(session);
+//       if (!user) {
+//        return { success: false, status: HTTP_STATUS.NOT_FOUND, message: 'User not found' };
+//       }
 
-//       user = await UserProfile.findOne({ user: userId }).session(session); // Refresh inside session
 //       const creditsBefore = user.credits;
 //       user.credits -= credit;
 //       const creditsAfter = user.credits;
@@ -118,24 +126,28 @@ import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 //       await user.save({ session });
 
 //       await CreditTransaction.create(
-//         [{
-//           userProfileId: user._id,
-//           type: 'usage',
-//           credit: -credit,
-//           creditsBefore,
-//           creditsAfter,
-//           description: 'Credits deducted for initiating contact with the lawyer',
-//           relatedLeadId: leadId,
-//         }],
+//         [
+//           {
+//             userProfileId: user._id,
+//             type: 'usage',
+//             credit: -credit,
+//             creditsBefore,
+//             creditsAfter,
+//             description: 'Credits deducted for initiating contact with the lawyer',
+//             relatedLeadId: leadId,
+//           },
+//         ],
 //         { session }
 //       );
 
 //       await LeadResponse.create(
-//         [{
-//           leadId,
-//           userProfileId: user._id,
-//           serviceId,
-//         }],
+//         [
+//           {
+//             leadId,
+//             userProfileId: user._id,
+//             serviceId,
+//           },
+//         ],
 //         { session }
 //       );
 //     });
@@ -155,6 +167,7 @@ import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 
 
 
+
 const createLawyerResponseAndSpendCredit = async (
   userId: Types.ObjectId,
   payload: { leadId: Types.ObjectId; credit: number; serviceId: Types.ObjectId }
@@ -162,7 +175,7 @@ const createLawyerResponseAndSpendCredit = async (
   const session = await mongoose.startSession();
 
   try {
-    // First, find user outside transaction
+    // Find user profile
     let user = await UserProfile.findOne({ user: userId });
     if (!user) {
       return { success: false, status: HTTP_STATUS.NOT_FOUND, message: 'User not found' };
@@ -170,29 +183,43 @@ const createLawyerResponseAndSpendCredit = async (
 
     const { leadId, credit, serviceId } = payload;
 
-    // Check if credits are enough
     if (user.credits < credit) {
-      // Suggest credit package
+      // Check if user has saved payment methods
+      const savedCards = await PaymentMethod.find({ userProfileId: user._id, isActive: true ,isDefault:true});
+
+      if (savedCards.length === 0) {
+        // No saved card — tell frontend to ask user to add a card first
+        return {
+          success: false,
+          status: HTTP_STATUS.PRECONDITION_FAILED, // 412 or 400 as you prefer
+          message: 'Insufficient credits and no saved payment method. Please add a card first.',
+          needAddCard: true,
+          requiredCredits: credit - user.credits,
+        };
+      }
+
+      // User has saved cards — suggest automatic credit purchase
       const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
       const requiredCredits = credit - user.credits;
       const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
 
       return {
         success: false,
-        status: HTTP_STATUS.BAD_REQUEST,
-        message: 'Insufficient credits',
+        status: HTTP_STATUS.PAYMENT_REQUIRED, // 402 or 400 as you prefer
+        message: 'Insufficient credits. Auto-purchase recommended.',
+        autoPurchaseCredit: true,
         requiredCredits,
         recommendedPackage,
-        showCheckout: true, // frontend triggers Stripe checkout flow
+        // Optionally send info needed for auto-purchase like savedCardId
+        savedCardId: savedCards[0]._id,
       };
     }
 
-    // Begin transaction
+    // Enough credits: do the transaction as before
     await session.withTransaction(async () => {
-      // Re-fetch user inside transaction and check null
       user = await UserProfile.findOne({ user: userId }).session(session);
       if (!user) {
-       return { success: false, status: HTTP_STATUS.NOT_FOUND, message: 'User not found' };
+        throw new Error('User not found inside transaction');
       }
 
       const creditsBefore = user.credits;
