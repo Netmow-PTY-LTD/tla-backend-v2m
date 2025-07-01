@@ -25,6 +25,7 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
   return responseUser;
 };
 
+
 const getAllResponseFromDB = async () => {
   try {
     const pipeline = [
@@ -139,6 +140,8 @@ const getAllResponseFromDB = async () => {
   }
 };
 
+
+
 const getMyAllResponseFromDB = async (userId: string) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
   if (!userProfile) {
@@ -182,6 +185,9 @@ const getSingleResponseFromDB = async (leadId: string) => {
     })
     .populate({
       path: 'serviceId',
+    })
+    .populate({
+      path: 'leadId',
     })
     .lean(); // Convert to plain JS object
 
