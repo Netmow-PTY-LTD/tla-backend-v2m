@@ -149,7 +149,18 @@ const getMyAllResponseFromDB = async (userId: string) => {
     userProfileId: userProfile?._id,
     deletedAt: null,
   })
-    .populate('leadId')
+    .populate({
+      path: 'leadId',
+      populate: {
+        path: 'userProfileId',
+        populate: {
+          path: 'user',
+        },
+      },
+    })
+    .populate({
+      path: 'serviceId',
+    })
     .populate('userProfileId')
     .populate('serviceId');
   return responses;
