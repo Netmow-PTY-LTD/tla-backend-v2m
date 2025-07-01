@@ -113,10 +113,13 @@ const getSingleUserProfileBySlug = catchAsync(async (req, res) => {
   });
 });
 
+
+
 export const viewController = {
   getSingleServiceWiseQuestion,
   getQuestionWiseOptions,
   getAllUserProfile,
   getSingleUserProfileById,
   getSingleUserProfileBySlug,
+  
 };
