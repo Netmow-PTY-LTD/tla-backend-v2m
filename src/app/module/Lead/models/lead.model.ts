@@ -17,6 +17,10 @@ const leadSchema = new Schema<ILead>(
       type: String,
       default: '',
     },
+     budgetAmount:{
+      type: String,
+      default: '',
+    },
     deletedAt: {
       type: Date,
       default: null,
