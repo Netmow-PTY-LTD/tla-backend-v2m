@@ -171,7 +171,7 @@ const getSingleResponseFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Response');
 
   const responseDoc = await LeadResponse.findOne({
-   leadId: leadId,
+    leadId: leadId,
     deletedAt: null,
   })
     .populate({
