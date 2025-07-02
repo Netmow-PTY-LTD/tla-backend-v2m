@@ -9,9 +9,7 @@ import { commonService } from "../services/common.service";
 const contactLawyer = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const payload = req.body;
-
   const result = await commonService.createLawyerResponseAndSpendCredit(userId, payload);
-
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
@@ -24,12 +22,14 @@ const contactLawyer = catchAsync(async (req, res) => {
   // Handle: need to add card
   if (result.needAddCard) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.PRECONDITION_FAILED,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: result.message,
       data: {
-        requiredCredits: result.requiredCredits,
         needAddCard: true,
+        requiredCredits: result.requiredCredits,
+        recommendedPackage:result.recommendedPackage
+
       },
     });
   }
@@ -37,7 +37,7 @@ const contactLawyer = catchAsync(async (req, res) => {
   // Handle: auto-purchase required
   if (result.autoPurchaseCredit) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.PAYMENT_REQUIRED,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: result.message,
       data: {

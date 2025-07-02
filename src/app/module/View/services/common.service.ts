@@ -16,7 +16,7 @@ import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
 // ) => {
 //   const session = await mongoose.startSession();
 
-  
+
 //   try {
 //     await session.withTransaction(async () => {
 //       const user = await UserProfile.findOne({ user: userId }).session(session);
@@ -184,8 +184,17 @@ const createLawyerResponseAndSpendCredit = async (
     const { leadId, credit, serviceId } = payload;
 
     if (user.credits < credit) {
+
+      // User has saved cards — suggest automatic credit purchase
+      const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
+      const requiredCredits = credit - user.credits;
+      const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
+
+
       // Check if user has saved payment methods
-      const savedCards = await PaymentMethod.find({ userProfileId: user._id, isActive: true ,isDefault:true});
+
+      const savedCards = await PaymentMethod.find({ userProfileId: user._id, isActive: true, isDefault: true });
+
 
       if (savedCards.length === 0) {
         // No saved card — tell frontend to ask user to add a card first
@@ -195,13 +204,11 @@ const createLawyerResponseAndSpendCredit = async (
           message: 'Insufficient credits and no saved payment method. Please add a card first.',
           needAddCard: true,
           requiredCredits: credit - user.credits,
+          recommendedPackage
         };
       }
 
-      // User has saved cards — suggest automatic credit purchase
-      const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
-      const requiredCredits = credit - user.credits;
-      const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
+
 
       return {
         success: false,
