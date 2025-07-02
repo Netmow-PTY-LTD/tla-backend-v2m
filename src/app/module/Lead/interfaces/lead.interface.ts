@@ -5,6 +5,7 @@ export interface ILead {
   userProfileId: Types.ObjectId;
   serviceId: Types.ObjectId;
   additionalDetails: string;
+  budgetAmount: number;
   deletedAt?: Date | null;
   leadAnswers?: ILeadServiceAnswer[];
 }
