@@ -25,6 +25,7 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
   return responseUser;
 };
 
+
 const getAllResponseFromDB = async () => {
   try {
     const pipeline = [
@@ -35,7 +36,7 @@ const getAllResponseFromDB = async () => {
       {
         $lookup: {
           from: 'userprofiles',
-          localField: 'userProfileId',
+          localField: 'leadId',
           foreignField: '_id',
           as: 'userProfileData',
         },
@@ -139,6 +140,8 @@ const getAllResponseFromDB = async () => {
   }
 };
 
+
+
 const getMyAllResponseFromDB = async (userId: string) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
   if (!userProfile) {
@@ -166,11 +169,12 @@ const getMyAllResponseFromDB = async (userId: string) => {
   return responses;
 };
 
+
 const getSingleResponseFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Response');
 
   const responseDoc = await LeadResponse.findOne({
-    _id: leadId,
+    leadId: leadId,
     deletedAt: null,
   })
     .populate({
@@ -181,6 +185,15 @@ const getSingleResponseFromDB = async (leadId: string) => {
     })
     .populate({
       path: 'serviceId',
+    })
+    .populate({
+      path: 'leadId',
+       populate: {
+        path: 'userProfileId',
+        populate: {
+        path: 'user',
+      },
+      },
     })
     .lean(); // Convert to plain JS object
 

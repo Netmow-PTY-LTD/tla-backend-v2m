@@ -17,7 +17,7 @@ router.get(
   responseController.getMyAllResponse,
 );
 router.get(
-  '/:responseId',
+  '/:leadId',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   responseController.getSingleResponse,
 );

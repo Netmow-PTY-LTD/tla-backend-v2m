@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { viewController } from '../controllers/view.controller';
+import { commonController } from '../controllers/common.controller';
+import auth from '../../../middlewares/auth';
+import { USER_ROLE } from '../../../constant';
 
 const router = Router();
 
@@ -17,6 +20,12 @@ router.get(
 router.get(
   '/public/user/by-slug/:slug',
   viewController.getSingleUserProfileBySlug,
+);
+
+router.post(
+  '/contact-lawyer',
+  auth(USER_ROLE.ADMIN,USER_ROLE.USER),
+  commonController.contactLawyer,
 );
 
 export const viewRouter = router;

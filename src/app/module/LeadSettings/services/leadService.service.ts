@@ -41,16 +41,14 @@ const createLeadService = async (
         validateObjectId(id.toString(), 'service'),
       );
 
-      const objectServiceIds = payload.serviceIds.map(
-        (id) => new mongoose.Types.ObjectId(id),
-      );
-
       // 3. Filter only new service IDs
       const existingServiceIds = new Set(
-        userProfile?.serviceIds?.map((id) => id.toString()),
+        (userProfile.serviceIds || []).map((id: Types.ObjectId) =>
+          id.toString(),
+        ),
       );
 
-      const newServiceIds = objectServiceIds.filter(
+      const newServiceIds = payload.serviceIds.filter(
         (id) => !existingServiceIds.has(id.toString()),
       );
 
@@ -64,49 +62,91 @@ const createLeadService = async (
 
       const successfulServiceIds: Types.ObjectId[] = [];
 
-      // 4. Create LeadService documents for each new service
+      // 4. Get all questions for new services
+      const allQuestions = await ServiceWiseQuestion.find({
+        serviceId: { $in: newServiceIds },
+      })
+        .select('_id serviceId')
+        .session(session);
+
+      // 5. Group questions by serviceId
+      const questionsByServiceId = new Map<
+        string,
+        { _id: Types.ObjectId }[]
+      >();
+
+      for (const question of allQuestions) {
+        const serviceIdStr = question.serviceId.toString();
+        if (!questionsByServiceId.has(serviceIdStr)) {
+          questionsByServiceId.set(serviceIdStr, []);
+        }
+        questionsByServiceId.get(serviceIdStr)!.push({ _id: question._id });
+      }
+
+      // 6. Build match pairs
+      const matchPairs = allQuestions.map((q) => ({
+        questionId: q._id,
+        serviceId: q.serviceId,
+      }));
+
+      // 7. Get options by (questionId + serviceId)
+      const allOptions = await Option.find({
+        $or: matchPairs,
+      })
+        .select('_id questionId serviceId')
+        .session(session);
+
+      // 8. Group options by questionId (string-keyed map for consistency)
+      const optionsByQuestionId = new Map<
+        string,
+        { _id: Types.ObjectId; serviceId: Types.ObjectId }[]
+      >();
+
+      for (const option of allOptions) {
+        const questionIdStr = option.questionId.toString();
+        if (!optionsByQuestionId.has(questionIdStr)) {
+          optionsByQuestionId.set(questionIdStr, []);
+        }
+        optionsByQuestionId.get(questionIdStr)!.push({
+          _id: option._id,
+          serviceId: option.serviceId,
+        });
+      }
+
+      // 9. Build LeadService docs and insert
       for (const serviceId of newServiceIds) {
-        const questions = await ServiceWiseQuestion.find({ serviceId }).session(
-          session,
-        );
+        const questions = questionsByServiceId.get(serviceId.toString()) || [];
 
-        let totalCreated = 0;
+        const docs = questions.flatMap((question) => {
+          const options = optionsByQuestionId.get(question._id.toString()) || [];
 
-        for (const question of questions) {
-          const options = await Option.find({
-            questionId: question._id,
-            serviceId,
-          }).session(session);
-
-          if (options.length > 0) {
-            const docs = options.map((option) => ({
+          return options
+            .filter((option) => option.serviceId.equals(serviceId))
+            .map((option) => ({
               userProfileId: userProfile._id,
               serviceId,
               questionId: question._id,
               optionId: option._id,
               isSelected: true,
             }));
+        });
 
-            const result = await LeadService.insertMany(docs, { session });
-            totalCreated += result.length;
-          }
-        }
-
-        if (totalCreated > 0) {
+        if (docs.length > 0) {
+          await LeadService.insertMany(docs, { session });
           successfulServiceIds.push(serviceId);
         }
       }
 
-      // 5. Update userProfile.serviceIds
+      // 10. Update userProfile.serviceIds
       if (successfulServiceIds.length > 0) {
-        if (!userProfile.serviceIds) {
-          userProfile.serviceIds = [];
-        }
-        userProfile.serviceIds.push(...successfulServiceIds);
+        userProfile.serviceIds = [
+          ...(userProfile.serviceIds || []),
+          ...successfulServiceIds,
+        ];
         await userProfile.save({ session });
       }
 
-      // 6. Update UserLocationServiceMap
+      // 11. Update UserLocationServiceMap
       const locationGroup = await ZipCode.findOne({
         countryId: userProfile.country,
         zipCodeType: 'default',
@@ -149,6 +189,139 @@ const createLeadService = async (
     await session.endSession();
   }
 };
+// const createLeadService = async (
+//   userId: string,
+//   payload: {
+//     serviceIds: Types.ObjectId[];
+//   },
+// ) => {
+//   const session = await mongoose.startSession();
+
+//   try {
+//     await session.withTransaction(async () => {
+//       // 1. Find user profile
+//       const userProfile = await UserProfile.findOne({ user: userId })
+//         .select('_id serviceIds country')
+//         .session(session);
+
+//       if (!userProfile) {
+//         sendNotFoundResponse('User profile not found');
+//         return;
+//       }
+
+//       // 2. Validate service IDs
+//       payload.serviceIds.forEach((id) =>
+//         validateObjectId(id.toString(), 'service'),
+//       );
+
+//       const objectServiceIds = payload.serviceIds.map(
+//         (id) => new mongoose.Types.ObjectId(id),
+//       );
+
+//       // 3. Filter only new service IDs
+//       const existingServiceIds = new Set(
+//         userProfile?.serviceIds?.map((id) => id.toString()),
+//       );
+
+//       const newServiceIds = objectServiceIds.filter(
+//         (id) => !existingServiceIds.has(id.toString()),
+//       );
+
+//       if (newServiceIds.length === 0) {
+//         throw {
+//           status: 409,
+//           message: 'All selected services already exist for this user',
+//           duplicates: Array.from(existingServiceIds),
+//         };
+//       }
+
+//       const successfulServiceIds: Types.ObjectId[] = [];
+
+//       // 4. Create LeadService documents for each new service
+//       for (const serviceId of newServiceIds) {
+//         const questions = await ServiceWiseQuestion.find({ serviceId }).session(
+//           session,
+//         );
+
+//         let totalCreated = 0;
+
+//         for (const question of questions) {
+//           const options = await Option.find({
+//             questionId: question._id,
+//             serviceId,
+//           }).session(session);
+
+//           if (options.length > 0) {
+//             const docs = options.map((option) => ({
+//               userProfileId: userProfile._id,
+//               serviceId,
+//               questionId: question._id,
+//               optionId: option._id,
+//               isSelected: true,
+//             }));
+
+//             const result = await LeadService.insertMany(docs, { session });
+//             totalCreated += result.length;
+//           }
+//         }
+
+//         if (totalCreated > 0) {
+//           successfulServiceIds.push(serviceId);
+//         }
+//       }
+
+//       // 5. Update userProfile.serviceIds
+//       if (successfulServiceIds.length > 0) {
+//         if (!userProfile.serviceIds) {
+//           userProfile.serviceIds = [];
+//         }
+//         userProfile.serviceIds.push(...successfulServiceIds);
+//         await userProfile.save({ session });
+//       }
+
+//       // 6. Update UserLocationServiceMap
+//       const locationGroup = await ZipCode.findOne({
+//         countryId: userProfile.country,
+//         zipCodeType: 'default',
+//       }).session(session);
+
+//       if (!locationGroup) {
+//         throw {
+//           status: 404,
+//           message: 'Default location group not found',
+//         };
+//       }
+
+//       await UserLocationServiceMap.findOneAndUpdate(
+//         {
+//           userProfileId: userProfile._id,
+//           locationGroupId: locationGroup._id,
+//           locationType: 'nation_wide',
+//         },
+//         {
+//           $addToSet: {
+//             serviceIds: { $each: successfulServiceIds },
+//           },
+//         },
+//         {
+//           upsert: true,
+//           new: true,
+//           session,
+//         },
+//       );
+//     });
+
+//     return {
+//       success: true,
+//       message: 'Lead services created and profile updated successfully',
+//     };
+//   } catch (error) {
+//     console.error('Transaction failed:', error);
+//     throw error;
+//   } finally {
+//     await session.endSession();
+//   }
+// };
 
 const getLeadServicesWithQuestions = async (userId: string) => {
   // 1. Fetch user profile
@@ -169,13 +342,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     .populate('optionId');
 
   // 3. Organize data
-  const grouped: Record<
-    string,
-    {
-      service: any;
-      questionsMap: Record<string, { question: any; options: any[] }>;
-    }
-  > = {};
+  const grouped: Record<string, { service: any; questionsMap: Record<string, { question: any; options: any[] }>; }> = {};
 
   for (const item of leadServices) {
     const serviceId = (item.serviceId as any)._id.toString();

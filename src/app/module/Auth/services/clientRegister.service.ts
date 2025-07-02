@@ -61,6 +61,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
             userProfileId: newProfile._id,
             serviceId,
             additionalDetails: leadDetails.additionalDetails || '',
+            budgetAmount: leadDetails.budgetAmount || '',
           },
         ],
         { session },

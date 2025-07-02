@@ -6,6 +6,7 @@ import {
 
 const ServiceWiseQuestionSchema = new mongoose.Schema(
   {
+    
     countryId: {
       type: Schema.Types.ObjectId,
       ref: 'Country',
@@ -35,10 +36,7 @@ const ServiceWiseQuestionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+  
   },
   {
     timestamps: true,

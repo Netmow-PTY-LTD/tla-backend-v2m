@@ -26,7 +26,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       return sendNotFoundResponse('User profile not found');
     }
 
-    const { questions, serviceId, additionalDetails } = payload;
+    const { questions, serviceId, additionalDetails, budgetAmount } = payload;
 
     const [leadUser] = await Lead.create(
       [
@@ -34,6 +34,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           userProfileId: userProfile._id,
           serviceId,
           additionalDetails,
+          budgetAmount
         },
       ],
       { session },
