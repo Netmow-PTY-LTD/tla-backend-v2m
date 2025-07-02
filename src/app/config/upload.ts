@@ -7,17 +7,24 @@ import { v4 as uuidv4 } from 'uuid';
 import config from './index';
 import { s3Client } from './s3Client';
 
-const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']; // Extend as needed
+const allowedTypes = ['application/pdf']; // Keep PDFs explicitly
 
 // Multer memory storage (required for uploading to S3)
 const storage = multer.memoryStorage();
 
 const fileFilter: multer.Options['fileFilter'] = (req, file, cb) => {
-  if (allowedTypes.includes(file.mimetype)) {
+
+  console.log('file.mimetype',file.mimetype)
+  if (file.mimetype.startsWith('image/') || allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only JPG, PNG, and PDF files are allowed'));
+    cb(new Error('Only image files and PDFs are allowed'));
   }
+  // if (allowedTypes.includes(file.mimetype)) {
+  //   cb(null, true);
+  // } else {
+  //   cb(new Error('Only JPG, PNG, and PDF files are allowed'));
+  // }
 };
 
 const limits = {

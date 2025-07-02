@@ -334,7 +334,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
 
   // 2. Fetch relevant lead services
   const leadServices = await LeadService.find({
-    userProfileId: userProfile._id,
+    userProfileId: userProfile?._id,
     serviceId: { $in: userProfile.serviceIds },
   })
     .populate('serviceId')
@@ -345,8 +345,19 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   const grouped: Record<string, { service: any; questionsMap: Record<string, { question: any; options: any[] }>; }> = {};
 
   for (const item of leadServices) {
-    const serviceId = (item.serviceId as any)._id.toString();
-    const questionId = (item.questionId as any)._id.toString();
+    // const serviceId = (item.serviceId as any)?._id.toString();
+    // const questionId = (item.questionId as any)?._id.toString();
+    const serviceIdRaw = item.serviceId as any;
+    const questionIdRaw = item.questionId as any;
+
+    if (!serviceIdRaw?._id || !questionIdRaw?._id) {
+      console.warn('Skipping item due to missing serviceId or questionId:', item);
+      continue;
+    }
+
+    const serviceId = serviceIdRaw._id.toString();
+    const questionId = questionIdRaw._id.toString();
+
 
     // Initialize service group
     if (!grouped[serviceId]) {
