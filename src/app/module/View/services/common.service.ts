@@ -1,10 +1,11 @@
-import mongoose, { Types } from "mongoose";
+import mongoose, { InferSchemaType, Types } from "mongoose";
 import UserProfile from "../../User/models/user.model";
 import CreditTransaction from "../../CreditPayment/models/creditTransaction.model";
 import LeadResponse from "../../LeadResponse/models/response.model";
 import { HTTP_STATUS } from "../../../constant/httpStatus";
 import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
+import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface";
 
 const createLawyerResponseAndSpendCredit = async (
   userId: Types.ObjectId,
@@ -60,7 +61,13 @@ const createLawyerResponseAndSpendCredit = async (
       };
     }
 
+
     // Enough credits: do the transaction as before
+
+ 
+
+    let resultLeadResponse: ILeadResponse| null = null;
+
     await session.withTransaction(async () => {
       user = await UserProfile.findOne({ user: userId }).session(session);
       if (!user) {
@@ -73,7 +80,7 @@ const createLawyerResponseAndSpendCredit = async (
 
       await user.save({ session });
 
-      await CreditTransaction.create(
+      const [creditsTrasection] = await CreditTransaction.create(
         [
           {
             userProfileId: user._id,
@@ -88,7 +95,7 @@ const createLawyerResponseAndSpendCredit = async (
         { session }
       );
 
-      await LeadResponse.create(
+      const [leadResponse] = await LeadResponse.create(
         [
           {
             leadId,
@@ -98,11 +105,22 @@ const createLawyerResponseAndSpendCredit = async (
         ],
         { session }
       );
+
+
+      // Return the leadResponse in the outer scope
+      resultLeadResponse = leadResponse; // declare this before transaction
+
     });
+
+
 
     return {
       success: true,
       message: 'Contact initiated and credits deducted successfully',
+      data: {
+        responseId: (resultLeadResponse as any)?._id 
+      }
+
     };
   } catch (error) {
     console.error('Transaction failed:', error);

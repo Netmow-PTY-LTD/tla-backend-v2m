@@ -54,7 +54,7 @@ const contactLawyer = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: result.message,
-    data: result,
+    data: result.data,
   });
 });
 
