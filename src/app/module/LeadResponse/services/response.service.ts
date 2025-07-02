@@ -170,13 +170,10 @@ const getMyAllResponseFromDB = async (userId: string) => {
 };
 
 
-const getSingleResponseFromDB = async (leadId: string) => {
-  validateObjectId(leadId, 'Response');
+const getSingleResponseFromDB = async (responseId: string) => {
+  validateObjectId(responseId, 'Response');
 
-  const responseDoc = await LeadResponse.findOne({
-    leadId: leadId,
-    deletedAt: null,
-  })
+  const responseDoc = await LeadResponse.findById(responseId)
     .populate({
       path: 'userProfileId',
       populate: {
@@ -211,10 +208,26 @@ const getSingleResponseFromDB = async (leadId: string) => {
     // Add other parallel queries here if needed
   ]);
 
+
+  // Validate and extract leadId
+
+// Ensure responseDoc exists
+if (!responseDoc) {
+  throw new Error(`Response not found for ID: ${responseId}`);
+}
+
+// Ensure leadId exists and is populated
+if (!responseDoc.leadId || typeof responseDoc.leadId !== 'object' || !responseDoc.leadId._id) {
+  throw new Error(`Lead ID is missing or not populated in response for ID: ${responseId}`);
+}
+
+const leadObjectId = new mongoose.Types.ObjectId(String(responseDoc.leadId._id));
+
+
   const leadAnswers = await LeadServiceAnswer.aggregate([
     {
       $match: {
-        leadId: new mongoose.Types.ObjectId(leadId),
+        leadId: leadObjectId,
         deletedAt: null,
       },
     },
