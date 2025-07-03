@@ -17,6 +17,10 @@ import Lead from '../../Lead/models/lead.model';
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import { Types } from 'mongoose';
 import { REGISTER_USER_TYPE } from '../constant/auth.constant';
+import { generateRegistrationEmail } from '../../../emails/templates/registrationEmail';
+import { sendEmail } from '../../../emails/email.service';
+
+
 
 const clientRegisterUserIntoDB = async (payload: any) => {
   const session = await mongoose.startSession();
@@ -51,7 +55,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       name: leadDetails.name,
       phone: leadDetails.phone,
       address: address ? address.zipcode : '',
-      zipCode:leadDetails?.zipCode
+      zipCode: leadDetails?.zipCode
     };
     const [newProfile] = await UserProfile.create([profileData], { session });
 
@@ -115,6 +119,24 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     await session.commitTransaction();
     session.endSession();
 
+
+    // send email 
+
+    const { subject, text, html } = generateRegistrationEmail({
+      name: newProfile?.name || 'User',
+      email: newUser.email,
+      defaultPassword:config.default_password,
+      loginUILink: `${config.client_url}/login`,
+      appName: 'The Law App',
+    });
+
+    await sendEmail({
+      to: newUser.email,
+      subject,
+      text,
+      html,
+    });
+
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
@@ -149,3 +171,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 export const clientRegisterService = {
   clientRegisterUserIntoDB,
 };
+
+
+
