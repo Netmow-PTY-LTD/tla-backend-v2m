@@ -4,14 +4,15 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
 
-import { IProfilePhotos } from '../interfaces/profiePhotos.interface';
 
 import ProfilePhotos from '../models/profilePhotos';
 import UserProfile from '../models/user.model';
 
 const updateProfilePhotosIntoDB = async (
   userId: string,
-  payload: Partial<IProfilePhotos>,
+  payload: {
+    videos: string; // single video URL from input
+  },
   files: TUploadedFile[],
 ) => {
   const userProfile = await UserProfile.findOne({ user: userId });
@@ -39,12 +40,20 @@ const updateProfilePhotosIntoDB = async (
     }
   }
 
-  // Append new photos to existing array
+  // Push new photos and single video (if provided) into their arrays
+  const update: any = {};
+  if (uploadedUrls.length > 0) {
+    update.$push = { photos: { $each: uploadedUrls } };
+  }
+
+  if (payload.videos) {
+    update.$push = update.$push || {};
+    update.$push.videos = payload.videos;
+  }
+
   const updatedProfilePhotos = await ProfilePhotos.findOneAndUpdate(
     { userProfileId: userProfile._id },
-    {
-      $push: { photos: { $each: uploadedUrls } }, // ✅ push instead of replace
-    },
+    update,
     {
       upsert: true,
       new: true,
@@ -53,6 +62,42 @@ const updateProfilePhotosIntoDB = async (
 
   return updatedProfilePhotos;
 };
+
+const removeProfileMediaFromDB = async (
+  userId: string,
+  type: 'photos' | 'videos',
+  urlToRemove: string
+) => {
+  const userProfile = await UserProfile.findOne({ user: userId });
+
+  if (!userProfile) {
+    return {
+      statusCode: 200,
+      success: false,
+      message: "user not found ",
+      data: null
+    }
+  }
+
+  const updateResult = await ProfilePhotos.findOneAndUpdate(
+    { userProfileId: userProfile._id },
+    {
+      $pull: {
+        [type]: urlToRemove,
+      },
+    },
+    { new: true }
+  );
+
+  return updateResult;
+};
+
+
+
+
+
+
+
 
 // const updateProfilePhotosIntoDB = async (
 //   userId: string,
@@ -99,6 +144,10 @@ const updateProfilePhotosIntoDB = async (
 //   return updatedProfilePhotos;
 // };
 
+
+
+
 export const ProfilePhotosService = {
   updateProfilePhotosIntoDB,
+  removeProfileMediaFromDB
 };
