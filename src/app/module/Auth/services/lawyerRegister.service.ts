@@ -13,6 +13,7 @@ import { StringValue } from 'ms';
 import { IUser } from '../interfaces/auth.interface';
 import { REGISTER_USER_TYPE } from '../constant/auth.constant';
 import { createLeadService } from '../utils/lawyerRegister.utils';
+import { LocationType } from '../../LeadSettings/constant/UserWiseLocation.constant';
 
 
 const lawyerRegisterUserIntoDB = async (payload: IUser) => {
@@ -75,15 +76,27 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       countryId: newProfile?.country,
       zipCodeType: 'default',
     });
-
+    // adding nation wide user location 
     const userLocationServiceMapData = {
       userProfileId: newProfile._id,
       locationGroupId: locationGroup?._id,
-      locationType: 'nation_wide',
+      locationType: LocationType.NATION_WIDE,
       serviceIds: lawyerServiceMap.services || [],
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapData], {
+      session,
+    });
+    // user chooseable location 
+    const userLocationServiceMapUserChoiceBase = {
+      userProfileId: newProfile._id,
+      locationGroupId: lawyerServiceMap.zipCode,
+      locationType: LocationType.DISTANCE_WISE,
+      rangeInKm: lawyerServiceMap.rangeInKm,
+      serviceIds: lawyerServiceMap.services || [],
+    };
+
+    await UserLocationServiceMap.create([userLocationServiceMapUserChoiceBase], {
       session,
     });
 
