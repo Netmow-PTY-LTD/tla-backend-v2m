@@ -35,6 +35,10 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Country',
     },
+    zipCode:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ZipCode',
+    },
     profilePicture: {
       type: String,
       trim: true,

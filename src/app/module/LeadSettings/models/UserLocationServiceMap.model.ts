@@ -25,6 +25,10 @@ const userLocationServiceMapSchema = new Schema<IUserLocationServiceMap>(
       enum: Object.values(LocationType),
       required: true,
     },
+    rangeInKm: {
+      type: Number,
+      default: 0,
+    },
     serviceIds: [
       {
         type: Schema.Types.ObjectId,

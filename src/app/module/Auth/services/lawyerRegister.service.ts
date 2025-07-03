@@ -1,6 +1,5 @@
 import mongoose, { Types } from 'mongoose';
 import UserProfile from '../../User/models/user.model';
-
 import { AppError } from '../../../errors/error';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import User from '../models/auth.model';
@@ -12,8 +11,10 @@ import { createToken } from '../utils/auth.utils';
 import config from '../../../config';
 import { StringValue } from 'ms';
 import { IUser } from '../interfaces/auth.interface';
-import { createLeadService } from '../utils/lawyerRegister.utils';
 import { REGISTER_USER_TYPE } from '../constant/auth.constant';
+import { createLeadService } from '../utils/lawyerRegister.utils';
+import { LocationType } from '../../LeadSettings/constant/UserWiseLocation.constant';
+
 
 const lawyerRegisterUserIntoDB = async (payload: IUser) => {
   // Start a database session for the transaction
@@ -39,6 +40,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       ...profile,
       user: newUser._id,
       address: address ? address.zipcode : '',
+      zipCode:lawyerServiceMap?.zipCode
     };
 
     // Create the user profile document in the database
@@ -75,20 +77,34 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       countryId: newProfile?.country,
       zipCodeType: 'default',
     });
-
+    // adding nation wide user location 
     const userLocationServiceMapData = {
       userProfileId: newProfile._id,
       locationGroupId: locationGroup?._id,
-      locationType: 'nation_wide',
+      locationType: LocationType.NATION_WIDE,
       serviceIds: lawyerServiceMap.services || [],
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapData], {
       session,
     });
+    // user chooseable location 
+    const userLocationServiceMapUserChoiceBase = {
+      userProfileId: newProfile._id,
+      locationGroupId: lawyerServiceMap.zipCode,
+      locationType: LocationType.DISTANCE_WISE,
+      rangeInKm: lawyerServiceMap.rangeInKm,
+      serviceIds: lawyerServiceMap.services || [],
+    };
+
+    await UserLocationServiceMap.create([userLocationServiceMapUserChoiceBase], {
+      session,
+    });
 
     // ✅ Create lead service entries using session
     await createLeadService(newUser?._id, lawyerServiceMap.services, session);
+
+
 
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
@@ -129,6 +145,9 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     throw error;
   }
 };
+
+
+
 
 export const lawyerRegisterService = {
   lawyerRegisterUserIntoDB,
