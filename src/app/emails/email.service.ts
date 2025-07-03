@@ -14,11 +14,15 @@ export const sendEmail = async ({
   html?: string;
 }) => {
   const mailOptions = {
-    from: config.mailgun_from_email_address, // e.g. "My App <noreply@yourdomain.com>"
+    // from: config.mailgun_from_email_address, // e.g. "My App <noreply@yourdomain.com>"
+    from: "The Law App <noreply@thelawapp.com.au>",
     to,
     subject,
     text,
     html,
+     headers: {
+    'X-Mailer': 'The Law App',
+  },
   };
 
   try {
