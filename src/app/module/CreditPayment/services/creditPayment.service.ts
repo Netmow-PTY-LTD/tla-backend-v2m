@@ -183,6 +183,12 @@ const getTransactionHistory = async (userId: string) => {
 const getAllTransactionHistory = async () => {
   const transactionHistory = await Transaction.find({})
     .sort({ createdAt: -1 })
+    .populate({
+      path:'userId',
+      populate:{
+        path:'profile'
+      }
+    })
     .populate('creditPackageId');
   return transactionHistory
 };
