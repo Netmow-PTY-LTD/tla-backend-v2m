@@ -25,6 +25,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
   try {
     const { leadDetails, countryId, serviceId, questions } = payload;
 
+    // findout existing user
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
       throw new AppError(HTTP_STATUS.CONFLICT, 'This user already exists!');
@@ -37,10 +38,13 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       password: config.default_password,
     };
 
+    // create new user
     const [newUser] = await User.create([userData], { session });
 
+    // get zipcode detail
     const address = await ZipCode.findById(leadDetails.zipCode);
 
+    // create new userProfile
     const profileData = {
       user: newUser._id,
       country: countryId,
@@ -48,12 +52,13 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       phone: leadDetails.phone,
       address: address ? address.zipcode : '',
     };
-
     const [newProfile] = await UserProfile.create([profileData], { session });
 
     newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
+
+    // ✅ if registration user type is client then create lead 
     if (newUser.regUserType === REGISTER_USER_TYPE.CLIENT) {
       const [leadUser] = await Lead.create(
         [
@@ -62,7 +67,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
             serviceId,
             additionalDetails: leadDetails.additionalDetails || '',
             budgetAmount: leadDetails.budgetAmount || '',
-            locationId:leadDetails.zipCode
+            locationId: leadDetails.zipCode
           },
         ],
         { session },
@@ -90,6 +95,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       }
     }
 
+    // ✅ location  realated 
     const locationGroup = await ZipCode.findOne({
       countryId: newProfile?.country,
       zipCodeType: 'default',
@@ -101,7 +107,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       locationType: 'nation_wide',
       serviceIds: [],
     };
-
     await UserLocationServiceMap.create([userLocationServiceMapData], {
       session,
     });

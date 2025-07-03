@@ -5,6 +5,7 @@ import validateRequest from '../../../middlewares/validateRequest';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
 import { clientRegisterController } from '../controllers/client.controller';
+import { lawyerRegisterController } from '../controllers/lawyer.controller';
 const router = Router();
 
 router.post(
@@ -13,11 +14,11 @@ router.post(
   authController.login,
 );
 
-router.post(
-  '/register',
-  validateRequest(authZodValidation.userZodValidationSchema),
-  authController.register,
-);
+// router.post(
+//   '/register',
+//   validateRequest(authZodValidation.userZodValidationSchema),
+//   authController.register,
+// );
 
 router.post(
   '/refresh-token',
@@ -54,6 +55,15 @@ router.post(
 //   authController.userAuthUpdate,
 // );
 
+
 //  --------------- client Register  ----------------------------
 router.post('/register/client', clientRegisterController.clientRegister);
+
+//  --------------- client Register  ----------------------------
+router.post(
+  '/register/lawyer',
+  validateRequest(authZodValidation.userZodValidationSchema),
+  lawyerRegisterController.lawyerRegister,
+);
+
 export const authRouter = router;
