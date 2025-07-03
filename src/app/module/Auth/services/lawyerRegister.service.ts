@@ -14,6 +14,8 @@ import { IUser } from '../interfaces/auth.interface';
 import { REGISTER_USER_TYPE } from '../constant/auth.constant';
 import { createLeadService } from '../utils/lawyerRegister.utils';
 import { LocationType } from '../../LeadSettings/constant/UserWiseLocation.constant';
+import { generateRegistrationEmail } from '../../../emails/templates/registrationEmail';
+import { sendEmail } from '../../../emails/email.service';
 
 
 const lawyerRegisterUserIntoDB = async (payload: IUser) => {
@@ -40,7 +42,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       ...profile,
       user: newUser._id,
       address: address ? address.zipcode : '',
-      zipCode:lawyerServiceMap?.zipCode
+      zipCode: lawyerServiceMap?.zipCode
     };
 
     // Create the user profile document in the database
@@ -109,6 +111,24 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     // Commit the transaction (save changes to the database)
     await session.commitTransaction();
     session.endSession();
+
+
+    // send email 
+
+    const { subject, text, html } = generateRegistrationEmail({
+      name: newProfile?.name || 'User',
+      email: newUser.email,
+      defaultPassword: userData.password,
+      loginUILink: `${config.client_url}/login`,
+      appName: 'The Law App',
+    });
+
+    await sendEmail({
+      to: newUser.email,
+      subject,
+      text,
+      html,
+    });
 
     // Generate the access token for the user
     const jwtPayload = {

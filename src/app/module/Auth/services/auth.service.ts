@@ -10,7 +10,7 @@ import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import mongoose, { Types } from 'mongoose';
 import UserProfile from '../../User/models/user.model';
-import { sendEmail } from '../../../config/emailTranspoter';
+
 import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
 import CompanyProfile from '../../User/models/companyProfile.model';
 import { UserLocationServiceMap } from '../../LeadSettings/models/UserLocationServiceMap.model';
@@ -21,6 +21,7 @@ import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model
 import ZipCode from '../../Country/models/zipcode.model';
 import Option from '../../Option/models/option.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { sendEmail } from '../../../emails/email.service';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -489,7 +490,7 @@ const forgetPassword = async (userEmail: string) => {
   const resetToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
-    '10m',
+    '10m',  // for short time reset password
   );
 
   // Construct the reset password UI link containing the token
