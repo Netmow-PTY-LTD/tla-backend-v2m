@@ -20,20 +20,17 @@ const updateProfilePhotosIntoDB = async (
     return sendNotFoundResponse('user profile data');
   }
 
+  let uploadedUrls: string[] = [];
+
   if (Array.isArray(files) && files.length > 0) {
     try {
-      // Filter files with valid buffer and upload them in parallel
       const uploadPromises = files
         .filter((file) => file?.buffer)
         .map((file) =>
           uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
         );
 
-      const uploadedUrls = await Promise.all(uploadPromises);
-
-      // Assign uploaded URLs to payload.photos array
-      payload.photos = uploadedUrls;
-      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+      uploadedUrls = await Promise.all(uploadPromises);
     } catch (err) {
       throw new AppError(
         HTTP_STATUS.INTERNAL_SERVER_ERROR,
@@ -42,9 +39,12 @@ const updateProfilePhotosIntoDB = async (
     }
   }
 
+  // Append new photos to existing array
   const updatedProfilePhotos = await ProfilePhotos.findOneAndUpdate(
     { userProfileId: userProfile._id },
-    payload,
+    {
+      $push: { photos: { $each: uploadedUrls } }, // ✅ push instead of replace
+    },
     {
       upsert: true,
       new: true,
@@ -53,6 +53,52 @@ const updateProfilePhotosIntoDB = async (
 
   return updatedProfilePhotos;
 };
+
+// const updateProfilePhotosIntoDB = async (
+//   userId: string,
+//   payload: Partial<IProfilePhotos>,
+//   files: TUploadedFile[],
+// ) => {
+//   const userProfile = await UserProfile.findOne({ user: userId });
+
+//   if (!userProfile) {
+//     return sendNotFoundResponse('user profile data');
+//   }
+
+//   if (Array.isArray(files) && files.length > 0) {
+//     try {
+//       // Filter files with valid buffer and upload them in parallel
+//       const uploadPromises = files
+//         .filter((file) => file?.buffer)
+//         .map((file) =>
+//           uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
+//         );
+
+//       const uploadedUrls = await Promise.all(uploadPromises);
+
+//       // Assign uploaded URLs to payload.photos array
+//       payload.photos = uploadedUrls;
+//       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+//     } catch (err) {
+//       throw new AppError(
+//         HTTP_STATUS.INTERNAL_SERVER_ERROR,
+//         'File upload failed',
+//       );
+//     }
+//   }
+
+//   const updatedProfilePhotos = await ProfilePhotos.findOneAndUpdate(
+//     { userProfileId: userProfile._id },
+//     payload,
+//     {
+//       upsert: true,
+//       new: true,
+//     },
+//   );
+
+//   return updatedProfilePhotos;
+// };
+
 export const ProfilePhotosService = {
   updateProfilePhotosIntoDB,
 };
