@@ -63,6 +63,42 @@ const updateProfilePhotosIntoDB = async (
   return updatedProfilePhotos;
 };
 
+const removeProfileMediaFromDB = async (
+  userId: string,
+  type: 'photos' | 'videos',
+  urlToRemove: string
+) => {
+  const userProfile = await UserProfile.findOne({ user: userId });
+
+  if (!userProfile) {
+    return {
+      statusCode: 200,
+      success: false,
+      message: "user not found ",
+      data: null
+    }
+  }
+
+  const updateResult = await ProfilePhotos.findOneAndUpdate(
+    { userProfileId: userProfile._id },
+    {
+      $pull: {
+        [type]: urlToRemove,
+      },
+    },
+    { new: true }
+  );
+
+  return updateResult;
+};
+
+
+
+
+
+
+
+
 // const updateProfilePhotosIntoDB = async (
 //   userId: string,
 //   payload: Partial<IProfilePhotos>,
@@ -108,6 +144,10 @@ const updateProfilePhotosIntoDB = async (
 //   return updatedProfilePhotos;
 // };
 
+
+
+
 export const ProfilePhotosService = {
   updateProfilePhotosIntoDB,
+  removeProfileMediaFromDB
 };

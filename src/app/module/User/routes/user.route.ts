@@ -8,6 +8,7 @@ import { upload } from '../../../config/upload';
 import { customServiceController } from '../controllers/customService.controller';
 import { accreditationController } from '../controllers/accrediation.controller';
 import { faqController } from '../controllers/faq.controller';
+import { profileMediaController } from '../controllers/profileMedia.controller';
 const router = Router();
 
 router.get(
@@ -56,5 +57,13 @@ router.delete(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   faqController.deleteFaq,
 );
+
+
+router.patch(
+  '/profile-media/remove',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  profileMediaController.removeProfileMedia
+);
+
 
 export const UserProfileRouter = router;
