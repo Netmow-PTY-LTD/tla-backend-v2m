@@ -40,6 +40,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       ...profile,
       user: newUser._id,
       address: address ? address.zipcode : '',
+      zipCode:lawyerServiceMap?.zipCode
     };
 
     // Create the user profile document in the database

@@ -20,6 +20,7 @@ export interface IUserProfile {
   designation?: string;
   activeProfile: UserProfile;
   country?: Types.ObjectId;
+  zipCode?: Types.ObjectId;
   profilePicture?: string;
   bio?: string;
   phone: string;

@@ -51,6 +51,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       name: leadDetails.name,
       phone: leadDetails.phone,
       address: address ? address.zipcode : '',
+      zipCode:leadDetails?.zipCode
     };
     const [newProfile] = await UserProfile.create([profileData], { session });
 
