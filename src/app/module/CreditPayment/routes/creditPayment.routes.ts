@@ -89,8 +89,8 @@ router.get(
 );
 router.get(
   '/transaction/list',
-  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  creditPaymentController.getTransactionHistory,
+  auth(USER_ROLE.ADMIN),
+  creditPaymentController.getAllTransactionHistory,
 );
 
 //  offer
