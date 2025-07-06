@@ -5,7 +5,7 @@ import Transaction from '../../CreditPayment/models/transaction.model';
 
 export const isVerifiedLawyer = async (userId: Types.ObjectId): Promise<boolean> => {
     const creditPurchaseCount = await Transaction.countDocuments({
-        user: userId,
+        userId: userId,
         type: 'purchase',
         status: 'completed'
     });
