@@ -9,6 +9,7 @@ import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
+import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -26,7 +27,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       return sendNotFoundResponse('User profile not found');
     }
 
-    const { questions, serviceId, additionalDetails, budgetAmount ,locationId} = payload;
+    const { questions, serviceId, additionalDetails, budgetAmount, locationId } = payload;
 
     const [leadUser] = await Lead.create(
       [
@@ -176,10 +177,21 @@ const getAllLeadFromDB = async () => {
 
     const result = await Lead.aggregate(pipeline);
 
-    const combineCredit = result.map((lead) => ({
-      ...lead,
-      credit: customCreditLogic(lead.credit),
-    }));
+    const combineCredit = await Promise.all(
+      result.map(async (lead) => {
+        const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
+
+        const badge = plainLead?.userProfileId?.user
+          ? await calculateLawyerBadge(plainLead.userProfileId.user)
+          : null;
+
+        return {
+          ...plainLead,
+          credit: customCreditLogic(plainLead.credit),
+          badge,
+        };
+      })
+    );
     return combineCredit;
   } catch (error) {
     console.error('Aggregation error:', error);
@@ -356,12 +368,20 @@ const getSingleLeadFromDB = async (leadId: string) => {
     },
   ]);
 
+   // ✅ 3. Calculate lawyer badge
+  const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
+  const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
+
+  // ✅ 4. Return final result
   return {
     ...leadDoc,
+    badge,
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
   };
+
+ 
 };
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
