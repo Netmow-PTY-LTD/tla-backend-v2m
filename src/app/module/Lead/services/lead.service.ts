@@ -182,14 +182,14 @@ const getAllLeadFromDB = async () => {
       result.map(async (lead) => {
         const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
 
-        const badge = plainLead?.userProfileId?.user
+        const badges = plainLead?.userProfileId?.user
           ? await getLawyerBadges(plainLead.userProfileId.user)
           : null;
 
         return {
           ...plainLead,
           credit: customCreditLogic(plainLead.credit),
-          badge,
+          badges,
         };
       })
     );
@@ -371,12 +371,12 @@ const getSingleLeadFromDB = async (leadId: string) => {
 
    // ✅ 3. Calculate lawyer badge
   const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
-  const badge = lawyerUserId ? await getLawyerBadges(lawyerUserId) : null;
+  const badges = lawyerUserId ? await getLawyerBadges(lawyerUserId) : null;
 
   // ✅ 4. Return final result
   return {
     ...leadDoc,
-    badge,
+    badges,
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
