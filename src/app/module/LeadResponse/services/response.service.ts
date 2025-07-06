@@ -9,6 +9,7 @@ import { ILeadResponse } from '../interfaces/response.interface';
 
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
+import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -129,11 +130,30 @@ const getAllResponseFromDB = async () => {
 
     const result = await LeadResponse.aggregate(pipeline);
 
-    const combineCredit = result.map((response) => ({
-      ...response,
-      credit: customCreditLogic(response.credit),
-    }));
+
+    const combineCredit = await Promise.all(
+      result.map(async (lead) => {
+        const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
+
+        const badge = plainLead?.userProfileId?.user
+          ? await calculateLawyerBadge(plainLead.userProfileId.user)
+          : null;
+
+        return {
+          ...plainLead,
+          credit: customCreditLogic(plainLead.credit),
+          badge,
+        };
+      })
+    );
     return combineCredit;
+
+
+    // const combineCredit = result.map((response) => ({
+    //   ...response,
+    //   credit: customCreditLogic(response.credit),
+    // }));
+    // return combineCredit;
   } catch (error) {
     console.error('Aggregation error:', error);
     throw error;
@@ -185,11 +205,11 @@ const getSingleResponseFromDB = async (responseId: string) => {
     })
     .populate({
       path: 'leadId',
-       populate: {
+      populate: {
         path: 'userProfileId',
         populate: {
-        path: 'user',
-      },
+          path: 'user',
+        },
       },
     })
     .lean(); // Convert to plain JS object
@@ -211,17 +231,17 @@ const getSingleResponseFromDB = async (responseId: string) => {
 
   // Validate and extract leadId
 
-// Ensure responseDoc exists
-if (!responseDoc) {
-  throw new Error(`Response not found for ID: ${responseId}`);
-}
+  // Ensure responseDoc exists
+  if (!responseDoc) {
+    throw new Error(`Response not found for ID: ${responseId}`);
+  }
 
-// Ensure leadId exists and is populated
-if (!responseDoc.leadId || typeof responseDoc.leadId !== 'object' || !responseDoc.leadId._id) {
-  throw new Error(`Lead ID is missing or not populated in response for ID: ${responseId}`);
-}
+  // Ensure leadId exists and is populated
+  if (!responseDoc.leadId || typeof responseDoc.leadId !== 'object' || !responseDoc.leadId._id) {
+    throw new Error(`Lead ID is missing or not populated in response for ID: ${responseId}`);
+  }
 
-const leadObjectId = new mongoose.Types.ObjectId(String(responseDoc.leadId._id));
+  const leadObjectId = new mongoose.Types.ObjectId(String(responseDoc.leadId._id));
 
 
   const leadAnswers = await LeadServiceAnswer.aggregate([

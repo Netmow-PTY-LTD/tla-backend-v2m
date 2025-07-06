@@ -9,7 +9,7 @@ import LeadService from '../../LeadSettings/models/leadService.model';
 
 
 export  const createLeadService = async (
-  userId: string,
+  userId: Types.ObjectId,
   serviceIds: Types.ObjectId[],
   session?: mongoose.ClientSession,
 ) => {
