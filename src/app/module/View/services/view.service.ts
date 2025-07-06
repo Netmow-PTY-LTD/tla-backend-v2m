@@ -10,6 +10,7 @@ import Faq from '../../User/models/faq.model';
 import UserProfile from '../../User/models/user.model';
 import ProfilePhotos from '../../User/models/profilePhotos';
 import ProfileSocialMedia from '../../User/models/profileSocialMedia';
+import ProfileCustomService from '../../User/models/profileServiceCoustom.model';
 
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
@@ -278,7 +279,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
       select:
         'name slug bio address profilePicture activeProfile autoTopUp credits serviceIds country phone designation',
       populate: [
-        { path: 'serviceIds', select: 'name' },
+        { path: 'serviceIds', select: 'name slug' },
         { path: 'country', select: 'name' },
       ],
     })
@@ -308,6 +309,10 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     userProfileId: user.profile._id,
   });
 
+  const customService = await ProfileCustomService.findOne({
+    userProfileId: user.profile._id,
+  });
+
   const name = user.profile.name || '';
   const slugResult = user.profile.slug || '';
   const country = user.profile.country as { name: string } | undefined;
@@ -332,6 +337,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     phone: user.profile.phone || '',
     photosVideos: photosVideos || {},
     socialMedia: socialMedia || {},
+    customService: customService
   };
 };
 
