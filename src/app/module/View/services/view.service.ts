@@ -309,7 +309,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     userProfileId: user.profile._id,
   });
 
-  const customService = await ProfileCustomService.findOne({
+  const customService = await ProfileCustomService.find({
     userProfileId: user.profile._id,
   });
 
