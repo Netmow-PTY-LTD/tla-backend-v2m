@@ -9,7 +9,8 @@ import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
-import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
+import { getLawyerBadges } from '../../User/utils/getLawyerBadges';
+
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -182,7 +183,7 @@ const getAllLeadFromDB = async () => {
         const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
 
         const badge = plainLead?.userProfileId?.user
-          ? await calculateLawyerBadge(plainLead.userProfileId.user)
+          ? await getLawyerBadges(plainLead.userProfileId.user)
           : null;
 
         return {
@@ -370,7 +371,7 @@ const getSingleLeadFromDB = async (leadId: string) => {
 
    // ✅ 3. Calculate lawyer badge
   const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
-  const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
+  const badge = lawyerUserId ? await getLawyerBadges(lawyerUserId) : null;
 
   // ✅ 4. Return final result
   return {

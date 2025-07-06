@@ -9,7 +9,8 @@ import { ILeadResponse } from '../interfaces/response.interface';
 
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
-import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
+
+import { getLawyerBadges } from '../../User/utils/getLawyerBadges';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -136,7 +137,7 @@ const getAllResponseFromDB = async () => {
         const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
 
         const badge = plainLead?.userProfileId?.user
-          ? await calculateLawyerBadge(plainLead.userProfileId.user)
+          ? await getLawyerBadges(plainLead.userProfileId.user)
           : null;
 
         return {
