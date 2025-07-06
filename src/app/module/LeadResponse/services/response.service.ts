@@ -389,15 +389,223 @@ const getMyAllResponseFromDB = async (userId: string) => {
 
 
 
+// const getSingleResponseFromDB = async (responseId: string) => {
+//   validateObjectId(responseId, 'Response');
+
+//   const responseDoc = await LeadResponse.findById(responseId)
+//     .populate({
+//       path: 'userProfileId',
+//       populate: {
+//         path: 'user',
+//       },
+//     })
+//     .populate({
+//       path: 'serviceId',
+//     })
+//     .populate({
+//       path: 'leadId',
+//       populate: {
+//         path: 'userProfileId',
+//         populate: {
+//           path: 'user',
+//         },
+//       },
+//     })
+//     .lean(); // Convert to plain JS object
+
+//   if (!responseDoc) return null;
+
+//   // 2. Fetch credit information in parallel
+//   const [creditInfo] = await Promise.all([
+//     CountryWiseServiceWiseField.findOne({
+//       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//       countryId: (responseDoc.userProfileId as any).country,
+//       serviceId: responseDoc.serviceId._id,
+//       deletedAt: null,
+//     }).lean(),
+
+//     // Add other parallel queries here if needed
+//   ]);
+
+
+//   // Validate and extract leadId
+
+//   // Ensure responseDoc exists
+//   if (!responseDoc) {
+//     throw new Error(`Response not found for ID: ${responseId}`);
+//   }
+
+//   // Ensure leadId exists and is populated
+//   if (!responseDoc.leadId || typeof responseDoc.leadId !== 'object' || !responseDoc.leadId._id) {
+//     throw new Error(`Lead ID is missing or not populated in response for ID: ${responseId}`);
+//   }
+
+//   const leadObjectId = new mongoose.Types.ObjectId(String(responseDoc.leadId._id));
+
+
+//   const leadAnswers = await LeadServiceAnswer.aggregate([
+//     {
+//       $match: {
+//         leadId: leadObjectId,
+//         deletedAt: null,
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'questions',
+//         localField: 'questionId',
+//         foreignField: '_id',
+//         as: 'question',
+//       },
+//     },
+//     { $unwind: '$question' },
+//     {
+//       $lookup: {
+//         from: 'options',
+//         localField: 'optionId',
+//         foreignField: '_id',
+//         as: 'option',
+//       },
+//     },
+//     { $unwind: '$option' },
+
+//     // Sort by question.order before grouping
+//     {
+//       $sort: {
+//         'question.order': 1,
+//       },
+//     },
+
+//     // Group by question and collect selected options
+//     {
+//       $group: {
+//         _id: '$question._id',
+//         questionId: { $first: '$question._id' },
+//         question: { $first: '$question.question' },
+//         order: { $first: '$question.order' },
+//         options: {
+//           $push: {
+//             $cond: [
+//               { $eq: ['$isSelected', true] },
+//               {
+//                 optionId: '$option._id',
+//                 option: '$option.name',
+//                 isSelected: '$isSelected',
+//                 idExtraData: '$idExtraData',
+//                 order: '$option.order',
+//               },
+//               null,
+//             ],
+//           },
+//         },
+//       },
+//     },
+
+//     // Filter out non-selected (null) options
+//     {
+//       $project: {
+//         _id: 0,
+//         questionId: 1,
+//         question: 1,
+//         order: 1,
+//         options: {
+//           $filter: {
+//             input: '$options',
+//             as: 'opt',
+//             cond: { $ne: ['$$opt', null] },
+//           },
+//         },
+//       },
+//     },
+
+//     // Sort options inside each question by option.order
+//     {
+//       $addFields: {
+//         options: {
+//           $sortArray: {
+//             input: '$options',
+//             sortBy: { order: 1 },
+//           },
+//         },
+//       },
+//     },
+
+//     // Format final options and remove internal `order`
+//     {
+//       $project: {
+//         questionId: 1,
+//         question: 1,
+//         order: 1,
+//         options: {
+//           $map: {
+//             input: '$options',
+//             as: 'opt',
+//             in: {
+//               optionId: '$$opt.optionId',
+//               option: '$$opt.option',
+//               isSelected: '$$opt.isSelected',
+//               idExtraData: '$$opt.idExtraData',
+//             },
+//           },
+//         },
+//       },
+//     },
+
+//     // ✅ Final sort to ensure question order is preserved
+//     {
+//       $sort: {
+//         order: 1,
+//       },
+//     },
+
+//     // Optionally, remove order from final output
+//     {
+//       $project: {
+//         questionId: 1,
+//         question: 1,
+//         options: 1,
+//       },
+//     },
+//   ]);
+
+//    const combineCredit = await Promise.all(
+//   responseDoc.map(async (response) => {
+//       const plain = response.toObject ? response.toObject() : response;
+//       const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
+//       const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
+//       const [lawyerBadges, leadBadges] = await Promise.all([
+//         lawyerUserId ? getLawyerBadges(lawyerUserId) : [],
+//         leadUserId ? getLawyerBadges(leadUserId) : [],
+//       ]);
+
+//       return {
+//         ...plain,
+//         lawyerBadges,
+//         leadBadges,
+
+//       };
+//     })
+//   );
+
+//   return combineCredit;
+
+
+
+//   return {
+//     ...responseDoc,
+//     leadAnswers,
+//     credit: creditInfo?.baseCredit ?? 0,
+//     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+//   };
+// };
+
 const getSingleResponseFromDB = async (responseId: string) => {
   validateObjectId(responseId, 'Response');
 
   const responseDoc = await LeadResponse.findById(responseId)
     .populate({
       path: 'userProfileId',
-      populate: {
-        path: 'user',
-      },
+      populate: { path: 'user' },
     })
     .populate({
       path: 'serviceId',
@@ -406,42 +614,32 @@ const getSingleResponseFromDB = async (responseId: string) => {
       path: 'leadId',
       populate: {
         path: 'userProfileId',
-        populate: {
-          path: 'user',
-        },
+        populate: { path: 'user' },
       },
     })
     .lean(); // Convert to plain JS object
 
   if (!responseDoc) return null;
 
-  // 2. Fetch credit information in parallel
+  // Fetch credit info in parallel
   const [creditInfo] = await Promise.all([
     CountryWiseServiceWiseField.findOne({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       countryId: (responseDoc.userProfileId as any).country,
       serviceId: responseDoc.serviceId._id,
       deletedAt: null,
     }).lean(),
-
-    // Add other parallel queries here if needed
   ]);
 
-
-  // Validate and extract leadId
-
-  // Ensure responseDoc exists
-  if (!responseDoc) {
-    throw new Error(`Response not found for ID: ${responseId}`);
-  }
-
-  // Ensure leadId exists and is populated
-  if (!responseDoc.leadId || typeof responseDoc.leadId !== 'object' || !responseDoc.leadId._id) {
+  // Validate leadId
+  if (
+    !responseDoc.leadId ||
+    typeof responseDoc.leadId !== 'object' ||
+    !responseDoc.leadId._id
+  ) {
     throw new Error(`Lead ID is missing or not populated in response for ID: ${responseId}`);
   }
 
   const leadObjectId = new mongoose.Types.ObjectId(String(responseDoc.leadId._id));
-
 
   const leadAnswers = await LeadServiceAnswer.aggregate([
     {
@@ -468,15 +666,11 @@ const getSingleResponseFromDB = async (responseId: string) => {
       },
     },
     { $unwind: '$option' },
-
-    // Sort by question.order before grouping
     {
       $sort: {
         'question.order': 1,
       },
     },
-
-    // Group by question and collect selected options
     {
       $group: {
         _id: '$question._id',
@@ -500,8 +694,6 @@ const getSingleResponseFromDB = async (responseId: string) => {
         },
       },
     },
-
-    // Filter out non-selected (null) options
     {
       $project: {
         _id: 0,
@@ -517,8 +709,6 @@ const getSingleResponseFromDB = async (responseId: string) => {
         },
       },
     },
-
-    // Sort options inside each question by option.order
     {
       $addFields: {
         options: {
@@ -529,8 +719,6 @@ const getSingleResponseFromDB = async (responseId: string) => {
         },
       },
     },
-
-    // Format final options and remove internal `order`
     {
       $project: {
         questionId: 1,
@@ -550,15 +738,11 @@ const getSingleResponseFromDB = async (responseId: string) => {
         },
       },
     },
-
-    // ✅ Final sort to ensure question order is preserved
     {
       $sort: {
         order: 1,
       },
     },
-
-    // Optionally, remove order from final output
     {
       $project: {
         questionId: 1,
@@ -568,13 +752,26 @@ const getSingleResponseFromDB = async (responseId: string) => {
     },
   ]);
 
+  // Fetch lawyer and lead badges
+  const plain = responseDoc as any;
+  const lawyerUserId = plain?.userProfileId?.user?._id;
+  const leadUserId = plain?.leadId?.userProfileId?.user?._id;
+
+  const [lawyerBadges, leadBadges] = await Promise.all([
+    lawyerUserId ? getLawyerBadges(lawyerUserId) : [],
+    leadUserId ? getLawyerBadges(leadUserId) : [],
+  ]);
+
   return {
     ...responseDoc,
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+    lawyerBadges,
+    leadBadges,
   };
 };
+
 
 const updateResponseIntoDB = async (
   id: string,
