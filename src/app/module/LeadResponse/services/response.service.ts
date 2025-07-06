@@ -775,7 +775,7 @@ const getSingleResponseFromDB = async (responseId: string) => {
 
 
 const updateResponseStatus = async (
-  responseId: Types.ObjectId,
+  responseId: string,
   status: ILeadResponse['status'],
   userId: string
 ) => {

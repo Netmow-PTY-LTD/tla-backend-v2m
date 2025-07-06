@@ -15,7 +15,7 @@ export const logActivity = async ({
   activityType: string;
   module: string;
   extraField?: Record<string, any>;
-   objectId:Types.ObjectId
+   objectId:string
 }) => {
   try {
     await ActivityLog.create({
