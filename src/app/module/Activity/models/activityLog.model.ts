@@ -8,6 +8,7 @@ export interface IActivityLog extends Document {
   activityType: string;
   module:string;
   extraField?: Record<string, any>; // optional dynamic object
+ objectId?:mongoose.Types.ObjectId;
 }
 
 const ActivityLogSchema = new Schema<IActivityLog>(
@@ -29,17 +30,20 @@ const ActivityLogSchema = new Schema<IActivityLog>(
     activityType: {
       type: String,
       required: true,
-    //   enum: ['login', 'update', 'delete', 'create', 'other'], // you can adjust these
+      enum: ['login', 'update', 'delete', 'create', 'other'], // you can adjust these
     },
      module: {
       type: String,
       required: true,
-    //   enum: ['lead', 'profile', 'message', 'order', 'payment', 'admin', 'system'],
+      enum: ['lead','response', 'profile', 'message', 'order', 'payment', 'admin', 'system'],
     },
     extraField: {
       type: Schema.Types.Mixed, // allows any shape
       default: {},
     },
+     objectId:{
+        type: Schema.Types.ObjectId, // allows any shape
+    }
   },
   { timestamps: true }
 );

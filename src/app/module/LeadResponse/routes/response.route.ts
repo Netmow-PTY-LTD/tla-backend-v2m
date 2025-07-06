@@ -27,11 +27,12 @@ router.delete(
 
   responseController.deleteSingleResponse,
 );
-router.patch(
-  '/edit/:responseId',
-  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
 
-  responseController.updateSingleResponse,
+// status update
+router.patch(
+  '/:responseId/status',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  responseController.updateResponseStatus,
 );
 
 export const responseRouter = router;

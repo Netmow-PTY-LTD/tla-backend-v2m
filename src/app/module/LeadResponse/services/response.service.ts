@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
@@ -11,6 +11,7 @@ import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
 
 import { getLawyerBadges } from '../../User/utils/getLawyerBadges';
+import { logActivity } from '../../Activity/utils/logActivityLog';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -773,20 +774,34 @@ const getSingleResponseFromDB = async (responseId: string) => {
 };
 
 
-const updateResponseIntoDB = async (
-  id: string,
-  payload: Partial<ILeadResponse>,
+const updateResponseStatus = async (
+  responseId: Types.ObjectId,
+  status: ILeadResponse['status'],
+  userId: string
 ) => {
-  validateObjectId(id, 'Response');
+  validateObjectId(responseId, 'Response');
+
   const result = await LeadResponse.findOneAndUpdate(
-    { _id: id, deletedAt: null },
-    payload,
-    {
-      new: true,
-    },
+    { _id: responseId, deletedAt: null },
+    { status },
+    { new: true }
   );
+
+  if (result) {
+    await logActivity({
+      createdBy: userId,
+      activityNote: `Updated response status to "${status}"`,
+      activityType: 'update',
+      module: 'response',
+      extraField: { leadId: result.leadId },
+      objectId: responseId
+
+    });
+  }
+
   return result;
 };
+
 
 const deleteResponseFromDB = async (id: string) => {
   validateObjectId(id, 'Response');
@@ -806,7 +821,7 @@ export const responseService = {
   CreateResponseIntoDB,
   getAllResponseFromDB,
   getSingleResponseFromDB,
-  updateResponseIntoDB,
+  updateResponseStatus,
   deleteResponseFromDB,
   getMyAllResponseFromDB,
 };
