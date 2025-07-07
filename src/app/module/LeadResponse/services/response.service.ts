@@ -810,7 +810,7 @@ const updateResponseStatus = async (
     await logActivity({
       createdBy: userId,
       activityNote: `Updated response status to "${status}"`,
-      activityType: 'update',
+      activityType: 'status',
       module: 'response',
       extraField: { leadId: result.leadId },
       objectId: responseId
