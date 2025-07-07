@@ -194,20 +194,20 @@ const getAllLeadFromDB = async () => {
     //   })
     // );
     const combineCredit = await Promise.all(
-  result.map(async (lead) => {
-    const badges = lead?.userProfileId?.user
-      ? await getLawyerBadges(lead.userProfileId.user)
-      : null;
+      result.map(async (lead) => {
+        const badges = lead?.userProfileId?.user
+          ? await getLawyerBadges(lead.userProfileId.user)
+          : null;
 
-    return {
-      ...lead,
-      credit: customCreditLogic(lead.credit),
-      badges,
-    };
-  })
-);
-    
-    
+        return {
+          ...lead,
+          credit: customCreditLogic(lead.credit),
+          badges,
+        };
+      })
+    );
+
+
     return combineCredit;
   } catch (error) {
     console.error('Aggregation error:', error);
@@ -216,19 +216,26 @@ const getAllLeadFromDB = async () => {
 };
 
 const getMyAllLeadFromDB = async (userId: string) => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
 
   const leads = await Lead.find({
-    userProfileId: userProfile?._id,
+    // userProfileId: userProfile?._id,
     deletedAt: null,
+    serviceId: { $in: userProfile.serviceIds }, // match any of the IDs
   })
     .populate('userProfileId')
     .populate('serviceId');
+
+  console.log('check match  leads')
+
   return leads;
+
 };
+
+
 
 const getSingleLeadFromDB = async (leadId: string) => {
   validateObjectId(leadId, 'Lead');
@@ -384,7 +391,7 @@ const getSingleLeadFromDB = async (leadId: string) => {
     },
   ]);
 
-   // ✅ 3. Calculate lawyer badge
+  // ✅ 3. Calculate lawyer badge
   const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
   const badges = lawyerUserId ? await getLawyerBadges(lawyerUserId) : null;
 
@@ -397,7 +404,7 @@ const getSingleLeadFromDB = async (leadId: string) => {
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
   };
 
- 
+
 };
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
