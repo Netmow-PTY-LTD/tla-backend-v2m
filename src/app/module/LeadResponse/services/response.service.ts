@@ -823,6 +823,7 @@ const updateResponseStatus = async (
 
 
 const deleteResponseFromDB = async (id: string) => {
+  
   validateObjectId(id, 'Response');
   const deletedAt = new Date().toISOString();
 

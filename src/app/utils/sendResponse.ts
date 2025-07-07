@@ -5,6 +5,14 @@ type TMeta = {
   page: number;
   total: number;
   totalPage: number;
+  
+};
+
+export type QueryTime = {
+  start_time: string;         // ISO date string
+  end_time: string;           // ISO date string
+  durationInMs: string;       // e.g., "123.45"
+  durationInSeconds: string;  // e.g., "0.12"
 };
 
 type TResponse<T> = {
@@ -12,6 +20,7 @@ type TResponse<T> = {
   success: boolean;
   message?: string;
   meta?: TMeta;
+  queryTime?:QueryTime
   token?: string;
   data: T;
 };
@@ -21,6 +30,7 @@ const sendResponse = <T>(res: Response, data: TResponse<T>) => {
     success: data.success,
     message: data.message,
     meta: data.meta,
+    queryTime:data.queryTime,
     token: data.token,
     data: data.data,
   });

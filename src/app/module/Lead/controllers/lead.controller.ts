@@ -1,5 +1,6 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
+import { startQueryTimer } from '../../../utils/queryTimer';
 import sendResponse from '../../../utils/sendResponse';
 import { leadService } from '../services/lead.service';
 
@@ -80,24 +81,31 @@ const updateSingleLead = catchAsync(async (req, res) => {
 });
 
 const getAllLead = catchAsync(async (req, res) => {
+  const timer = startQueryTimer();
   const result = await leadService.getAllLeadFromDB();
-
+  const queryTime = timer.endQueryTimer();
   if (!result.length) {
+
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Lead  not found.',
+      queryTime,
       data: [],
     });
   }
+
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All Lead is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
+
+
 
 const getMyAllLead = catchAsync(async (req, res) => {
   const userId = req.user.userId; // Assuming user ID is available in req.user
