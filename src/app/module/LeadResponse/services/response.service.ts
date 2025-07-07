@@ -279,7 +279,7 @@ export const getAllResponseFromDB = async () => {
       result.map(async (response) => {
         const plain = response.toObject ? response.toObject() : response;
 
-        const [lawyerBadges, leadBadges] = await Promise.all([
+        const [lawyerBadge, leadBadge] = await Promise.all([
           plain?.lawyerProfile?.user
             ? calculateLawyerBadge(plain.lawyerProfile.user)
             : null,
@@ -292,8 +292,8 @@ export const getAllResponseFromDB = async () => {
           ...plain,
           credit: customCreditLogic(plain.credit),
           badges: {
-            lawyer: lawyerBadges,
-            lead: leadBadges,
+            lawyer: lawyerBadge,
+            lead: leadBadge,
           },
         };
       })
@@ -372,15 +372,15 @@ const getMyAllResponseFromDB = async (userId: string) => {
       const plain = response.toObject ? response.toObject() : response;
       const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
       const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
-      const [lawyerBadges, leadBadges] = await Promise.all([
+      const [lawyerBadge, leadBadge] = await Promise.all([
         lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
         leadUserId ? calculateLawyerBadge(leadUserId) : null,
       ]);
 
       return {
         ...plain,
-        lawyerBadges,
-        leadBadges,
+        lawyerBadge,
+        leadBadge,
 
       };
     })
@@ -575,15 +575,15 @@ const getMyAllResponseFromDB = async (userId: string) => {
 //       const plain = response.toObject ? response.toObject() : response;
 //       const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
 //       const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
-//       const [lawyerBadges, leadBadges] = await Promise.all([
+//       const [lawyerBadge, leadBadge] = await Promise.all([
 //         lawyerUserId ? getLawyerBadges(lawyerUserId) : [],
 //         leadUserId ? getLawyerBadges(leadUserId) : [],
 //       ]);
 
 //       return {
 //         ...plain,
-//         lawyerBadges,
-//         leadBadges,
+//         lawyerBadge,
+//         leadBadge,
 
 //       };
 //     })
@@ -759,7 +759,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
   const lawyerUserId = plain?.userProfileId?.user?._id;
   const leadUserId = plain?.leadId?.userProfileId?.user?._id;
 
-  const [lawyerBadges, leadBadges] = await Promise.all([
+  const [lawyerBadge, leadBadge] = await Promise.all([
     lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
     leadUserId ? calculateLawyerBadge(leadUserId) : null,
   ]);
@@ -786,8 +786,8 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
-    lawyerBadges,
-    leadBadges,
+    lawyerBadge,
+    leadBadge,
     activity
   };
 };
@@ -810,7 +810,7 @@ const updateResponseStatus = async (
     await logActivity({
       createdBy: userId,
       activityNote: `Updated response status to "${status}"`,
-      activityType: 'update',
+      activityType: 'status',
       module: 'response',
       extraField: { leadId: result.leadId },
       objectId: responseId

@@ -183,27 +183,27 @@ const getAllLeadFromDB = async () => {
     //   result.map(async (lead) => {
     //     const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
 
-    //     const badges = plainLead?.userProfileId?.user
+    //     const badge = plainLead?.userProfileId?.user
     //       ? await getLawyerBadges(plainLead.userProfileId.user)
     //       : null;
 
     //     return {
     //       ...plainLead,
     //       credit: customCreditLogic(plainLead.credit),
-    //       badges,
+    //       badge,
     //     };
     //   })
     // );
     const combineCredit = await Promise.all(
       result.map(async (lead) => {
-        const badges = lead?.userProfileId?.user
+        const badge = lead?.userProfileId?.user
           ? await calculateLawyerBadge(lead.userProfileId.user)
           : null;
 
         return {
           ...lead,
           credit: customCreditLogic(lead.credit),
-          badges,
+          badge,
         };
       })
     );
@@ -394,12 +394,12 @@ const getSingleLeadFromDB = async (leadId: string) => {
 
   // ✅ 3. Calculate lawyer badge
   const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
-  const badges = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
+  const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
 
   // ✅ 4. Return final result
   return {
     ...leadDoc,
-    badges,
+    badge,
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
