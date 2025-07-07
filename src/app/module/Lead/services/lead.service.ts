@@ -11,6 +11,7 @@ import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWise
 import { customCreditLogic } from '../utils/customCreditLogic';
 
 import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
+import QueryBuilder from '../../../builder/QueryBuilder';
 
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
@@ -29,7 +30,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       return sendNotFoundResponse('User profile not found');
     }
 
-    const { questions, serviceId, additionalDetails, budgetAmount, locationId ,countryId } = payload;
+    const { questions, serviceId, additionalDetails, budgetAmount, locationId, countryId } = payload;
 
     const [leadUser] = await Lead.create(
       [
@@ -40,7 +41,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           additionalDetails,
           budgetAmount,
           locationId,
-          
+
         },
       ],
       { session },
@@ -218,23 +219,50 @@ const getAllLeadFromDB = async () => {
   }
 };
 
-const getMyAllLeadFromDB = async (userId: string) => {
+const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
   if (!userProfile) {
-    return sendNotFoundResponse('User profile not found');
+    // return sendNotFoundResponse('User profile not found');
+    return null
   }
 
-  const leads = await Lead.find({
-    // userProfileId: userProfile?._id,
-    deletedAt: null,
-    serviceId: { $in: userProfile.serviceIds }, // match any of the IDs
-  })
-  .limit(20)
-    .skip(0)
-    .populate('userProfileId')
-    .populate('serviceId');
+  // const leads = await Lead.find({
+  //   // userProfileId: userProfile?._id,
+  //   deletedAt: null,
+  //   serviceId: { $in: userProfile.serviceIds }, // match any of the IDs
+  // })
+  //   .limit(20)
+  //   .skip(0)
+  //   .populate('userProfileId')
+  //   .populate('serviceId');
 
-  return leads;
+  //  return leads;
+
+  const leadQuery = new QueryBuilder(
+    Lead.find({
+      // userProfileId: userProfile?._id,
+      deletedAt: null,
+      serviceId: { $in: userProfile.serviceIds },
+    })
+      .populate('userProfileId')
+      .populate('serviceId')
+      .lean(),
+    query,
+  )
+    // .search(leadSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await leadQuery.countTotal();
+  const data = await leadQuery.modelQuery;
+
+  return {
+    meta,
+    data,
+  };
+
 
 };
 

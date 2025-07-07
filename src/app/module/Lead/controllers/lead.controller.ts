@@ -17,17 +17,17 @@ const createLead = catchAsync(async (req, res) => {
 });
 
 const getSingleLead = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
+  const timer = startQueryTimer();
   const { leadId } = req.params;
   const result = await leadService.getSingleLeadFromDB(leadId);
-    const queryTime = timer.endQueryTimer();
+  const queryTime = timer.endQueryTimer();
 
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Lead  not found.',
-       queryTime,
+      queryTime,
       data: null,
     });
   }
@@ -111,27 +111,29 @@ const getAllLead = catchAsync(async (req, res) => {
 
 
 const getMyAllLead = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
-  const userId = req.user.userId; // Assuming user ID is available in req.user
-  const result = await leadService.getMyAllLeadFromDB(userId);
-    const queryTime = timer.endQueryTimer();
+  const timer = startQueryTimer();
+  const userId = req.user.userId;
+  const query = req.query
+  const result = await leadService.getMyAllLeadFromDB(userId, query);
+  const queryTime = timer.endQueryTimer();
 
-  if (!Array.isArray(result) || !result.length) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: false,
-      message: 'Leads  not found.',
-      queryTime,
-      data: [],
-    });
-  }
+  // if (!Array.isArray(result) || !result.length) {
+  //   return sendResponse(res, {
+  //     statusCode: HTTP_STATUS.OK,
+  //     success: false,
+  //     message: 'Leads  not found.',
+  //     queryTime,
+  //     data: [],
+  //   });
+  // }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'My All Lead is retrieved successfully',
     queryTime,
-    data: result,
+    pagination: result?.meta,
+    data: result?.data,
   });
 });
 
