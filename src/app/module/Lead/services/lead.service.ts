@@ -9,7 +9,8 @@ import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
-import { getLawyerBadges } from '../../User/utils/getLawyerBadges';
+
+import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
@@ -196,7 +197,7 @@ const getAllLeadFromDB = async () => {
     const combineCredit = await Promise.all(
       result.map(async (lead) => {
         const badges = lead?.userProfileId?.user
-          ? await getLawyerBadges(lead.userProfileId.user)
+          ? await calculateLawyerBadge(lead.userProfileId.user)
           : null;
 
         return {
@@ -393,7 +394,7 @@ const getSingleLeadFromDB = async (leadId: string) => {
 
   // ✅ 3. Calculate lawyer badge
   const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
-  const badges = lawyerUserId ? await getLawyerBadges(lawyerUserId) : null;
+  const badges = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
 
   // ✅ 4. Return final result
   return {

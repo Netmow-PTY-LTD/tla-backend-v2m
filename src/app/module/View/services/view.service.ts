@@ -11,8 +11,9 @@ import UserProfile from '../../User/models/user.model';
 import ProfilePhotos from '../../User/models/profilePhotos';
 import ProfileSocialMedia from '../../User/models/profileSocialMedia';
 import ProfileCustomService from '../../User/models/profileServiceCoustom.model';
+import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 
-import { getLawyerBadges } from '../../User/utils/getLawyerBadges';
+
 
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
@@ -315,7 +316,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     userProfileId: user.profile._id,
   });
 
-  const badge = await getLawyerBadges(rawUser?._id);
+  const badge = await calculateLawyerBadge(rawUser?._id);
 
   const name = user.profile.name || '';
   const slugResult = user.profile.slug || '';
