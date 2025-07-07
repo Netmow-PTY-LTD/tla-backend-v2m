@@ -11,7 +11,7 @@ export interface ILoginUser {
 }
 
 export interface IUser {
-  _id?: string;
+  _id?: Types.ObjectId;
   // username: string;
   email: string;
   role: TUserRole;

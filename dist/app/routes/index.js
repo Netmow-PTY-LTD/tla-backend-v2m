@@ -14,6 +14,7 @@ const notification_routes_1 = require("../module/Notification/routes/notificatio
 const creditPayment_routes_1 = require("../module/CreditPayment/routes/creditPayment.routes");
 const lead_route_1 = require("../module/Lead/routes/lead.route");
 const response_route_1 = require("../module/LeadResponse/routes/response.route");
+const logActivity_route_1 = require("../module/Activity/routes/logActivity.route");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -63,6 +64,10 @@ const moduleRoutes = [
     {
         path: '/response',
         route: response_route_1.responseRouter,
+    },
+    {
+        path: '/activity',
+        route: logActivity_route_1.activityLogRouter,
     },
     {
         path: '/',
