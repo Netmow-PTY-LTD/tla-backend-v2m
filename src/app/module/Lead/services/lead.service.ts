@@ -29,16 +29,18 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       return sendNotFoundResponse('User profile not found');
     }
 
-    const { questions, serviceId, additionalDetails, budgetAmount, locationId } = payload;
+    const { questions, serviceId, additionalDetails, budgetAmount, locationId ,countryId } = payload;
 
     const [leadUser] = await Lead.create(
       [
         {
           userProfileId: userProfile._id,
+          countryId,
           serviceId,
           additionalDetails,
           budgetAmount,
-          locationId
+          locationId,
+          
         },
       ],
       { session },
@@ -227,10 +229,10 @@ const getMyAllLeadFromDB = async (userId: string) => {
     deletedAt: null,
     serviceId: { $in: userProfile.serviceIds }, // match any of the IDs
   })
+  .limit(20)
+    .skip(0)
     .populate('userProfileId')
     .populate('serviceId');
-
-  console.log('check match  leads')
 
   return leads;
 
