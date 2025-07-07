@@ -601,7 +601,7 @@ const getMyAllResponseFromDB = async (userId: string) => {
 //   };
 // };
 
-const getSingleResponseFromDB = async (userId:string, responseId: string) => {
+const getSingleResponseFromDB = async (userId: string, responseId: string) => {
   validateObjectId(responseId, 'Response');
 
   const responseDoc = await LeadResponse.findById(responseId)
@@ -764,7 +764,23 @@ const getSingleResponseFromDB = async (userId:string, responseId: string) => {
     leadUserId ? getLawyerBadges(leadUserId) : [],
   ]);
 
-  const activity= await ActivityLog.find({objectId:responseId,createdBy:userId})
+
+  const activity = await ActivityLog.find({
+    objectId: new mongoose.Types.ObjectId(responseId),   // cast if you have a string
+    createdBy: new mongoose.Types.ObjectId(userId),
+  })
+    .sort({ createdAt: -1 })                              // newest → oldest
+    .populate({
+      path: 'createdBy',                                  // 1️⃣ first‑level: User
+      select: 'email role profile',                       //   pull only what you need
+      populate: {
+        path: 'profile',                                  // 2️⃣ nested: UserProfile
+        select: 'name',                                   //   grab the lawyer/client name
+      },
+    })
+    .lean();
+
+
   return {
     ...responseDoc,
     leadAnswers,
