@@ -1,10 +1,12 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
+import { startQueryTimer } from '../../../utils/queryTimer';
 import sendResponse from '../../../utils/sendResponse';
 
 import { viewService } from '../services/view.service';
 
 const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const { serviceId, countryId } = req.query;
 
   const result = await viewService.getSingleServiceWiseQuestionFromDB(
@@ -12,11 +14,13 @@ const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
     countryId as string,
   );
 
+    const queryTime = timer.endQueryTimer();
   if (!result.length) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Service Wise Question  not found.',
+      queryTime,
       data: null,
     });
   }
@@ -24,22 +28,26 @@ const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Service Wise Question is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
 
 const getQuestionWiseOptions = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const { questionId } = req.query;
 
   const result = await viewService.getQuestionWiseOptionsFromDB(
     questionId as string,
   );
 
+    const queryTime = timer.endQueryTimer();
   if (!result.length) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.NOT_FOUND,
       success: false,
       message: ' Question  Wise Options  not found.',
+      queryTime,
       data: null,
     });
   }
@@ -47,9 +55,11 @@ const getQuestionWiseOptions = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: ' Question  Wise Options is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
+
 const getAllUserProfile = catchAsync(async (req, res) => {
   const result = await viewService.getAllPublicUserProfilesIntoDB();
 
@@ -92,15 +102,18 @@ const getSingleUserProfileById = catchAsync(async (req, res) => {
 });
 
 const getSingleUserProfileBySlug = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const { slug } = req.params;
 
   const result = await viewService.getPublicUserProfileBySlug(slug);
+    const queryTime = timer.endQueryTimer();
 
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'User Profile not found.',
+      queryTime,
       data: null,
     });
   }
@@ -109,6 +122,7 @@ const getSingleUserProfileBySlug = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'User Profile retrieved successfully.',
+    queryTime,
     data: result,
   });
 });

@@ -1,5 +1,6 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
+import { startQueryTimer } from '../../../utils/queryTimer';
 import sendResponse from '../../../utils/sendResponse';
 import { responseService } from '../services/response.service';
 
@@ -16,15 +17,18 @@ const createResponse = catchAsync(async (req, res) => {
 });
 
 const getSingleResponse = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const { responseId } = req.params;
    const userId=req.user.userId;
   const result = await responseService.getSingleResponseFromDB(userId,responseId);
+    const queryTime = timer.endQueryTimer();
 
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Response  not found.',
+      queryTime,
       data: null,
     });
   }
@@ -33,6 +37,7 @@ const getSingleResponse = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Response is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
@@ -87,13 +92,16 @@ const updateResponseStatus = catchAsync(async (req, res) => {
 });
 
 const getAllResponse = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const result = await responseService.getAllResponseFromDB();
+    const queryTime = timer.endQueryTimer();
 
   if (!result.length) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Response  not found.',
+      queryTime,
       data: [],
     });
   }
@@ -102,19 +110,23 @@ const getAllResponse = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All Response is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
 
 const getMyAllResponse = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const userId = req.user.userId; // Assuming user ID is available in req.user
   const result = await responseService.getMyAllResponseFromDB(userId);
+    const queryTime = timer.endQueryTimer();
 
   if (!Array.isArray(result) || !result.length) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Responses  not found.',
+      queryTime,
       data: [],
     });
   }
@@ -123,6 +135,7 @@ const getMyAllResponse = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'My All Response is retrieved successfully',
+    queryTime,
     data: result,
   });
 });

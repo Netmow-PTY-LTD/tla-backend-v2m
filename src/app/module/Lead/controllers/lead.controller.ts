@@ -108,14 +108,17 @@ const getAllLead = catchAsync(async (req, res) => {
 
 
 const getMyAllLead = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const userId = req.user.userId; // Assuming user ID is available in req.user
   const result = await leadService.getMyAllLeadFromDB(userId);
+    const queryTime = timer.endQueryTimer();
 
   if (!Array.isArray(result) || !result.length) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Leads  not found.',
+      queryTime,
       data: [],
     });
   }
@@ -124,6 +127,7 @@ const getMyAllLead = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'My All Lead is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
