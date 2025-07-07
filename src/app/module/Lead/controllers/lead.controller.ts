@@ -17,14 +17,17 @@ const createLead = catchAsync(async (req, res) => {
 });
 
 const getSingleLead = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const { leadId } = req.params;
   const result = await leadService.getSingleLeadFromDB(leadId);
+    const queryTime = timer.endQueryTimer();
 
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Lead  not found.',
+       queryTime,
       data: null,
     });
   }
