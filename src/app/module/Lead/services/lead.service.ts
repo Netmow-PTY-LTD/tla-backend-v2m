@@ -178,21 +178,36 @@ const getAllLeadFromDB = async () => {
 
     const result = await Lead.aggregate(pipeline);
 
+    // const combineCredit = await Promise.all(
+    //   result.map(async (lead) => {
+    //     const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
+
+    //     const badges = plainLead?.userProfileId?.user
+    //       ? await getLawyerBadges(plainLead.userProfileId.user)
+    //       : null;
+
+    //     return {
+    //       ...plainLead,
+    //       credit: customCreditLogic(plainLead.credit),
+    //       badges,
+    //     };
+    //   })
+    // );
     const combineCredit = await Promise.all(
-      result.map(async (lead) => {
-        const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
+  result.map(async (lead) => {
+    const badges = lead?.userProfileId?.user
+      ? await getLawyerBadges(lead.userProfileId.user)
+      : null;
 
-        const badges = plainLead?.userProfileId?.user
-          ? await getLawyerBadges(plainLead.userProfileId.user)
-          : null;
-
-        return {
-          ...plainLead,
-          credit: customCreditLogic(plainLead.credit),
-          badges,
-        };
-      })
-    );
+    return {
+      ...lead,
+      credit: customCreditLogic(lead.credit),
+      badges,
+    };
+  })
+);
+    
+    
     return combineCredit;
   } catch (error) {
     console.error('Aggregation error:', error);
