@@ -10,9 +10,9 @@ import { ILeadResponse } from '../interfaces/response.interface';
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
 
-import { getLawyerBadges } from '../../User/utils/getLawyerBadges';
 import { logActivity } from '../../Activity/utils/logActivityLog';
 import { ActivityLog } from '../../Activity/models/activityLog.model';
+import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -281,11 +281,11 @@ export const getAllResponseFromDB = async () => {
 
         const [lawyerBadges, leadBadges] = await Promise.all([
           plain?.lawyerProfile?.user
-            ? getLawyerBadges(plain.lawyerProfile.user)
-            : [],
+            ? calculateLawyerBadge(plain.lawyerProfile.user)
+            : null,
           plain?.leadProfile?.user
-            ? getLawyerBadges(plain.leadProfile.user)
-            : [],
+            ? calculateLawyerBadge(plain.leadProfile.user)
+            : null,
         ]);
 
         return {
@@ -373,8 +373,8 @@ const getMyAllResponseFromDB = async (userId: string) => {
       const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
       const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
       const [lawyerBadges, leadBadges] = await Promise.all([
-        lawyerUserId ? getLawyerBadges(lawyerUserId) : [],
-        leadUserId ? getLawyerBadges(leadUserId) : [],
+        lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
+        leadUserId ? calculateLawyerBadge(leadUserId) : null,
       ]);
 
       return {
@@ -760,8 +760,8 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
   const leadUserId = plain?.leadId?.userProfileId?.user?._id;
 
   const [lawyerBadges, leadBadges] = await Promise.all([
-    lawyerUserId ? getLawyerBadges(lawyerUserId) : [],
-    leadUserId ? getLawyerBadges(leadUserId) : [],
+    lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
+    leadUserId ? calculateLawyerBadge(leadUserId) : null,
   ]);
 
 
