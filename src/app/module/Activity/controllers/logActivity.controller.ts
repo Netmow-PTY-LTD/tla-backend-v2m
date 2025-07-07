@@ -24,6 +24,30 @@ const getUserActivityLogs = catchAsync(async (req, res) => {
     });
 });
 
+const createUserActivityLogs = catchAsync(async (req, res) => {
+    const userId = req.user.userId;
+    const payload = req.body;
+    const result = await activityLogService.createUserActivityLogs(userId, payload);
+
+
+    if (!result) {
+        return sendResponse(res, {
+            statusCode: HTTP_STATUS.OK,
+            success: false,
+            message: 'Failed to create activity log.',
+            data: null,
+        });
+    }
+
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.CREATED,
+        success: true,
+        message: 'Activity log created successfully',
+        data: result,
+    });
+});
+
 export const activityLogController = {
-    getUserActivityLogs
+    getUserActivityLogs,
+    createUserActivityLogs
 }
