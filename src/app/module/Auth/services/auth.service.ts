@@ -102,7 +102,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 
 
 const createLeadService = async (
-  userId: string,
+  userId: Types.ObjectId,
   serviceIds: Types.ObjectId[],
   session?: mongoose.ClientSession,
 ) => {

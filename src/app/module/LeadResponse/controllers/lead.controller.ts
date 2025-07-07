@@ -16,8 +16,9 @@ const createResponse = catchAsync(async (req, res) => {
 });
 
 const getSingleResponse = catchAsync(async (req, res) => {
-  const {responseId } = req.params;
-  const result = await responseService.getSingleResponseFromDB(responseId);
+  const { responseId } = req.params;
+   const userId=req.user.userId;
+  const result = await responseService.getSingleResponseFromDB(userId,responseId);
 
   if (!result) {
     return sendResponse(res, {
@@ -57,12 +58,15 @@ const deleteSingleResponse = catchAsync(async (req, res) => {
   });
 });
 
-const updateSingleResponse = catchAsync(async (req, res) => {
+
+const updateResponseStatus = catchAsync(async (req, res) => {
   const { responseId } = req.params;
-  const payload = req.body;
-  const result = await responseService.updateResponseIntoDB(
+  const { status } = req.body;
+  const userId=req.user.userId;
+  const result = await responseService.updateResponseStatus(
     responseId,
-    payload,
+    status,
+    userId
   );
 
   if (!result) {
@@ -77,7 +81,7 @@ const updateSingleResponse = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Response update successfully',
+    message: 'Response Status update successfully',
     data: result,
   });
 });
@@ -127,7 +131,7 @@ export const responseController = {
   createResponse,
   getSingleResponse,
   deleteSingleResponse,
-  updateSingleResponse,
+ updateResponseStatus,
   getAllResponse,
   getMyAllResponse,
 };

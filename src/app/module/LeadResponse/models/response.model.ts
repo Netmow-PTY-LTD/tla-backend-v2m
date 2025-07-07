@@ -18,7 +18,13 @@ const responseSchema = new Schema<ILeadResponse>(
       ref: 'Service',
       required: true,
     },
-  
+    status: {
+      type: String,
+      enum: ['pending', 'hired', 'archive'],
+      default: 'pending',
+      required: true,
+    },
+
     deletedAt: {
       type: Date,
       default: null,
