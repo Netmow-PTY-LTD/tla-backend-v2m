@@ -17,7 +17,8 @@ const createResponse = catchAsync(async (req, res) => {
 
 const getSingleResponse = catchAsync(async (req, res) => {
   const { responseId } = req.params;
-  const result = await responseService.getSingleResponseFromDB(responseId);
+   const userId=req.user.userId;
+  const result = await responseService.getSingleResponseFromDB(userId,responseId);
 
   if (!result) {
     return sendResponse(res, {

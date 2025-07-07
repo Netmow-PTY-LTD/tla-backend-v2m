@@ -12,6 +12,7 @@ import LeadResponse from '../models/response.model';
 
 import { getLawyerBadges } from '../../User/utils/getLawyerBadges';
 import { logActivity } from '../../Activity/utils/logActivityLog';
+import { ActivityLog } from '../../Activity/models/activityLog.model';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -600,7 +601,7 @@ const getMyAllResponseFromDB = async (userId: string) => {
 //   };
 // };
 
-const getSingleResponseFromDB = async (responseId: string) => {
+const getSingleResponseFromDB = async (userId:string, responseId: string) => {
   validateObjectId(responseId, 'Response');
 
   const responseDoc = await LeadResponse.findById(responseId)
@@ -763,6 +764,7 @@ const getSingleResponseFromDB = async (responseId: string) => {
     leadUserId ? getLawyerBadges(leadUserId) : [],
   ]);
 
+  const activity= await ActivityLog.find({objectId:responseId,createdBy:userId})
   return {
     ...responseDoc,
     leadAnswers,
@@ -770,6 +772,7 @@ const getSingleResponseFromDB = async (responseId: string) => {
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
     lawyerBadges,
     leadBadges,
+    activity
   };
 };
 
