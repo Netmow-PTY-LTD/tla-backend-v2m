@@ -240,9 +240,9 @@ const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>
 
   const leadQuery = new QueryBuilder(
     Lead.find({
-      // userProfileId: userProfile?._id,
+      userProfileId: userProfile?._id,
       deletedAt: null,
-      serviceId: { $in: userProfile.serviceIds },
+      // serviceId: { $in: userProfile.serviceIds },
     })
       .populate('userProfileId')
       .populate('serviceId')
