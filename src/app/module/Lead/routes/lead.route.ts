@@ -10,7 +10,7 @@ router.post(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadController.createLead,
 );
-router.get('/list', leadController.getAllLead);
+router.get('/list',auth(USER_ROLE.ADMIN, USER_ROLE.USER), leadController.getAllLead);
 router.get(
   '/my',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
