@@ -3,6 +3,7 @@ import { ILeadServiceAnswer } from './leadServiceAnswer.interface';
 export interface ILead {
   _id: Types.ObjectId;
   userProfileId: Types.ObjectId;
+  countryId: Types.ObjectId;
   serviceId: Types.ObjectId;
   additionalDetails: string;
   locationId: Types.ObjectId;

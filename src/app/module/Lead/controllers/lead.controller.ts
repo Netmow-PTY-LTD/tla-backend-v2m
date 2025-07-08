@@ -1,5 +1,6 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
+import { startQueryTimer } from '../../../utils/queryTimer';
 import sendResponse from '../../../utils/sendResponse';
 import { leadService } from '../services/lead.service';
 
@@ -16,14 +17,17 @@ const createLead = catchAsync(async (req, res) => {
 });
 
 const getSingleLead = catchAsync(async (req, res) => {
+  const timer = startQueryTimer();
   const { leadId } = req.params;
   const result = await leadService.getSingleLeadFromDB(leadId);
+  const queryTime = timer.endQueryTimer();
 
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Lead  not found.',
+      queryTime,
       data: null,
     });
   }
@@ -80,43 +84,56 @@ const updateSingleLead = catchAsync(async (req, res) => {
 });
 
 const getAllLead = catchAsync(async (req, res) => {
+  const timer = startQueryTimer();
   const result = await leadService.getAllLeadFromDB();
-
+  const queryTime = timer.endQueryTimer();
   if (!result.length) {
+
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Lead  not found.',
+      queryTime,
       data: [],
     });
   }
+
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All Lead is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
 
-const getMyAllLead = catchAsync(async (req, res) => {
-  const userId = req.user.userId; // Assuming user ID is available in req.user
-  const result = await leadService.getMyAllLeadFromDB(userId);
 
-  if (!Array.isArray(result) || !result.length) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: false,
-      message: 'Leads  not found.',
-      data: [],
-    });
-  }
+
+const getMyAllLead = catchAsync(async (req, res) => {
+  const timer = startQueryTimer();
+  const userId = req.user.userId;
+  const query = req.query
+  const result = await leadService.getMyAllLeadFromDB(userId, query);
+  const queryTime = timer.endQueryTimer();
+
+  // if (!Array.isArray(result) || !result.length) {
+  //   return sendResponse(res, {
+  //     statusCode: HTTP_STATUS.OK,
+  //     success: false,
+  //     message: 'Leads  not found.',
+  //     queryTime,
+  //     data: [],
+  //   });
+  // }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'My All Lead is retrieved successfully',
-    data: result,
+    queryTime,
+    pagination: result?.meta,
+    data: result?.data,
   });
 });
 
