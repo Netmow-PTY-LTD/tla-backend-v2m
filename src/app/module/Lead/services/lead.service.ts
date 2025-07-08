@@ -79,144 +79,225 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
   }
 };
 
-const getAllLeadFromDB = async () => {
-  try {
-    const pipeline = [
-      // Stage 1: Filter active leads
-      { $match: { deletedAt: null } },
+// const getAllLeadFromDB = async (userId: string) => {
 
-      // Stage 2: Lookup userProfile data (replaces populate)
-      {
-        $lookup: {
-          from: 'userprofiles',
-          localField: 'userProfileId',
-          foreignField: '_id',
-          as: 'userProfileData',
-        },
-      },
-      { $unwind: '$userProfileData' },
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+//   if (!userProfile) {
+//     // return sendNotFoundResponse('User profile not found');
+//     return null
+//   }
+//   try {
+//     const pipeline = [
+//       // Stage 1: Filter active leads
+//       { $match: { deletedAt: null, serviceId: { $in: userProfile.serviceIds } } },
 
-      // Stage 3: Lookup service data (replaces populate)
-      {
-        $lookup: {
-          from: 'services',
-          localField: 'serviceId',
-          foreignField: '_id',
-          as: 'serviceData',
-        },
-      },
-      { $unwind: '$serviceData' },
+//       // Stage 2: Lookup userProfile data (replaces populate)
+//       {
+//         $lookup: {
+//           from: 'userprofiles',
+//           localField: 'userProfileId',
+//           foreignField: '_id',
+//           as: 'userProfileData',
+//         },
+//       },
+//       { $unwind: '$userProfileData' },
 
-      // Stage 4: Lookup credit information
-      {
-        $lookup: {
-          from: 'countrywiseservicewisefields',
-          let: {
-            countryId: '$userProfileData.country',
-            serviceId: '$serviceId',
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$countryId', '$$countryId'] },
-                    { $eq: ['$serviceId', '$$serviceId'] },
-                    { $eq: ['$deletedAt', null] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: 'creditInfo',
-        },
-      },
+//       // Stage 3: Lookup service data (replaces populate)
+//       {
+//         $lookup: {
+//           from: 'services',
+//           localField: 'serviceId',
+//           foreignField: '_id',
+//           as: 'serviceData',
+//         },
+//       },
+//       { $unwind: '$serviceData' },
 
-      // Stage 5: Shape the output to match your original format
-      {
-        $project: {
-          _id: 1,
-          userProfileId: {
-            _id: '$userProfileData._id',
-            user: '$userProfileData.user',
-            name: '$userProfileData.name',
-            activeProfile: '$userProfileData.activeProfile',
-            country: '$userProfileData.country',
-            deletedAt: '$userProfileData.deletedAt',
-            credits: '$userProfileData.credits',
-            paymentMethods: '$userProfileData.paymentMethods',
-            autoTopUp: '$userProfileData.autoTopUp',
-            serviceIds: '$userProfileData.serviceIds',
-            createdAt: '$userProfileData.createdAt',
-            updatedAt: '$userProfileData.updatedAt',
-            address: '$userProfileData.address',
-            bio: '$userProfileData.bio',
-            phone: '$userProfileData.phone',
-            profilePicture: '$userProfileData.profilePicture',
-          },
-          serviceId: {
-            _id: '$serviceData._id',
-            name: '$serviceData.name',
-            slug: '$serviceData.slug',
-            deletedAt: '$serviceData.deletedAt',
-            createdAt: '$serviceData.createdAt',
-            updatedAt: '$serviceData.updatedAt',
-          },
-          additionalDetails: 1,
-          deletedAt: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          credit: {
-            $ifNull: [{ $arrayElemAt: ['$creditInfo.baseCredit', 0] }, 0],
-          },
-          creditSource: {
-            $cond: {
-              if: { $gt: [{ $size: '$creditInfo' }, 0] },
-              then: 'CountryServiceField',
-              else: 'Default',
-            },
-          },
-        },
-      },
-    ];
+//       // Stage 4: Lookup credit information
+//       {
+//         $lookup: {
+//           from: 'countrywiseservicewisefields',
+//           let: {
+//             countryId: '$userProfileData.country',
+//             serviceId: '$serviceId',
+//           },
+//           pipeline: [
+//             {
+//               $match: {
+//                 $expr: {
+//                   $and: [
+//                     { $eq: ['$countryId', '$$countryId'] },
+//                     { $eq: ['$serviceId', '$$serviceId'] },
+//                     { $eq: ['$deletedAt', null] },
+//                   ],
+//                 },
+//               },
+//             },
+//           ],
+//           as: 'creditInfo',
+//         },
+//       },
 
-    const result = await Lead.aggregate(pipeline);
+//       // Stage 5: Shape the output to match your original format
+//       {
+//         $project: {
+//           _id: 1,
+//           userProfileId: {
+//             _id: '$userProfileData._id',
+//             user: '$userProfileData.user',
+//             name: '$userProfileData.name',
+//             activeProfile: '$userProfileData.activeProfile',
+//             country: '$userProfileData.country',
+//             deletedAt: '$userProfileData.deletedAt',
+//             credits: '$userProfileData.credits',
+//             paymentMethods: '$userProfileData.paymentMethods',
+//             autoTopUp: '$userProfileData.autoTopUp',
+//             serviceIds: '$userProfileData.serviceIds',
+//             createdAt: '$userProfileData.createdAt',
+//             updatedAt: '$userProfileData.updatedAt',
+//             address: '$userProfileData.address',
+//             bio: '$userProfileData.bio',
+//             phone: '$userProfileData.phone',
+//             profilePicture: '$userProfileData.profilePicture',
+//           },
+//           serviceId: {
+//             _id: '$serviceData._id',
+//             name: '$serviceData.name',
+//             slug: '$serviceData.slug',
+//             deletedAt: '$serviceData.deletedAt',
+//             createdAt: '$serviceData.createdAt',
+//             updatedAt: '$serviceData.updatedAt',
+//           },
+//           additionalDetails: 1,
+//           deletedAt: 1,
+//           createdAt: 1,
+//           updatedAt: 1,
+//           credit: {
+//             $ifNull: [{ $arrayElemAt: ['$creditInfo.baseCredit', 0] }, 0],
+//           },
+//           creditSource: {
+//             $cond: {
+//               if: { $gt: [{ $size: '$creditInfo' }, 0] },
+//               then: 'CountryServiceField',
+//               else: 'Default',
+//             },
+//           },
+//         },
+//       },
+//     ];
 
-    // const combineCredit = await Promise.all(
-    //   result.map(async (lead) => {
-    //     const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
+//     const result = await Lead.aggregate(pipeline);
 
-    //     const badge = plainLead?.userProfileId?.user
-    //       ? await getLawyerBadges(plainLead.userProfileId.user)
-    //       : null;
+//     // const combineCredit = await Promise.all(
+//     //   result.map(async (lead) => {
+//     //     const plainLead = lead.toObject ? lead.toObject() : lead; // <- Fix
 
-    //     return {
-    //       ...plainLead,
-    //       credit: customCreditLogic(plainLead.credit),
-    //       badge,
-    //     };
-    //   })
-    // );
-    const combineCredit = await Promise.all(
-      result.map(async (lead) => {
-        const badge = lead?.userProfileId?.user
-          ? await calculateLawyerBadge(lead.userProfileId.user)
+//     //     const badge = plainLead?.userProfileId?.user
+//     //       ? await getLawyerBadges(plainLead.userProfileId.user)
+//     //       : null;
+
+//     //     return {
+//     //       ...plainLead,
+//     //       credit: customCreditLogic(plainLead.credit),
+//     //       badge,
+//     //     };
+//     //   })
+//     // );
+//     const combineCredit = await Promise.all(
+//       result.map(async (lead) => {
+//         const badge = lead?.userProfileId?.user
+//           ? await calculateLawyerBadge(lead.userProfileId.user)
+//           : null;
+
+//         return {
+//           ...lead,
+//           credit: customCreditLogic(lead.credit),
+//           badge,
+//         };
+//       })
+//     );
+
+
+//     return combineCredit;
+//   } catch (error) {
+//     console.error('Aggregation error:', error);
+//     throw error;
+//   }
+// };
+
+
+const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+  if (!userProfile) return null;
+
+  // Build Mongoose query using QueryBuilder
+  const leadQuery = new QueryBuilder(
+    Lead.find({
+      deletedAt: null,
+      serviceId: { $in: userProfile.serviceIds },
+    })
+      .populate('userProfileId') // populate lawyer profile
+      .populate('serviceId') // populate service info
+      .lean(), // return plain JS objects instead of Mongoose docs
+    query,
+  )
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  // Pagination metadata
+  const meta = await leadQuery.countTotal();
+
+  // Get final data
+  const data = await leadQuery.modelQuery;
+
+
+  const result = await Promise.all(
+    data.map(async (lead) => {
+      const userProfile = lead?.userProfileId;
+      const service = lead?.serviceId;
+
+      let credit = 0;
+      let creditSource = 'Default';
+
+      if (
+        userProfile &&
+        'country' in userProfile &&
+        service &&
+        '_id' in service
+      ) {
+        const creditInfo = await CountryWiseServiceWiseField.findOne({
+          countryId: userProfile.country,
+          serviceId: service._id,
+          deletedAt: null,
+        }).select('baseCredit');
+
+        if (creditInfo) {
+          credit = creditInfo.baseCredit || 0;
+          creditSource = 'CountryServiceField';
+        }
+      }
+
+      const badge =
+        userProfile && 'user' in userProfile
+          ? await calculateLawyerBadge(userProfile.user as mongoose.Types.ObjectId)
           : null;
 
-        return {
-          ...lead,
-          credit: customCreditLogic(lead.credit),
-          badge,
-        };
-      })
-    );
+      return {
+        ...lead,
+        credit: customCreditLogic(credit),
+        creditSource,
+        badge,
+      };
+    })
+  );
 
 
-    return combineCredit;
-  } catch (error) {
-    console.error('Aggregation error:', error);
-    throw error;
-  }
+  return {
+    meta,
+    data: result,
+  };
 };
 
 const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
@@ -226,23 +307,11 @@ const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>
     return null
   }
 
-  // const leads = await Lead.find({
-  //   // userProfileId: userProfile?._id,
-  //   deletedAt: null,
-  //   serviceId: { $in: userProfile.serviceIds }, // match any of the IDs
-  // })
-  //   .limit(20)
-  //   .skip(0)
-  //   .populate('userProfileId')
-  //   .populate('serviceId');
-
-  //  return leads;
-
   const leadQuery = new QueryBuilder(
     Lead.find({
-      // userProfileId: userProfile?._id,
+      userProfileId: userProfile?._id,
       deletedAt: null,
-      serviceId: { $in: userProfile.serviceIds },
+      // serviceId: { $in: userProfile.serviceIds },
     })
       .populate('userProfileId')
       .populate('serviceId')

@@ -84,10 +84,12 @@ const updateSingleLead = catchAsync(async (req, res) => {
 });
 
 const getAllLead = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
   const timer = startQueryTimer();
-  const result = await leadService.getAllLeadFromDB();
+   const query = req.query
+  const result = await leadService.getAllLeadFromDB(userId,query);
   const queryTime = timer.endQueryTimer();
-  if (!result.length) {
+  if (!result?.data.length) {
 
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
@@ -104,7 +106,8 @@ const getAllLead = catchAsync(async (req, res) => {
     success: true,
     message: 'All Lead is retrieved successfully',
     queryTime,
-    data: result,
+    pagination: result?.meta,
+    data: result?.data,
   });
 });
 
@@ -117,15 +120,15 @@ const getMyAllLead = catchAsync(async (req, res) => {
   const result = await leadService.getMyAllLeadFromDB(userId, query);
   const queryTime = timer.endQueryTimer();
 
-  // if (!Array.isArray(result) || !result.length) {
-  //   return sendResponse(res, {
-  //     statusCode: HTTP_STATUS.OK,
-  //     success: false,
-  //     message: 'Leads  not found.',
-  //     queryTime,
-  //     data: [],
-  //   });
-  // }
+  if (!Array.isArray(result?.data) || !result.data.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Leads  not found.',
+      queryTime,
+      data: [],
+    });
+  }
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
