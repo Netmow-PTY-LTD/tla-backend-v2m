@@ -1,4 +1,4 @@
-import mongoose, { InferSchemaType, Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import UserProfile from "../../User/models/user.model";
 import CreditTransaction from "../../CreditPayment/models/creditTransaction.model";
 import LeadResponse from "../../LeadResponse/models/response.model";
@@ -6,6 +6,7 @@ import { HTTP_STATUS } from "../../../constant/httpStatus";
 import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
 import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface";
+import { logActivity } from "../../Activity/utils/logActivityLog";
 
 const createLawyerResponseAndSpendCredit = async (
   userId: Types.ObjectId,
@@ -64,9 +65,9 @@ const createLawyerResponseAndSpendCredit = async (
 
     // Enough credits: do the transaction as before
 
- 
 
-    let resultLeadResponse: ILeadResponse| null = null;
+
+    let resultLeadResponse: ILeadResponse | null = null;
 
     await session.withTransaction(async () => {
       user = await UserProfile.findOne({ user: userId }).session(session);
@@ -106,6 +107,35 @@ const createLawyerResponseAndSpendCredit = async (
         { session }
       );
 
+      // Log: Credit spent
+      await logActivity({
+        createdBy: userId,
+        activityType: 'credit_spent',
+        module: 'response',
+        objectId: leadResponse._id,
+        activityNote: `Spent ${credit} credits to contact lead.`,
+        extraField: {
+          creditsBefore,
+          creditsAfter,
+          creditSpent: credit,
+          leadId,
+        },
+        session,
+      },);
+      // Log: Response created
+      await logActivity({
+        createdBy: userId,
+        activityType: 'create',
+        module: 'response',
+        objectId: leadResponse._id,
+        activityNote: `Created response for this lead.`,
+        extraField: {
+          leadId,
+          serviceId,
+        },
+        session,
+      },);
+
 
       // Return the leadResponse in the outer scope
       resultLeadResponse = leadResponse; // declare this before transaction
@@ -118,7 +148,7 @@ const createLawyerResponseAndSpendCredit = async (
       success: true,
       message: 'Contact initiated and credits deducted successfully',
       data: {
-        responseId: (resultLeadResponse as any)?._id 
+        responseId: (resultLeadResponse as any)?._id
       }
 
     };
