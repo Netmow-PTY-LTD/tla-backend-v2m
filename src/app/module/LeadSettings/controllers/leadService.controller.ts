@@ -1,5 +1,6 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
+import { startQueryTimer } from '../../../utils/queryTimer';
 import sendResponse from '../../../utils/sendResponse';
 import { LeadServiceService } from '../services/leadService.service';
 
@@ -18,13 +19,16 @@ const createLeadService = catchAsync(async (req, res) => {
 
 // Get all services with questions
 const getLeadServices = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   const userId = req.user.userId;
   const result = await LeadServiceService.getLeadServicesWithQuestions(userId);
+    const queryTime = timer.endQueryTimer();
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Lead services with questions retrieved successfully',
+    queryTime,
     data: result,
   });
 });

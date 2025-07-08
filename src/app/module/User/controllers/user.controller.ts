@@ -11,6 +11,7 @@ import { profileCustomService } from '../services/ProfileCustomService.service';
 import { profileQAService } from '../services/profileQA.service';
 import { profileExperienceService } from '../services/profileExperience.service';
 import { profileFaqService } from '../services/profileFaq.service';
+import { startQueryTimer } from '../../../utils/queryTimer';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -194,17 +195,19 @@ const getSingleUserProfileData = catchAsync(async (req, res) => {
  */
 
 const getUserProfileInfo = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   // Extract the logged-in user information from the request (from JWT payload)
   const user = req.user;
 
   // Call the service function to retrieve the user's profile data from the database
   const result = await UserProfileService.getUserProfileInfoIntoDB(user);
-
+  const queryTime = timer.endQueryTimer();
   // Send a successful response back to the client with the user's profile data
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: ' User Basic Info GET Successfully',
+    queryTime,
     data: result,
   });
 });
@@ -217,14 +220,16 @@ const getUserProfileInfo = catchAsync(async (req, res) => {
  * @throws {AppError} Throws an error if fetching user profiles fails.
  */
 const getAllUserProfile = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
   // Call the service function to retrieve all user profiles from the database
   const result = await UserProfileService.getAllUserIntoDB();
-
+  const queryTime = timer.endQueryTimer();
   // Send a successful response back to the client with the list of all user profiles
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: ' Get all Users Successfully',
+    queryTime,
     data: result,
   });
 });

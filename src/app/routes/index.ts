@@ -68,7 +68,7 @@ const moduleRoutes = [
     route: responseRouter,
   },
   {
-    path: '/activity',
+    path: '/activity-log',
     route: activityLogRouter,
   },
   {

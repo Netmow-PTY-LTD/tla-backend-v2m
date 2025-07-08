@@ -8,21 +8,27 @@ const leadSchema = new Schema<ILead>(
       ref: 'UserProfile',
       required: true,
     },
+    countryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Country',
+      required: true,
+    },
     serviceId: {
       type: Schema.Types.ObjectId,
       ref: 'Service',
       required: true,
     },
+
     additionalDetails: {
       type: String,
       default: '',
     },
-    locationId:{
-       type: Schema.Types.ObjectId,
+    locationId: {
+      type: Schema.Types.ObjectId,
       ref: 'ZipCode',
       required: true,
     },
-     budgetAmount:{
+    budgetAmount: {
       type: Number,
       default: 0,
     },
