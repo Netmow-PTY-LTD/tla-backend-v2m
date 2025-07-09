@@ -14,6 +14,7 @@ import { creditPaymentRouter } from '../module/CreditPayment/routes/creditPaymen
 import { leadRouter } from '../module/Lead/routes/lead.route';
 import { responseRouter } from '../module/LeadResponse/routes/response.route';
 import { activityLogRouter } from '../module/Activity/routes/logActivity.route';
+import { contactRouter } from '../module/Contact/routes/contact.route';
 
 const router = Router();
 
@@ -66,6 +67,10 @@ const moduleRoutes = [
   {
     path: '/response',
     route: responseRouter,
+  },
+  {
+    path: '/contact',
+    route: contactRouter,
   },
   {
     path: '/activity-log',
