@@ -6,6 +6,9 @@ import globalErrorHandler from './app/middlewares/globalErrorhandler';
 import router from './app/routes';
 import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
+import { logServerInfo } from './app/utils/serverInfo';
+
+logServerInfo(); // Print info on start
 const app: Application = express();
 //parsers
 app.use(express.json());
