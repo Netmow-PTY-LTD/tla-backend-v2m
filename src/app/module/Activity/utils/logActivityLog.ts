@@ -17,7 +17,7 @@ export const logActivity = async ({
   activityType: string;
   module: string;
   extraField?: Record<string, any>;
-  objectId: string | Types.ObjectId;
+  objectId?: string | Types.ObjectId;
   session?: ClientSession | null;
 }) => {
   try {
