@@ -7,10 +7,9 @@ import { contactservice } from "../services/contact.service";
 
 
 const sendContact = catchAsync(async (req, res) => {
-  const userProfileId = req.user?.userProfileId;
+  const userId = req.user?.userId;
   const payload = req.body;
-
-  const result = await  contactservice.sendContactMessage(userProfileId, payload);
+  const result = await contactservice.sendContactMessage(userId, payload);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -23,5 +22,5 @@ const sendContact = catchAsync(async (req, res) => {
 
 
 export const contactController = {
-    sendContact
+  sendContact
 };

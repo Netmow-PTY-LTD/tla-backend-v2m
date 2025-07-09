@@ -8,7 +8,7 @@ const SendEmailSchema = new Schema(
     html: { type: String }, // optional: you can store raw HTML if needed
     text: { type: String }, // optional: plain version
     sentBy: { type: Schema.Types.ObjectId, ref: 'UserProfile', required: true },
-    responseId: { type: Schema.Types.ObjectId, ref: 'Response' }, // optional
+    responseId: { type: Schema.Types.ObjectId, ref: 'LeadResponse' }, // optional
     leadId: { type: Schema.Types.ObjectId, ref: 'Lead' }, // optional
     status: { type: String, enum: ['sent', 'failed'], default: 'sent' },
     error: { type: String }, // store failure reason if any
