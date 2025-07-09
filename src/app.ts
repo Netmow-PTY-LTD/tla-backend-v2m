@@ -8,7 +8,8 @@ import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
 
-logServerInfo(); // Print info on start
+
+
 const app: Application = express();
 //parsers
 app.use(express.json());
@@ -46,6 +47,15 @@ app.use(
 
 // application routes
 app.use('/api/v1', router);
+
+app.get('/server-info', (req: Request, res: Response) => {
+  const info = logServerInfo();
+  res.status(200).json({
+    success: true,
+    message: 'Server information retrieved successfully',
+    data: info,
+  });
+});
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to TLA Backend 3.0');
