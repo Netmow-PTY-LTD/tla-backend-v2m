@@ -100,7 +100,8 @@ const createLawyerResponseAndSpendCredit = async (
         [
           {
             leadId,
-            userProfileId: user._id,
+            // userProfileId: user._id,
+             responseBy: user._id,
             serviceId,
           },
         ],

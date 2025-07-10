@@ -3,7 +3,12 @@ import { ILeadResponse } from '../interfaces/response.interface';
 
 const responseSchema = new Schema<ILeadResponse>(
   {
-    userProfileId: {
+    // userProfileId: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'UserProfile',
+    //   required: true,
+    // },
+    responseBy: {
       type: Schema.Types.ObjectId,
       ref: 'UserProfile',
       required: true,
