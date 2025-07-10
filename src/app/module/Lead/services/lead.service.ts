@@ -228,14 +228,14 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
 
 const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
-  if (!userProfile) return null;
+  const user = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+  if (!user) return null;
 
   // Build Mongoose query using QueryBuilder
   const leadQuery = new QueryBuilder(
     Lead.find({
       deletedAt: null,
-      serviceId: { $in: userProfile.serviceIds },
+      serviceId: { $in: user.serviceIds },
     })
       .populate('userProfileId') // populate lawyer profile
       .populate('serviceId') // populate service info
@@ -284,12 +284,14 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
         userProfile && 'user' in userProfile
           ? await calculateLawyerBadge(userProfile.user as mongoose.Types.ObjectId)
           : null;
-
+      const existingResponse = await LeadResponse.exists({ leadId: lead._id, responseBy: user._id });
+      console.log('isContact ===>', existingResponse)
       return {
         ...lead,
         credit: customCreditLogic(credit),
         creditSource,
         badge,
+        isContact: !!existingResponse
       };
     })
   );
@@ -328,6 +330,7 @@ const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>
   const meta = await leadQuery.countTotal();
   const data = await leadQuery.modelQuery;
 
+
   return {
     meta,
     data,
@@ -335,6 +338,7 @@ const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>
 
 
 };
+
 
 
 
@@ -501,10 +505,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
 
   // ✅ 3. check alredy contact this lead current user
-  const existingResponse = await LeadResponse.findOne({ leadId: leadId, responseBy: user._id });
-
-
-
+  const existingResponse = await LeadResponse.exists({ leadId: leadId, responseBy: user._id });
 
   // ✅ 5. Return final result
   return {
@@ -518,6 +519,139 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
 
 
 };
+
+
+
+// maksud bro code
+
+// const getSingleLeadFromDB = async (userId: string, leadId: string) => {
+//   const user = await UserProfile.findOne({ user: userId }).lean();
+//   if (!user) return sendNotFoundResponse('user not found!');
+
+//   validateObjectId(leadId, 'Lead');
+
+//   // Run in parallel: leadDoc, creditInfo, existingResponse
+//   const [leadDoc, existingResponse] = await Promise.all([
+//     Lead.findOne({ _id: leadId, deletedAt: null })
+//       .populate({
+//         path: 'userProfileId',
+//         populate: { path: 'user', select: '_id' },
+//         select: 'country user',
+//       })
+//       .populate({
+//         path: 'serviceId',
+//         select: '_id',
+//       })
+//       .lean(),
+
+//     LeadResponse.findOne({ leadId, responseBy: user._id }).lean()
+//   ]);
+
+//   if (!leadDoc) return null;
+
+//   // Get credit info
+//   const creditInfo = await CountryWiseServiceWiseField.findOne({
+//     countryId: (leadDoc.userProfileId as any).country,
+//     serviceId: leadDoc.serviceId._id,
+//     deletedAt: null,
+//   }).lean();
+
+//   // Get answers using aggregation
+//   const leadAnswers = await LeadServiceAnswer.aggregate([
+//     {
+//       $match: {
+//         leadId: new mongoose.Types.ObjectId(leadId),
+//         deletedAt: null,
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'questions',
+//         localField: 'questionId',
+//         foreignField: '_id',
+//         as: 'question',
+//       },
+//     },
+//     { $unwind: '$question' },
+//     {
+//       $lookup: {
+//         from: 'options',
+//         localField: 'optionId',
+//         foreignField: '_id',
+//         as: 'option',
+//       },
+//     },
+//     { $unwind: '$option' },
+//     {
+//       $match: {
+//         isSelected: true,
+//       },
+//     },
+//     {
+//       $sort: {
+//         'question.order': 1,
+//         'option.order': 1,
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: '$question._id',
+//         questionId: { $first: '$question._id' },
+//         question: { $first: '$question.question' },
+//         order: { $first: '$question.order' },
+//         options: {
+//           $push: {
+//             optionId: '$option._id',
+//             option: '$option.name',
+//             isSelected: '$isSelected',
+//             idExtraData: '$idExtraData',
+//             order: '$option.order',
+//           },
+//         },
+//       },
+//     },
+//     {
+//       $project: {
+//         questionId: 1,
+//         question: 1,
+//         options: {
+//           $map: {
+//             input: {
+//               $sortArray: {
+//                 input: '$options',
+//                 sortBy: { order: 1 },
+//               },
+//             },
+//             as: 'opt',
+//             in: {
+//               optionId: '$$opt.optionId',
+//               option: '$$opt.option',
+//               isSelected: '$$opt.isSelected',
+//               idExtraData: '$$opt.idExtraData',
+//             },
+//           },
+//         },
+//       },
+//     },
+//     {
+//       $sort: { order: 1 },
+//     },
+//   ]);
+
+//   // Calculate badge only if lead has a lawyer
+//   const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
+//   const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
+
+//   return {
+//     ...leadDoc,
+//     badge,
+//     leadAnswers,
+//     credit: creditInfo?.baseCredit ?? 0,
+//     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+//     isContact: !!existingResponse,
+//   };
+// };
+
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
   validateObjectId(id, 'Lead');

@@ -17,10 +17,10 @@ const createLead = catchAsync(async (req, res) => {
 });
 
 const getSingleLead = catchAsync(async (req, res) => {
-   const userId = req.user.userId;
+  const userId = req.user.userId;
   const timer = startQueryTimer();
   const { leadId } = req.params;
-  const result = await leadService.getSingleLeadFromDB(userId,leadId);
+  const result = await leadService.getSingleLeadFromDB(userId, leadId);
   const queryTime = timer.endQueryTimer();
 
   if (!result) {
@@ -37,6 +37,7 @@ const getSingleLead = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Lead is retrieved successfully',
+    queryTime,
     data: result,
   });
 });
@@ -87,8 +88,8 @@ const updateSingleLead = catchAsync(async (req, res) => {
 const getAllLead = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const timer = startQueryTimer();
-   const query = req.query
-  const result = await leadService.getAllLeadFromDB(userId,query);
+  const query = req.query
+  const result = await leadService.getAllLeadFromDB(userId, query);
   const queryTime = timer.endQueryTimer();
   if (!result?.data.length) {
 
