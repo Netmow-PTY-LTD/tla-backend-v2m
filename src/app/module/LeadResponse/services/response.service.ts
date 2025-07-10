@@ -22,7 +22,8 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
   }
   const responseUser = await LeadResponse.create({
     leadId: payload.leadId,
-    userProfileId: userProfile._id,
+    // userProfileId: userProfile._id,
+    responseBy: userProfile._id,
     serviceId: payload.serviceId,
   });
 
@@ -175,7 +176,8 @@ export const getAllResponseFromDB = async () => {
       {
         $lookup: {
           from: 'userprofiles',
-          localField: 'userProfileId',
+          // localField: 'userProfileId',
+          localField: 'responseBy',
           foreignField: '_id',
           as: 'lawyerProfile',
         },
@@ -343,7 +345,8 @@ const getMyAllResponseFromDB = async (userId: string) => {
   }
 
   const responses = await LeadResponse.find({
-    userProfileId: userProfile._id,
+    // userProfileId: userProfile._id,
+    responseBy: userProfile._id,
     deletedAt: null,
   })
     .populate({
@@ -360,7 +363,7 @@ const getMyAllResponseFromDB = async (userId: string) => {
       path: 'serviceId',
     })
     .populate({
-      path: 'userProfileId',
+      path: 'responseBy',
       populate: {
         path: 'user',
         select: '_id name email',
@@ -370,7 +373,8 @@ const getMyAllResponseFromDB = async (userId: string) => {
   const combineCredit = await Promise.all(
     responses.map(async (response) => {
       const plain = response.toObject ? response.toObject() : response;
-      const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
+      // const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
+      const lawyerUserId = (plain as any)?.responseBy?.user?._id;
       const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
       const [lawyerBadge, leadBadge] = await Promise.all([
         lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
@@ -606,7 +610,8 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
 
   const responseDoc = await LeadResponse.findById(responseId)
     .populate({
-      path: 'userProfileId',
+      path: 'responseBy',
+      // path: 'userProfileId',
       populate: { path: 'user' },
     })
     .populate({
@@ -626,7 +631,8 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
   // Fetch credit info in parallel
   const [creditInfo] = await Promise.all([
     CountryWiseServiceWiseField.findOne({
-      countryId: (responseDoc.userProfileId as any).country,
+      // countryId: (responseDoc.userProfileId as any).country,
+      countryId: (responseDoc.responseBy as any).country,
       serviceId: responseDoc.serviceId._id,
       deletedAt: null,
     }).lean(),
@@ -756,7 +762,8 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
 
   // Fetch lawyer and lead badges
   const plain = responseDoc as any;
-  const lawyerUserId = plain?.userProfileId?.user?._id;
+  // const lawyerUserId = plain?.userProfileId?.user?._id;
+  const lawyerUserId = plain?.responseBy?.user?._id;
   const leadUserId = plain?.leadId?.userProfileId?.user?._id;
 
   const [lawyerBadge, leadBadge] = await Promise.all([
