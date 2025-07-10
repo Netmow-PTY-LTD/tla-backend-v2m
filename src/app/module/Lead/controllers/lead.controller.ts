@@ -17,9 +17,10 @@ const createLead = catchAsync(async (req, res) => {
 });
 
 const getSingleLead = catchAsync(async (req, res) => {
+   const userId = req.user.userId;
   const timer = startQueryTimer();
   const { leadId } = req.params;
-  const result = await leadService.getSingleLeadFromDB(leadId);
+  const result = await leadService.getSingleLeadFromDB(userId,leadId);
   const queryTime = timer.endQueryTimer();
 
   if (!result) {

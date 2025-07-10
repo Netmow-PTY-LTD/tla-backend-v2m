@@ -12,6 +12,7 @@ import { customCreditLogic } from '../utils/customCreditLogic';
 
 import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import QueryBuilder from '../../../builder/QueryBuilder';
+import LeadResponse from '../../LeadResponse/models/response.model';
 
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
@@ -337,9 +338,13 @@ const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>
 
 
 
-const getSingleLeadFromDB = async (leadId: string) => {
-  validateObjectId(leadId, 'Lead');
+const getSingleLeadFromDB = async (userId: string, leadId: string) => {
+  const user = await UserProfile.findOne({ user: userId });
+  if (!user) {
+    return sendNotFoundResponse('user not found!')
+  }
 
+  validateObjectId(leadId, 'Lead');
   const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
     .populate({
       path: 'userProfileId',
@@ -495,13 +500,20 @@ const getSingleLeadFromDB = async (leadId: string) => {
   const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
   const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
 
-  // ✅ 4. Return final result
+  // ✅ 3. check alredy contact this lead current user
+  const existingResponse = await LeadResponse.findOne({ leadId: leadId, responseBy: user._id });
+
+
+
+
+  // ✅ 5. Return final result
   return {
     ...leadDoc,
     badge,
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+    isContact: !!existingResponse,
   };
 
 
