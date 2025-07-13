@@ -59,8 +59,7 @@ const browserPreferences = catchAsync(async (req, res) => {
 const NotificationPreferences = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
-  const result =
-    await notificationService.getAllNotificationPreferenceFromDB(userId);
+  const result = await notificationService.getAllNotificationPreferenceFromDB(userId);
 
   if (!result) {
     return sendResponse(res, {
@@ -81,7 +80,7 @@ const NotificationPreferences = catchAsync(async (req, res) => {
 
 
 const markNotificationAsRead = catchAsync(async (req, res) => {
-  const notificationId = req.params.id;
+  const notificationId = req.params.notificationId;
   const result =
     await notificationService.markNotificationAsReadFromDB(notificationId);
 
@@ -89,7 +88,7 @@ const markNotificationAsRead = catchAsync(async (req, res) => {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Notification  not found',
+      message: 'Notification  not found!',
       data: null,
     });
   }

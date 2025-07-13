@@ -10,6 +10,7 @@ router.put(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   notificationController.browserPreferences,
 );
+
 router.put(
   '/email',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
@@ -21,15 +22,14 @@ router.get(
   notificationController.NotificationPreferences,
 );
 
-
 router.get(
   '/',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  notificationController.NotificationPreferences,
+  notificationController.getUserNotifications,
 );
 
-router.get(
-  '/:id/red',
+router.patch(
+  '/:notificationId/red',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   notificationController.markNotificationAsRead,
 );

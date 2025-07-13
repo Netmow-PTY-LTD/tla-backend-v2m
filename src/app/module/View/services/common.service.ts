@@ -7,6 +7,8 @@ import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
 import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface";
 import { logActivity } from "../../Activity/utils/logActivityLog";
+import { createNotification } from "../../Notification/utils/createNotification";
+import Lead from "../../Lead/models/lead.model";
 
 const createLawyerResponseAndSpendCredit = async (
   userId: Types.ObjectId,
@@ -101,7 +103,7 @@ const createLawyerResponseAndSpendCredit = async (
           {
             leadId,
             // userProfileId: user._id,
-             responseBy: user._id,
+            responseBy: user._id,
             serviceId,
           },
         ],
@@ -137,6 +139,27 @@ const createLawyerResponseAndSpendCredit = async (
         session,
       },);
 
+
+     // 3. Create notification for the lead
+
+     const leadUser= await Lead.findById(leadId).populate({path:'userProfileId',select:'name user'})
+     
+    await createNotification({
+      userId: leadUser?.userProfileId?.user,
+      title: "You've received a new contact request",
+      message: `${user.name} wants to connect with you.`,
+      type: "lead",
+      link: `/lead/messages/${leadResponse._id}`,
+    });
+
+    // 4. Create notification for the lawyer
+    await createNotification({
+      userId: userId,
+      title: "Your message was sent",
+      message: `You’ve successfully contacted ${leadUser?.userProfileId?.name}.`,
+      type: "response",
+      link: `/lawyer/responses/${leadResponse._id}`,
+    });
 
       // Return the leadResponse in the outer scope
       resultLeadResponse = leadResponse; // declare this before transaction

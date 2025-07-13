@@ -60,9 +60,8 @@ const markNotificationAsReadFromDB = async (notificationId: string) => {
   return result;
 };
 
-const getUserNotificationsFromDB = async (userId: string,isRead:boolean) => {
+const getUserNotificationsFromDB = async (userId: string, isRead: boolean) => {
 
- 
   const notifications = await Notification.find({ userId, isRead }).sort({ createdAt: -1 }).limit(50);
 
   return notifications;

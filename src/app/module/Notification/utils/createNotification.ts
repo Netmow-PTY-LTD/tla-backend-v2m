@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { Notification } from "../models/notification.model";
 
 export const createNotification = async ({
@@ -7,7 +8,7 @@ export const createNotification = async ({
   type,
   link,
 }: {
-  userId: string;
+  userId: string|Types.ObjectId;
   title: string;
   message: string;
   type: string;
