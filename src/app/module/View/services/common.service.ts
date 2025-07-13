@@ -142,7 +142,7 @@ const createLawyerResponseAndSpendCredit = async (
 
       // 3. Create notification for the lead
 
-      const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' })
+      const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' }).session(session)
 
       // Type assertion to safely access user field
       const populatedLeadUser = leadUser as typeof leadUser & {
@@ -158,7 +158,8 @@ const createLawyerResponseAndSpendCredit = async (
         userId: populatedLeadUser?.userProfileId?.user,
         title: "You've received a new contact request",
         message: `${user.name} wants to connect with you.`,
-        type: "lead",
+        module: 'lead',        // module relates to the lead domain
+        type: 'contact',       // type indicates a contact request notification
         link: `/lead/messages/${leadResponse._id}`,
         session,
       });
@@ -168,7 +169,8 @@ const createLawyerResponseAndSpendCredit = async (
         userId: userId,
         title: "Your message was sent",
         message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
-        type: "response",
+        module: 'response',    // module relates to response domain
+        type: 'create',        // type for creating a response/contact
         link: `/lawyer/responses/${leadResponse._id}`,
         session,
       });

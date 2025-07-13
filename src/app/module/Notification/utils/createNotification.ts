@@ -1,26 +1,13 @@
 import { ClientSession, Types } from "mongoose";
 import { Notification } from "../models/notification.model";
 
-// export const createNotification = async ({
-//   userId,
-//   title,
-//   message,
-//   type,
-//   link,
-// }: {
-//   userId: string|Types.ObjectId;
-//   title: string;
-//   message: string;
-//   type: string;
-//   link?: string;
-// }) => {
-//   await Notification.create({ userId, title, message, type, link });
-// };
+
 
 export const createNotification = async ({
   userId,
   title,
   message,
+  module,
   type,
   link,
   session = null,
@@ -28,6 +15,7 @@ export const createNotification = async ({
   userId: string | Types.ObjectId;
   title: string;
   message: string;
+  module:string;
   type: string;
   link?: string;
   session?: ClientSession | null;
@@ -39,6 +27,7 @@ export const createNotification = async ({
           userId,
           title,
           message,
+          module,
           type,
           link,
           createdAt: new Date(), // optional: explicit timestamp
