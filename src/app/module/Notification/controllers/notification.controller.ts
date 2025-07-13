@@ -59,8 +59,7 @@ const browserPreferences = catchAsync(async (req, res) => {
 const NotificationPreferences = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
-  const result =
-    await notificationService.getAllNotificationPreferenceFromDB(userId);
+  const result = await notificationService.getAllNotificationPreferenceFromDB(userId);
 
   if (!result) {
     return sendResponse(res, {
@@ -79,8 +78,58 @@ const NotificationPreferences = catchAsync(async (req, res) => {
   });
 });
 
+
+const markNotificationAsRead = catchAsync(async (req, res) => {
+  const notificationId = req.params.notificationId;
+  const result =
+    await notificationService.markNotificationAsReadFromDB(notificationId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Notification  not found!',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Notification  retrieve successfully',
+    data: result,
+  });
+});
+
+
+const getUserNotifications = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const isRead = req.query.read === 'true';
+
+  const result =
+    await notificationService.getUserNotificationsFromDB(userId,isRead);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Notification  not found',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Notification  retrieve successfully',
+    data: result,
+  });
+});
+
 export const notificationController = {
   emailPreferences,
   browserPreferences,
   NotificationPreferences,
+  markNotificationAsRead,
+  getUserNotifications
 };
