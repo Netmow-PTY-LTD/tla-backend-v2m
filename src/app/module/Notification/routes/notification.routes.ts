@@ -16,9 +16,22 @@ router.put(
   notificationController.emailPreferences,
 );
 router.get(
+  '/preferences',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  notificationController.NotificationPreferences,
+);
+
+
+router.get(
   '/',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   notificationController.NotificationPreferences,
+);
+
+router.get(
+  '/:id/red',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  notificationController.markNotificationAsRead,
 );
 
 export const notificationRouter = router;
