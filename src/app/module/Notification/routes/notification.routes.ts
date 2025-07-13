@@ -28,7 +28,7 @@ router.get(
   notificationController.getUserNotifications,
 );
 
-router.patch(
+router.put(
   '/:notificationId/red',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   notificationController.markNotificationAsRead,

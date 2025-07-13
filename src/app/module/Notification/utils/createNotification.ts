@@ -1,5 +1,21 @@
-import { Types } from "mongoose";
+import { ClientSession, Types } from "mongoose";
 import { Notification } from "../models/notification.model";
+
+// export const createNotification = async ({
+//   userId,
+//   title,
+//   message,
+//   type,
+//   link,
+// }: {
+//   userId: string|Types.ObjectId;
+//   title: string;
+//   message: string;
+//   type: string;
+//   link?: string;
+// }) => {
+//   await Notification.create({ userId, title, message, type, link });
+// };
 
 export const createNotification = async ({
   userId,
@@ -7,12 +23,30 @@ export const createNotification = async ({
   message,
   type,
   link,
+  session = null,
 }: {
-  userId: string|Types.ObjectId;
+  userId: string | Types.ObjectId;
   title: string;
   message: string;
   type: string;
   link?: string;
+  session?: ClientSession | null;
 }) => {
-  await Notification.create({ userId, title, message, type, link });
+  try {
+    await Notification.create(
+      [
+        {
+          userId,
+          title,
+          message,
+          type,
+          link,
+          createdAt: new Date(), // optional: explicit timestamp
+        },
+      ],
+      session ? { session } : undefined
+    );
+  } catch (err) {
+    console.error("Notification creation error:", err);
+  }
 };

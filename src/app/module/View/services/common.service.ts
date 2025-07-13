@@ -140,26 +140,38 @@ const createLawyerResponseAndSpendCredit = async (
       },);
 
 
-     // 3. Create notification for the lead
+      // 3. Create notification for the lead
 
-     const leadUser= await Lead.findById(leadId).populate({path:'userProfileId',select:'name user'})
-     
-    await createNotification({
-      userId: leadUser?.userProfileId?.user,
-      title: "You've received a new contact request",
-      message: `${user.name} wants to connect with you.`,
-      type: "lead",
-      link: `/lead/messages/${leadResponse._id}`,
-    });
+      const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' })
 
-    // 4. Create notification for the lawyer
-    await createNotification({
-      userId: userId,
-      title: "Your message was sent",
-      message: `You’ve successfully contacted ${leadUser?.userProfileId?.name}.`,
-      type: "response",
-      link: `/lawyer/responses/${leadResponse._id}`,
-    });
+      // Type assertion to safely access user field
+      const populatedLeadUser = leadUser as typeof leadUser & {
+        userProfileId: {
+          _id: Types.ObjectId;
+          name: string;
+          user: Types.ObjectId;
+        };
+      };
+
+
+      await createNotification({
+        userId: populatedLeadUser?.userProfileId?.user,
+        title: "You've received a new contact request",
+        message: `${user.name} wants to connect with you.`,
+        type: "lead",
+        link: `/lead/messages/${leadResponse._id}`,
+        session,
+      });
+
+      // 4. Create notification for the lawyer
+      await createNotification({
+        userId: userId,
+        title: "Your message was sent",
+        message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
+        type: "response",
+        link: `/lawyer/responses/${leadResponse._id}`,
+        session,
+      });
 
       // Return the leadResponse in the outer scope
       resultLeadResponse = leadResponse; // declare this before transaction
