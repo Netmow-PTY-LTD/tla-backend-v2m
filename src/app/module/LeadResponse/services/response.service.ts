@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import UserProfile from '../../User/models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';

@@ -184,14 +184,15 @@ const getAllTransactionHistory = async () => {
   const transactionHistory = await Transaction.find({})
     .sort({ createdAt: -1 })
     .populate({
-      path:'userId',
-      populate:{
-        path:'profile'
+      path: 'userId',
+      populate: {
+        path: 'profile'
       }
     })
     .populate('creditPackageId');
   return transactionHistory
 };
+
 
 const findNextCreditOffer = async (userId: string) => {
   // Get latest completed purchase
@@ -205,23 +206,28 @@ const findNextCreditOffer = async (userId: string) => {
 
   if (!lastTransaction || !lastTransaction.creditPackageId) {
     // No purchases: return cheapest active package
-    return await CreditPackage.findOne({ isActive: true }).sort({ price: 1 });
+    return await CreditPackage.findOne({ isActive: true }).sort({ credit: 1 });
   }
 
   const lastPackage =
-    lastTransaction?.creditPackageId as unknown as ICreditPackage;
+    lastTransaction.creditPackageId as unknown as ICreditPackage;
 
-  // Find next higher offer (by credit or price)
+  // Find the next bigger package by credit only
   const nextOffer = await CreditPackage.findOne({
     isActive: true,
-    $or: [
-      { credit: { $gt: lastPackage.credit } },
-      { price: { $gt: lastPackage.price } },
-    ],
-  }).sort({ price: 1 });
+    credit: { $gt: lastPackage.credit },
+  }).sort({ credit: 1 }); // return the smallest package that’s bigger
 
-  return nextOffer || null;
+  // return nextOffer || null;
+  if (nextOffer) {
+    return nextOffer;
+  }
+
+  // If no bigger package exists, return the biggest active package
+  const largestPackage = await CreditPackage.findOne({ isActive: true }).sort({ credit: -1 });
+  return largestPackage || null;
 };
+
 
 export const CreditPaymentService = {
   getCreditPackages,

@@ -351,7 +351,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     const questionIdRaw = item.questionId as any;
 
     if (!serviceIdRaw?._id || !questionIdRaw?._id) {
-      console.warn('Skipping item due to missing serviceId or questionId:', item);
+      // console.warn('Skipping item due to missing serviceId or questionId:', item);
       continue;
     }
 
