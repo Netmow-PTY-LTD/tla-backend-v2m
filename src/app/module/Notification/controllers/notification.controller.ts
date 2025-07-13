@@ -103,8 +103,9 @@ const markNotificationAsRead = catchAsync(async (req, res) => {
 
 
 const getUserNotifications = catchAsync(async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const isRead = req.query.read === 'true';
+
   const result =
     await notificationService.getUserNotificationsFromDB(userId,isRead);
 
