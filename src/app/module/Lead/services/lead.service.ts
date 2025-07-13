@@ -285,7 +285,7 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
           ? await calculateLawyerBadge(userProfile.user as mongoose.Types.ObjectId)
           : null;
       const existingResponse = await LeadResponse.exists({ leadId: lead._id, responseBy: user._id });
-      console.log('isContact ===>', existingResponse)
+
       return {
         ...lead,
         credit: customCreditLogic(credit),
