@@ -1,4 +1,4 @@
-import config from "../config";
+
 import { transporter } from "../config/emailTranspoter";
 
 

@@ -81,7 +81,7 @@ const createLawyerResponseAndSpendCredit = async (
 
       await user.save({ session });
 
-      const [creditsTrasection] = await CreditTransaction.create(
+      await CreditTransaction.create(
         [
           {
             userProfileId: user._id,

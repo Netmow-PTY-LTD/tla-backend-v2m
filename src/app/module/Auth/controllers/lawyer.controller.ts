@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import { clientRegisterService } from '../services/clientRegister.service';
+
 import { lawyerRegisterService } from '../services/lawyerRegister.service';
 
 const lawyerRegister = catchAsync(async (req, res) => {
