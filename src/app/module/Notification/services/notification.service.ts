@@ -60,8 +60,23 @@ const markNotificationAsReadFromDB = async (notificationId: string) => {
   return result;
 };
 
-const getUserNotificationsFromDB = async (userId: string, isRead: boolean) => {
-  const notifications = await Notification.find({ userId, isRead }).sort({ createdAt: -1 }).limit(50);
+const getUserNotificationsFromDB = async (
+  userId: string,
+  query: { read?: string }
+) => {
+  const isReadParam = query.read;
+  const filter: any = { userId };
+
+  if (isReadParam === 'true') {
+    filter.isRead = true;
+  } else if (isReadParam === 'false') {
+    filter.isRead = false;
+  }
+
+  const notifications = await Notification.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(50);
+
   return notifications;
 };
 
