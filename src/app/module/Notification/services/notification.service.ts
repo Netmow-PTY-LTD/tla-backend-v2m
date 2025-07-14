@@ -53,16 +53,29 @@ const getAllNotificationPreferenceFromDB = async (userProfileId: string) => {
   return updatedPreferences;
 };
 
-const markNotificationAsReadFromDB = async (notificationId: string) => {
 
+const markNotificationAsReadFromDB = async (notificationId: string) => {
   const result = await Notification.findByIdAndUpdate(notificationId, { isRead: true });
 
   return result;
 };
 
-const getUserNotificationsFromDB = async (userId: string, isRead: boolean) => {
+const getUserNotificationsFromDB = async (
+  userId: string,
+  query: { read?: string }
+) => {
+  const isReadParam = query.read;
+  const filter: any = { userId };
 
-  const notifications = await Notification.find({ userId, isRead }).sort({ createdAt: -1 }).limit(50);
+  if (isReadParam === 'true') {
+    filter.isRead = true;
+  } else if (isReadParam === 'false') {
+    filter.isRead = false;
+  }
+
+  const notifications = await Notification.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(50);
 
   return notifications;
 };

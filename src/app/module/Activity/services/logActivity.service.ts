@@ -1,5 +1,6 @@
 
 
+import { createNotification } from '../../Notification/utils/createNotification';
 import { ActivityLog } from '../models/activityLog.model';
 
 
@@ -33,6 +34,25 @@ const createUserActivityLogs = async (userId: string, payload: any) => {
         extraField: payload.extraField || {},
         objectId: payload.objectId || undefined,
     });
+
+    // ✅ Optional notification trigger
+    if (payload.notify !== false) {
+        const notificationTitle = payload.notificationTitle || 'Activity Logged';
+        const notificationMessage =
+            payload.notificationMessage || payload.activityNote;
+        const link = payload.link || null;
+
+        await createNotification({
+            userId,
+            title: notificationTitle,
+            message: notificationMessage,
+            module: payload.module || 'general',       // Use activity module or fallback
+            type: payload.activityType || 'other',     // Use activity type or fallback
+            link,
+        });
+    }
+
+
 
     return activity;
 };

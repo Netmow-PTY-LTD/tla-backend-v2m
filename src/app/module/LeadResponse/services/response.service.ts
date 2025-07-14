@@ -13,6 +13,7 @@ import LeadResponse from '../models/response.model';
 import { logActivity } from '../../Activity/utils/logActivityLog';
 import { ActivityLog } from '../../Activity/models/activityLog.model';
 import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
+import { createNotification } from '../../Notification/utils/createNotification';
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -824,14 +825,26 @@ const updateResponseStatus = async (
       objectId: responseId
 
     });
+
+
+    // Create notification for the user about the status update
+    await createNotification({
+      userId,
+      title: `Response status updated`,
+      message: `Your response status has been updated to "${status}".`,
+      module:'response',
+      type: status,
+      link: `/lawyer/responses/${responseId}`,
+    });
   }
+
 
   return result;
 };
 
 
 const deleteResponseFromDB = async (id: string) => {
-  
+
   validateObjectId(id, 'Response');
   const deletedAt = new Date().toISOString();
 
