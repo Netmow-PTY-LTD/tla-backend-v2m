@@ -1,5 +1,16 @@
 
 import { transporter } from "../config/emailTranspoter";
+import { getAppSettings } from "../module/Settings/utils/settingsConfig";
+
+
+interface SendEmailParams {
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
+  replyTo?: string;
+}
+
 
 
 export const sendEmail = async ({
@@ -7,12 +18,14 @@ export const sendEmail = async ({
   subject,
   text,
   html,
-}: {
-  to: string;
-  subject: string;
-  text?: string;
-  html?: string;
-}) => {
+}: SendEmailParams) => {
+
+  const settings = await getAppSettings();
+  if (!settings.emailProviderEnabled) {
+    console.log('📧 Email provider is disabled. Skipping email.');
+    return;
+  }
+
   const mailOptions = {
     // from: config.mailgun_from_email_address, // e.g. "My App <noreply@yourdomain.com>"
     from: "The Law App <noreply@thelawapp.com.au>",
@@ -20,9 +33,9 @@ export const sendEmail = async ({
     subject,
     text,
     html,
-     headers: {
-    'X-Mailer': 'The Law App',
-  },
+    headers: {
+      'X-Mailer': 'The Law App',
+    },
   };
 
   try {
@@ -30,7 +43,7 @@ export const sendEmail = async ({
     return result;
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('Email sending failed:', error);
+    console.error('📧 Email sending failed:', error instanceof Error ? error.message : error);
     throw new Error('Failed to send email');
   }
 };
