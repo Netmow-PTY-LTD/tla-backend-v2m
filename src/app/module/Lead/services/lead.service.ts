@@ -231,6 +231,16 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
   const user = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
   if (!user) return null;
 
+  // List of query keys to ignore
+  const excludedFields = ['credits', 'keyword', 'leadSubmission', 'location', 'services', 'sort', 'spotlight', 'view'];
+
+  // Create a sanitized copy of the query
+  const filteredQuery = Object.fromEntries(
+    Object.entries(query).filter(([key]) => !excludedFields.includes(key))
+  );
+
+
+
   // Build Mongoose query using QueryBuilder
   const leadQuery = new QueryBuilder(
     Lead.find({
@@ -240,7 +250,7 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
       .populate('userProfileId') // populate lawyer profile
       .populate('serviceId') // populate service info
       .lean(), // return plain JS objects instead of Mongoose docs
-    query,
+    filteredQuery,
   )
     .filter()
     .sort()
