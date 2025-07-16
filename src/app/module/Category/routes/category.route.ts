@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import validateRequest from '../../../middlewares/validateRequest';
 
 
@@ -6,13 +6,20 @@ import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
 import { categoryController } from '../controllers/category.controller';
 import { categoryZodValidation } from '../validations/category.validation';
+import { upload } from '../../../config/upload';
 
 const router = Router();
 
 router.post(
   '/add',
-  // auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN),
+  upload.single('file'),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   validateRequest(categoryZodValidation.categoryValidationSchema),
+
   categoryController.createCategory,
 );
 

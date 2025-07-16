@@ -1,9 +1,11 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 export interface ICategory {
   _id?: string;
   name: string;
   slug: string;
+  image:string;
+  serviceIds:Types.ObjectId[]
   deletedAt?: Date;
 }
 

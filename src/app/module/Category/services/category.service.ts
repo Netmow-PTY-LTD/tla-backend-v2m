@@ -1,9 +1,31 @@
+import { uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
+import { TUploadedFile } from '../../../interface/file.interface';
 import { ICategory } from '../interfaces/category.interface';
 import Category from '../models/category.model';
 
-const CreateCategoryIntoDB = async (payload: ICategory) => {
+const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: TUploadedFile) => {
+
+  // ✅ Handle file upload if provided
+  if (file?.buffer) {
+    try {
+      const uploadedUrl = await uploadToSpaces(
+        file.buffer,
+        file.originalname,
+        userId,
+        // 'avatars', // optional folder name
+      );
+      payload.image = uploadedUrl;
+      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    } catch (err) {
+      throw new AppError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        'File upload failed',
+      );
+    }
+  }
+
   const result = await Category.create(payload);
   return result;
 };

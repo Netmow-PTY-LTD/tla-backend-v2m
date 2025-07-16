@@ -1,12 +1,16 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { TUploadedFile } from '../../../interface/file.interface';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
 import { categoryService } from '../services/category.service';
 
 
 const createCategory = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
   const categoryData = req.body;
-  const result = await categoryService.CreateCategoryIntoDB(categoryData);
+  const file = req.file as TUploadedFile;
+
+  const result = await categoryService.CreateCategoryIntoDB(userId, categoryData, file);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { CategoryModel, ICategory } from '../interfaces/category.interface';
 
 
@@ -15,6 +15,17 @@ const categorySchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    image: {
+      type: String,
+      default: ''
+
+    },
+    serviceIds: [
+      {
+        type: Types.ObjectId,
+        ref: 'Service',
+      }
+    ],
     deletedAt: {
       type: Date,
       default: null,
