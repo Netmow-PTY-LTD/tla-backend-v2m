@@ -19,7 +19,6 @@ router.post(
     next();
   },
   validateRequest(categoryZodValidation.categoryValidationSchema),
-
   categoryController.createCategory,
 );
 
@@ -31,6 +30,12 @@ router.get('/:categoryId', categoryController.getSingleCategory);
 router.delete('/delete/:categoryId', categoryController.deleteSingleCategory);
 router.patch(
   '/edit/:categoryId',
+  auth(USER_ROLE.ADMIN),
+  upload.single('file'),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   validateRequest(categoryZodValidation.updateServiceValidationSchema),
   categoryController.updateSingleCategory,
 );

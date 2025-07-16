@@ -46,12 +46,14 @@ const deleteSingleCategory = catchAsync(async (req, res) => {
 const updateSingleCategory = catchAsync(async (req, res) => {
   const { categoryId } = req.params;
   const payload = req.body;
-  const result = await categoryService.updateCategoryIntoDB(categoryId, payload);
+  const userId = req.user.userId;
+  const file = req.file as TUploadedFile;
+  const result = await categoryService.updateCategoryIntoDB(userId,categoryId, payload,file);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Category delete successfully',
+    message: 'Category Update successfully',
     data: result,
   });
 });

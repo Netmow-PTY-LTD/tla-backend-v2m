@@ -31,7 +31,7 @@ const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: T
 };
 
 const getAllCategoryFromDB = async () => {
-  const result = await Category.find({ deletedAt: null });
+  const result = await Category.find({  });
   return result;
 };
 
@@ -40,40 +40,60 @@ const getSingleCategoryFromDB = async (id: string) => {
   if (!category) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
   }
-  const result = await Category.findOne({ _id: category._id, deletedAt: null });
+  const result = await Category.findById(id);
   return result;
 };
 
-const updateCategoryIntoDB = async (id: string, payload: Partial<ICategory>) => {
+const updateCategoryIntoDB = async (
+  userId: string,
+  id: string,
+  payload: Partial<ICategory>,
+  file?: TUploadedFile
+) => {
+  // ✅ Check if the category exists
   const category = await Category.isCategoryExists(id);
   if (!category) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found!');
   }
 
-  const result = await Category.findOneAndUpdate(
-    { _id: category._id, deletedAt: null },
+  // ✅ Handle file upload if a new file is provided
+  if (file?.buffer) {
+    try {
+      const uploadedUrl = await uploadToSpaces(
+        file.buffer,
+        file.originalname,
+        userId,
+        // 'avatars', // optional folder or 'categories'
+      );
+      payload.image = uploadedUrl;
+    } catch (err) {
+      throw new AppError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        'File upload failed during update'
+      );
+    }
+  }
+
+
+  // ✅ Perform the update
+  const updatedCategory = await Category.findByIdAndUpdate(
+    category._id,
     payload,
     {
-      new: true,
-    },
+      new: true, // Return the updated document
+    }
   );
-  return result;
+
+  return updatedCategory;
 };
 
 const deleteCategoryFromDB = async (id: string) => {
-  const deletedAt = new Date().toISOString();
   const category = await Category.isCategoryExists(id);
   if (!category) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
   }
 
-  const result = await Category.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
-  );
+  const result = await Category.findByIdAndDelete(id);
   return result;
 };
 
