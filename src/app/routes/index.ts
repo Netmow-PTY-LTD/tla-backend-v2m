@@ -16,6 +16,7 @@ import { responseRouter } from '../module/LeadResponse/routes/response.route';
 import { activityLogRouter } from '../module/Activity/routes/logActivity.route';
 import { contactRouter } from '../module/Contact/routes/contact.route';
 import { settingsRouter } from '../module/Settings/routes/settings.route';
+import { categoryRouter } from '../module/Category/routes/category.route';
 
 const router = Router();
 
@@ -35,6 +36,10 @@ const moduleRoutes = [
   {
     path: '/service',
     route: serviceRouter,
+  },
+  {
+    path: '/category',
+    route: categoryRouter,
   },
   {
     path: '/country-wise-map',

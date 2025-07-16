@@ -176,6 +176,12 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
 const getTransactionHistory = async (userId: string) => {
   const transactionHistory = await Transaction.find({ userId })
     .sort({ createdAt: -1 })
+    .populate({
+      path: 'userId',
+      populate: {
+        path: 'profile'
+      }
+    })
     .populate('creditPackageId');
   return transactionHistory;
 };
