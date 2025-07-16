@@ -1,0 +1,64 @@
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { AppError } from '../../../errors/error';
+import { ICategory } from '../interfaces/category.interface';
+import Category from '../models/category.model';
+
+const CreateCategoryIntoDB = async (payload: ICategory) => {
+  const result = await Category.create(payload);
+  return result;
+};
+
+const getAllCategoryFromDB = async () => {
+  const result = await Category.find({ deletedAt: null });
+  return result;
+};
+
+const getSingleCategoryFromDB = async (id: string) => {
+  const category = await Category.isCategoryExists(id);
+  if (!category) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
+  }
+  const result = await Category.findOne({ _id: category._id, deletedAt: null });
+  return result;
+};
+
+const updateCategoryIntoDB = async (id: string, payload: Partial<ICategory>) => {
+  const category = await Category.isCategoryExists(id);
+  if (!category) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
+  }
+
+  const result = await Category.findOneAndUpdate(
+    { _id: category._id, deletedAt: null },
+    payload,
+    {
+      new: true,
+    },
+  );
+  return result;
+};
+
+const deleteCategoryFromDB = async (id: string) => {
+  const deletedAt = new Date().toISOString();
+  const category = await Category.isCategoryExists(id);
+  if (!category) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
+  }
+
+  const result = await Category.findByIdAndUpdate(
+    id,
+    { deletedAt: deletedAt },
+    {
+      new: true,
+    },
+  );
+  return result;
+};
+
+export const categoryService = {
+  CreateCategoryIntoDB,
+  getSingleCategoryFromDB,
+  updateCategoryIntoDB,
+  deleteCategoryFromDB,
+  getAllCategoryFromDB,
+};
