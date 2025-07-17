@@ -31,7 +31,7 @@ const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: T
 };
 
 const getAllCategoryFromDB = async () => {
-  const result = await Category.find({  });
+  const result = await Category.find({  }).populate('serviceIds');
   return result;
 };
 
