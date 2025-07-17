@@ -11,6 +11,8 @@ router.post(
   responseController.createResponse,
 );
 router.get('/list', responseController.getAllResponse);
+// lead wise response
+router.get('/lead-wise/:leadId', auth(USER_ROLE.ADMIN, USER_ROLE.USER),responseController.getAllResponseLeadWise);
 router.get(
   '/my',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),

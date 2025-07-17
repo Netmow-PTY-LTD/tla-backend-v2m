@@ -114,6 +114,34 @@ const getAllResponse = catchAsync(async (req, res) => {
     data: result,
   });
 });
+//  get all response lead wise list
+
+const getAllResponseLeadWise = catchAsync(async (req, res) => {
+    const timer = startQueryTimer();
+    const userId=req.user.userId
+    const {leadId}=req.params
+  const result = await responseService.getAllResponseLeadWiseFromDB(userId,leadId);
+    const queryTime = timer.endQueryTimer();
+
+   if (!Array.isArray(result) || !result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Responses  not found.',
+      queryTime,
+      data: [],
+    });
+  }
+
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All Response is retrieved successfully',
+    queryTime,
+    data: result,
+  });
+});
 
 const getMyAllResponse = catchAsync(async (req, res) => {
     const timer = startQueryTimer();
@@ -147,4 +175,5 @@ export const responseController = {
  updateResponseStatus,
   getAllResponse,
   getMyAllResponse,
+  getAllResponseLeadWise
 };
