@@ -775,7 +775,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
 
   const activity = await ActivityLog.find({
     objectId: new mongoose.Types.ObjectId(responseId),   // cast if you have a string
-    createdBy: new mongoose.Types.ObjectId(userId),
+    // createdBy: new mongoose.Types.ObjectId(userId),
   })
     .sort({ createdAt: -1 })                              // newest → oldest
     .populate({
