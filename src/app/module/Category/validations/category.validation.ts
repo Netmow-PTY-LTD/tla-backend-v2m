@@ -27,7 +27,7 @@ const categoryValidationSchema = z.object({
 
   }),
 });
-const updateServiceValidationSchema = z.object({
+const updateCategoryValidationSchema = z.object({
   body: z.object({
     name: z.string().optional(),
     slug: z.string().optional(),
@@ -40,5 +40,5 @@ const updateServiceValidationSchema = z.object({
 
 export const categoryZodValidation = {
   categoryValidationSchema,
-  updateServiceValidationSchema,
+  updateCategoryValidationSchema,
 };
