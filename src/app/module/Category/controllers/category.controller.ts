@@ -68,6 +68,16 @@ const getAllCategory = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getAllCategoryPublic = catchAsync(async (req, res) => {
+  const result = await categoryService.getAllCategoryPublicFromDB();
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All Category is retrieved successfully',
+    data: result,
+  });
+});
 
 export const categoryController = {
   createCategory,
@@ -75,4 +85,5 @@ export const categoryController = {
   getAllCategory,
   deleteSingleCategory,
   updateSingleCategory,
+  getAllCategoryPublic
 };

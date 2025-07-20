@@ -27,6 +27,10 @@ router.get(
   '/list',
   categoryController.getAllCategory,
 );
+router.get(
+  '/public',
+  categoryController.getAllCategoryPublic,
+);
 router.get('/:categoryId', categoryController.getSingleCategory);
 router.delete('/delete/:categoryId', categoryController.deleteSingleCategory);
 router.patch(

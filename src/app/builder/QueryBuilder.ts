@@ -50,10 +50,29 @@ class QueryBuilder<T> {
   /**
    * Applies sorting to the query. Defaults to descending order of 'createdAt'
    */
+  // sort() {
+  //   const sort =
+  //     (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
+  //   this.modelQuery = this.modelQuery.sort(sort as string);
+
+  //   return this;
+  // }
+
   sort() {
-    const sort =
-      (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
-    this.modelQuery = this.modelQuery.sort(sort as string);
+    const sortParam = (this?.query?.sort as string)?.toLowerCase();
+
+    let sortBy;
+
+    if (sortParam === 'asc') {
+      sortBy = 'createdAt'; // ascending
+    } else if (sortParam === 'desc') {
+      sortBy = '-createdAt'; // descending
+    } else {
+      // fallback to custom sort fields or default to -createdAt
+      sortBy = sortParam?.split(',')?.join(' ') || '-createdAt';
+    }
+
+    this.modelQuery = this.modelQuery.sort(sortBy);
 
     return this;
   }

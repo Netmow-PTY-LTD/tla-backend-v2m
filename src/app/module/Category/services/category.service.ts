@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
@@ -33,6 +34,71 @@ const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: T
 const getAllCategoryFromDB = async () => {
   const result = await Category.find({  }).populate('serviceIds');
   return result;
+};
+
+const getAllCategoryPublicFromDB = async () => {
+  // const result = await Category.find({  }).populate('serviceIds');
+  const categories = await Category.aggregate([
+  { $match: { deletedAt: null } },
+  {
+    $lookup: {
+      from: 'services', // collection name for Service
+      localField: 'serviceIds',
+      foreignField: '_id',
+      as: 'services',
+    },
+  },
+  { $unwind: '$services' },
+  {
+    $lookup: {
+      from: 'countrywiseservicewisefields', // must match collection name
+      let: {
+        serviceId: '$services._id',
+        countryId: new mongoose.Types.ObjectId('682ecd01e6b730f229c8d3d3'),
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ['$serviceId', '$$serviceId'] },
+                { $eq: ['$countryId', '$$countryId'] },
+                { $eq: ['$deletedAt', null] },
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            thumbImage: 1,
+            bannerImage: 1,
+            baseCredit: 1,
+            serviceId: 1,
+            countryId: 1,
+          },
+        },
+      ],
+      as: 'countryServiceFields',
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      name: { $first: '$name' },
+      slug: { $first: '$slug' },
+      image: { $first: '$image' },
+      services: {
+        $push: {
+          service: '$services',
+          serviceField: { $arrayElemAt: ['$countryServiceFields', 0] },
+        },
+      },
+    },
+  },
+]);
+
+
+  return categories;
 };
 
 const getSingleCategoryFromDB = async (id: string) => {
@@ -103,4 +169,5 @@ export const categoryService = {
   updateCategoryIntoDB,
   deleteCategoryFromDB,
   getAllCategoryFromDB,
+  getAllCategoryPublicFromDB
 };
