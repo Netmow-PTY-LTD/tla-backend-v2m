@@ -227,11 +227,12 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 // };
 
 
-const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
+
+
+const getAllLeadFromDB = async (userId: string, query: Record<string, any>) => {
   const user = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
   if (!user) return null;
 
-  // Parse searchKeyword JSON
   let parsedKeyword: any = {};
   try {
     if (typeof query.searchKeyword === 'string') {
@@ -241,16 +242,10 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
     console.error('Invalid JSON in searchKeyword:', err);
   }
 
-
-  // Fields to conditionally exclude if present in parsedKeyword
   const conditionalExcludeFields = [
     'credits', 'keyword', 'leadSubmission', 'location', 'services', 'spotlight', 'view', 'sort'
   ];
 
-  // Build filteredQuery:
-  // - Exclude `searchKeyword` always
-  // - Exclude conditional fields if present in parsedKeyword
-  // - Manually inject `sort` from parsedKeyword (if exists)
   const filteredQuery = Object.fromEntries(
     Object.entries(query).filter(([key]) => {
       if (key === 'searchKeyword') return false;
@@ -258,22 +253,40 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
     })
   );
 
-  // Add `sort` from parsedKeyword if it exists
   if (parsedKeyword?.sort) {
     filteredQuery.sort = parsedKeyword.sort;
   }
 
+  let service = [];
+  if (parsedKeyword?.services?.length) {
+    service = parsedKeyword.services;
+  } else if (user.serviceIds?.length) {
+    service = user.serviceIds;
+  }
 
+  // Create lead base query
+  const baseQuery: any = {
+    deletedAt: null,
+    serviceId: { $in: service },
+  };
 
-  // Build Mongoose query using QueryBuilder
+  // Keyword-based filtering by userProfiles.name
+  if (parsedKeyword?.keyword) {
+    const keywordRegex = new RegExp(parsedKeyword.keyword, 'i');
+    const matchedProfiles = await UserProfile.find({
+      name: keywordRegex,
+    }).select('_id');
+
+    const matchedProfileIds = matchedProfiles.map((profile) => profile._id);
+    baseQuery.userProfileId = { $in: matchedProfileIds };
+  }
+
+  // Build lead query using QueryBuilder
   const leadQuery = new QueryBuilder(
-    Lead.find({
-      deletedAt: null,
-      serviceId: { $in: user.serviceIds },
-    })
-      .populate('userProfileId') // populate lawyer profile
-      .populate('serviceId') // populate service info
-      .lean(), // return plain JS objects instead of Mongoose docs
+    Lead.find(baseQuery)
+      .populate('userProfileId')
+      .populate('serviceId')
+      .lean(),
     filteredQuery,
   )
     .filter()
@@ -281,13 +294,10 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
     .paginate()
     .fields();
 
-  // Pagination metadata
   const meta = await leadQuery.countTotal();
-
-  // Get final data
   const data = await leadQuery.modelQuery;
 
-
+  // Enrich each lead
   const result = await Promise.all(
     data.map(async (lead) => {
       const userProfile = lead?.userProfileId;
@@ -318,24 +328,29 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
         userProfile && 'user' in userProfile
           ? await calculateLawyerBadge(userProfile.user as mongoose.Types.ObjectId)
           : null;
-      const existingResponse = await LeadResponse.exists({ leadId: lead._id, responseBy: user._id });
+
+      const existingResponse = await LeadResponse.exists({
+        leadId: lead._id,
+        responseBy: user._id,
+      });
 
       return {
         ...lead,
         credit: customCreditLogic(credit),
         creditSource,
         badge,
-        isContact: !!existingResponse
+        isContact: !!existingResponse,
       };
     })
   );
-
 
   return {
     meta,
     data: result,
   };
 };
+
+
 
 const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
