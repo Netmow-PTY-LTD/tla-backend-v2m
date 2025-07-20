@@ -227,6 +227,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 // };
 
 
+
 const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
   const user = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
   if (!user) return null;
@@ -264,12 +265,19 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
   }
 
 
+  let service = [];
 
+
+  if (parsedKeyword?.services) {
+    service = parsedKeyword.services;
+  } else if (user.serviceIds && user.serviceIds.length > 0) {
+    service = user.serviceIds;
+  }
   // Build Mongoose query using QueryBuilder
   const leadQuery = new QueryBuilder(
     Lead.find({
       deletedAt: null,
-      serviceId: { $in: user.serviceIds },
+      serviceId: { $in: service },
     })
       .populate('userProfileId') // populate lawyer profile
       .populate('serviceId') // populate service info
@@ -336,6 +344,8 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
     data: result,
   };
 };
+
+
 
 const getMyAllLeadFromDB = async (userId: string, query: Record<string, unknown>) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
