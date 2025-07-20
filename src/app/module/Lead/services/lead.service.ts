@@ -231,13 +231,37 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
   const user = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
   if (!user) return null;
 
-  // List of query keys to ignore
-  const excludedFields = ['credits', 'keyword', 'leadSubmission', 'location', 'services', 'sort', 'spotlight', 'view'];
+  // Parse searchKeyword JSON
+  let parsedKeyword: any = {};
+  try {
+    if (typeof query.searchKeyword === 'string') {
+      parsedKeyword = JSON.parse(query.searchKeyword);
+    }
+  } catch (err) {
+    console.error('Invalid JSON in searchKeyword:', err);
+  }
 
-  // Create a sanitized copy of the query
+
+  // Fields to conditionally exclude if present in parsedKeyword
+  const conditionalExcludeFields = [
+    'credits', 'keyword', 'leadSubmission', 'location', 'services', 'spotlight', 'view', 'sort'
+  ];
+
+  // Build filteredQuery:
+  // - Exclude `searchKeyword` always
+  // - Exclude conditional fields if present in parsedKeyword
+  // - Manually inject `sort` from parsedKeyword (if exists)
   const filteredQuery = Object.fromEntries(
-    Object.entries(query).filter(([key]) => !excludedFields.includes(key))
+    Object.entries(query).filter(([key]) => {
+      if (key === 'searchKeyword') return false;
+      return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
+    })
   );
+
+  // Add `sort` from parsedKeyword if it exists
+  if (parsedKeyword?.sort) {
+    filteredQuery.sort = parsedKeyword.sort;
+  }
 
 
 
