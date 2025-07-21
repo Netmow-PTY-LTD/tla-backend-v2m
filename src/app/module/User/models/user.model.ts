@@ -22,6 +22,9 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
     },
+    lawyerContactEmail: {
+      type: String,
+    },
     designation: {
       type: String,
       trim: true,
@@ -35,7 +38,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Country',
     },
-    zipCode:{
+    zipCode: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ZipCode',
     },
