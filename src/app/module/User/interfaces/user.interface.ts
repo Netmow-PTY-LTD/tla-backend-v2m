@@ -18,6 +18,7 @@ export interface IUserProfile {
   name: string;
   slug?: string;
   designation?: string;
+  lawyerContactEmail?:string;
   activeProfile: UserProfile;
   country?: Types.ObjectId;
   zipCode?: Types.ObjectId;
