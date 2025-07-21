@@ -49,12 +49,6 @@ router.post(
   authController.logOut,
 );
 
-// router.post(
-//   '/userInfo/:userId',
-//   // auth(USER_ROLE.ADMIN),
-//   authController.userAuthUpdate,
-// );
-
 
 //  --------------- client Register  ----------------------------
 router.post('/register/client', clientRegisterController.clientRegister);
