@@ -13,6 +13,7 @@ import { customCreditLogic } from '../utils/customCreditLogic';
 import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import QueryBuilder from '../../../builder/QueryBuilder';
 import LeadResponse from '../../LeadResponse/models/response.model';
+import { IUserProfile } from '../../User/interfaces/user.interface';
 
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
@@ -339,107 +340,258 @@ const getAllLeadFromDB = async (userId: string, query: Record<string, unknown>) 
     console.error('Invalid JSON in searchKeyword:', err);
   }
 
+  if (parsedKeyword) {
 
-  // Fields to conditionally exclude if present in parsedKeyword
-  const conditionalExcludeFields = [
-    'credits', 'keyword', 'leadSubmission', 'location', 'services', 'spotlight', 'view', 'sort'
-  ];
+    // Fields to conditionally exclude if present in parsedKeyword
+    const conditionalExcludeFields = [
+      'credits', 'keyword', 'leadSubmission', 'location', 'services', 'spotlight', 'view', 'sort'
+    ];
 
-  // Build filteredQuery:
-  // - Exclude searchKeyword always
-  // - Exclude conditional fields if present in parsedKeyword
-  // - Manually inject sort from parsedKeyword (if exists)
-  const filteredQuery = Object.fromEntries(
-    Object.entries(query).filter(([key]) => {
-      if (key === 'searchKeyword') return false;
-      return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
-    })
-  );
+    // Build filteredQuery:
+    // - Exclude searchKeyword always
+    // - Exclude conditional fields if present in parsedKeyword
+    // - Manually inject sort from parsedKeyword (if exists)
+    const filteredQuery = Object.fromEntries(
+      Object.entries(query).filter(([key]) => {
+        if (key === 'searchKeyword') return false;
+        return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
+      })
+    );
 
-  // Add sort from parsedKeyword if it exists
-  if (parsedKeyword?.sort) {
-    filteredQuery.sort = parsedKeyword.sort;
-  }
+    // Add sort from parsedKeyword if it exists
+    if (parsedKeyword?.sort) {
+      filteredQuery.sort = parsedKeyword.sort;
+    }
 
+    let service = [];
 
-  let service = [];
+    if (Array.isArray(parsedKeyword?.services) && parsedKeyword.services.length > 0) {
+      service = parsedKeyword.services;
+    } else if (Array.isArray(user.serviceIds) && user.serviceIds.length > 0) {
+      service = user.serviceIds;
+    }
 
-
-  if (parsedKeyword?.services) {
-    service = parsedKeyword.services;
-  } else if (user.serviceIds && user.serviceIds.length > 0) {
-    service = user.serviceIds;
-  }
-  // Build Mongoose query using QueryBuilder
-  const leadQuery = new QueryBuilder(
-    Lead.find({
+    // Build base Mongo filter
+    const baseFilter: any = {
       deletedAt: null,
       serviceId: { $in: service },
-    })
-      .populate('userProfileId') // populate lawyer profile
-      .populate('serviceId') // populate service info
-      .lean(), // return plain JS objects instead of Mongoose docs
-    filteredQuery,
-  )
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
-
-  // Pagination metadata
-  const meta = await leadQuery.countTotal();
-
-  // Get final data
-  const data = await leadQuery.modelQuery;
+    };
 
 
-  const result = await Promise.all(
-    data.map(async (lead) => {
-      const userProfile = lead?.userProfileId;
-      const service = lead?.serviceId;
+    // Add createdAt filter based on leadSubmission
+    if (parsedKeyword?.['leadSubmission']) {
+      const now = new Date();
+      let timeThreshold: Date | undefined;
 
-      let credit = 0;
-      let creditSource = 'Default';
-
-      if (
-        userProfile &&
-        'country' in userProfile &&
-        service &&
-        '_id' in service
-      ) {
-        const creditInfo = await CountryWiseServiceWiseField.findOne({
-          countryId: userProfile.country,
-          serviceId: service._id,
-          deletedAt: null,
-        }).select('baseCredit');
-
-        if (creditInfo) {
-          credit = creditInfo.baseCredit || 0;
-          creditSource = 'CountryServiceField';
-        }
+      switch (parsedKeyword['leadSubmission']) {
+        case 'last_1_hour':
+          timeThreshold = new Date(now.getTime() - 1 * 60 * 60 * 1000);
+          break;
+        case 'last_24_hours':
+          timeThreshold = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case 'last_48_hours':
+          timeThreshold = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+          break;
+        case 'last_3_days':
+          timeThreshold = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+          break;
+        case 'last_7_days':
+          timeThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'last_14_days':
+          timeThreshold = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          timeThreshold = undefined;
       }
 
-      const badge =
-        userProfile && 'user' in userProfile
-          ? await calculateLawyerBadge(userProfile.user as mongoose.Types.ObjectId)
-          : null;
-      const existingResponse = await LeadResponse.exists({ leadId: lead._id, responseBy: user._id });
+      if (timeThreshold) {
+        baseFilter.createdAt = {
+          $gte: timeThreshold, // timeThreshold is already a Date object
+        };
+      }
+    }
 
-      return {
-        ...lead,
-        credit: customCreditLogic(credit),
-        creditSource,
-        badge,
-        isContact: !!existingResponse
-      };
-    })
-  );
+    // Build Mongoose query using QueryBuilder
+    const leadQuery = new QueryBuilder(
+      Lead.find(baseFilter)
+        .populate('userProfileId') // populate lawyer profile
+        .populate('serviceId') // populate service info
+        .lean(), // return plain JS objects instead of Mongoose docs
+      filteredQuery,
+    )
+      .filter()
+      .sort()
+      .paginate()
+      .fields();
+
+    // Pagination metadata
+    const meta = await leadQuery.countTotal();
+
+    // Get final data
+    // const data = await leadQuery.modelQuery;
+    let data = await leadQuery.modelQuery;
+
+    if (parsedKeyword?.keyword?.trim()) {
+      const keyword = parsedKeyword.keyword.trim().toLowerCase();
+      data = data?.filter((lead) => {
+        const profile = lead?.userProfileId as unknown as IUserProfile;
+        return (
+          profile?.name?.toLowerCase().includes(keyword));
+      });
+    }
 
 
-  return {
-    meta,
-    data: result,
-  };
+    const result = await Promise.all(
+      data.map(async (lead) => {
+        const userProfile = lead?.userProfileId;
+        const service = lead?.serviceId;
+
+        let credit = 0;
+        let creditSource = 'Default';
+
+        if (
+          userProfile &&
+          'country' in userProfile &&
+          service &&
+          '_id' in service
+        ) {
+          const creditInfo = await CountryWiseServiceWiseField.findOne({
+            countryId: userProfile.country,
+            serviceId: service._id,
+            deletedAt: null,
+          }).select('baseCredit');
+
+          if (creditInfo) {
+            credit = creditInfo.baseCredit || 0;
+            creditSource = 'CountryServiceField';
+          }
+        }
+
+        const badge =
+          userProfile && 'user' in userProfile
+            ? await calculateLawyerBadge(userProfile.user as mongoose.Types.ObjectId)
+            : null;
+        const existingResponse = await LeadResponse.exists({ leadId: lead._id, responseBy: user._id });
+
+        return {
+          ...lead,
+          credit: customCreditLogic(credit),
+          creditSource,
+          badge,
+          isContact: !!existingResponse
+        };
+      })
+    );
+
+
+    return {
+      meta,
+      data: result,
+    };
+
+
+
+
+
+
+
+
+
+
+
+  } else {
+    // Fields to conditionally exclude if present in parsedKeyword
+    const conditionalExcludeFields = [
+      'credits', 'keyword', 'leadSubmission', 'location', 'services', 'spotlight', 'view', 'sort'
+    ];
+
+    // Build filteredQuery:
+    // - Exclude searchKeyword always
+    // - Exclude conditional fields if present in parsedKeyword
+    // - Manually inject sort from parsedKeyword (if exists)
+    const filteredQuery = Object.fromEntries(
+      Object.entries(query).filter(([key]) => {
+        if (key === 'searchKeyword') return false;
+        return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
+      })
+    );
+
+
+    // Build Mongoose query using QueryBuilder
+    const leadQuery = new QueryBuilder(
+      Lead.find({
+        deletedAt: null,
+        serviceId: { $in: user.serviceIds },
+      })
+        .populate('userProfileId') // populate lawyer profile
+        .populate('serviceId') // populate service info
+        .lean(), // return plain JS objects instead of Mongoose docs
+      filteredQuery,
+    )
+      .filter()
+      .sort()
+      .paginate()
+      .fields();
+
+    // Pagination metadata
+    const meta = await leadQuery.countTotal();
+
+    // Get final data
+    const data = await leadQuery.modelQuery;
+
+
+    const result = await Promise.all(
+      data.map(async (lead) => {
+        const userProfile = lead?.userProfileId;
+        const service = lead?.serviceId;
+
+        let credit = 0;
+        let creditSource = 'Default';
+
+        if (
+          userProfile &&
+          'country' in userProfile &&
+          service &&
+          '_id' in service
+        ) {
+          const creditInfo = await CountryWiseServiceWiseField.findOne({
+            countryId: userProfile.country,
+            serviceId: service._id,
+            deletedAt: null,
+          }).select('baseCredit');
+
+          if (creditInfo) {
+            credit = creditInfo.baseCredit || 0;
+            creditSource = 'CountryServiceField';
+          }
+        }
+
+        const badge =
+          userProfile && 'user' in userProfile
+            ? await calculateLawyerBadge(userProfile.user as mongoose.Types.ObjectId)
+            : null;
+        const existingResponse = await LeadResponse.exists({ leadId: lead._id, responseBy: user._id });
+
+        return {
+          ...lead,
+          credit: customCreditLogic(credit),
+          creditSource,
+          badge,
+          isContact: !!existingResponse
+        };
+      })
+    );
+
+
+    return {
+      meta,
+      data: result,
+    };
+  }
+
+
 };
 
 
