@@ -9,7 +9,6 @@ import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
 
 
-
 const app: Application = express();
 //parsers
 app.use(express.json());
