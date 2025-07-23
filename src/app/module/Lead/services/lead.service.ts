@@ -261,12 +261,12 @@ const getAllLeadFromDB = async (
             }
           }
 
-          const badge =
-            userProfile && 'user' in userProfile
-              ? await calculateLawyerBadge(
-                  userProfile.user as mongoose.Types.ObjectId,
-                )
-              : null;
+          // const badge =
+          //   userProfile && 'user' in userProfile
+          //     ? await calculateLawyerBadge(
+          //         userProfile.user as mongoose.Types.ObjectId,
+          //       )
+          //     : null;
           const existingResponse = await LeadResponse.exists({
             leadId: lead._id,
             responseBy: user._id,
@@ -276,7 +276,7 @@ const getAllLeadFromDB = async (
             ...lead,
             credit: customCreditLogic(credit),
             creditSource,
-            badge,
+            // badge,
             isContact: !!existingResponse,
           };
         }),
@@ -361,12 +361,12 @@ const getAllLeadFromDB = async (
             }
           }
 
-          const badge =
-            userProfile && 'user' in userProfile
-              ? await calculateLawyerBadge(
-                  userProfile.user as mongoose.Types.ObjectId,
-                )
-              : null;
+          // const badge =
+          //   userProfile && 'user' in userProfile
+          //     ? await calculateLawyerBadge(
+          //         userProfile.user as mongoose.Types.ObjectId,
+          //       )
+          //     : null;
           const existingResponse = await LeadResponse.exists({
             leadId: lead._id,
             responseBy: user._id,
@@ -376,7 +376,7 @@ const getAllLeadFromDB = async (
             ...lead,
             credit: customCreditLogic(credit),
             creditSource,
-            badge,
+            // badge,
             isContact: !!existingResponse,
           };
         }),
@@ -587,9 +587,11 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     },
   ]);
 
+
+  //  --------- no need right now  -----------------
   // ✅ 3. Calculate lawyer badge
-  const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
-  const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
+  // const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
+  // // const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
 
   // ✅ 3. check alredy contact this lead current user
   const existingResponse = await LeadResponse.exists({
@@ -600,7 +602,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   // ✅ 5. Return final result
   return {
     ...leadDoc,
-    badge,
+    // badge,
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
