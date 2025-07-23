@@ -7,7 +7,8 @@ import UserProfile from '../models/user.model';
 export const getExpertiseBadge = async (userId: Types.ObjectId): Promise<'Premium Lawyer' | 'Expert Lawyer' | null> => {
     const user = await UserProfile.findOne({ user: userId })
     const hireCount = await LeadResponse.countDocuments({
-        userProfileId: user?._id,
+        // userProfileId: user?._id,
+        responseBy: user?._id,
         status: 'hired',
     });
 
