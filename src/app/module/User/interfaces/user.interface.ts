@@ -19,7 +19,7 @@ export interface IUserProfile {
   slug?: string;
   designation?: string;
   lawyerContactEmail?:string;
-  activeProfile: UserProfile;
+  profileType?:UserProfile,
   country?: Types.ObjectId;
   zipCode?: Types.ObjectId;
   profilePicture?: string;

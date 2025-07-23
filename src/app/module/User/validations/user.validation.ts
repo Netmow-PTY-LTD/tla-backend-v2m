@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { USER_PROFILE } from '../constants/user.constant';
 
 //// Zod enum created from USER_PROFILE values
-// This enforces the accepted values for the activeProfile field
+// This enforces the accepted values for the profileType field
 const userProfileEnum = z.enum([
   USER_PROFILE.BASIC,
   USER_PROFILE.PREMIUM,
@@ -13,7 +13,7 @@ const userProfileEnum = z.enum([
 export const profileValidationSchema = z.object({
   // user: z.string().min(1, 'User ID is required'), // ObjectId as string
   name: z.string().min(1, 'First name is required'),
-  activeProfile: userProfileEnum.optional(),
+  profileType: userProfileEnum.optional(),
   country: z.string().optional(),
   // country: z
   //   .string()

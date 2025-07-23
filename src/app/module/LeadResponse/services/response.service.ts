@@ -93,7 +93,7 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 //             _id: '$userProfileData._id',
 //             user: '$userProfileData.user',
 //             name: '$userProfileData.name',
-//             activeProfile: '$userProfileData.activeProfile',
+//             profileType: '$userProfileData.profileType',
 //             country: '$userProfileData.country',
 //             deletedAt: '$userProfileData.deletedAt',
 //             credits: '$userProfileData.credits',
