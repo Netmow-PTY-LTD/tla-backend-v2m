@@ -6,7 +6,7 @@
 
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/utils/settingsConfig";
-import { welcomeLawyerEmail } from "./templates/template";
+import { welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 
 interface SendEmailParams {
@@ -38,7 +38,7 @@ export const sendEmail = async ({
 
   let html;
   if(emailTemplate=='welcome_to_client'){
-  //  html=  welcome_to_client(data)
+   html=  welcomeLeadSubmitted(data)
   }
 
   if(emailTemplate =="welcome_to_lawyer"){

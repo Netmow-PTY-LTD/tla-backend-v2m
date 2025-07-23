@@ -1,6 +1,6 @@
 
 export const congratulationsLawyerPromotion = (data: {
-    firstName: string;
+    name: string;
     role: 'Expert Lawyer' | 'Premium Lawyer';
     dashboardUrl: string;
     appName: string;
@@ -195,7 +195,7 @@ export const newLeadAlertToLawyer = (data: {
 
 
 export const welcomeLeadSubmitted = (data: {
-  firstName: string;
+  name: string;
   caseType: string;
   involvedMembers: string;
   preferredServiceType: string;
@@ -206,7 +206,7 @@ export const welcomeLeadSubmitted = (data: {
   email?: string;
 }) => {
   const {
-    firstName,
+    name,
     caseType,
     involvedMembers,
     preferredServiceType,
@@ -229,7 +229,7 @@ export const welcomeLeadSubmitted = (data: {
          style="max-width:600px; margin:0 auto; background:#fff; border:1px solid #e0e0e0;">
     <tr>
       <td style="padding:20px; background-color:#0066ff; color:white; text-align:center;">
-        <h2 style="margin:0;">🎉 Thank You, ${firstName}!</h2>
+        <h2 style="margin:0;">🎉 Thank You, ${name}!</h2>
         <p style="margin:5px 0 0;">We’ve received your legal request.</p>
       </td>
     </tr>

@@ -125,14 +125,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     const practiceAreas = services.map((service) => service.name);
 
-    // const { subject, text, html } = generateRegistrationEmail({
-    //   name: newProfile?.name || 'User',
-    //   email: newUser.email,
-    //   defaultPassword: userData.password,
-    //   loginUILink: `${config.client_url}/login`,
-    //   appName: 'The Law App',
-    // });
-
+   
     const data = {
       name: newProfile?.name || 'User',
       email: newUser.email,
@@ -152,6 +145,34 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       data,
       emailTemplate,
     });
+
+
+
+
+     // const { subject, text, html } = generateRegistrationEmail({
+    //   name: newProfile?.name || 'User',
+    //   email: newUser.email,
+    //   defaultPassword: userData.password,
+    //   loginUILink: `${config.client_url}/login`,
+    //   appName: 'The Law App',
+    // });
+
+    //  await sendEmail({
+    //   to: newUser.email,
+    //   subject,
+    //   text,
+    //   html,
+      
+    // });
+
+
+
+
+
+
+
+
+
 
     // -------------------------- Generate the access token for the user -----------------------------------
     const jwtPayload = {
