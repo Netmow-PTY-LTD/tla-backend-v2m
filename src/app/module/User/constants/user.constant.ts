@@ -1,6 +1,6 @@
 export const USER_PROFILE = {
   BASIC: 'basic',
-  VERIFIED_EXPERT: 'verified',
+  VERIFIED: 'verified',
   PREMIUM: 'premium',
   EXPERT: 'expert',
   ADMIN: 'admin',
