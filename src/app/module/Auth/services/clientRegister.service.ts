@@ -19,6 +19,7 @@ import { Types } from 'mongoose';
 import { REGISTER_USER_TYPE } from '../constant/auth.constant';
 import { generateRegistrationEmail } from '../../../emails/templates/registrationEmail';
 import { sendEmail } from '../../../emails/email.service';
+import Service from '../../Service/models/service.model';
 
 
 
@@ -121,23 +122,91 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     session.endSession();
 
 
-    // send email 
+    // -------------------------------------   send email -------------------------------------------
 
-    const { subject, text, html } = generateRegistrationEmail({
-      name: newProfile?.name || 'User',
-      email: newUser.email,
-      defaultPassword:config.default_password,
-      loginUILink: `${config.client_url}/login`,
+
+
+    const service = await Service.findById(serviceId).select('name');
+ 
+
+    const emailData = {
+      name: newProfile?.name,
+      caseType: service?.name || 'Not specified',
+      involvedMembers: leadDetails?.involvedMembers || 'Self',
+      preferredServiceType: leadDetails?.preferredServiceType || 'Not specified',
+      likelihoodOfHiring: leadDetails?.likelihoodOfHiring || 'Not sure',
+      preferredContactTime: leadDetails?.preferredContactTime || 'Anytime',
+      dashboardUrl: `${config.client_url}/client/dashboard`,
       appName: 'The Law App',
-    });
+      email: 'support@yourdomain.com',
+    };
 
     await sendEmail({
       to: newUser.email,
-      subject,
-      text,
-      html,
+      subject: 'New Lead Registration and Submission',
+      data: emailData,
+      emailTemplate: 'welcome_to_client',
     });
 
+
+
+//  -------------- send lead email for all valid user email ------
+
+
+// alert: ---- it will use next time ----
+
+  //  const maskPhone = (phone: string) =>
+  //     phone?.slice(0, 3) + '****' + phone?.slice(-2);
+
+  //   const maskEmail = (email: string) => {
+  //     const [user, domain] = email.split('@');
+  //     const maskedUser = user.length <= 2 ? '*'.repeat(user.length) : user.slice(0, 2) + '*'.repeat(user.length - 2);
+  //     return `${maskedUser}@${domain}`;
+  //   };
+
+  //   // Build new lead alert data
+  //   const newLeadsAlertData = {
+  //     name: newProfile?.name || 'No Name',
+  //     service: service?.name || 'Unknown Service',
+  //     location: address?.zipcode || 'Unknown Location',
+  //     phoneMasked: maskPhone(newProfile?.phone || ''),
+  //     emailMasked: maskEmail(newUser.email),
+  //     creditsRequired: 1, // Or calculate dynamically based on your pricing logic
+  //     contactUrl: `${config.client_url}/client/contact/${newUser._id}`, // Adjust if needed
+  //     oneClickUrl: `${config.client_url}/client/contact/${newUser._id}?oneClick=true`, // Optional
+  //     customResponseUrl: `${config.client_url}/client/respond/${newUser._id}`, // Optional
+  //     appName: 'The Law App',
+  //     projectDetails: leadDetails?.additionalDetails || 'No additional details provided.',
+  //   };
+
+  //   await sendEmail({
+  //     to: newUser.email,
+  //     subject: 'New Lead Registration and Submission',
+  //     data: newLeadsAlertData,
+  //     emailTemplate: 'new_lead_alert',
+  //   });
+
+
+
+
+
+    // const { subject, text, html } = generateRegistrationEmail({
+    //   name: newProfile?.name || 'User',
+    //   email: newUser.email,
+    //   defaultPassword:config.default_password,
+    //   loginUILink: `${config.client_url}/login`,
+    //   appName: 'The Law App',
+    // });
+
+    // await sendEmail({
+    //   to: newUser.email,
+    //   subject,
+    //   text,
+    //   html,
+    // });
+
+
+    // ------------------------- token genrator ----------------------------------------
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,

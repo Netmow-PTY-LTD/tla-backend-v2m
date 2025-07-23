@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { UserProfile } from '../constants/user.constant';
+import {  UserProfileEnum } from '../constants/user.constant';
 
 export interface IBillingAddress {
   contactName?: string;
@@ -19,7 +19,7 @@ export interface IUserProfile {
   slug?: string;
   designation?: string;
   lawyerContactEmail?:string;
-  activeProfile: UserProfile;
+  profileType?:UserProfileEnum,
   country?: Types.ObjectId;
   zipCode?: Types.ObjectId;
   profilePicture?: string;

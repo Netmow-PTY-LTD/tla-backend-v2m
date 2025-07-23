@@ -29,7 +29,8 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
     },
-    activeProfile: {
+  
+    profileType: {
       type: String,
       enum: Object.values(USER_PROFILE),
       default: USER_PROFILE.BASIC,

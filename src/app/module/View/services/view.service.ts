@@ -148,7 +148,7 @@ const getAllPublicUserProfilesIntoDB = async () => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name bio address profilePicture activeProfile autoTopUp credits serviceIds country phone slug',
+        'name bio address profilePicture profileType autoTopUp credits serviceIds country phone slug',
       populate: [
         { path: 'serviceIds', select: 'name' },
         { path: 'country', select: 'name' },
@@ -179,7 +179,7 @@ const getAllPublicUserProfilesIntoDB = async () => {
         bio: profile.bio || '',
         address: profile.address || '',
         profilePicture: profile.profilePicture || '',
-        activeProfile: profile.activeProfile || '',
+        profileType: profile.profileType || '',
         autoTopUp: profile.autoTopUp || false,
         credits: profile?.credits || 0,
         country: country?.name,
@@ -202,7 +202,7 @@ const getPublicUserProfileById = async (userId: string) => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name bio address profilePicture activeProfile autoTopUp credits serviceIds country phone slug',
+        'name bio address profilePicture profileType autoTopUp credits serviceIds country phone slug',
       populate: [
         { path: 'serviceIds', select: 'name' },
         { path: 'country', select: 'name' },
@@ -248,7 +248,7 @@ const getPublicUserProfileById = async (userId: string) => {
     bio: user.profile.bio || '',
     address: user.profile.address || '',
     profilePicture: user.profile.profilePicture || '',
-    activeProfile: user.profile.activeProfile || '',
+    profileType: user.profile.profileType || '',
     autoTopUp: user.profile.autoTopUp || false,
     credits: user.profile.credits || 0,
     country: country?.name || '',
@@ -280,7 +280,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name slug bio address profilePicture activeProfile autoTopUp credits serviceIds country phone designation',
+        'name slug bio address profilePicture profileType autoTopUp credits serviceIds country phone designation',
       populate: [
         { path: 'serviceIds', select: 'name slug' },
         { path: 'country', select: 'name' },
@@ -332,7 +332,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     bio: user.profile.bio || '',
     address: user.profile.address || '',
     profilePicture: user.profile.profilePicture || '',
-    activeProfile: user.profile.activeProfile || '',
+    profileType: user.profile.profileType || '',
     autoTopUp: user.profile.autoTopUp || false,
     credits: user.profile.credits || 0,
     country: country?.name || '',
