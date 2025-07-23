@@ -5,12 +5,12 @@ export const congratulationsLawyerPromotion = (data: {
     dashboardUrl: string;
     appName: string;
 }) => {
-    const { firstName, role, dashboardUrl, appName } = data;
+    const { name, role, dashboardUrl, appName } = data;
 
     const greeting =
         role === 'Expert Lawyer'
-            ? `Welcome to the Expert Lawyer Circle, ${firstName}!`
-            : `You've been upgraded to Premium Lawyer status, ${firstName}!`;
+            ? `Welcome to the Expert Lawyer Circle, ${name}!`
+            : `You've been upgraded to Premium Lawyer status, ${name}!`;
 
     const features =
         role === 'Expert Lawyer'
@@ -80,7 +80,7 @@ export const congratulationsLawyerPromotion = (data: {
 
 
 export const newLeadAlertToLawyer = (data: {
-  firstName: string; // e.g., "Andrea"
+  name: string; // e.g., "Andrea"
   service: string; // e.g., "Family Lawyer"
   location: string; // e.g., "Hawks Nest, NSW, 2324"
   phoneMasked: string; // e.g., "042* *** ***"
@@ -97,7 +97,7 @@ export const newLeadAlertToLawyer = (data: {
   }[];
 }) => {
   const {
-    firstName,
+    name,
     service,
     location,
     phoneMasked,
@@ -136,7 +136,7 @@ export const newLeadAlertToLawyer = (data: {
     </tr>
     <tr>
       <td style="padding: 20px;">
-        <h2 style="margin: 0 0 10px;">⚠️ ${firstName} is looking for a ${service}</h2>
+        <h2 style="margin: 0 0 10px;">⚠️ ${name} is looking for a ${service}</h2>
         <p style="margin: 0 0 10px;">📍 ${location}</p>
         <p style="color: green; margin: 0 0 10px;">✅ Verified number</p>
 
@@ -162,12 +162,12 @@ export const newLeadAlertToLawyer = (data: {
         <div style="margin: 20px 0;">
           <a href="${contactUrl}"
             style="padding: 10px 15px; background-color: #0066ff; color: white; text-decoration: none; border-radius: 5px;">Contact
-            ${firstName}</a>
+            ${name}</a>
         </div>
 
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
 
-        <h3 style="margin-bottom: 10px;">Contact ${firstName} with 20% off your starter pack</h3>
+        <h3 style="margin-bottom: 10px;">Contact ${name} with 20% off your starter pack</h3>
         <p style="margin-bottom: 10px;">
           You’ll need credits to contact customers. Our discounted starter pack gives enough credits for about
           10 responses and is backed by our Get Hired Guarantee.
@@ -177,7 +177,7 @@ export const newLeadAlertToLawyer = (data: {
         </p>
         <a href="${contactUrl}"
           style="padding: 10px 15px; background-color: #0066ff; color: white; text-decoration: none; border-radius: 5px;">Contact
-          ${firstName}</a>
+          ${name}</a>
       </td>
     </tr>
     <tr>

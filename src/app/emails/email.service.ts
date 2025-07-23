@@ -53,6 +53,9 @@ export const sendEmail = async ({
   if(emailTemplate =="lawyer_sent_text_to_client"){
 
   }
+  if(emailTemplate =="newLeads"){
+
+  }
 
   const mailOptions = {
     // from: config.mailgun_from_email_address, // e.g. "My App <noreply@yourdomain.com>"
