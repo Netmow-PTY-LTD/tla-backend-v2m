@@ -14,6 +14,8 @@ import { logActivity } from '../../Activity/utils/logActivityLog';
 import { ActivityLog } from '../../Activity/models/activityLog.model';
 import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import { createNotification } from '../../Notification/utils/createNotification';
+import { USER_PROFILE, UserProfileEnum } from '../../User/constants/user.constant';
+
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -815,6 +817,26 @@ const updateResponseStatus = async (
   );
 
   if (result) {
+    const user = await UserProfile.findOne({ user: userId })
+    if (!user) return sendNotFoundResponse('User profile not found');
+    // Count hired responses for this user profile
+    const hireCount = await LeadResponse.countDocuments({
+      responseBy: user?._id,
+      status: 'hired',
+    });
+
+    // Initialize as undefined
+   let newProfileType: UserProfileEnum | undefined;
+
+    if (hireCount >= 10) newProfileType = USER_PROFILE.PREMIUM;
+    else if (hireCount >= 5) newProfileType = USER_PROFILE.EXPERT;
+
+    // Only update if newProfileType is defined and different
+    if (newProfileType && user.profileType !== newProfileType) {
+      console.log('Profile type changed to:', newProfileType);
+      user.profileType = newProfileType;
+      await user.save();
+    }
 
     await logActivity({
       createdBy: userId,
@@ -859,14 +881,14 @@ const deleteResponseFromDB = async (id: string) => {
 };
 
 
-const getAllResponseLeadWiseFromDB = async (userId: string,leadId: string) => {
+const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
 
   const responses = await LeadResponse.find({
-    leadId:leadId,
+    leadId: leadId,
     // responseBy: userProfile._id,
     deletedAt: null,
   })
