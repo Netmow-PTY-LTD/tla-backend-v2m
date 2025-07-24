@@ -135,7 +135,6 @@ const getAllLeadForAdminDashboardFromDB = async (
     data.map(async (lead) => {
       const existingResponse = await LeadResponse.exists({
         leadId: lead._id,
-        responseBy: user._id,
       });
 
       return {
