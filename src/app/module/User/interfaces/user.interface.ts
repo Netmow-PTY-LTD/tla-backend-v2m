@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import {  UserProfileEnum } from '../constants/user.constant';
+import { IUser } from '../../Auth/interfaces/auth.interface';
 
 export interface IBillingAddress {
   contactName?: string;
@@ -14,7 +15,7 @@ export interface IBillingAddress {
 
 export interface IUserProfile {
   _id: string;
-  user: Types.ObjectId;
+  user: Types.ObjectId | IUser;
   name: string;
   slug?: string;
   designation?: string;
