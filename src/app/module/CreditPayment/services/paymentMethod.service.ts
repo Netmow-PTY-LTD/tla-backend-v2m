@@ -11,6 +11,9 @@ import { AppError } from '../../../errors/error';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { isVerifiedLawyer } from '../../User/utils/calculateVerifiedBadge';
 import { USER_PROFILE } from '../../User/constants/user.constant';
+import { sendEmail } from '../../../emails/email.service';
+import config from '../../../config';
+import { IUser } from '../../Auth/interfaces/auth.interface';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -239,7 +242,7 @@ const purchaseCredits = async (
   ); // in cents
 
   // 4. Get user's default payment method
-  const userProfile = await UserProfile.findOne({ user: userId });
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
   if (!userProfile) return sendNotFoundResponse('User profile not found');
 
   const paymentMethod = await PaymentMethod.findOne({
@@ -278,6 +281,22 @@ const purchaseCredits = async (
 
   if (!isVerified) {
     userProfile.profileType = USER_PROFILE.VERIFIED;
+    const roleLabel = 'Verified Lawyer'
+    const emailData = {
+      name: userProfile.name,
+      role: roleLabel,
+      dashboardUrl: `${config.client_url}/lawyer/dashboard`,
+      appName: 'The Law App',
+    };
+
+    await sendEmail({
+      to: (userProfile.user as IUser)?.email,
+      subject: `🎉 Congrats! You're now a ${roleLabel}`,
+      data: emailData,
+      emailTemplate: 'lawyerPromotion',
+    });
+
+
   }
 
   // 6. Create transaction
