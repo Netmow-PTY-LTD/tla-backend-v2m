@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { zodObjectIdField } from '../../../utils/validateObjectId';
+import { leadPrioritySchema, leadStatusSchema } from '../constant/lead.constant';
 
 const leadZodValidationSchema = z.object({
   body: z.object({
@@ -9,6 +10,8 @@ const leadZodValidationSchema = z.object({
     additionalDetails: z.string().optional().default(''),
     budgetAmount: z.number().min(0).default(0),
     credit: z.number().min(0).default(0),
+    status:leadStatusSchema,
+    leadPriority: leadPrioritySchema,
   }),
 });
 
@@ -20,6 +23,8 @@ const updateLeadZodValidationSchema = z.object({
     additionalDetails: z.string().optional().default(''),
     budgetAmount: z.number().min(0).default(0),
     credit: z.number().min(0).default(0),
+    status:leadStatusSchema.optional(),
+    leadPriority: leadPrioritySchema.optional(),
   }),
 });
 
