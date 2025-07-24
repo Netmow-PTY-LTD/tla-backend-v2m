@@ -1,27 +1,34 @@
 
 export const congratulationsLawyerPromotion = (data: {
     name: string;
-    role: 'Expert Lawyer' | 'Premium Lawyer';
+    role: 'Expert Lawyer' | 'Premium Lawyer' | 'Verified Lawyer';
     dashboardUrl: string;
     appName: string;
 }) => {
     const { name, role, dashboardUrl, appName } = data;
 
-    const greeting =
-        role === 'Expert Lawyer'
-            ? `Welcome to the Expert Lawyer Circle, ${name}!`
-            : `You've been upgraded to Premium Lawyer status, ${name}!`;
+    let greeting = '';
+    let features = '';
 
-    const features =
-        role === 'Expert Lawyer'
-            ? `
+    if (role === 'Expert Lawyer') {
+        greeting = `Welcome to the Expert Lawyer Circle, ${name}!`;
+        features = `
       <li>Priority listing in search results</li>
       <li>Verified badge on your profile</li>
-      <li>Access to premium client leads</li>`
-            : `
+      <li>Access to premium client leads</li>`;
+    } else if (role === 'Premium Lawyer') {
+        greeting = `You've been upgraded to Premium Lawyer status, ${name}!`;
+        features = `
       <li>Exclusive access to premium clients</li>
       <li>Profile promotion across the platform</li>
       <li>Faster client match algorithm</li>`;
+    } else if (role === 'Verified Lawyer') {
+        greeting = `Congratulations, ${name}! You're now a Verified Lawyer!`;
+        features = `
+      <li>Official verification badge for trust and credibility</li>
+      <li>Higher visibility across client searches</li>
+      <li>Access to verified-only leads and opportunities</li>`;
+    }
 
     return `
   <!DOCTYPE html>
@@ -75,6 +82,7 @@ export const congratulationsLawyerPromotion = (data: {
   </html>
   `;
 };
+
 
 
 

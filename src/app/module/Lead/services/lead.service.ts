@@ -473,7 +473,6 @@ const getAllLeadFromDB = async (
   }
 
  
-
   // ---------------- LEAD SUBMISSION FILTER -----------------
 
   if (parsedKeyword?.['leadSubmission']) {
