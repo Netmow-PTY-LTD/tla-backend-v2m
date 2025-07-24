@@ -101,309 +101,64 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
 
 
-const getAllLeadFromDB_ = async (
+
+
+// ------------------ Get all Lead for admin dahsobard ------------------
+
+const getAllLeadForAdminDashboardFromDB = async (
   userId: string,
   query: Record<string, unknown>,
 ) => {
+
   const user = await UserProfile.findOne({ user: userId }).select(
     '_id serviceIds',
   );
   if (!user) return null;
 
-  console.log('query', query);
+  const leadQuery = new QueryBuilder(
+    Lead.find({})
+      .populate('userProfileId')
+      .populate('serviceId')
+      .lean(),
+    query,
+  )
+    // .search([''])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-  // Parse searchKeyword JSON
-  let parsedKeyword: any = {};
-  try {
-    if (typeof query.searchKeyword === 'string') {
-      parsedKeyword = JSON.parse(query.searchKeyword);
-    }
-  } catch (err) {
-    console.error('Invalid JSON in searchKeyword:', err);
-  }
+  const meta = await leadQuery.countTotal();
+  let data = await leadQuery.modelQuery;
 
-  //console.log('parsedKeyword', parsedKeyword);
-
-  if (parsedKeyword && typeof parsedKeyword === 'object') {
-    const keywordLength = Object.keys(parsedKeyword).length;
-
-    //console.log('parsedKeyword length:', keywordLength);
-
-    if (keywordLength > 0) {
-      // Do something with parsedKeyword
-
-      const conditionalExcludeFields = [
-        'credits',
-        'keyword',
-        'leadSubmission',
-        'location',
-        'services',
-        'spotlight',
-        'view',
-        'sort',
-      ];
-
-      // Build filteredQuery:
-      // - Exclude searchKeyword always
-      // - Exclude conditional fields if present in parsedKeyword
-      // - Manually inject sort from parsedKeyword (if exists)
-      const filteredQuery = Object.fromEntries(
-        Object.entries(query).filter(([key]) => {
-          if (key === 'searchKeyword') return false;
-          return (
-            !conditionalExcludeFields.includes(key) || !(key in parsedKeyword)
-          );
-        }),
-      );
-
-      // Add sort from parsedKeyword if it exists
-      if (parsedKeyword?.sort) {
-        filteredQuery.sort = parsedKeyword.sort;
-      }
-
-      let service = [];
-
-      if (
-        Array.isArray(parsedKeyword?.services) &&
-        parsedKeyword.services.length > 0
-      ) {
-        service = parsedKeyword.services;
-      } else if (Array.isArray(user.serviceIds) && user.serviceIds.length > 0) {
-        service = user.serviceIds;
-      }
-
-      // Build base Mongo filter
-      const baseFilter: any = {
-        deletedAt: null,
-        serviceId: { $in: service },
-      };
-
-      // Add createdAt filter based on leadSubmission
-      if (parsedKeyword?.['leadSubmission']) {
-        const now = new Date();
-        let timeThreshold: Date | undefined;
-
-        switch (parsedKeyword['leadSubmission']) {
-          case 'last_1_hour':
-            timeThreshold = new Date(now.getTime() - 1 * 60 * 60 * 1000);
-            break;
-          case 'last_24_hours':
-            timeThreshold = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            break;
-          case 'last_48_hours':
-            timeThreshold = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-            break;
-          case 'last_3_days':
-            timeThreshold = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-            break;
-          case 'last_7_days':
-            timeThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case 'last_14_days':
-            timeThreshold = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-            break;
-          default:
-            timeThreshold = undefined;
-        }
-
-        if (timeThreshold) {
-          baseFilter.createdAt = {
-            $gte: timeThreshold, // timeThreshold is already a Date object
-          };
-        }
-      }
-
-      // console.log('filteredQuery', filteredQuery);
-      // console.log('baseFilter', baseFilter);
-
-      // Build Mongoose query using QueryBuilder
-      const leadQuery = new QueryBuilder(
-        Lead.find(baseFilter)
-          .populate('userProfileId') // populate lawyer profile
-          .populate('serviceId') // populate service info
-          .lean(), // return plain JS objects instead of Mongoose docs
-        filteredQuery,
-      )
-        .filter()
-        .sort()
-        .paginate()
-        .fields();
-
-      // Pagination metadata
-      const meta = await leadQuery.countTotal();
-
-      //console.log('leadQuery meta', meta);
-
-      // Get final data
-      // const data = await leadQuery.modelQuery;
-      let data = await leadQuery.modelQuery;
-
-      if (parsedKeyword?.keyword?.trim()) {
-        const keyword = parsedKeyword.keyword.trim().toLowerCase();
-        data = data?.filter((lead) => {
-          const profile = lead?.userProfileId as unknown as IUserProfile;
-          return profile?.name?.toLowerCase().includes(keyword);
-        });
-      }
-
-      const result = await Promise.all(
-        data.map(async (lead) => {
-          // const userProfile = lead?.userProfileId;
-          // const service = lead?.serviceId;
-
-          // let credit = 0;
-          // let creditSource = 'Default';
-
-          // if (
-          //   userProfile &&
-          //   'country' in userProfile &&
-          //   service &&
-          //   '_id' in service
-          // ) {
-          //   const creditInfo = await CountryWiseServiceWiseField.findOne({
-          //     countryId: userProfile.country,
-          //     serviceId: service._id,
-          //     deletedAt: null,
-          //   }).select('baseCredit');
-
-          //   if (creditInfo) {
-          //     credit = creditInfo.baseCredit || 0;
-          //     creditSource = 'CountryServiceField';
-          //   }
-          // }
-          // const badge =
-          //   userProfile && 'user' in userProfile
-          //     ? await calculateLawyerBadge(
-          //         userProfile.user as mongoose.Types.ObjectId,
-          //       )
-          //     : null;
-          const existingResponse = await LeadResponse.exists({
-            leadId: lead._id,
-            responseBy: user._id,
-          });
-
-          return {
-            ...lead,
-            // credit: customCreditLogic(credit),
-            // creditSource,
-            // badge,
-            isContact: !!existingResponse,
-          };
-        }),
-      );
+  const result = await Promise.all(
+    data.map(async (lead) => {
+      const existingResponse = await LeadResponse.exists({
+        leadId: lead._id,
+        responseBy: user._id,
+      });
 
       return {
-        meta,
-        data: result,
+        ...lead,
+        credit: customCreditLogic(lead?.credit as number),
+        isContact: !!existingResponse,
       };
-    } else {
-      console.log('parsedKeyword is empty');
-      // Fields to conditionally exclude if present in parsedKeyword
-      const conditionalExcludeFields = [
-        'credits',
-        'keyword',
-        'leadSubmission',
-        'location',
-        'services',
-        'spotlight',
-        'view',
-        'sort',
-      ];
+    }),
+  );
 
-      // Build filteredQuery:
-      // - Exclude searchKeyword always
-      // - Exclude conditional fields if present in parsedKeyword
-      // - Manually inject sort from parsedKeyword (if exists)
-      const filteredQuery = Object.fromEntries(
-        Object.entries(query).filter(([key]) => {
-          if (key === 'searchKeyword') return false;
-          return (
-            !conditionalExcludeFields.includes(key) || !(key in parsedKeyword)
-          );
-        }),
-      );
-
-      // Build Mongoose query using QueryBuilder
-      const leadQuery = new QueryBuilder(
-        Lead.find({
-          deletedAt: null,
-          serviceId: { $in: user.serviceIds },
-        })
-          .populate('userProfileId') // populate lawyer profile
-          .populate('serviceId') // populate service info
-          .lean(), // return plain JS objects instead of Mongoose docs
-        filteredQuery,
-      )
-        .filter()
-        .sort()
-        .paginate()
-        .fields();
-
-      // Pagination metadata
-      const meta = await leadQuery.countTotal();
-
-      // Get final data
-      const data = await leadQuery.modelQuery;
-
-      const result = await Promise.all(
-        data.map(async (lead) => {
-          // const userProfile = lead?.userProfileId;
-          // const service = lead?.serviceId;
-
-          // let credit = 0;
-          // let creditSource = 'Default';
-
-          // if (
-          //   userProfile &&
-          //   'country' in userProfile &&
-          //   service &&
-          //   '_id' in service
-          // ) {
-          //   const creditInfo = await CountryWiseServiceWiseField.findOne({
-          //     countryId: userProfile.country,
-          //     serviceId: service._id,
-          //     deletedAt: null,
-          //   }).select('baseCredit');
-
-          //   if (creditInfo) {
-          //     credit = creditInfo.baseCredit || 0;
-          //     creditSource = 'CountryServiceField';
-          //   }
-          // }
-
-          // const badge =
-          //   userProfile && 'user' in userProfile
-          //     ? await calculateLawyerBadge(
-          //         userProfile.user as mongoose.Types.ObjectId,
-          //       )
-          //     : null;
-          const existingResponse = await LeadResponse.exists({
-            leadId: lead._id,
-            responseBy: user._id,
-          });
-
-          return {
-            ...lead,
-            // credit: customCreditLogic(credit),
-            // creditSource,
-            // badge,
-            isContact: !!existingResponse,
-          };
-        }),
-      );
-
-      return {
-        meta,
-        data: result,
-      };
-    }
-  }
+  return {
+    meta,
+    data: result,
+  };
 };
 
 
 
 
-//  new logic there 
+
+
+//  --------------  Get all lead for lawyer dashboard ----------
+
 
 const getAllLeadFromDB = async (
   userId: string,
@@ -465,6 +220,7 @@ const getAllLeadFromDB = async (
   const baseFilter: any = {
     deletedAt: null,
     serviceId: { $in: services.length ? services : user.serviceIds },
+    status: "approve"
   };
 
   // ---------------- CREDIT RANGE FILTER -----------------
@@ -474,7 +230,7 @@ const getAllLeadFromDB = async (
     Object.assign(baseFilter, creditFilter);
   }
 
- 
+
   // ---------------- LEAD SUBMISSION FILTER -----------------
 
   if (parsedKeyword?.['leadSubmission']) {
@@ -549,7 +305,6 @@ const getAllLeadFromDB = async (
 
 
 
-
 const getMyAllLeadFromDB = async (
   userId: string,
   query: Record<string, unknown>,
@@ -589,188 +344,6 @@ const getMyAllLeadFromDB = async (
 };
 
 
-
-const getSingleLeadFromDB_ = async (userId: string, leadId: string) => {
-  const user = await UserProfile.findOne({ user: userId });
-  if (!user) {
-    return sendNotFoundResponse('user not found!');
-  }
-
-  validateObjectId(leadId, 'Lead');
-  const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
-    .populate({
-      path: 'userProfileId',
-      populate: {
-        path: 'user',
-      },
-    })
-    .populate({
-      path: 'serviceId',
-    })
-    .lean(); // Convert to plain JS object
-
-  if (!leadDoc) return null;
-
-  // // 2. Fetch credit information in parallel
-  // const [creditInfo] = await Promise.all([
-  //   CountryWiseServiceWiseField.findOne({
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //     countryId: (leadDoc.userProfileId as any).country,
-  //     serviceId: leadDoc.serviceId._id,
-  //     deletedAt: null,
-  //   }).lean(),
-
-  //   // Add other parallel queries here if needed
-  // ]);
-
-  const leadAnswers = await LeadServiceAnswer.aggregate([
-    {
-      $match: {
-        leadId: new mongoose.Types.ObjectId(leadId),
-        deletedAt: null,
-      },
-    },
-    {
-      $lookup: {
-        from: 'questions',
-        localField: 'questionId',
-        foreignField: '_id',
-        as: 'question',
-      },
-    },
-    { $unwind: '$question' },
-    {
-      $lookup: {
-        from: 'options',
-        localField: 'optionId',
-        foreignField: '_id',
-        as: 'option',
-      },
-    },
-    { $unwind: '$option' },
-
-    // Sort by question.order before grouping
-    {
-      $sort: {
-        'question.order': 1,
-      },
-    },
-
-    // Group by question and collect selected options
-    {
-      $group: {
-        _id: '$question._id',
-        questionId: { $first: '$question._id' },
-        question: { $first: '$question.question' },
-        order: { $first: '$question.order' },
-        options: {
-          $push: {
-            $cond: [
-              { $eq: ['$isSelected', true] },
-              {
-                optionId: '$option._id',
-                option: '$option.name',
-                isSelected: '$isSelected',
-                idExtraData: '$idExtraData',
-                order: '$option.order',
-              },
-              null,
-            ],
-          },
-        },
-      },
-    },
-
-    // Filter out non-selected (null) options
-    {
-      $project: {
-        _id: 0,
-        questionId: 1,
-        question: 1,
-        order: 1,
-        options: {
-          $filter: {
-            input: '$options',
-            as: 'opt',
-            cond: { $ne: ['$$opt', null] },
-          },
-        },
-      },
-    },
-
-    // Sort options inside each question by option.order
-    {
-      $addFields: {
-        options: {
-          $sortArray: {
-            input: '$options',
-            sortBy: { order: 1 },
-          },
-        },
-      },
-    },
-
-    // Format final options and remove internal `order`
-    {
-      $project: {
-        questionId: 1,
-        question: 1,
-        order: 1,
-        options: {
-          $map: {
-            input: '$options',
-            as: 'opt',
-            in: {
-              optionId: '$$opt.optionId',
-              option: '$$opt.option',
-              isSelected: '$$opt.isSelected',
-              idExtraData: '$$opt.idExtraData',
-            },
-          },
-        },
-      },
-    },
-
-    // ✅ Final sort to ensure question order is preserved
-    {
-      $sort: {
-        order: 1,
-      },
-    },
-
-    // Optionally, remove order from final output
-    {
-      $project: {
-        questionId: 1,
-        question: 1,
-        options: 1,
-      },
-    },
-  ]);
-
-
-  //  --------- no need right now  -----------------
-  // ✅ 3. Calculate lawyer badge
-  // const lawyerUserId = (leadDoc.userProfileId as any)?.user?._id;
-  // // const badge = lawyerUserId ? await calculateLawyerBadge(lawyerUserId) : null;
-
-  // ✅ 3. check alredy contact this lead current user
-  const existingResponse = await LeadResponse.exists({
-    leadId: leadId,
-    responseBy: user._id,
-  });
-
-  // ✅ 5. Return final result
-  return {
-    ...leadDoc,
-    // badge,
-    leadAnswers,
-  
-    // credit: creditInfo?.baseCredit ?? 0,
-    // creditSource: creditInfo ? 'CountryServiceField' : 'Default',
-    isContact: !!existingResponse,
-  };
-};
 
 
 //  --------------  SINGLE LEAD API WITH LEAD ANSWER AND RESPONSE TAG ----------
@@ -976,4 +549,5 @@ export const leadService = {
   updateLeadIntoDB,
   deleteLeadFromDB,
   getMyAllLeadFromDB,
+  getAllLeadForAdminDashboardFromDB
 };

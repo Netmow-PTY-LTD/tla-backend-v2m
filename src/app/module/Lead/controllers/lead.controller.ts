@@ -114,7 +114,6 @@ const getAllLead = catchAsync(async (req, res) => {
 });
 
 
-
 const getMyAllLead = catchAsync(async (req, res) => {
   const timer = startQueryTimer();
   const userId = req.user.userId;
@@ -142,6 +141,46 @@ const getMyAllLead = catchAsync(async (req, res) => {
   });
 });
 
+
+
+
+
+
+
+
+
+//  -------------- For admin Dashboard  ---------------
+const getAllLeadForAdmin = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const timer = startQueryTimer();
+  const query = req.query
+  const result = await leadService.getAllLeadForAdminDashboardFromDB(userId, query);
+  const queryTime = timer.endQueryTimer();
+  if (!result?.data.length) {
+
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Lead  not found.',
+      queryTime,
+      data: [],
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All Lead is retrieved successfully',
+    queryTime,
+    pagination: result?.meta,
+    data: result?.data,
+  });
+});
+
+
+
+
+
 export const leadController = {
   createLead,
   getSingleLead,
@@ -149,4 +188,5 @@ export const leadController = {
   updateSingleLead,
   getAllLead,
   getMyAllLead,
+  getAllLeadForAdmin
 };
