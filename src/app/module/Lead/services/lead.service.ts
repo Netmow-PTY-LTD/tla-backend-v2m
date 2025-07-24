@@ -40,6 +40,13 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       countryId,
     } = payload;
 
+    const creditInfo = await CountryWiseServiceWiseField.findOne({
+      countryId,
+      serviceId,
+      deletedAt: null,
+    }).select('baseCredit');
+
+
     const [leadUser] = await Lead.create(
       [
         {
@@ -49,6 +56,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           additionalDetails,
           budgetAmount,
           locationId,
+          credit:creditInfo?.baseCredit
         },
       ],
       { session },
@@ -90,7 +98,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
 
 
-const getAllLeadFromDB = async (
+const getAllLeadFromDB_ = async (
   userId: string,
   query: Record<string, unknown>,
 ) => {
@@ -237,30 +245,29 @@ const getAllLeadFromDB = async (
 
       const result = await Promise.all(
         data.map(async (lead) => {
-          const userProfile = lead?.userProfileId;
-          const service = lead?.serviceId;
+          // const userProfile = lead?.userProfileId;
+          // const service = lead?.serviceId;
 
-          let credit = 0;
-          let creditSource = 'Default';
+          // let credit = 0;
+          // let creditSource = 'Default';
 
-          if (
-            userProfile &&
-            'country' in userProfile &&
-            service &&
-            '_id' in service
-          ) {
-            const creditInfo = await CountryWiseServiceWiseField.findOne({
-              countryId: userProfile.country,
-              serviceId: service._id,
-              deletedAt: null,
-            }).select('baseCredit');
+          // if (
+          //   userProfile &&
+          //   'country' in userProfile &&
+          //   service &&
+          //   '_id' in service
+          // ) {
+          //   const creditInfo = await CountryWiseServiceWiseField.findOne({
+          //     countryId: userProfile.country,
+          //     serviceId: service._id,
+          //     deletedAt: null,
+          //   }).select('baseCredit');
 
-            if (creditInfo) {
-              credit = creditInfo.baseCredit || 0;
-              creditSource = 'CountryServiceField';
-            }
-          }
-
+          //   if (creditInfo) {
+          //     credit = creditInfo.baseCredit || 0;
+          //     creditSource = 'CountryServiceField';
+          //   }
+          // }
           // const badge =
           //   userProfile && 'user' in userProfile
           //     ? await calculateLawyerBadge(
@@ -274,8 +281,8 @@ const getAllLeadFromDB = async (
 
           return {
             ...lead,
-            credit: customCreditLogic(credit),
-            creditSource,
+            // credit: customCreditLogic(credit),
+            // creditSource,
             // badge,
             isContact: !!existingResponse,
           };
@@ -337,29 +344,29 @@ const getAllLeadFromDB = async (
 
       const result = await Promise.all(
         data.map(async (lead) => {
-          const userProfile = lead?.userProfileId;
-          const service = lead?.serviceId;
+          // const userProfile = lead?.userProfileId;
+          // const service = lead?.serviceId;
 
-          let credit = 0;
-          let creditSource = 'Default';
+          // let credit = 0;
+          // let creditSource = 'Default';
 
-          if (
-            userProfile &&
-            'country' in userProfile &&
-            service &&
-            '_id' in service
-          ) {
-            const creditInfo = await CountryWiseServiceWiseField.findOne({
-              countryId: userProfile.country,
-              serviceId: service._id,
-              deletedAt: null,
-            }).select('baseCredit');
+          // if (
+          //   userProfile &&
+          //   'country' in userProfile &&
+          //   service &&
+          //   '_id' in service
+          // ) {
+          //   const creditInfo = await CountryWiseServiceWiseField.findOne({
+          //     countryId: userProfile.country,
+          //     serviceId: service._id,
+          //     deletedAt: null,
+          //   }).select('baseCredit');
 
-            if (creditInfo) {
-              credit = creditInfo.baseCredit || 0;
-              creditSource = 'CountryServiceField';
-            }
-          }
+          //   if (creditInfo) {
+          //     credit = creditInfo.baseCredit || 0;
+          //     creditSource = 'CountryServiceField';
+          //   }
+          // }
 
           // const badge =
           //   userProfile && 'user' in userProfile
@@ -374,8 +381,8 @@ const getAllLeadFromDB = async (
 
           return {
             ...lead,
-            credit: customCreditLogic(credit),
-            creditSource,
+            // credit: customCreditLogic(credit),
+            // creditSource,
             // badge,
             isContact: !!existingResponse,
           };
@@ -389,6 +396,145 @@ const getAllLeadFromDB = async (
     }
   }
 };
+
+
+
+
+//  new logic there 
+
+const getAllLeadFromDB = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const user = await UserProfile.findOne({ user: userId }).select(
+    '_id serviceIds',
+  );
+  if (!user) return null;
+
+  console.log('query', query);
+
+  const conditionalExcludeFields = [
+    'credits',
+    'keyword',
+    'leadSubmission',
+    'location',
+    'services',
+    'spotlight',
+    'view',
+    'sort',
+  ];
+
+  let parsedKeyword: any = {};
+  try {
+    if (typeof query.searchKeyword === 'string') {
+      parsedKeyword = JSON.parse(query.searchKeyword);
+    }
+  } catch (err) {
+    console.error('Invalid JSON in searchKeyword:', err);
+  }
+
+  //  --------------- dont remove it , it will use next time -------------------------
+  const isKeywordEmpty =
+    !parsedKeyword || typeof parsedKeyword !== 'object' || !Object.keys(parsedKeyword).length;
+
+  const filteredQuery = Object.fromEntries(
+    Object.entries(query).filter(([key]) => {
+      if (key === 'searchKeyword') return false;
+      return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
+    }),
+  );
+
+  if (parsedKeyword?.sort) {
+    filteredQuery.sort = parsedKeyword.sort;
+  }
+
+  let services: any[] = [];
+
+  if (
+    Array.isArray(parsedKeyword?.services) &&
+    parsedKeyword.services.length > 0
+  ) {
+    services = parsedKeyword.services;
+  } else if (Array.isArray(user.serviceIds) && user.serviceIds.length > 0) {
+    services = user.serviceIds;
+  }
+
+  const baseFilter: any = {
+    deletedAt: null,
+    serviceId: { $in: services.length ? services : user.serviceIds },
+  };
+
+  if (parsedKeyword?.['leadSubmission']) {
+    const now = new Date();
+    const submissionRanges: Record<string, number> = {
+      last_1_hour: 1,
+      last_24_hours: 24,
+      last_48_hours: 48,
+      last_3_days: 72,
+      last_7_days: 168,
+      last_14_days: 336,
+    };
+
+    const hours = submissionRanges[parsedKeyword['leadSubmission']];
+    if (hours) {
+      baseFilter.createdAt = { $gte: new Date(now.getTime() - hours * 60 * 60 * 1000) };
+    }
+  }
+
+  const leadQuery = new QueryBuilder(
+    Lead.find(baseFilter)
+      .populate('userProfileId')
+      .populate('serviceId')
+      .lean(),
+    filteredQuery,
+  )
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  // const meta = await leadQuery.countTotal();
+  let data = await leadQuery.modelQuery;
+
+  if (parsedKeyword?.keyword?.trim()) {
+    const keyword = parsedKeyword.keyword.trim().toLowerCase();
+    data = data?.filter((lead) => {
+      const profile = lead?.userProfileId as unknown as IUserProfile;
+      return profile?.name?.toLowerCase().includes(keyword);
+    });
+  }
+
+  // Adjust meta total to match filtered data length
+  const meta = {
+    ...(await leadQuery.countTotal()),
+    total: data.length,
+  };
+  const result = await Promise.all(
+    data.map(async (lead) => {
+      const existingResponse = await LeadResponse.exists({
+        leadId: lead._id,
+        responseBy: user._id,
+      });
+
+      return {
+        ...lead,
+        credit: customCreditLogic(lead?.credit as number),
+        isContact: !!existingResponse,
+      };
+    }),
+  );
+
+  return {
+    meta,
+    data: result,
+  };
+};
+
+
+
+
+
+
 
 
 const getMyAllLeadFromDB = async (

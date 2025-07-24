@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
 import UserProfile from '../../User/models/user.model';
-
 import { AppError } from '../../../errors/error';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import User from '../models/auth.model';
-
 import ZipCode from '../../Country/models/zipcode.model';
 import { UserLocationServiceMap } from '../../LeadSettings/models/UserLocationServiceMap.model';
 import { createToken } from '../utils/auth.utils';
@@ -20,6 +18,7 @@ import { REGISTER_USER_TYPE } from '../constant/auth.constant';
 import { generateRegistrationEmail } from '../../../emails/templates/registrationEmail';
 import { sendEmail } from '../../../emails/email.service';
 import Service from '../../Service/models/service.model';
+import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 
 
 
@@ -63,8 +62,14 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
-
     // ✅ if registration user type is client then create lead 
+
+    const creditInfo = await CountryWiseServiceWiseField.findOne({
+      countryId,
+      serviceId,
+      deletedAt: null,
+    }).select('baseCredit');
+
     if (newUser.regUserType === REGISTER_USER_TYPE.CLIENT) {
       const [leadUser] = await Lead.create(
         [
@@ -74,7 +79,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
             serviceId,
             additionalDetails: leadDetails.additionalDetails || '',
             budgetAmount: leadDetails.budgetAmount || '',
-            locationId: leadDetails.zipCode
+            locationId: leadDetails.zipCode,
+            credit: creditInfo?.baseCredit,
           },
         ],
         { session },
@@ -127,7 +133,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
 
     const service = await Service.findById(serviceId).select('name');
- 
+
 
     const emailData = {
       name: newProfile?.name,
@@ -150,41 +156,41 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
 
 
-//  -------------- send lead email for all valid user email ------
+    //  -------------- send lead email for all valid user email ------
 
 
-// alert: ---- it will use next time ----
+    // alert: ---- it will use next time ----
 
-  //  const maskPhone = (phone: string) =>
-  //     phone?.slice(0, 3) + '****' + phone?.slice(-2);
+    //  const maskPhone = (phone: string) =>
+    //     phone?.slice(0, 3) + '****' + phone?.slice(-2);
 
-  //   const maskEmail = (email: string) => {
-  //     const [user, domain] = email.split('@');
-  //     const maskedUser = user.length <= 2 ? '*'.repeat(user.length) : user.slice(0, 2) + '*'.repeat(user.length - 2);
-  //     return `${maskedUser}@${domain}`;
-  //   };
+    //   const maskEmail = (email: string) => {
+    //     const [user, domain] = email.split('@');
+    //     const maskedUser = user.length <= 2 ? '*'.repeat(user.length) : user.slice(0, 2) + '*'.repeat(user.length - 2);
+    //     return `${maskedUser}@${domain}`;
+    //   };
 
-  //   // Build new lead alert data
-  //   const newLeadsAlertData = {
-  //     name: newProfile?.name || 'No Name',
-  //     service: service?.name || 'Unknown Service',
-  //     location: address?.zipcode || 'Unknown Location',
-  //     phoneMasked: maskPhone(newProfile?.phone || ''),
-  //     emailMasked: maskEmail(newUser.email),
-  //     creditsRequired: 1, // Or calculate dynamically based on your pricing logic
-  //     contactUrl: `${config.client_url}/client/contact/${newUser._id}`, // Adjust if needed
-  //     oneClickUrl: `${config.client_url}/client/contact/${newUser._id}?oneClick=true`, // Optional
-  //     customResponseUrl: `${config.client_url}/client/respond/${newUser._id}`, // Optional
-  //     appName: 'The Law App',
-  //     projectDetails: leadDetails?.additionalDetails || 'No additional details provided.',
-  //   };
+    //   // Build new lead alert data
+    //   const newLeadsAlertData = {
+    //     name: newProfile?.name || 'No Name',
+    //     service: service?.name || 'Unknown Service',
+    //     location: address?.zipcode || 'Unknown Location',
+    //     phoneMasked: maskPhone(newProfile?.phone || ''),
+    //     emailMasked: maskEmail(newUser.email),
+    //     creditsRequired: 1, // Or calculate dynamically based on your pricing logic
+    //     contactUrl: `${config.client_url}/client/contact/${newUser._id}`, // Adjust if needed
+    //     oneClickUrl: `${config.client_url}/client/contact/${newUser._id}?oneClick=true`, // Optional
+    //     customResponseUrl: `${config.client_url}/client/respond/${newUser._id}`, // Optional
+    //     appName: 'The Law App',
+    //     projectDetails: leadDetails?.additionalDetails || 'No additional details provided.',
+    //   };
 
-  //   await sendEmail({
-  //     to: newUser.email,
-  //     subject: 'New Lead Registration and Submission',
-  //     data: newLeadsAlertData,
-  //     emailTemplate: 'new_lead_alert',
-  //   });
+    //   await sendEmail({
+    //     to: newUser.email,
+    //     subject: 'New Lead Registration and Submission',
+    //     data: newLeadsAlertData,
+    //     emailTemplate: 'new_lead_alert',
+    //   });
 
 
 
