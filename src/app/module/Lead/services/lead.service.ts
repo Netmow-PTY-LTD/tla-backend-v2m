@@ -763,7 +763,7 @@ const getSingleLeadFromDB_ = async (userId: string, leadId: string) => {
     ...leadDoc,
     // badge,
     leadAnswers,
-    credit: customCreditLogic(credit as number),
+  
     // credit: creditInfo?.baseCredit ?? 0,
     // creditSource: creditInfo ? 'CountryServiceField' : 'Default',
     isContact: !!existingResponse,
