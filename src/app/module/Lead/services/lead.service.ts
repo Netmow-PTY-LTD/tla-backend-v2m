@@ -39,6 +39,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       budgetAmount,
       locationId,
       countryId,
+      leadPriority,
     } = payload;
 
     const creditInfo = await CountryWiseServiceWiseField.findOne({
@@ -57,7 +58,8 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           additionalDetails,
           budgetAmount,
           locationId,
-          credit: creditInfo?.baseCredit
+          credit: creditInfo?.baseCredit,
+          leadPriority
         },
       ],
       { session },
