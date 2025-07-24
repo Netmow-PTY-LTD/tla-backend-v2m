@@ -40,6 +40,13 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       countryId,
     } = payload;
 
+    const creditInfo = await CountryWiseServiceWiseField.findOne({
+      countryId,
+      serviceId,
+      deletedAt: null,
+    }).select('baseCredit');
+
+
     const [leadUser] = await Lead.create(
       [
         {
@@ -49,6 +56,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           additionalDetails,
           budgetAmount,
           locationId,
+          credit:creditInfo?.baseCredit
         },
       ],
       { session },
@@ -510,6 +518,7 @@ const getAllLeadFromDB = async (
 
       return {
         ...lead,
+        credit: customCreditLogic(lead?.credit as number),
         isContact: !!existingResponse,
       };
     }),
