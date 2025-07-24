@@ -90,7 +90,7 @@ const getAllCategoryPublicFromDB = async () => {
     },
  // ✅ Sort categories from newest to oldest
     {
-      $sort: { createdAt: -1 },
+      $sort: { createdAt: 1 },
     },
 
 
