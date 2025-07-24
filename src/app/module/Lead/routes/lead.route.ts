@@ -11,6 +11,8 @@ router.post(
   leadController.createLead,
 );
 router.get('/list',auth(USER_ROLE.ADMIN, USER_ROLE.USER), leadController.getAllLead);
+router.get('/list/admin',auth(USER_ROLE.ADMIN), leadController.getAllLeadForAdmin);
+
 router.get(
   '/my',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
