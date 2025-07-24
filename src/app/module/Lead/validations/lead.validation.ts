@@ -8,6 +8,7 @@ const leadZodValidationSchema = z.object({
     locationId: zodObjectIdField('location'),
     additionalDetails: z.string().optional().default(''),
     budgetAmount: z.number().min(0).default(0),
+    credit: z.number().min(0).default(0),
   }),
 });
 
@@ -18,6 +19,7 @@ const updateLeadZodValidationSchema = z.object({
     locationId: zodObjectIdField('location'),
     additionalDetails: z.string().optional().default(''),
     budgetAmount: z.number().min(0).default(0),
+    credit: z.number().min(0).default(0),
   }),
 });
 

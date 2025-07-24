@@ -32,6 +32,10 @@ const leadSchema = new Schema<ILead>(
       type: Number,
       default: 0,
     },
+    credit: {
+      type: Number,
+      default: 0,
+    },
     deletedAt: {
       type: Date,
       default: null,

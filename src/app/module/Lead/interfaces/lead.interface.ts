@@ -8,6 +8,7 @@ export interface ILead {
   additionalDetails: string;
   locationId: Types.ObjectId;
   budgetAmount: number;
+  credit?: number;
   deletedAt?: Date | null;
   leadAnswers?: ILeadServiceAnswer[];
 }
