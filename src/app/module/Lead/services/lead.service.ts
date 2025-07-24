@@ -14,6 +14,7 @@ import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import QueryBuilder from '../../../builder/QueryBuilder';
 import LeadResponse from '../../LeadResponse/models/response.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
+import { buildCreditFilter } from '../utils/buildCreditFilter';
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -56,7 +57,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           additionalDetails,
           budgetAmount,
           locationId,
-          credit:creditInfo?.baseCredit
+          credit: creditInfo?.baseCredit
         },
       ],
       { session },
@@ -464,6 +465,16 @@ const getAllLeadFromDB = async (
     serviceId: { $in: services.length ? services : user.serviceIds },
   };
 
+  // ---------------- CREDIT RANGE FILTER -----------------
+
+  if (Array.isArray(parsedKeyword?.credits) && parsedKeyword.credits.length > 0) {
+    const creditFilter = buildCreditFilter(parsedKeyword.credits);
+    Object.assign(baseFilter, creditFilter);
+  }
+
+ 
+  // ---------------- LEAD SUBMISSION FILTER -----------------
+
   if (parsedKeyword?.['leadSubmission']) {
     const now = new Date();
     const submissionRanges: Record<string, number> = {
@@ -575,7 +586,9 @@ const getMyAllLeadFromDB = async (
   };
 };
 
-const getSingleLeadFromDB = async (userId: string, leadId: string) => {
+
+
+const getSingleLeadFromDB_ = async (userId: string, leadId: string) => {
   const user = await UserProfile.findOne({ user: userId });
   if (!user) {
     return sendNotFoundResponse('user not found!');
@@ -596,17 +609,17 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
 
   if (!leadDoc) return null;
 
-  // 2. Fetch credit information in parallel
-  const [creditInfo] = await Promise.all([
-    CountryWiseServiceWiseField.findOne({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      countryId: (leadDoc.userProfileId as any).country,
-      serviceId: leadDoc.serviceId._id,
-      deletedAt: null,
-    }).lean(),
+  // // 2. Fetch credit information in parallel
+  // const [creditInfo] = await Promise.all([
+  //   CountryWiseServiceWiseField.findOne({
+  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //     countryId: (leadDoc.userProfileId as any).country,
+  //     serviceId: leadDoc.serviceId._id,
+  //     deletedAt: null,
+  //   }).lean(),
 
-    // Add other parallel queries here if needed
-  ]);
+  //   // Add other parallel queries here if needed
+  // ]);
 
   const leadAnswers = await LeadServiceAnswer.aggregate([
     {
@@ -750,8 +763,178 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     ...leadDoc,
     // badge,
     leadAnswers,
-    credit: creditInfo?.baseCredit ?? 0,
-    creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+    credit: customCreditLogic(credit as number),
+    // credit: creditInfo?.baseCredit ?? 0,
+    // creditSource: creditInfo ? 'CountryServiceField' : 'Default',
+    isContact: !!existingResponse,
+  };
+};
+
+
+//  --------------  SINGLE LEAD API WITH LEAD ANSWER AND RESPONSE TAG ----------
+const getSingleLeadFromDB = async (userId: string, leadId: string) => {
+  const user = await UserProfile.findOne({ user: userId });
+  if (!user) {
+    return sendNotFoundResponse('user not found!');
+  }
+
+  validateObjectId(leadId, 'Lead');
+  const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
+    .populate({
+      path: 'userProfileId',
+      populate: {
+        path: 'user',
+      },
+    })
+    .populate({
+      path: 'serviceId',
+    })
+    .lean(); // Convert to plain JS object
+
+  if (!leadDoc) return null;
+
+
+
+  const leadAnswers = await LeadServiceAnswer.aggregate([
+    {
+      $match: {
+        leadId: new mongoose.Types.ObjectId(leadId),
+        deletedAt: null,
+      },
+    },
+    {
+      $lookup: {
+        from: 'questions',
+        localField: 'questionId',
+        foreignField: '_id',
+        as: 'question',
+      },
+    },
+    { $unwind: '$question' },
+    {
+      $lookup: {
+        from: 'options',
+        localField: 'optionId',
+        foreignField: '_id',
+        as: 'option',
+      },
+    },
+    { $unwind: '$option' },
+
+    // Sort by question.order before grouping
+    {
+      $sort: {
+        'question.order': 1,
+      },
+    },
+
+    // Group by question and collect selected options
+    {
+      $group: {
+        _id: '$question._id',
+        questionId: { $first: '$question._id' },
+        question: { $first: '$question.question' },
+        order: { $first: '$question.order' },
+        options: {
+          $push: {
+            $cond: [
+              { $eq: ['$isSelected', true] },
+              {
+                optionId: '$option._id',
+                option: '$option.name',
+                isSelected: '$isSelected',
+                idExtraData: '$idExtraData',
+                order: '$option.order',
+              },
+              null,
+            ],
+          },
+        },
+      },
+    },
+
+    // Filter out non-selected (null) options
+    {
+      $project: {
+        _id: 0,
+        questionId: 1,
+        question: 1,
+        order: 1,
+        options: {
+          $filter: {
+            input: '$options',
+            as: 'opt',
+            cond: { $ne: ['$$opt', null] },
+          },
+        },
+      },
+    },
+
+    // Sort options inside each question by option.order
+    {
+      $addFields: {
+        options: {
+          $sortArray: {
+            input: '$options',
+            sortBy: { order: 1 },
+          },
+        },
+      },
+    },
+
+    // Format final options and remove internal `order`
+    {
+      $project: {
+        questionId: 1,
+        question: 1,
+        order: 1,
+        options: {
+          $map: {
+            input: '$options',
+            as: 'opt',
+            in: {
+              optionId: '$$opt.optionId',
+              option: '$$opt.option',
+              isSelected: '$$opt.isSelected',
+              idExtraData: '$$opt.idExtraData',
+            },
+          },
+        },
+      },
+    },
+
+    // ✅ Final sort to ensure question order is preserved
+    {
+      $sort: {
+        order: 1,
+      },
+    },
+
+    // Optionally, remove order from final output
+    {
+      $project: {
+        questionId: 1,
+        question: 1,
+        options: 1,
+      },
+    },
+  ]);
+
+
+
+  const existingResponse = await LeadResponse.exists({
+    leadId: leadId,
+    responseBy: user._id,
+  });
+
+  // Define credit from leadDoc
+  const credit = Number(leadDoc.credit) || 0;
+
+  // ✅ 5. Return final result
+  return {
+    ...leadDoc,
+    leadAnswers,
+    credit: customCreditLogic(credit as number),
     isContact: !!existingResponse,
   };
 };
