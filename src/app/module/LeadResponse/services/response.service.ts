@@ -36,7 +36,6 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 
 
 
-
 export const getAllResponseFromDB = async () => {
   try {
     const pipeline = [

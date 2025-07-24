@@ -17,7 +17,6 @@ router.post(
 
 router.get(
   '/list',
-
   serviceController.getAllService,
 );
 router.get('/:serviceId', serviceController.getSingleService);

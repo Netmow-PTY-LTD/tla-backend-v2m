@@ -83,8 +83,17 @@ const getAllCategoryPublicFromDB = async () => {
         slug: { $first: '$slug' },
         image: { $first: '$image' },
         services: { $push: '$services' },
+       createdAt: { $first: '$createdAt' },
+       updatedAt: { $first: '$updatedAt' },
+       
       },
     },
+ // ✅ Sort categories from newest to oldest
+    {
+      $sort: { createdAt: -1 },
+    },
+
+
   ]);
 
   return categories;
