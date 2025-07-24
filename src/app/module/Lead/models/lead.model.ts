@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { ILead } from '../interfaces/lead.interface';
+import { LEAD_STATUS_ENUM, PRIORITY_OPTIONS } from '../constant/lead.constant';
 
 const leadSchema = new Schema<ILead>(
   {
@@ -35,6 +36,16 @@ const leadSchema = new Schema<ILead>(
     credit: {
       type: Number,
       default: 0,
+    },
+    status: {
+      type: String,
+      enum: LEAD_STATUS_ENUM,
+      default: 'pending',
+    },
+    leadPriority: {
+      type: String,
+      enum: PRIORITY_OPTIONS,
+      default: 'not_sure',
     },
     deletedAt: {
       type: Date,
