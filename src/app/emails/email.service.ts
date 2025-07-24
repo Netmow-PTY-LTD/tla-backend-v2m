@@ -1,12 +1,8 @@
 
 
-
-
-
-
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/utils/settingsConfig";
-import { welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
+import { congratulationsLawyerPromotion, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 
 interface SendEmailParams {
@@ -57,6 +53,11 @@ export const sendEmail = async ({
 
   }
 
+  if(emailTemplate =="lawyerPromotion"){
+    html=congratulationsLawyerPromotion(data)
+
+  }
+
   const mailOptions = {
     // from: config.mailgun_from_email_address, // e.g. "My App <noreply@yourdomain.com>"
     from: "The Law App <noreply@thelawapp.com.au>",
@@ -78,13 +79,6 @@ export const sendEmail = async ({
     throw new Error('Failed to send email');
   }
 };
-
-
-// const welcome_to_client=(data)=>{
-// const htmlTemplete;
-//   return htmlTemplete
-// }
-
 
 
 

@@ -15,6 +15,9 @@ import { ActivityLog } from '../../Activity/models/activityLog.model';
 import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import { createNotification } from '../../Notification/utils/createNotification';
 import { USER_PROFILE, UserProfileEnum } from '../../User/constants/user.constant';
+import config from '../../../config';
+import { sendEmail } from '../../../emails/email.service';
+import { IUser } from '../../Auth/interfaces/auth.interface';
 
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
@@ -32,7 +35,6 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 
   return responseUser;
 };
-
 
 
 
@@ -442,6 +444,95 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
 };
 
 
+// const updateResponseStatus = async (
+//   responseId: string,
+//   status: ILeadResponse['status'],
+//   userId: string
+// ) => {
+//   validateObjectId(responseId, 'Response');
+
+//   const result = await LeadResponse.findOneAndUpdate(
+//     { _id: responseId, deletedAt: null },
+//     { status },
+//     { new: true }
+//   );
+//   if (result) {
+//     //  --------------  profileType logic here -------------------------
+//     const user = await UserProfile.findOne({ user: userId }).populate('user');
+//     if (!user) return sendNotFoundResponse('User profile not found');
+//     // Count hired responses for this user profile
+//     const hireCount = await LeadResponse.countDocuments({
+//       responseBy: user?._id,
+//       status: 'hired',
+//     });
+
+//     // Initialize as undefined
+//     let newProfileType: UserProfileEnum | undefined;
+
+//     if (hireCount >= 10) newProfileType = USER_PROFILE.PREMIUM;
+//     else if (hireCount >= 5) newProfileType = USER_PROFILE.EXPERT;
+
+//     // Only update if newProfileType is defined and different
+//     if (newProfileType && user.profileType !== newProfileType) {
+
+
+
+//       user.profileType = newProfileType;
+//       await user.save();
+
+//       // Define role label for email
+//       const roleLabel =
+//         newProfileType === USER_PROFILE.PREMIUM
+//           ? 'Premium Lawyer'
+//           : 'Expert Lawyer';
+
+//       const emailData = {
+//         name: user.name,
+//         role: roleLabel,
+//         dashboardUrl: `${config.client_url}/lawyer/dashboard`,
+//         appName: 'The Law App',
+//       };
+
+//       await sendEmail({
+//         to: user.user?.email,
+//         subject: `🎉 Congrats! You're now a ${roleLabel}`,
+//         data: emailData,
+//         emailTemplate: 'lawyerPromotion',
+//       });
+//     }
+
+
+
+//  //  ---------------------  activity logic here -------------------
+//   await logActivity({
+//     createdBy: userId,
+//     activityNote: `Updated response status to "${status}"`,
+//     activityType: status,
+//     module: 'response',
+//     extraField: { leadId: result.leadId },
+//     objectId: responseId
+
+//   });
+
+//   // Create notification for the user about the status update
+//   await createNotification({
+//     userId,
+//     title: `Response status updated`,
+//     message: `Your response status has been updated to "${status}".`,
+//     module: 'response',
+//     type: status,
+//     link: `/lawyer/responses/${responseId}`,
+//   });
+
+
+
+//   }
+
+
+
+//   return result
+// }
+
 const updateResponseStatus = async (
   responseId: string,
   status: ILeadResponse['status'],
@@ -454,55 +545,57 @@ const updateResponseStatus = async (
     { status },
     { new: true }
   );
-  if (result) {
-    //  --------------  profileType logic here -------------------------
-    const user = await UserProfile.findOne({ user: userId })
-    if (!user) return sendNotFoundResponse('User profile not found');
-    // Count hired responses for this user profile
-    const hireCount = await LeadResponse.countDocuments({
-      responseBy: user?._id,
-      status: 'hired',
-    });
-   
-    // Initialize as undefined
-    let newProfileType: UserProfileEnum | undefined;
 
-    if (hireCount >= 10) newProfileType = USER_PROFILE.PREMIUM;
-    else if (hireCount >= 5) newProfileType = USER_PROFILE.EXPERT;
+  if (!result) return;
 
-    // Only update if newProfileType is defined and different
-    if (newProfileType && user.profileType !== newProfileType) {
-      
-      user.profileType = newProfileType;
-      await user.save();
-     
-    }
+  // 🔍 Populate UserProfile with linked user (to get email)
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+  if (!userProfile) return sendNotFoundResponse('User profile not found');
 
-    //  ---------------------  activity logic here -------------------
-    await logActivity({
-      createdBy: userId,
-      activityNote: `Updated response status to "${status}"`,
-      activityType: status,
-      module: 'response',
-      extraField: { leadId: result.leadId },
-      objectId: responseId
+  const userEmail = (userProfile.user as IUser).email;
+  if (!userEmail) return sendNotFoundResponse('Associated user email not found');
 
-    });
+  // Count hired responses for this user profile
+  const hireCount = await LeadResponse.countDocuments({
+    responseBy: userProfile._id,
+    status: 'hired',
+  });
 
-    // Create notification for the user about the status update
-    await createNotification({
-      userId,
-      title: `Response status updated`,
-      message: `Your response status has been updated to "${status}".`,
-      module: 'response',
-      type: status,
-      link: `/lawyer/responses/${responseId}`,
+  let newProfileType: UserProfileEnum | undefined;
+  if (hireCount >= 10) newProfileType = USER_PROFILE.PREMIUM;
+  else if (hireCount >= 5) newProfileType = USER_PROFILE.EXPERT;
+
+  // Only update if newProfileType is defined and different
+  if (newProfileType && userProfile.profileType !== newProfileType) {
+    userProfile.profileType = newProfileType;
+    await userProfile.save();
+
+    const roleLabel =
+      newProfileType === USER_PROFILE.PREMIUM
+        ? 'Premium Lawyer'
+        : 'Expert Lawyer';
+
+    const emailData = {
+      name: userProfile.name,
+      role: roleLabel,
+      dashboardUrl: `${config.client_url}/lawyer/dashboard`,
+      appName: 'The Law App',
+    };
+
+    await sendEmail({
+      to: userEmail,
+      subject: `🎉 Congrats! You're now a ${roleLabel}`,
+      data: emailData,
+      emailTemplate: 'lawyerPromotion',
     });
   }
 
-
   return result;
 };
+
+
+
+
 
 
 const deleteResponseFromDB = async (id: string) => {

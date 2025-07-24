@@ -34,7 +34,7 @@ export const congratulationsLawyerPromotion = (data: {
     <table width="100%" cellpadding="0" cellspacing="0"
       style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ddd;">
       <tr>
-        <td style="padding: 20px; text-align: center; background-color: #0066ff; color: white;">
+        <td style="padding: 20px; text-align: center; background-color: #01c3bd; color: white;">
           <h1 style="margin: 0;">🎉 Congratulations!</h1>
         </td>
       </tr>
@@ -56,7 +56,7 @@ export const congratulationsLawyerPromotion = (data: {
 
           <div style="margin: 30px 0; text-align: center;">
             <a href="${dashboardUrl}"
-              style="background-color: #0066ff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">
+              style="background-color: #00c3c0; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">
               Go to My Dashboard
             </a>
           </div>
@@ -228,7 +228,7 @@ export const welcomeLeadSubmitted = (data: {
   <table width="100%" cellpadding="0" cellspacing="0"
          style="max-width:600px; margin:0 auto; background:#fff; border:1px solid #e0e0e0;">
     <tr>
-      <td style="padding:20px; background-color:#0066ff; color:white; text-align:center;">
+      <td style="padding:20px; background-color:#01c3bd; color:white; text-align:center;">
         <h2 style="margin:0;">🎉 Thank You, ${name}!</h2>
         <p style="margin:5px 0 0;">We’ve received your legal request.</p>
       </td>
@@ -251,7 +251,7 @@ export const welcomeLeadSubmitted = (data: {
 
         <div style="margin: 30px 0; text-align: center;">
           <a href="${dashboardUrl}"
-             style="background-color: #0066ff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">
+             style="background-color: #00c3c0; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">
             View My Request
           </a>
         </div>
@@ -306,7 +306,7 @@ export const welcomeLawyerEmail = (data: {
   <table width="100%" cellpadding="0" cellspacing="0"
     style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0;">
     <tr>
-      <td style="padding: 20px; text-align: center; background-color: #0066ff; color: #ffffff;">
+      <td style="padding: 20px; text-align: center; background-color: #01c3bd; color: #ffffff;">
         <h2 style="margin: 0;">👋 Welcome to ${appName}!</h2>
       </td>
     </tr>
@@ -336,7 +336,7 @@ export const welcomeLawyerEmail = (data: {
 
         <div style="text-align: center; margin: 30px 0;">
           <a href="${dashboardUrl}"
-            style="padding: 12px 24px; background-color: #0066ff; color: white; text-decoration: none; border-radius: 5px;">Go
+            style="padding: 12px 24px; background-color: #00c3c0; color: white; text-decoration: none; border-radius: 5px;">Go
             to My Dashboard</a>
         </div>
 
