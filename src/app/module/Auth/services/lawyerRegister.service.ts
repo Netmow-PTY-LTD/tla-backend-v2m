@@ -16,6 +16,7 @@ import { createLeadService } from '../utils/lawyerRegister.utils';
 import { LocationType } from '../../LeadSettings/constant/UserWiseLocation.constant';
 import { generateRegistrationEmail } from '../../../emails/templates/registrationEmail';
 import { sendEmail } from '../../../emails/email.service';
+import Service from '../../Service/models/service.model';
 
 
 const lawyerRegisterUserIntoDB = async (payload: IUser) => {
@@ -114,24 +115,66 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     session.endSession();
 
 
-    // send email 
+    // ----------------------  send email  -----------------------------------------------
 
-    const { subject, text, html } = generateRegistrationEmail({
+    const serviceIds = lawyerServiceMap.services.map((id) =>
+      new mongoose.Types.ObjectId(id)
+    );
+
+    const services = await Service.find({ _id: { $in: serviceIds } }).select('name');
+
+    const practiceAreas = services.map((service) => service.name);
+
+   
+    const data = {
       name: newProfile?.name || 'User',
       email: newUser.email,
       defaultPassword: userData.password,
-      loginUILink: `${config.client_url}/login`,
+      dashboardUrl: `${config.client_url}/lawyer/dashboard`,
       appName: 'The Law App',
-    });
+      practiceAreas
+    }
+    const subject = 'Lawyer Registration'
+    const emailTemplate = "welcome_to_lawyer"
 
     await sendEmail({
       to: newUser.email,
       subject,
-      text,
-      html,
+      // text,
+      // html,
+      data,
+      emailTemplate,
     });
 
-    // Generate the access token for the user
+
+
+
+     // const { subject, text, html } = generateRegistrationEmail({
+    //   name: newProfile?.name || 'User',
+    //   email: newUser.email,
+    //   defaultPassword: userData.password,
+    //   loginUILink: `${config.client_url}/login`,
+    //   appName: 'The Law App',
+    // });
+
+    //  await sendEmail({
+    //   to: newUser.email,
+    //   subject,
+    //   text,
+    //   html,
+      
+    // });
+
+
+
+
+
+
+
+
+
+
+    // -------------------------- Generate the access token for the user -----------------------------------
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,

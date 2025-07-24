@@ -87,7 +87,7 @@ const getSingleUserProfileDataIntoDB = async (id: string) => {
     .select(' email role accountStatus regUserType') // Select fields from the User model
     .populate({
       path: 'profile', // Populate the profile field
-      select: ' -_id name activeProfile country', // Select specific fields from the UserProfile model
+      select: ' -_id name profileType country', // Select specific fields from the UserProfile model
     });
 
   // Return the user's profile data
@@ -113,7 +113,7 @@ const getSingleUserProfileDataIntoDB = async (id: string) => {
 //     .select('username email role accountStatus regUserType') // Select fields from the User model
 //     .populate({
 //       path: 'profile', // Populate the profile field
-//       select: '-_id name activeProfile country', // Select specific fields from the UserProfile model
+//       select: '-_id name profileType country', // Select specific fields from the UserProfile model
 //     });
 
 //   // Return the user's profile data

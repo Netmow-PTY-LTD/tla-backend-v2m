@@ -9,6 +9,8 @@ import CreditPackage from '../models/creditPackage.model';
 import Coupon from '../models/coupon.model';
 import { AppError } from '../../../errors/error';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { isVerifiedLawyer } from '../../User/utils/calculateVerifiedBadge';
+import { USER_PROFILE } from '../../User/constants/user.constant';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -169,12 +171,12 @@ const getOrCreateCustomer = async (
     phone: billing?.phoneNumber,
     address: billing
       ? {
-          line1: billing.addressLine1,
-          line2: billing.addressLine2 || undefined,
-          city: billing.city,
-          postal_code: billing.postcode,
-          country: 'AUD', // You can customize by user country
-        }
+        line1: billing.addressLine1,
+        line2: billing.addressLine2 || undefined,
+        city: billing.city,
+        postal_code: billing.postcode,
+        country: 'AUD', // You can customize by user country
+      }
       : undefined,
     metadata: {
       userId,
@@ -272,6 +274,12 @@ const purchaseCredits = async (
     return { success: false, message: 'Payment failed', data: paymentIntent };
   }
 
+  const isVerified = await isVerifiedLawyer(userId);
+
+  if (!isVerified) {
+    userProfile.profileType = USER_PROFILE.VERIFIED;
+  }
+
   // 6. Create transaction
   const transaction = await Transaction.create({
     userId,
@@ -288,6 +296,8 @@ const purchaseCredits = async (
   });
 
   // 7. Update user's credit balance and autoTopUp
+
+
   userProfile.credits += creditPackage.credit;
   userProfile.autoTopUp = autoTopUp || false;
   await userProfile.save();

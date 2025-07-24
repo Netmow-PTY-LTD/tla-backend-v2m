@@ -47,7 +47,7 @@ const sendContactMessage = async (
   if (method === 'email' && toEmail) {
     try {
       const html = `<p>${emailText}</p>`;
-      const result = await sendEmail({ to: toEmail, subject, html });
+      // const result = await sendEmail({ to: toEmail, subject, html });
 
       const resultDB = await SendEmail.create({
         to: toEmail,

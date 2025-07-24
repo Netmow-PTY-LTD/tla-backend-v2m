@@ -510,12 +510,12 @@ const forgetPassword = async (userEmail: string) => {
   `;
 
   // Send the reset password email to the user
-  await sendEmail({
-    to: user.email,
-    subject,
-    text,
-    html,
-  });
+  // await sendEmail({
+  //   to: user.email,
+  //   subject,
+  //   text,
+  //   html,
+  // }); 
 };
 
 /**
