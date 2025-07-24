@@ -14,6 +14,7 @@ import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import QueryBuilder from '../../../builder/QueryBuilder';
 import LeadResponse from '../../LeadResponse/models/response.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
+import { buildCreditFilter } from '../utils/buildCreditFilter';
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -463,6 +464,17 @@ const getAllLeadFromDB = async (
     deletedAt: null,
     serviceId: { $in: services.length ? services : user.serviceIds },
   };
+
+  // ---------------- CREDIT RANGE FILTER -----------------
+
+  if (Array.isArray(parsedKeyword?.credits) && parsedKeyword.credits.length > 0) {
+    const creditFilter = buildCreditFilter(parsedKeyword.credits);
+    Object.assign(baseFilter, creditFilter);
+  }
+
+ 
+
+  // ---------------- LEAD SUBMISSION FILTER -----------------
 
   if (parsedKeyword?.['leadSubmission']) {
     const now = new Date();
