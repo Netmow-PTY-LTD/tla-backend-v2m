@@ -35,7 +35,7 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 
 //  ---------------------------- GET ALL  RESPONSE ------------------------------------
 
- const getAllResponseFromDB = async () => {
+const getAllResponseFromDB = async () => {
   try {
     const pipeline = [
       { $match: { deletedAt: null } },
@@ -167,39 +167,212 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 
 //  ---------------------------- GET ALL MY  RESPONSE ------------------------------------
 
-const getMyAllResponseFromDB = async (userId: string) => {
+// const getMyAllResponseFromDB = async (userId: string) => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+//   if (!userProfile) {
+//     return sendNotFoundResponse('User profile not found');
+//   }
+
+//   const responses = await LeadResponse.find({
+//     responseBy: userProfile._id,
+//     deletedAt: null,
+//   })
+//     .populate({
+//       path: 'leadId',
+//       populate: {
+//         path: 'userProfileId',
+//         populate: {
+//           path: 'user',
+//           select: '_id name email',
+//         },
+//       },
+//     })
+//     .populate({
+//       path: 'serviceId',
+//     })
+//     .populate({
+//       path: 'responseBy',
+//       populate: {
+//         path: 'user',
+//         select: '_id name email',
+//       },
+//     });
+
+//   return responses;
+// };
+
+type TMeta = {
+  total: number;     // Total number of documents
+  page: number;      // Current page
+  limit: number;     // Number of items per page
+  totalPage: number; // Total pages (Math.ceil(total / limit))
+};
+
+type PaginatedResult<T> = {
+  data: T[];
+  pagination: TMeta;
+};
+const getMyAllResponseFromDB = async (
+  userId: string,
+  filters: any = {},
+  options: { page: number; limit: number; sortBy: string; sortOrder: 'asc' | 'desc' }
+): Promise<PaginatedResult<any>> => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
-  if (!userProfile) {
-    return sendNotFoundResponse('User profile not found');
+
+
+  // Pagination and Sorting Defaults
+  const page = Number(options.page) || 1;
+  const limit = Number(options.limit) || 10;
+  const skip = (page - 1) * limit;
+  const sortField = options.sortBy || 'createdAt';
+  const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
+  const pipeline: any[] = [
+    {
+      $match: {
+        responseBy: userProfile?._id,
+        deletedAt: null,
+      },
+    },
+    {
+      $lookup: {
+        from: 'userprofiles',
+        localField: 'responseBy',
+        foreignField: '_id',
+        as: 'responseBy',
+      },
+    },
+    { $unwind: '$responseBy' },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'responseBy.user',
+        foreignField: '_id',
+        as: 'responseBy.user',
+      },
+    },
+    { $unwind: '$responseBy.user' },
+    {
+      $lookup: {
+        from: 'leads',
+        localField: 'leadId',
+        foreignField: '_id',
+        as: 'leadId',
+      },
+    },
+    { $unwind: '$leadId' },
+    {
+      $lookup: {
+        from: 'userprofiles',
+        localField: 'leadId.userProfileId',
+        foreignField: '_id',
+        as: 'leadId.userProfileId',
+      },
+    },
+    { $unwind: '$leadId.userProfileId' },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'serviceId',
+        foreignField: '_id',
+        as: 'serviceId',
+      },
+    },
+    { $unwind: '$serviceId' },
+  ];
+
+  // ---------- FILTERS ----------
+  const match: any = {};
+
+  // Keyword Search
+  if (filters.keyword) {
+    match.$or = [
+      { 'leadId.additionalDetails': { $regex: filters.keyword, $options: 'i' } },
+      { 'leadId.userProfileId.name': { $regex: filters.keyword, $options: 'i' } },
+      { 'leadId.userProfileId.businessName': { $regex: filters.keyword, $options: 'i' } },
+    ];
   }
 
-  const responses = await LeadResponse.find({
-    // userProfileId: userProfile._id,
-    responseBy: userProfile._id,
-    deletedAt: null,
-  })
-    .populate({
-      path: 'leadId',
-      populate: {
-        path: 'userProfileId',
-        populate: {
-          path: 'user',
-          select: '_id name email',
-        },
-      },
-    })
-    .populate({
-      path: 'serviceId',
-    })
-    .populate({
-      path: 'responseBy',
-      populate: {
-        path: 'user',
-        select: '_id name email',
-      },
-    });
+  // Spotlight (leadPriority)
+  if (filters.spotlight?.length) {
+    match['leadId.leadPriority'] = { $in: filters.spotlight };
+  }
 
-  return responses;
+  // Client Actions (e.g., status)
+  if (filters.clientActions?.length) {
+    match['leadId.status'] = { $in: filters.clientActions };
+  }
+
+  // Actions Taken (status in LeadResponse)
+  if (filters.actionsTaken?.length) {
+    match.status = { $in: filters.actionsTaken };
+  }
+
+  // Date Filter
+  if (filters.leadSubmission) {
+    const now = new Date();
+    let startDate: Date | null = null;
+    switch (filters.leadSubmission) {
+      case 'last-hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
+      case 'today': startDate = new Date(now.setHours(0, 0, 0, 0)); break;
+      case 'yesterday': startDate = new Date(now.setDate(now.getDate() - 1)); break;
+      case '3days-ago': startDate = new Date(now.setDate(now.getDate() - 3)); break;
+      case '7days-ago': startDate = new Date(now.setDate(now.getDate() - 7)); break;
+      case '2weeks-ago': startDate = new Date(now.setDate(now.getDate() - 14)); break;
+      case 'last-month': startDate = new Date(now.setMonth(now.getMonth() - 1)); break;
+      case 'six-month': startDate = new Date(now.setMonth(now.getMonth() - 6)); break;
+      case 'last-year': startDate = new Date(now.setFullYear(now.getFullYear() - 1)); break;
+      case 'one-year-ago': startDate = new Date(0); break;
+    }
+
+    if (startDate) {
+      match.createdAt = { $gte: startDate };
+    }
+  }
+
+  if (Object.keys(match).length) {
+    pipeline.push({ $match: match });
+  }
+
+  // ---------- PROJECTION ----------
+
+  pipeline.push({
+    $project: {
+      _id: 1,
+      status: 1,
+      createdAt: 1,
+      responseBy: 1,
+      leadId: 1,
+      serviceId: 1,
+    },
+  });
+
+  // ---------- SORTING ----------
+  pipeline.push({ $sort: { [sortField]: sortOrder } });
+
+  // ---------- PAGINATION ----------
+  pipeline.push({ $skip: skip });
+  pipeline.push({ $limit: limit });
+
+  // ---------- EXECUTE ----------
+  const responses = await LeadResponse.aggregate(pipeline);
+
+  // Total Count for pagination
+  const countPipeline = [...pipeline];
+  countPipeline.splice(countPipeline.findIndex(stage => stage.$skip), 2); // remove skip & limit
+  countPipeline.push({ $count: 'total' });
+  const totalResult = await LeadResponse.aggregate(countPipeline);
+  const total = totalResult[0]?.total || 0;
+
+  return {
+    data: responses || [],
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
 };
 
 
