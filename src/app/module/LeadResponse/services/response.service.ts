@@ -6,11 +6,8 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
 import { ILeadResponse } from '../interfaces/response.interface';
-
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
-
-import { logActivity } from '../../Activity/utils/logActivityLog';
 import { ActivityLog } from '../../Activity/models/activityLog.model';
 import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import { createNotification } from '../../Notification/utils/createNotification';
@@ -28,7 +25,6 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
   }
   const responseUser = await LeadResponse.create({
     leadId: payload.leadId,
-    // userProfileId: userProfile._id,
     responseBy: userProfile._id,
     serviceId: payload.serviceId,
   });
@@ -37,9 +33,9 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 };
 
 
+//  ---------------------------- GET ALL  RESPONSE ------------------------------------
 
-
-export const getAllResponseFromDB = async () => {
+ const getAllResponseFromDB = async () => {
   try {
     const pipeline = [
       { $match: { deletedAt: null } },
@@ -48,7 +44,6 @@ export const getAllResponseFromDB = async () => {
       {
         $lookup: {
           from: 'userprofiles',
-          // localField: 'userProfileId',
           localField: 'responseBy',
           foreignField: '_id',
           as: 'lawyerProfile',
@@ -153,25 +148,9 @@ export const getAllResponseFromDB = async () => {
       result.map(async (response) => {
         const plain = response.toObject ? response.toObject() : response;
 
-
-        //  --------- no need this write now ------------
-
-        // const [lawyerBadge, leadBadge] = await Promise.all([
-        //   plain?.lawyerProfile?.user
-        //     ? calculateLawyerBadge(plain.lawyerProfile.user)
-        //     : null,
-        //   plain?.leadProfile?.user
-        //     ? calculateLawyerBadge(plain.leadProfile.user)
-        //     : null,
-        // ]);
-
         return {
           ...plain,
           credit: customCreditLogic(plain.credit),
-          // badges: {
-          //   lawyer: lawyerBadge,
-          //   lead: leadBadge,
-          // },
         };
       })
     );
@@ -186,7 +165,7 @@ export const getAllResponseFromDB = async () => {
 
 
 
-
+//  ---------------------------- GET ALL MY  RESPONSE ------------------------------------
 
 const getMyAllResponseFromDB = async (userId: string) => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
@@ -220,33 +199,13 @@ const getMyAllResponseFromDB = async (userId: string) => {
       },
     });
 
-  // const combineCredit = await Promise.all(
-  //   responses.map(async (response) => {
-  //     const plain = response.toObject ? response.toObject() : response;
-  //     // const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
-  //     const lawyerUserId = (plain as any)?.responseBy?.user?._id;
-  //     const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
-  //     const [lawyerBadge, leadBadge] = await Promise.all([
-  //       lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
-  //       leadUserId ? calculateLawyerBadge(leadUserId) : null,
-  //     ]);
-
-  //     return {
-  //       ...plain,
-  //       lawyerBadge,
-  //       leadBadge,
-
-  //     };
-  //   })
-  // );
-
   return responses;
 };
 
 
 
 
-
+//  ---------------------------- GET SINGLE RESPONSE ------------------------------------
 const getSingleResponseFromDB = async (userId: string, responseId: string) => {
   validateObjectId(responseId, 'Response');
 
@@ -403,18 +362,6 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
   ]);
 
 
-  //  ----------- no need this now -------------
-  // // Fetch lawyer and lead badges
-  // const plain = responseDoc as any;
-  // // const lawyerUserId = plain?.userProfileId?.user?._id;
-  // const lawyerUserId = plain?.responseBy?.user?._id;
-  // const leadUserId = plain?.leadId?.userProfileId?.user?._id;
-
-  // const [lawyerBadge, leadBadge] = await Promise.all([
-  //   lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
-  //   leadUserId ? calculateLawyerBadge(leadUserId) : null,
-  // ]);
-
 
   const activity = await ActivityLog.find({
     objectId: new mongoose.Types.ObjectId(responseId),   // cast if you have a string
@@ -437,101 +384,76 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     leadAnswers,
     credit: creditInfo?.baseCredit ?? 0,
     creditSource: creditInfo ? 'CountryServiceField' : 'Default',
-    // lawyerBadge,
-    // leadBadge,
     activity
   };
 };
 
 
-// const updateResponseStatus = async (
-//   responseId: string,
-//   status: ILeadResponse['status'],
-//   userId: string
-// ) => {
-//   validateObjectId(responseId, 'Response');
+//  ------------- GET ALL RESPONE LEAD WISE ------------------------------------
 
-//   const result = await LeadResponse.findOneAndUpdate(
-//     { _id: responseId, deletedAt: null },
-//     { status },
-//     { new: true }
-//   );
-//   if (result) {
-//     //  --------------  profileType logic here -------------------------
-//     const user = await UserProfile.findOne({ user: userId }).populate('user');
-//     if (!user) return sendNotFoundResponse('User profile not found');
-//     // Count hired responses for this user profile
-//     const hireCount = await LeadResponse.countDocuments({
-//       responseBy: user?._id,
-//       status: 'hired',
-//     });
+const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
+  if (!userProfile) {
+    return sendNotFoundResponse('User profile not found');
+  }
 
-//     // Initialize as undefined
-//     let newProfileType: UserProfileEnum | undefined;
+  const responses = await LeadResponse.find({
+    leadId: leadId,
+    deletedAt: null,
+  })
+    .populate({
+      path: 'leadId',
+      populate: {
+        path: 'userProfileId',
+        populate: {
+          path: 'user',
+          select: '_id name email',
+        },
+      },
+    })
+    .populate({
+      path: 'serviceId',
+    })
+    .populate({
+      path: 'responseBy',
+      populate: {
+        path: 'user',
+        select: '_id name email',
+      },
+    });
 
-//     if (hireCount >= 10) newProfileType = USER_PROFILE.PREMIUM;
-//     else if (hireCount >= 5) newProfileType = USER_PROFILE.EXPERT;
+  const combineCredit = await Promise.all(
+    responses.map(async (response) => {
+      const plain = response.toObject ? response.toObject() : response;
+      const lawyerUserId = (plain as any)?.responseBy?.user?._id;
+      const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
+      const [lawyerBadge, leadBadge] = await Promise.all([
+        lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
+        leadUserId ? calculateLawyerBadge(leadUserId) : null,
+      ]);
 
-//     // Only update if newProfileType is defined and different
-//     if (newProfileType && user.profileType !== newProfileType) {
+      return {
+        ...plain,
+        lawyerBadge,
+        leadBadge,
 
+      };
+    })
+  );
 
-
-//       user.profileType = newProfileType;
-//       await user.save();
-
-//       // Define role label for email
-//       const roleLabel =
-//         newProfileType === USER_PROFILE.PREMIUM
-//           ? 'Premium Lawyer'
-//           : 'Expert Lawyer';
-
-//       const emailData = {
-//         name: user.name,
-//         role: roleLabel,
-//         dashboardUrl: `${config.client_url}/lawyer/dashboard`,
-//         appName: 'The Law App',
-//       };
-
-//       await sendEmail({
-//         to: user.user?.email,
-//         subject: `🎉 Congrats! You're now a ${roleLabel}`,
-//         data: emailData,
-//         emailTemplate: 'lawyerPromotion',
-//       });
-//     }
+  return combineCredit;
+};
 
 
 
-//  //  ---------------------  activity logic here -------------------
-//   await logActivity({
-//     createdBy: userId,
-//     activityNote: `Updated response status to "${status}"`,
-//     activityType: status,
-//     module: 'response',
-//     extraField: { leadId: result.leadId },
-//     objectId: responseId
-
-//   });
-
-//   // Create notification for the user about the status update
-//   await createNotification({
-//     userId,
-//     title: `Response status updated`,
-//     message: `Your response status has been updated to "${status}".`,
-//     module: 'response',
-//     type: status,
-//     link: `/lawyer/responses/${responseId}`,
-//   });
 
 
 
-//   }
 
 
 
-//   return result
-// }
+
+//  --------------- update Response Status -------------------------------------
 
 const updateResponseStatus = async (
   responseId: string,
@@ -614,60 +536,6 @@ const deleteResponseFromDB = async (id: string) => {
 };
 
 
-const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
-  if (!userProfile) {
-    return sendNotFoundResponse('User profile not found');
-  }
-
-  const responses = await LeadResponse.find({
-    leadId: leadId,
-    // responseBy: userProfile._id,
-    deletedAt: null,
-  })
-    .populate({
-      path: 'leadId',
-      populate: {
-        path: 'userProfileId',
-        populate: {
-          path: 'user',
-          select: '_id name email',
-        },
-      },
-    })
-    .populate({
-      path: 'serviceId',
-    })
-    .populate({
-      path: 'responseBy',
-      populate: {
-        path: 'user',
-        select: '_id name email',
-      },
-    });
-
-  const combineCredit = await Promise.all(
-    responses.map(async (response) => {
-      const plain = response.toObject ? response.toObject() : response;
-      // const lawyerUserId = (plain as any)?.userProfileId?.user?._id;
-      const lawyerUserId = (plain as any)?.responseBy?.user?._id;
-      const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
-      const [lawyerBadge, leadBadge] = await Promise.all([
-        lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
-        leadUserId ? calculateLawyerBadge(leadUserId) : null,
-      ]);
-
-      return {
-        ...plain,
-        lawyerBadge,
-        leadBadge,
-
-      };
-    })
-  );
-
-  return combineCredit;
-};
 
 
 export const responseService = {
