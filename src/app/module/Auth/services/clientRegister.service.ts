@@ -132,9 +132,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     // -------------------------------------   send email -------------------------------------------
 
 
-
     const service = await Service.findById(serviceId).select('name');
-
 
     const emailData = {
       name: newProfile?.name,
@@ -143,14 +141,14 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       preferredServiceType: leadDetails?.preferredServiceType || 'Not specified',
       likelihoodOfHiring: leadDetails?.likelihoodOfHiring || 'Not sure',
       preferredContactTime: leadDetails?.preferredContactTime || 'Anytime',
-      dashboardUrl: `${config.client_url}/client/dashboard`,
+      dashboardUrl: `${config.client_url}/client/dashboard/my-leads`,
       appName: 'The Law App',
       email: 'support@yourdomain.com',
     };
 
     await sendEmail({
       to: newUser.email,
-      subject: 'New Lead Registration and Submission',
+      subject: 'Lead Registration & Submission Confirmation',
       data: emailData,
       emailTemplate: 'welcome_to_client',
     });
