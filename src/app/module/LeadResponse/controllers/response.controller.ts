@@ -17,11 +17,11 @@ const createResponse = catchAsync(async (req, res) => {
 });
 
 const getSingleResponse = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
+  const timer = startQueryTimer();
   const { responseId } = req.params;
-   const userId=req.user.userId;
-  const result = await responseService.getSingleResponseFromDB(userId,responseId);
-    const queryTime = timer.endQueryTimer();
+  const userId = req.user.userId;
+  const result = await responseService.getSingleResponseFromDB(userId, responseId);
+  const queryTime = timer.endQueryTimer();
 
   if (!result) {
     return sendResponse(res, {
@@ -67,7 +67,7 @@ const deleteSingleResponse = catchAsync(async (req, res) => {
 const updateResponseStatus = catchAsync(async (req, res) => {
   const { responseId } = req.params;
   const { status } = req.body;
-  const userId=req.user.userId;
+  const userId = req.user.userId;
   const result = await responseService.updateResponseStatus(
     responseId,
     status,
@@ -92,9 +92,9 @@ const updateResponseStatus = catchAsync(async (req, res) => {
 });
 
 const getAllResponse = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
+  const timer = startQueryTimer();
   const result = await responseService.getAllResponseFromDB();
-    const queryTime = timer.endQueryTimer();
+  const queryTime = timer.endQueryTimer();
 
   if (!result.length) {
     return sendResponse(res, {
@@ -117,13 +117,13 @@ const getAllResponse = catchAsync(async (req, res) => {
 //  get all response lead wise list
 
 const getAllResponseLeadWise = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
-    const userId=req.user.userId
-    const {leadId}=req.params
-  const result = await responseService.getAllResponseLeadWiseFromDB(userId,leadId);
-    const queryTime = timer.endQueryTimer();
+  const timer = startQueryTimer();
+  const userId = req.user.userId
+  const { leadId } = req.params
+  const result = await responseService.getAllResponseLeadWiseFromDB(userId, leadId);
+  const queryTime = timer.endQueryTimer();
 
-   if (!Array.isArray(result) || !result.length) {
+  if (!Array.isArray(result) || !result.length) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
@@ -143,36 +143,84 @@ const getAllResponseLeadWise = catchAsync(async (req, res) => {
   });
 });
 
+
+//  ---------------------- GET ALL MY RESPONSE  CONTROLLER -------------------------------
+// const getMyAllResponse = catchAsync(async (req, res) => {
+//     const timer = startQueryTimer();
+//   const userId = req.user.userId; // Assuming user ID is available in req.user
+//   const result = await responseService.getMyAllResponseFromDB(userId);
+//     const queryTime = timer.endQueryTimer();
+
+//   if (!Array.isArray(result) || !result.length) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.OK,
+//       success: false,
+//       message: 'Responses  not found.',
+//       queryTime,
+//       data: [],
+//     });
+//   }
+
+//   sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: 'My All Response is retrieved successfully',
+//     queryTime,
+//     data: result,
+//   });
+// });
+
+
 const getMyAllResponse = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
+  const timer = startQueryTimer();
   const userId = req.user.userId; // Assuming user ID is available in req.user
-  const result = await responseService.getMyAllResponseFromDB(userId);
-    const queryTime = timer.endQueryTimer();
 
-  if (!Array.isArray(result) || !result.length) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: false,
-      message: 'Responses  not found.',
-      queryTime,
-      data: [],
-    });
-  }
+  // Extract filters from query parameters
+  const filters = {
+    keyword: req.query.keyword as string,
+    spotlight: req.query.spotlight ? (req.query.spotlight as string).split(',') : [],
+    clientActions: req.query.clientActions ? (req.query.clientActions as string).split(',') : [],
+    actionsTaken: req.query.actionsTaken ? (req.query.actionsTaken as string).split(',') : [],
+    leadSubmission: req.query.leadSubmission as string,
+  };
 
+
+  const options: {
+    page: number;
+    limit: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  } = {
+    page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
+    limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
+    sortBy: (req.query.sortBy as string) || 'createdAt',
+    sortOrder: (req.query.sortOrder as string) === 'asc' ? 'asc' : 'desc',
+  };
+  // Fetch filtered results
+  const result = await responseService.getMyAllResponseFromDB(userId, filters, options);
+  const queryTime = timer.endQueryTimer();
+  const data = result.data || []; // ensure it's never null
+  const pagination = result.pagination || {}; 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'My All Response is retrieved successfully',
+    success: data.length > 0,
+    message: data.length > 0
+      ? 'My All Response is retrieved successfully'
+      : 'Responses not found.',
     queryTime,
-    data: result,
+    data,
+    pagination: pagination,
   });
 });
+
+
+
 
 export const responseController = {
   createResponse,
   getSingleResponse,
   deleteSingleResponse,
- updateResponseStatus,
+  updateResponseStatus,
   getAllResponse,
   getMyAllResponse,
   getAllResponseLeadWise

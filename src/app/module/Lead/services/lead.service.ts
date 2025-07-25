@@ -101,7 +101,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
 
     const emailData = {
-      name:userProfile?.name,
+      name: userProfile?.name,
       caseType: service?.name || 'Not specified',
       involvedMembers: questions?.involvedMembers || 'Self',
       preferredServiceType: questions?.preferredServiceType || 'Not specified',
@@ -114,7 +114,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
-      subject:'Lead Submission Confirmation – TheLawApp',
+      subject: 'Lead Submission Confirmation – TheLawApp',
       data: emailData,
       emailTemplate: 'welcome_to_client',
     });
@@ -294,8 +294,9 @@ const getAllLeadFromDB = async (
     .paginate()
     .fields();
 
-  // const meta = await leadQuery.countTotal();
+  let meta = await leadQuery.countTotal();
   let data = await leadQuery.modelQuery;
+
 
   if (parsedKeyword?.keyword?.trim()) {
     const keyword = parsedKeyword.keyword.trim().toLowerCase();
@@ -303,13 +304,28 @@ const getAllLeadFromDB = async (
       const profile = lead?.userProfileId as unknown as IUserProfile;
       return profile?.name?.toLowerCase().includes(keyword);
     });
+
+    // Recalculate pagination meta based on filtered data
+    const page = Number(leadQuery?.query?.page) || 1;
+    const limit = Number(leadQuery?.query?.limit) || 10;
+    const total = data.length;
+    const totalPage = Math.ceil(total / limit);
+
+    meta = {
+      page,
+      limit,
+      total,
+      totalPage,
+    };
+
+    // Paginate filtered data manually
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    data = data.slice(startIndex, endIndex);
+
   }
 
-  // Adjust meta total to match filtered data length
-  const meta = {
-    ...(await leadQuery.countTotal()),
-    total: data.length,
-  };
+
   const result = await Promise.all(
     data.map(async (lead) => {
       const existingResponse = await LeadResponse.exists({
