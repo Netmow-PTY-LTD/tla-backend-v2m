@@ -15,6 +15,10 @@ import QueryBuilder from '../../../builder/QueryBuilder';
 import LeadResponse from '../../LeadResponse/models/response.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
 import { buildCreditFilter } from '../utils/buildCreditFilter';
+import Service from '../../Service/models/service.model';
+import config from '../../../config';
+import { sendEmail } from '../../../emails/email.service';
+import { IUser } from '../../Auth/interfaces/auth.interface';
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -22,7 +26,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
   try {
     session.startTransaction();
 
-    const userProfile = await UserProfile.findOne({ user: userId })
+    const userProfile = await UserProfile.findOne({ user: userId }).populate('user')
       .select('_id')
       .session(session);
 
@@ -87,6 +91,35 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
     await session.commitTransaction();
     session.endSession();
+
+
+    // -------------------------------------   send email -------------------------------------------
+
+
+
+    const service = await Service.findById(serviceId).select('name');
+
+
+    const emailData = {
+      name:userProfile?.name,
+      caseType: service?.name || 'Not specified',
+      involvedMembers: questions?.involvedMembers || 'Self',
+      preferredServiceType: questions?.preferredServiceType || 'Not specified',
+      likelihoodOfHiring: questions?.likelihoodOfHiring || 'Not sure',
+      preferredContactTime: questions?.preferredContactTime || 'Anytime',
+      dashboardUrl: `${config.client_url}/client/dashboard/my-leads`,
+      appName: 'The Law App',
+      email: 'support@yourdomain.com',
+    };
+
+    await sendEmail({
+      to: (userProfile.user as IUser).email,
+      subject:'Lead Submission Confirmation – TheLawApp',
+      data: emailData,
+      emailTemplate: 'welcome_to_client',
+    });
+
+
 
     return leadUser;
   } catch (error) {
