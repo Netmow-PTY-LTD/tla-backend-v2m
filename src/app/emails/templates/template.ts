@@ -31,55 +31,91 @@ export const congratulationsLawyerPromotion = (data: {
   }
 
   return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Congratulations Email</title>
-  </head>
-  <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #f9f9f9;">
-    <table width="100%" cellpadding="0" cellspacing="0"
-      style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ddd;">
-      <tr>
-        <td style="padding: 20px; text-align: center; background-color: #01c3bd; color: white;">
-          <h1 style="margin: 0;">🎉 Congratulations!</h1>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 30px; color: #333;">
-          <h2 style="margin-top: 0;">${greeting}</h2>
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Congratulations Email</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; line-height: 1.6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+    
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding: 20px 0; background-color: #ffffff;">
+        <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" style="display: block;" />
+      </td>
+    </tr>
+    
 
-          <p style="line-height: 1.6;">
-            We’re excited to let you know that your profile has officially been recognized as a
-            <strong>${role}</strong> on <strong>${appName}</strong>.
-          </p>
+    <!-- Greeting & Message -->
+    
+    <tr>
+      <td style="padding: 30px; color: #333;">
+        <h2 style="margin: 0 0 20px; font-size: 24px; color: #333;">${greeting}</h2>
 
-          <p style="line-height: 1.6;">
-            Here’s what you unlock:
-          </p>
-          <ul style="padding-left: 20px;">
-            ${features}
-          </ul>
+        <p style="margin: 0 0 15px; font-size: 15px; color: #555;">
+          We’re excited to let you know that your profile has officially been recognized as a
+          <strong>${role}</strong> on <strong>${appName}</strong>.
+        </p>
 
-          <div style="margin: 30px 0; text-align: center;">
-            <a href="${dashboardUrl}"
-              style="background-color: #00c3c0; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">
-              Go to My Dashboard
-            </a>
-          </div>
+        <p style="margin: 0 0 10px; font-size: 15px; color: #555;">
+          Here’s what you unlock:
+        </p>
 
-          <p>If you have any questions or need help, reach out to us at <a href="mailto:support@thelawapp.com.au">
-            support@thelawapp.com.au</a></p>
-        </td>
-      </tr>
-      <tr>
-        <td style="text-align: center; font-size: 12px; color: #999; padding: 20px;">
-          © 2025 ${appName}. All rights reserved.
-        </td>
-      </tr>
-    </table>
-  </body>
-  </html>
+        <ul style="padding-left: 20px; margin: 0; font-size: 15px; color: #555; list-style: disc;">
+          ${features}
+        </ul>
+      </td>
+    </tr>
+
+    <!-- CTA Button -->
+    <tr>
+      <td align="center" style="padding: 30px 0;">
+        <a href="${dashboardUrl}" 
+          style="background-color: #f68c1f; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+          Go to Dashboard
+        </a>
+      </td>
+    </tr>
+
+    <!-- Support Message -->
+    <tr>
+      <td style="padding: 0 30px 20px; font-size: 15px; color: #555;">
+        If you need help setting up your account or understanding how leads work, our support team is here to help.
+        <br><br>
+        Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.
+      </td>
+    </tr>
+
+    <!-- Signoff -->
+    <tr>
+      <td style="padding: 0 30px 30px; font-size: 16px; color: #333;">
+        Best Regards, <br>
+        <strong style="color: #f68c1f;">${appName} Team</strong>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
+          You are receiving this email because you registered on ${appName} as a legal professional.
+        </p>
+        <p style="margin: 0;">
+          <a href="https://thelawapp.com/privacy" style="color: #999; text-decoration: none;">Privacy Policy</a> •
+          <a href="https://thelawapp.com/terms" style="color: #999; text-decoration: none;">Terms</a> •
+          <a href="https://thelawapp.com/help" style="color: #999; text-decoration: none;">Help Center</a> •
+          <a href="https://thelawapp.com/unsubscribe" style="color: #999; text-decoration: none;">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
+
+  </table>
+</body>
+</html>
   `;
 };
 
