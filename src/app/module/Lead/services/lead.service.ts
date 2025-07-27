@@ -19,6 +19,8 @@ import Service from '../../Service/models/service.model';
 import config from '../../../config';
 import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/interfaces/auth.interface';
+import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
+import Option from '../../Option/models/option.model';
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -52,7 +54,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       deletedAt: null,
     }).select('baseCredit');
 
-
+    let formattedAnswers = '';
     const [leadUser] = await Lead.create(
       [
         {
@@ -85,32 +87,73 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       }
     }
 
+
     if (leadDocs.length > 0) {
       await LeadServiceAnswer.insertMany(leadDocs, { session });
-    }
 
+
+      //  --------------------  Lead Answer Format for Email sending
+
+      const questionIds = [...new Set(questions.map((q: any) => q.questionId))];
+      const optionIds = [
+        ...new Set(
+          questions.flatMap((q: any) =>
+            q.checkedOptionsDetails.map((opt: any) => opt.id),
+          ),
+        ),
+      ];
+
+      const questionDocs = await ServiceWiseQuestion.find({
+        _id: { $in: questionIds },
+      })
+        .select('question')
+        .session(session)
+        .lean();
+
+      const optionDocs = await Option.find({ _id: { $in: optionIds } })
+        .select('name')
+        .session(session)
+        .lean();
+
+      const questionMap = new Map(questionDocs.map(q => [q._id.toString(), q.question]));
+      const optionMap = new Map(optionDocs.map(opt => [opt._id.toString(), opt.name]));
+
+      formattedAnswers = questions
+        .map((q: any) => {
+          const questionText = questionMap.get(q.questionId) || 'Unknown Question';
+          const selectedOptions = q.checkedOptionsDetails
+            .filter((opt: any) => opt.is_checked)
+            .map((opt: any) => optionMap.get(opt.id) || 'Unknown Option')
+            .join(', ');
+
+          return `<strong>${questionText}:</strong><br> ${selectedOptions || 'No selection'
+            }`;
+        })
+        .join('<br/>');
+
+
+
+
+    }
+    const service = await Service.findById(serviceId).select('name').session(session);
     await session.commitTransaction();
     session.endSession();
 
-
     // -------------------------------------   send email -------------------------------------------
-
-
-
-    const service = await Service.findById(serviceId).select('name');
 
 
     const emailData = {
       name: userProfile?.name,
       caseType: service?.name || 'Not specified',
-      involvedMembers: questions?.involvedMembers || 'Self',
-      preferredServiceType: questions?.preferredServiceType || 'Not specified',
-      likelihoodOfHiring: questions?.likelihoodOfHiring || 'Not sure',
-      preferredContactTime: questions?.preferredContactTime || 'Anytime',
+      leadAnswer: formattedAnswers,
+      preferredContactTime: leadPriority || 'not sure',
+      additionalDetails: additionalDetails || '',
       dashboardUrl: `${config.client_url}/client/dashboard/my-leads`,
       appName: 'The Law App',
       email: 'support@yourdomain.com',
     };
+
+
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
