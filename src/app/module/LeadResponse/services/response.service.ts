@@ -212,6 +212,7 @@ type PaginatedResult<T> = {
   data: T[];
   pagination: TMeta;
 };
+
 const getMyAllResponseFromDB = async (
   userId: string,
   filters: any = {},
@@ -385,7 +386,6 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
   const responseDoc = await LeadResponse.findById(responseId)
     .populate({
       path: 'responseBy',
-      // path: 'userProfileId',
       populate: { path: 'user' },
     })
     .populate({
@@ -534,6 +534,25 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     },
   ]);
 
+
+  // ----------------- 🔹 HARD-CODED ANSWER OBJECT BASE ONE LEAD PRIORITY ANSWER ---------------------------
+  const hardCodedAnswer = {
+    questionId: 'qqqqqqqqqqqqqqqqqqqqqqqq', // 24 'q' characters
+    question: 'When are you looking to get started?',
+    options: [
+      {
+        optionId: 'oooooooooooooooooooooooo', // 24 'o' characters
+        option: (responseDoc?.leadId as any).leadPriority,
+        isSelected: true,
+        idExtraData: '',
+      },
+    ],
+  };
+
+
+
+  // Add hardcoded data into leadAnswers
+  leadAnswers.push(hardCodedAnswer);
 
 
   const activity = await ActivityLog.find({

@@ -10,7 +10,6 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
 
-import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import QueryBuilder from '../../../builder/QueryBuilder';
 import LeadResponse from '../../LeadResponse/models/response.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
@@ -153,7 +152,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       email: 'support@yourdomain.com',
     };
 
-    console.log('email data ==>',emailData)
+    console.log('email data ==>', emailData)
 
 
     await sendEmail({
@@ -173,9 +172,6 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
     throw error;
   }
 };
-
-
-
 
 
 
@@ -393,10 +389,6 @@ const getAllLeadFromDB = async (
 
 
 
-
-
-
-
 const getMyAllLeadFromDB = async (
   userId: string,
   query: Record<string, unknown>,
@@ -439,6 +431,7 @@ const getMyAllLeadFromDB = async (
 
 
 //  --------------  SINGLE LEAD API WITH LEAD ANSWER AND RESPONSE TAG ----------
+
 const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   const user = await UserProfile.findOne({ user: userId });
   if (!user) {
@@ -588,7 +581,26 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   ]);
 
 
+  // ----------------- 🔹 HARD-CODED ANSWER OBJECT BASE ONE LEAD PRIORITY ANSWER ---------------------------
+  const hardCodedAnswer = {
+    questionId: 'qqqqqqqqqqqqqqqqqqqqqqqq', // 24 'q' characters
+    question: 'When are you looking to get started?',
+    options: [
+      {
+        optionId: 'oooooooooooooooooooooooo', // 24 'o' characters
+        option: leadDoc.leadPriority,
+        isSelected: true,
+        idExtraData: '',
+      },
+    ],
+  };
 
+
+
+  // Add hardcoded data into leadAnswers
+  leadAnswers.push(hardCodedAnswer);
+
+//  -------------------- CHECK ANY RESPONSE THIS LEAD FOR CURRENT USER END ---------------
   const existingResponse = await LeadResponse.exists({
     leadId: leadId,
     responseBy: user._id,
