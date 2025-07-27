@@ -3,8 +3,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import mongoose from 'mongoose';
 import app from './app';
 import config from './app/config';
-import { initializeSockets } from './app/sockets';
-import { setSocketServerInstance } from './app/sockets/ioInstance';
+import { initializeSockets, setSocketServerInstance } from './app/sockets';
+
 let server: Server;
 
 async function main() {

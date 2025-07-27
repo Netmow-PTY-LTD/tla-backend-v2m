@@ -1,6 +1,20 @@
 
-import { Server } from 'socket.io';
-import handleConnection from './coneectionHandler';
+import { Server, Socket } from 'socket.io';
+import { registerChatEvents, registerNotificationEvents } from './events';
+
+
+let io: Server;
+
+export const handleConnection = (socket: Socket, io: Server) => {
+  registerChatEvents(socket, io);
+  registerNotificationEvents(socket, io);
+
+  socket.on('disconnect', () => {
+    console.log(`❌ Client disconnected: ${socket.id}`);
+  });
+};
+
+
 
 
 
@@ -10,3 +24,12 @@ export const initializeSockets = (io: Server) => {
     handleConnection(socket, io);
   });
 };
+
+
+
+
+export const setSocketServerInstance = (ioInstance: Server) => {
+  io = ioInstance;
+};
+
+export { io };
