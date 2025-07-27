@@ -21,6 +21,7 @@ import { IUser } from '../../Auth/interfaces/auth.interface';
 import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import Option from '../../Option/models/option.model';
 
+
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
 
@@ -290,7 +291,8 @@ const getAllLeadFromDB = async (
   const baseFilter: any = {
     deletedAt: null,
     serviceId: { $in: services.length ? services : user.serviceIds },
-    status: "approve"
+    status: "approved"
+    
   };
 
   // ---------------- CREDIT RANGE FILTER -----------------
