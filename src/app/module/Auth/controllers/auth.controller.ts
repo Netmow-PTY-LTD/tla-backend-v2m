@@ -39,39 +39,6 @@ const login = catchAsync(async (req, res) => {
   });
 });
 
-/**
- * @desc   Handles user registration.
- *         Accepts user data from request body, registers the user,
- *         generates access and refresh tokens, sets the refresh token as a secure cookie,
- *         and responds with the access token and user data.
- * @route  POST /api/v1/auth/register
- * @access Public
- */
-const register = catchAsync(async (req, res) => {
-  // Extract user registration data from the request body
-  const payload = req.body;
-
-  // Register the user and receive tokens along with user data
-  const { accessToken, refreshToken, userData } =
-    await authService.registerUserIntoDB(payload);
-
-  // Store the refresh token in a secure HTTP-only cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-    // secure: config.NODE_ENV === 'production',
-    secure: true, // Ensures the cookie is only sent over HTTPS
-    sameSite: 'none', // Allows cross-site requests (must be used with HTTPS)
-  });
-
-  // Send response with access token and registered user information
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Register User Successfully',
-    token: accessToken,
-    data: userData,
-  });
-});
 
 /**
  * @desc   Handles refreshing the access token using the refresh token.
@@ -209,7 +176,6 @@ const logOut = catchAsync(async (req, res) => {
 
 export const authController = {
   login,
-  register,
   refreshToken,
   changePassword,
   forgetPassword,
