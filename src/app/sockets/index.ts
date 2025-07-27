@@ -1,10 +1,9 @@
-
 import { Server, Socket } from 'socket.io';
-import { registerChatEvents, registerNotificationEvents } from './events';
-
+import { registerChatEvents, registerNotificationEvents } from './event';
 
 let io: Server;
 
+//  ------------  connection event ------------------------------
 export const handleConnection = (socket: Socket, io: Server) => {
   registerChatEvents(socket, io);
   registerNotificationEvents(socket, io);
@@ -16,20 +15,23 @@ export const handleConnection = (socket: Socket, io: Server) => {
 
 
 
+//  -----------------------   Initial Socket -------------------------------
 
-
-export const initializeSockets = (io: Server) => {
-  io.on('connection', (socket) => {
+export const initializeSockets = (ioInstance: Server) => {
+  ioInstance.on('connection', (socket) => {
     console.log(`🔌 New client connected: ${socket.id}`);
-    handleConnection(socket, io);
+    handleConnection(socket, ioInstance);
   });
+  setSocketServerInstance(ioInstance);
 };
-
-
-
 
 export const setSocketServerInstance = (ioInstance: Server) => {
   io = ioInstance;
 };
 
-export { io };
+export const getIO = (): Server => {
+  if (!io) {
+    throw new Error('Socket.IO server not initialized!');
+  }
+  return io;
+};

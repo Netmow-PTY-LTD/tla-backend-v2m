@@ -3,7 +3,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import mongoose from 'mongoose';
 import app from './app';
 import config from './app/config';
-import { initializeSockets, setSocketServerInstance } from './app/sockets';
+import { setSocketServerInstance } from './app/sockets';
 
 let server: Server;
 
@@ -23,7 +23,6 @@ async function main() {
     ].filter(Boolean) as string[];
 
 
-
     const io = new SocketIOServer(server, {
       cors: {
         origin: allowedOrigins,
@@ -32,7 +31,7 @@ async function main() {
     });
 
     setSocketServerInstance(io);        // Share io globally
-    initializeSockets(io);              // Initialize connection handling
+
 
   } catch (err) {
     console.log(err);
