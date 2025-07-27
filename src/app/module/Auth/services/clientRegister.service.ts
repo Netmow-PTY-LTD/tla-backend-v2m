@@ -15,10 +15,11 @@ import Lead from '../../Lead/models/lead.model';
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import { Types } from 'mongoose';
 import { REGISTER_USER_TYPE } from '../constant/auth.constant';
-import { generateRegistrationEmail } from '../../../emails/templates/registrationEmail';
 import { sendEmail } from '../../../emails/email.service';
 import Service from '../../Service/models/service.model';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
+import Option from '../../Option/models/option.model';
+import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 
 
 
@@ -70,6 +71,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       deletedAt: null,
     }).select('baseCredit');
 
+    let formattedAnswers = '';
     if (newUser.regUserType === REGISTER_USER_TYPE.CLIENT) {
       const [leadUser] = await Lead.create(
         [
@@ -81,7 +83,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
             budgetAmount: leadDetails.budgetAmount || '',
             locationId: leadDetails.zipCode,
             credit: creditInfo?.baseCredit,
-            leadPriority:leadDetails?.leadPriority
+            leadPriority: leadDetails?.leadPriority
           },
         ],
         { session },
@@ -106,7 +108,52 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
       if (leadDocs.length > 0) {
         await LeadServiceAnswer.insertMany(leadDocs, { session });
+
+
+        //  --------------------  Lead Answer Format for Email sending
+        
+        const questionIds = [...new Set(questions.map((q: any) => q.questionId))];
+        const optionIds = [
+          ...new Set(
+            questions.flatMap((q: any) =>
+              q.checkedOptionsDetails.map((opt: any) => opt.id),
+            ),
+          ),
+        ];
+
+        const questionDocs = await ServiceWiseQuestion.find({
+          _id: { $in: questionIds },
+        })
+          .select('question')
+          .session(session)
+          .lean();
+
+        const optionDocs = await Option.find({ _id: { $in: optionIds } })
+          .select('name')
+          .session(session)
+          .lean();
+
+        const questionMap = new Map(questionDocs.map(q => [q._id.toString(), q.question]));
+        const optionMap = new Map(optionDocs.map(opt => [opt._id.toString(), opt.name]));
+
+        formattedAnswers = questions
+          .map((q: any) => {
+            const questionText = questionMap.get(q.questionId) || 'Unknown Question';
+            const selectedOptions = q.checkedOptionsDetails
+              .filter((opt: any) => opt.is_checked)
+              .map((opt: any) => optionMap.get(opt.id) || 'Unknown Option')
+              .join(', ');
+
+            return `<strong>${questionText}:</strong><br> ${
+              selectedOptions || 'No selection'
+            }`;
+          })
+          .join('<br/>');
+
+
       }
+
+
     }
 
     // ✅ location  realated 
@@ -125,22 +172,20 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       session,
     });
 
+    const service = await Service.findById(serviceId).select('name').session(session);
+
     await session.commitTransaction();
     session.endSession();
-
 
     // -------------------------------------   send email -------------------------------------------
 
 
-    const service = await Service.findById(serviceId).select('name');
-
     const emailData = {
       name: newProfile?.name,
       caseType: service?.name || 'Not specified',
-      involvedMembers: leadDetails?.involvedMembers || 'Self',
-      preferredServiceType: leadDetails?.preferredServiceType || 'Not specified',
-      likelihoodOfHiring: leadDetails?.likelihoodOfHiring || 'Not sure',
-      preferredContactTime: leadDetails?.preferredContactTime || 'Anytime',
+      leadAnswer: formattedAnswers,
+      preferredContactTime: leadDetails?.leadPriority || 'not sure',
+      additionalDetails: leadDetails.additionalDetails || '',
       dashboardUrl: `${config.client_url}/client/dashboard/my-leads`,
       appName: 'The Law App',
       email: 'support@yourdomain.com',
@@ -190,8 +235,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     //     data: newLeadsAlertData,
     //     emailTemplate: 'new_lead_alert',
     //   });
-
-
 
 
 
