@@ -728,3 +728,4 @@ export const leadEmailTemplate = (data: {
 </html>
   `;
 };
+
