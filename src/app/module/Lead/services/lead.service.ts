@@ -29,7 +29,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
     session.startTransaction();
 
     const userProfile = await UserProfile.findOne({ user: userId }).populate('user')
-      .select('_id')
+      .select('name user')
       .session(session);
 
     if (!userProfile) {
@@ -153,6 +153,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       email: 'support@yourdomain.com',
     };
 
+    console.log('email data ==>',emailData)
 
 
     await sendEmail({
