@@ -469,3 +469,263 @@ export const welcomeLawyerEmail = (data: {
 </html>
   `;
 };
+
+
+
+
+export const passwordResetEmail = (data: {
+  name: string;
+  resetUrl: string;
+}) => {
+  const { name, resetUrl } = data;
+
+  return `
+<!DOCTYPE html>
+<html lang="en">     
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background-color:#ffffff; padding: 20px;">
+   
+     <!-- Logo -->
+        <tr>
+            <td align="center" style="padding-bottom: 20px;">
+                <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+            </td>
+        </tr>
+
+    <!-- Greeting -->
+    <tr>
+      <td style="padding: 0 30px;">
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          You have requested us to send a link to reset your password for your TheLawApp account. Click on the button below to proceed.
+        </p>
+        <!-- Button -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+            Reset password
+          </a>
+        </div>
+        <p style="font-size: 14px; color: #555;">
+          If you didn’t initiate this request, you can safely ignore this email.
+        </p>
+        <p style="font-size: 14px; margin-top: 20px;">
+          Best Regards,<br>
+          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+        </p>
+      </td>
+    </tr>
+
+    <!-- Social Links -->
+    <tr>
+      <td style="text-align:center; padding:30px 0;">
+        <a href="https://instagram.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width:30px; margin:0 10px;"></a>
+        <a href="https://facebook.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width:30px; margin:0 10px;"></a>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
+        © 2025 TheLawApp. All rights reserved.
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888; line-height: 1.5;">
+        You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below.
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
+        <a href="https://thelawapp.com/privacy" style="color: #FF7F27; text-decoration: none;">Privacy policy</a> • 
+        <a href="https://thelawapp.com/terms" style="color: #FF7F27; text-decoration: none;">Terms of service</a> • 
+        <a href="https://thelawapp.com/help" style="color: #FF7F27; text-decoration: none;">Help center</a> • 
+        <a href="https://thelawapp.com/unsubscribe" style="color: #FF7F27; text-decoration: none;">Unsubscribe</a>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+};
+
+
+
+export const otpEmail = (data: { name: string; otp: string; expiresIn?: string }) => {
+  const { name, otp, expiresIn = "5 minutes" } = data;
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verification</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background-color:#ffffff;">
+    <!-- Logo -->
+        <tr>
+            <td align="center" style="padding-bottom: 20px;">
+                <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+            </td>
+        </tr>
+    <tr>
+      <td style="padding: 0 30px;">
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+          Here is your <strong>One Time Password (OTP)</strong>.<br>
+          Please enter this code to verify your email address for TheLawApp:
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <div style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 10px; background-color:#f8f6fc; padding: 12px 20px; border-radius: 6px;">
+            ${otp.split("").join("&nbsp;")}
+          </div>
+        </div>
+        <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 30px;">
+          OTP will expire in <strong>${expiresIn}</strong>.
+        </p>         
+        <p style="font-size: 14px; margin-top: 20px;">
+          Best Regards,<br>
+          <span style="color:#FF7F27; font-weight: bold;">TheLawApp team</span>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+};
+
+
+
+export const leadEmailTemplate = (data: {
+  clientName: string;
+  lawyerType: string;
+  location: string;
+  credits: number;
+  email: string;
+  phone: string;
+  description: string;
+  projectType: string;
+  projectValue: string;
+  mapImageUrl?: string;
+  contactUrl?: string;
+  viewDetailsUrl?: string;
+  discountUrl?: string;
+}) => {
+  const {
+    clientName,
+    lawyerType,
+    location,
+    credits,
+    email,
+    phone,
+    description,
+    projectType,
+    projectValue,
+    mapImageUrl = "https://via.placeholder.com/150x100?text=Map",
+    contactUrl = "#",
+    viewDetailsUrl = "#",
+    discountUrl = "#"
+  } = data;
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lead Notification</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f5f5f5; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background-color:#ffffff; border-radius:10px; overflow:hidden;">
+    <!-- Header Logo -->
+        <tr>
+            <td align="center" style="padding-bottom: 20px;">
+                <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+            </td>
+        </tr>
+
+    <!-- Main Content -->
+    <tr>
+      <td style="padding:20px;">
+        <!-- Title -->
+        <h2 style="font-size:18px; margin-bottom:10px;">
+          <strong>${clientName}</strong> is looking for a ${lawyerType}
+        </h2>
+
+        <!-- Location -->
+        <p style="margin:5px 0; font-size:14px; color:#666;">
+          <span style="color:red;">📍</span> ${location}
+        </p>
+
+        <!-- Credits -->
+        <p style="margin:5px 0; font-size:14px; color:#333;">
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828961.png" alt="" style="width:14px; vertical-align:middle;"> 
+          ${credits} Credits to respond
+        </p>
+
+        <!-- Contact Info and Map -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;">
+          <tr>
+            <td style="vertical-align:top; width:60%; font-size:14px; line-height:1.6; color:#444;">
+              <p style="margin:5px 0;">📧 ${email}</p>
+              <p style="margin:5px 0;">📞 ${phone}</p>
+              <p style="margin:10px 0;">
+                ${description}
+              </p>
+              <a href="${contactUrl}" style="background-color:#ff7f27; color:#fff; text-decoration:none; padding:8px 15px; border-radius:5px; font-size:14px; display:inline-block;">Contact ${clientName}</a>
+            </td>
+            <td style="text-align:right; vertical-align:top; width:40%;">
+              <img src="${mapImageUrl}" alt="Location Map" style="width:100%; border-radius:5px; margin-bottom:8px;">
+              <a href="${viewDetailsUrl}" style="background-color:#fff; border:1px solid #ff7f27; color:#ff7f27; text-decoration:none; padding:6px 12px; border-radius:5px; font-size:14px; display:inline-block;">View Details</a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Project Details -->
+        <h3 style="margin-top:20px; font-size:16px; color:#000;">Project Details</h3>
+        <p style="font-size:14px; margin:5px 0;">Which of these best describes you? <strong>${projectType}</strong></p>
+        <p style="font-size:14px; margin:5px 0;">What is the approx. value of the contract this is about? <strong>${projectValue}</strong></p>
+
+        <!-- Contact Button -->
+        <div style="margin:20px 0;">
+          <a href="${contactUrl}" style="background-color:#ff7f27; color:#fff; text-decoration:none; padding:10px 20px; border-radius:5px; font-size:16px; display:inline-block;">Contact ${clientName}</a>
+        </div>
+
+        <!-- Discount Offer -->
+        <div style="text-align:center; padding:20px; border-top:1px solid #eee;">
+          <h2 style="font-size:20px; margin:10px 0; color:#000;">Get 20% off</h2>
+          <a href="${discountUrl}" style="background-color:#ff7f27; color:#fff; text-decoration:none; padding:10px 20px; border-radius:5px; font-size:16px; display:inline-block;">Get 20% off</a>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:20px; text-align:center; font-size:12px; color:#999; background-color:#f5f5f5;">
+        <p style="margin:0;">Suit B3, Level 35/4 Jephson ST, Toowong QLD 4068, Australia</p>
+        <p style="margin:5px 0;">Don't like these emails? <a href="#" style="color:#ff7f27; text-decoration:none;">Unsubscribe</a>.</p>
+        <div style="margin:10px 0;">
+          <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384063.png" alt="Facebook" style="width:24px; margin:0 4px;"></a>
+          <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="LinkedIn" style="width:24px; margin:0 4px;"></a>
+          <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384062.png" alt="Twitter" style="width:24px; margin:0 4px;"></a>
+        </div>
+        <div>
+          <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/App_Store_badge.svg" alt="App Store" style="width:100px; margin:0 5px;"></a>
+          <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/Get_it_on_Google_play.svg" alt="Google Play" style="width:110px; margin:0 5px;"></a>
+        </div>
+        <p style="margin-top:10px;">Powered by TheLawApp</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+};
+
