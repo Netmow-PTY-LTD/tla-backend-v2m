@@ -125,14 +125,12 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       session,
     });
 
+    const service = await Service.findById(serviceId).select('name').session(session);
+
     await session.commitTransaction();
     session.endSession();
 
-
     // -------------------------------------   send email -------------------------------------------
-
-
-    const service = await Service.findById(serviceId).select('name');
 
     const emailData = {
       name: newProfile?.name,
