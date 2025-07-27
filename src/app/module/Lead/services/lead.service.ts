@@ -10,7 +10,6 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
 
-import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import QueryBuilder from '../../../builder/QueryBuilder';
 import LeadResponse from '../../LeadResponse/models/response.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
@@ -19,6 +18,8 @@ import Service from '../../Service/models/service.model';
 import config from '../../../config';
 import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/interfaces/auth.interface';
+import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
+import Option from '../../Option/models/option.model';
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
@@ -27,7 +28,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
     session.startTransaction();
 
     const userProfile = await UserProfile.findOne({ user: userId }).populate('user')
-      .select('_id')
+      .select('name user')
       .session(session);
 
     if (!userProfile) {
@@ -52,7 +53,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       deletedAt: null,
     }).select('baseCredit');
 
-
+    let formattedAnswers = '';
     const [leadUser] = await Lead.create(
       [
         {
@@ -85,32 +86,74 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       }
     }
 
+
     if (leadDocs.length > 0) {
       await LeadServiceAnswer.insertMany(leadDocs, { session });
-    }
 
+
+      //  --------------------  Lead Answer Format for Email sending
+
+      const questionIds = [...new Set(questions.map((q: any) => q.questionId))];
+      const optionIds = [
+        ...new Set(
+          questions.flatMap((q: any) =>
+            q.checkedOptionsDetails.map((opt: any) => opt.id),
+          ),
+        ),
+      ];
+
+      const questionDocs = await ServiceWiseQuestion.find({
+        _id: { $in: questionIds },
+      })
+        .select('question')
+        .session(session)
+        .lean();
+
+      const optionDocs = await Option.find({ _id: { $in: optionIds } })
+        .select('name')
+        .session(session)
+        .lean();
+
+      const questionMap = new Map(questionDocs.map(q => [q._id.toString(), q.question]));
+      const optionMap = new Map(optionDocs.map(opt => [opt._id.toString(), opt.name]));
+
+      formattedAnswers = questions
+        .map((q: any) => {
+          const questionText = questionMap.get(q.questionId) || 'Unknown Question';
+          const selectedOptions = q.checkedOptionsDetails
+            .filter((opt: any) => opt.is_checked)
+            .map((opt: any) => optionMap.get(opt.id) || 'Unknown Option')
+            .join(', ');
+
+          return `<strong>${questionText}:</strong><br> ${selectedOptions || 'No selection'
+            }`;
+        })
+        .join('<br/>');
+
+
+
+
+    }
+    const service = await Service.findById(serviceId).select('name').session(session);
     await session.commitTransaction();
     session.endSession();
 
-
     // -------------------------------------   send email -------------------------------------------
-
-
-
-    const service = await Service.findById(serviceId).select('name');
 
 
     const emailData = {
       name: userProfile?.name,
       caseType: service?.name || 'Not specified',
-      involvedMembers: questions?.involvedMembers || 'Self',
-      preferredServiceType: questions?.preferredServiceType || 'Not specified',
-      likelihoodOfHiring: questions?.likelihoodOfHiring || 'Not sure',
-      preferredContactTime: questions?.preferredContactTime || 'Anytime',
+      leadAnswer: formattedAnswers,
+      preferredContactTime: leadPriority || 'not sure',
+      additionalDetails: additionalDetails || '',
       dashboardUrl: `${config.client_url}/client/dashboard/my-leads`,
       appName: 'The Law App',
       email: 'support@yourdomain.com',
     };
+
+    console.log('email data ==>', emailData)
+
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
@@ -129,9 +172,6 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
     throw error;
   }
 };
-
-
-
 
 
 
@@ -183,8 +223,6 @@ const getAllLeadForAdminDashboardFromDB = async (
     data: result,
   };
 };
-
-
 
 
 
@@ -349,10 +387,6 @@ const getAllLeadFromDB = async (
 
 
 
-
-
-
-
 const getMyAllLeadFromDB = async (
   userId: string,
   query: Record<string, unknown>,
@@ -392,9 +426,8 @@ const getMyAllLeadFromDB = async (
 };
 
 
-
-
 //  --------------  SINGLE LEAD API WITH LEAD ANSWER AND RESPONSE TAG ----------
+
 const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   const user = await UserProfile.findOne({ user: userId });
   if (!user) {
@@ -544,7 +577,25 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   ]);
 
 
+  // ----------------- 🔹 HARD-CODED ANSWER OBJECT BASE ONE LEAD PRIORITY ANSWER ---------------------------
+  const hardCodedAnswer = {
+    questionId: 'qqqqqqqqqqqqqqqqqqqqqqqq', // 24 'q' characters
+    question: 'When are you looking to get started?',
+    options: [
+      {
+        optionId: 'oooooooooooooooooooooooo', // 24 'o' characters
+        option: leadDoc.leadPriority,
+        isSelected: true,
+        idExtraData: '',
+      },
+    ],
+  };
 
+
+  // Add hardcoded data into leadAnswers
+  leadAnswers.push(hardCodedAnswer);
+
+//  -------------------- CHECK ANY RESPONSE THIS LEAD FOR CURRENT USER END ---------------
   const existingResponse = await LeadResponse.exists({
     leadId: leadId,
     responseBy: user._id,
@@ -561,7 +612,6 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     isContact: !!existingResponse,
   };
 };
-
 
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
