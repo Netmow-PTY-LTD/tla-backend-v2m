@@ -3,24 +3,14 @@ import { AppError } from '../../../errors/error';
 import { ILoginUser, IUser } from '../interfaces/auth.interface';
 import User from '../models/auth.model';
 import { createToken, verifyToken } from '../utils/auth.utils';
-import { REGISTER_USER_TYPE, USER_STATUS } from '../constant/auth.constant';
+import { USER_STATUS } from '../constant/auth.constant';
 import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import mongoose, { Types } from 'mongoose';
+
 import UserProfile from '../../User/models/user.model';
 
-import { LawyerServiceMap } from '../../User/models/lawyerServiceMap.model';
-import CompanyProfile from '../../User/models/companyProfile.model';
-import { UserLocationServiceMap } from '../../LeadSettings/models/UserLocationServiceMap.model';
-
-import { validateObjectId } from '../../../utils/validateObjectId';
-import LeadService from '../../LeadSettings/models/leadService.model';
-import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
-import ZipCode from '../../Country/models/zipcode.model';
-import Option from '../../Option/models/option.model';
-import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { sendEmail } from '../../../emails/email.service';
 
 /**
@@ -101,259 +91,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 
 
 
-const createLeadService = async (
-  userId: Types.ObjectId,
-  serviceIds: Types.ObjectId[],
-  session?: mongoose.ClientSession,
-) => {
-  // 1. Find user profile
-  const userProfile = await UserProfile.findOne({ user: userId })
-    .select('_id serviceIds country')
-    .session(session ?? null);
 
-  if (!userProfile) {
-    sendNotFoundResponse('User profile not found');
-    return;
-  }
-
-  // 2. Validate service IDs
-  serviceIds.forEach((id) =>
-    validateObjectId(id.toString(), 'service'),
-  );
-
-  // 3. Filter only new service IDs
-  const existingServiceIds = new Set(
-    (userProfile.serviceIds || []).map((id: Types.ObjectId) =>
-      id.toString(),
-    ),
-  );
-
-  const newServiceIds = serviceIds.filter(
-    (id) => !existingServiceIds.has(id.toString()),
-  );
-
-  if (newServiceIds.length === 0) {
-    throw {
-      status: 409,
-      message: 'All selected services already exist for this user',
-      duplicates: Array.from(existingServiceIds),
-    };
-  }
-
-
-  const successfulServiceIds: Types.ObjectId[] = [];
-
-  // 4. Get all questions for new services
-  const allQuestions = await ServiceWiseQuestion.find({
-    serviceId: { $in: newServiceIds },
-  })
-    .select('_id serviceId')
-    .session(session ?? null);
-
-  // 5. Group questions by serviceId
-  const questionsByServiceId = new Map<
-    string,
-    { _id: Types.ObjectId }[]
-  >();
-
-  for (const question of allQuestions) {
-    const serviceIdStr = question.serviceId.toString();
-    if (!questionsByServiceId.has(serviceIdStr)) {
-      questionsByServiceId.set(serviceIdStr, []);
-    }
-    questionsByServiceId.get(serviceIdStr)!.push({ _id: question._id });
-  }
-
-  // 6. Build match pairs
-  const matchPairs = allQuestions.map((q) => ({
-    questionId: q._id,
-    serviceId: q.serviceId,
-  }));
-
-  // 7. Get options by (questionId + serviceId)
-  const allOptions = await Option.find({
-    $or: matchPairs,
-  })
-    .select('_id questionId serviceId')
-    .session(session ?? null);
-
-  // 8. Group options by questionId (string-keyed map for consistency)
-  const optionsByQuestionId = new Map<
-    string,
-    { _id: Types.ObjectId; serviceId: Types.ObjectId }[]
-  >();
-
-  for (const option of allOptions) {
-    const questionIdStr = option.questionId.toString();
-    if (!optionsByQuestionId.has(questionIdStr)) {
-      optionsByQuestionId.set(questionIdStr, []);
-    }
-    optionsByQuestionId.get(questionIdStr)!.push({
-      _id: option._id,
-      serviceId: option.serviceId,
-    });
-  }
-
-  // 9. Build LeadService docs and insert
-  for (const serviceId of newServiceIds) {
-    const questions = questionsByServiceId.get(serviceId.toString()) || [];
-
-    const docs = questions.flatMap((question) => {
-      const options = optionsByQuestionId.get(question._id.toString()) || [];
-
-      return options
-        .filter((option) => option.serviceId.equals(serviceId))
-        .map((option) => ({
-          userProfileId: userProfile._id,
-          serviceId,
-          questionId: question._id,
-          optionId: option._id,
-          isSelected: true,
-        }));
-    });
-
-    if (docs.length > 0) {
-      await LeadService.insertMany(docs, { session });
-      successfulServiceIds.push(serviceId);
-
-    }
-  }
-
-  // . Update userProfile.serviceIds
-  if (successfulServiceIds.length > 0) {
-    userProfile.serviceIds = [
-      ...(userProfile.serviceIds || []),
-      ...successfulServiceIds,
-    ];
-    await userProfile.save({ session });
-  }
-
-
-
-  return {
-    userProfileId: userProfile._id,
-    newServiceIds,
-  };
-
-};
-
-
-const registerUserIntoDB = async (payload: IUser) => {
-  // Start a database session for the transaction
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    // Check if the user already exists by email
-    const existingUser = await User.isUserExistsByEmail(payload.email);
-    if (existingUser) {
-      throw new AppError(HTTP_STATUS.CONFLICT, 'This user already exists!');
-    }
-
-    // Separate the profile data from the user data
-    const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
-
-    // Create the user document in the database
-    const [newUser] = await User.create([userData], { session });
-
-    const address = await ZipCode.findById(lawyerServiceMap?.zipCode);
-    // Prepare the profile data with a reference to the user
-    const profileData = {
-      ...profile,
-      user: newUser._id,
-      address: address ? address.zipcode : '',
-    };
-
-    // Create the user profile document in the database
-    const [newProfile] = await UserProfile.create([profileData], { session });
-
-    // Link the profile to the newly created user
-    newUser.profile = new Types.ObjectId(newProfile._id);
-    await newUser.save({ session });
-
-    // compnay profile map create
-
-    if (companyInfo?.companyTeam) {
-      const companyProfileMapData = {
-        ...companyInfo,
-        contactEmail: userData.email,
-        userProfileId: newProfile._id,
-      };
-
-      await CompanyProfile.create([companyProfileMapData], { session });
-    }
-
-    // lawyer service map create
-
-    if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
-      const lawyerServiceMapData = {
-        ...lawyerServiceMap,
-        userProfile: newProfile._id,
-      };
-
-      await LawyerServiceMap.create([lawyerServiceMapData], { session });
-    }
-
-    const locationGroup = await ZipCode.findOne({
-      countryId: newProfile?.country,
-      zipCodeType: 'default',
-    });
-
-    const userLocationServiceMapData = {
-      userProfileId: newProfile._id,
-      locationGroupId: locationGroup?._id,
-      locationType: 'nation_wide',
-      serviceIds: lawyerServiceMap.services || [],
-    };
-
-    await UserLocationServiceMap.create([userLocationServiceMapData], {
-      session,
-    });
-
-    // ✅ Create lead service entries using session
-    await createLeadService(newUser?._id, lawyerServiceMap.services, session);
-
-
-
-    // Commit the transaction (save changes to the database)
-    await session.commitTransaction();
-    session.endSession();
-
-    // Generate the access token for the user
-    const jwtPayload = {
-      userId: newUser._id,
-      email: newUser.email,
-      // username: newUser.username,
-      role: newUser.role,
-      accountStatus: newUser.accountStatus,
-    };
-
-    const accessToken = createToken(
-      jwtPayload,
-      config.jwt_access_secret as StringValue,
-      config.jwt_access_expires_in as StringValue,
-    );
-
-    // Generate the refresh token for the user
-    const refreshToken = createToken(
-      jwtPayload,
-      config.jwt_refresh_secret as StringValue,
-      config.jwt_refresh_expires_in as StringValue,
-    );
-
-    // Return the generated tokens and user data
-    return {
-      accessToken,
-      refreshToken,
-      userData: newUser,
-    };
-  } catch (error) {
-    // If an error occurs, abort the transaction to avoid incomplete data
-    await session.abortTransaction();
-    session.endSession();
-    throw error;
-  }
-};
 
 const refreshToken = async (token: string) => {
   // checking if the given token is valid
@@ -497,25 +235,18 @@ const forgetPassword = async (userEmail: string) => {
   const resetUILink = `${config.reset_pass_ui_link}/reset-password?email=${user.email}&token=${resetToken}`;
 
   // Prepare email content for password reset
-  const subject = 'Reset Your Password';
-  const text = `Hi ${userProfile?.name},\n\nClick the link below to reset your password:\n${resetUILink}`;
-  const html = `
-    <h1>Password Reset Request</h1>
-    <p>Hello, ${userProfile?.name}!</p>
-    <p>Click the button below to reset your password:</p>
-    <a href="${resetUILink}" style="padding: 10px 15px; background-color: #007BFF; color: #fff; text-decoration: none; border-radius: 5px;">
-      Reset Password
-    </a>
-    <p>If you didn’t request this, you can safely ignore this email.</p>
-  `;
+  const restEmailData = {
+    name: userProfile?.name,
+    resetUrl: resetUILink
 
-  // Send the reset password email to the user
-  // await sendEmail({
-  //   to: user.email,
-  //   subject,
-  //   text,
-  //   html,
-  // }); 
+  };
+  await sendEmail({
+    to: user.email,
+    subject: 'Reset Your Password',
+    data: restEmailData,
+    emailTemplate: 'password_reset',
+  });
+
 };
 
 /**
@@ -523,7 +254,7 @@ const forgetPassword = async (userEmail: string) => {
  *         and updating the password in the database.
  * @param  {Object} payload - The request payload containing the email and the new password.
  * @param  {string} token - The reset token used for verification.
- * @returns {Promise<void>} Returns nothing, but updates the user's password if successful.
+ * 
  */
 const resetPassword = async (
   payload: { email: string; newPassword: string },
@@ -642,7 +373,6 @@ const accountStatusChangeIntoDB = async (
 
 export const authService = {
   loginUserIntoDB,
-  registerUserIntoDB,
   refreshToken,
   changePasswordIntoDB,
   forgetPassword,
