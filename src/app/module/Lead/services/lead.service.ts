@@ -227,8 +227,6 @@ const getAllLeadForAdminDashboardFromDB = async (
 
 
 
-
-
 //  --------------  Get all lead for lawyer dashboard ----------
 
 
@@ -428,8 +426,6 @@ const getMyAllLeadFromDB = async (
 };
 
 
-
-
 //  --------------  SINGLE LEAD API WITH LEAD ANSWER AND RESPONSE TAG ----------
 
 const getSingleLeadFromDB = async (userId: string, leadId: string) => {
@@ -596,7 +592,6 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   };
 
 
-
   // Add hardcoded data into leadAnswers
   leadAnswers.push(hardCodedAnswer);
 
@@ -617,7 +612,6 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     isContact: !!existingResponse,
   };
 };
-
 
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
