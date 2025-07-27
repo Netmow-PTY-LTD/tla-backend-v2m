@@ -10,6 +10,7 @@ import { createNotification } from '../../Notification/utils/createNotification'
 import UserProfile from '../../User/models/user.model';
 import { SendEmail } from '../models/SendEmail.model';
 import { SendSMS } from '../models/SendSMS.model';
+import { getIO } from '../../../sockets';
 
 
 const sendContactMessage = async (
@@ -23,6 +24,7 @@ const sendContactMessage = async (
     leadId?: string;
     responseId?: string;
     method: 'email' | 'sms';
+    roomId: any
   }
 ) => {
   const user = await UserProfile.findOne({ user: userId }).select('_id');
@@ -40,14 +42,25 @@ const sendContactMessage = async (
     method,
     responseId,
     emailText,
+    roomId
   } = payload;
 
   const objectId = responseId || leadId;
+  const io = getIO(); // Get socket instance
 
+  console.log('socket triger')
+  console.log('roomId',roomId)
   if (method === 'email' && toEmail) {
     try {
       const html = `<p>${emailText}</p>`;
-      // const result = await sendEmail({ to: toEmail, subject, html });
+
+      const result = await sendEmail({
+        to: toEmail,
+        subject: "Contact with Lawyer or client",
+        data: html,
+        emailTemplate: "contact",
+      });
+
 
       const resultDB = await SendEmail.create({
         to: toEmail,
@@ -58,6 +71,13 @@ const sendContactMessage = async (
         text: emailText,
         responseId,
         status: 'sent',
+      });
+
+      // Real-time socket notification
+      io.to(roomId).emit('notification', {
+        type: 'email_sent',
+        message: `Email sent to ${toEmail}`,
+        data: resultDB,
       });
 
       await logActivity({
@@ -139,6 +159,12 @@ const sendContactMessage = async (
         },
       });
 
+      // Notify sender via socket about failure
+      io.to(roomId).emit('notification', {
+        type: 'email_failed',
+        message: `Failed to send email to ${toEmail}.`,
+      });
+
       // ✅ Notify sender of failure
       await createNotification({
         userId,
@@ -165,6 +191,12 @@ const sendContactMessage = async (
         status: 'sent',
         provider: 'twilio',
         metadata: result,
+      });
+
+      io.to(roomId).emit('notification', {
+        type: 'sms_sent',
+        message: `SMS sent to ${toPhone}`,
+        data: resultSmsDB,
       });
 
       await logActivity({
@@ -244,6 +276,16 @@ const sendContactMessage = async (
           error: error.message,
         },
       });
+
+      io.to(roomId).emit('notification', {
+        type: 'sms_failed',
+        message: `Failed to send SMS to ${toPhone}.`,
+      });
+
+
+
+
+
       // ✅ Notify sender of failure
       await createNotification({
         userId,
