@@ -2,12 +2,10 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
-import http from 'http'
 import router from './app/routes';
 import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
-import { Server } from "socket.io";
 
 const app: Application = express();
 //parsers
@@ -43,55 +41,6 @@ app.use(
     credentials: true,
   }),
 );
-
-
-//  --------------------- socket --------------------------
-
-
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-  },
-});
-
-
-
-// Socket handler
-io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId;
-    console.log("Socket connected:", socket.id, "userId:", socket.handshake.query.userId);
-  console.log('socket connection data ===>',socket)
-  if (userId) {
-    socket.join(`user:${userId}`);
-    console.log(`✅ User ${userId} connected`);
-  }
-
-  // Join responseId room
-  socket.on("join-response", (responseId) => {
-    socket.join(`response:${responseId}`);
-    console.log(`User joined response:${responseId}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`❌ User ${userId} disconnected`);
-  });
-});
-
-// Sample API to trigger a notification
-app.post("/api/notify", (req, res) => {
-  const { toUserId, text, leadId, responseId } = req.body;
-  const payload = { text, leadId, responseId, timestamp: Date.now() };
-
-  io.to(`user:${toUserId}`).emit("notification", payload);
-  if (responseId) {
-    io.to(`response:${responseId}`).emit("response-update", payload);
-  }
-
-  res.json({ success: true });
-});
-
 
 
 
