@@ -23,7 +23,6 @@ async function main() {
     ].filter(Boolean) as string[];
 
 
-
     const io = new SocketIOServer(server, {
       cors: {
         origin: allowedOrigins,
