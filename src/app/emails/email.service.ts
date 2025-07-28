@@ -40,7 +40,7 @@ export const sendEmail = async ({
   if(emailTemplate =="welcome_to_lawyer"){
     html=welcomeLawyerEmail(data)
   }
-  if(emailTemplate==="user_intraction"){
+  if(emailTemplate==="contact"){
     html=interactionEmail(data)
   }
   if(emailTemplate =="lawyer_response_to_lead"){
