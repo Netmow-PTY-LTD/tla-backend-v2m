@@ -10,6 +10,10 @@ import { createNotification } from '../../Notification/utils/createNotification'
 import UserProfile from '../../User/models/user.model';
 import { SendEmail } from '../models/SendEmail.model';
 import { SendSMS } from '../models/SendSMS.model';
+import { IUser } from '../../Auth/interfaces/auth.interface';
+import User from '../../Auth/models/auth.model';
+import { IUserProfile } from '../../User/interfaces/user.interface';
+import config from '../../../config';
 
 
 const sendContactMessage = async (
@@ -42,17 +46,34 @@ const sendContactMessage = async (
     emailText,
   } = payload;
 
+  const toUser = await User.findOne({ email: toEmail })
+    .select('email profile')
+    .populate<{ profile: IUserProfile }>('profile');
   const objectId = responseId || leadId;
 
   if (method === 'email' && toEmail) {
     try {
-      const html = `<p>${emailText}</p>`;
-      // const result = await sendEmail({ to: toEmail, subject, html });
+
+      const emailData = {
+        message: emailText,
+        name: toUser?.profile?.name || 'User',
+        userRole: toUser?.regUserType || 'client',
+        dashboardUrl: `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        senderName: user.name || 'User',
+        timestamp: new Date().toLocaleString(),
+      };
+
+      const result = await sendEmail({
+        to: toEmail,
+        subject: "Contact with Lawyer or client",
+        data: emailData,
+        emailTemplate: "contact",
+      });
 
       const resultDB = await SendEmail.create({
         to: toEmail,
         subject,
-        html,
+        // html,
         sentBy: user._id,
         leadId,
         text: emailText,
