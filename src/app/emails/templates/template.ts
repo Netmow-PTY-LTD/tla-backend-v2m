@@ -999,7 +999,7 @@ export const publicContactEmail = (data: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>New Contact Request</title>
 </head>
-<body style="margin: 0; padding: 40px; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;">
+<body style="margin: 0; padding: 10%; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
 
     <!-- Logo -->
