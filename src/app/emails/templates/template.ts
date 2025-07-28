@@ -980,3 +980,84 @@ export const interactionEmail = (data: {
 </html>
 `;
 };
+
+
+export const publicContactEmail = (data: {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}) => {
+  const { name, email, phone, message } = data;
+  const appName = 'TheLawApp';
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Contact Request</title>
+</head>
+<body style="margin: 0; padding: 40px; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding: 20px 0; background: #ffffff;">
+        <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="${appName} Logo" width="190" style="display: block;" />
+      </td>
+    </tr>
+
+    <!-- Heading -->
+    <tr>
+      <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
+        New Contact Request
+      </td>
+    </tr>
+
+    <!-- Details -->
+    <tr>
+      <td style="padding: 0 25px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">
+          <tr>
+            <td style="font-size: 15px; color: #333;"><strong>Name:</strong></td>
+            <td style="font-size: 15px; color: #555;">${name}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 15px; color: #333;"><strong>Email:</strong></td>
+            <td style="font-size: 15px; color: #555;">${email}</td>
+          </tr>
+          ${phone ? `
+          <tr>
+            <td style="font-size: 15px; color: #333;"><strong>Phone:</strong></td>
+            <td style="font-size: 15px; color: #555;">${phone}</td>
+          </tr>` : ''}
+          <tr>
+            <td colspan="2" style="padding-top: 15px; font-size: 15px; color: #333;"><strong>Message:</strong></td>
+          </tr>
+          <tr>
+            <td colspan="2" style="font-size: 15px; color: #555;">${message}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 25px; font-size: 14px; color: #555;">
+        This message was submitted through the public contact form on <strong>${appName}</strong>.
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="padding: 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0;">© 2025 ${appName}. All rights reserved.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+};

@@ -10,3 +10,4 @@ export const initializeSockets = (io: Server) => {
     handleConnection(socket, io);
   });
 };
+
