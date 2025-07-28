@@ -282,8 +282,47 @@ const sendContactMessage = async (
   throw new Error('Invalid method or missing contact info');
 };
 
+
+interface IEmail {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+
+
+}
+
+
+const contactWithEmail = async (payload: IEmail) => {
+  try {
+    await sendEmail({
+      to: "maksud.netmow@gmail.com",
+      subject: `You have received a message from ${payload.name}`,
+      data: payload,
+      emailTemplate: "public-contact",
+    });
+
+    return {
+      success: true,
+      message: "Email sent successfully",
+    };
+  } catch (error) {
+    console.error("Email sending failed:", error);
+
+    return {
+      success: false,
+      message: "Failed to send email",
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+
+}
+
+
+
 export const contactservice = {
   sendContactMessage,
+  contactWithEmail
 };
 
 
