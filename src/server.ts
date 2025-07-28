@@ -16,21 +16,21 @@ async function main() {
 
     // ------------------------------------ Socket.IO setup  -------------------------
 
-    const allowedOrigins = [
-      'http://localhost:3000',
-      config.client_url,
-      'https://thelawapp.netlify.app',
-    ].filter(Boolean) as string[];
+    // const allowedOrigins = [
+    //   'http://localhost:3000',
+    //   config.client_url,
+    //   'https://thelawapp.netlify.app',
+    // ].filter(Boolean) as string[];
 
 
-    const io = new SocketIOServer(server, {
-      cors: {
-        origin: allowedOrigins,
-        credentials: true,
-      },
-    });
+    // const io = new SocketIOServer(server, {
+    //   cors: {
+    //     origin: allowedOrigins,
+    //     credentials: true,
+    //   },
+    // });
 
-    setSocketServerInstance(io);        // Share io globally
+    // setSocketServerInstance(io);        // Share io globally
 
 
   } catch (err) {

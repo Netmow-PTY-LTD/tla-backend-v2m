@@ -25,6 +25,7 @@ export const initializeSockets = (ioInstance: Server) => {
   setSocketServerInstance(ioInstance);
 };
 
+
 export const setSocketServerInstance = (ioInstance: Server) => {
   io = ioInstance;
 };

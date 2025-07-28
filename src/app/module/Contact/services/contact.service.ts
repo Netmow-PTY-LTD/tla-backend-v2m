@@ -48,8 +48,7 @@ const sendContactMessage = async (
   const objectId = responseId || leadId;
   const io = getIO(); // Get socket instance
 
-  console.log('socket triger')
-  console.log('roomId',roomId)
+
   if (method === 'email' && toEmail) {
     try {
       const html = `<p>${emailText}</p>`;
