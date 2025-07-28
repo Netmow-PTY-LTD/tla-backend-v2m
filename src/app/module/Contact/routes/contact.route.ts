@@ -15,4 +15,6 @@ router.post(
 
 );
 
+router.post('/',contactController.contact);
+
 export const contactRouter = router;
