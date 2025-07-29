@@ -35,16 +35,71 @@ async function main() {
     });
 
     // Global Socket.IO instance
-    setSocketServerInstance(io);
+    // setSocketServerInstance(io);
 
     // Optional: Handle socket connections
+    // io.on('connection', (socket) => {
+    //   console.log('🟢 New socket connected:', socket.id);
+
+    //   socket.on('disconnect', () => {
+    //     console.log('🔴 Socket disconnected:', socket.id);
+    //   });
+    // });
+
+
+    //  ------------- event add there -------------
+    const connectedUsers = new Map();
     io.on('connection', (socket) => {
-      console.log('🟢 New socket connected:', socket.id);
+      console.log('User connected:', socket.id);
+
+      // Handle user registration
+      socket.on('register-user', (userId) => {
+        connectedUsers.set(userId, socket.id);
+        socket.userId = userId;
+        console.log(`User ${userId} registered with socket ${socket.id}`);
+
+        // Send welcome message to this specific user
+        socket.emit('notification', `Welcome ${userId}! You are connected.`);
+
+        // Broadcast user list update to all users
+        io.emit('users-update', Array.from(connectedUsers.keys()));
+      });
+
+      // Listen for user-specific messages
+      socket.on('send-user-message', (data) => {
+        const { targetUserId, message } = data;
+        const targetSocketId = connectedUsers.get(targetUserId);
+
+        if (targetSocketId) {
+          // Send to specific user
+          io.to(targetSocketId).emit('notification', `From ${socket.userId}: ${message}`);
+          // Send confirmation to sender
+          socket.emit('notification', `Message sent to ${targetUserId}: ${message}`);
+        } else {
+          // User not found
+          socket.emit('notification', `User ${targetUserId} is not connected`);
+        }
+      });
+
+      // Listen for broadcast messages
+      socket.on('send-broadcast', (message) => {
+        io.emit('notification', `Broadcast from ${socket.userId}: ${message}`);
+      });
 
       socket.on('disconnect', () => {
-        console.log('🔴 Socket disconnected:', socket.id);
+        if (socket.userId) {
+          connectedUsers.delete(socket.userId);
+          console.log(`User ${socket.userId} disconnected`);
+          // Broadcast user list update to all users
+          io.emit('users-update', Array.from(connectedUsers.keys()));
+        }
       });
     });
+
+
+
+
+
 
   } catch (err) {
     console.error('❌ Failed to start server:', err);
