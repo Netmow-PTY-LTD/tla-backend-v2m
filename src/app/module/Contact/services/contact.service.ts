@@ -53,7 +53,7 @@ const sendContactMessage = async (
     .select('email profile')
     .populate<{ profile: IUserProfile }>('profile');
   const objectId = responseId || leadId;
-  const io = getIO(); // Get socket instance
+  // const io = getIO(); // Get socket instance
 
 
   if (method === 'email' && toEmail) {
@@ -72,7 +72,7 @@ const sendContactMessage = async (
         to: toEmail,
         subject: "Contact with Lawyer or client",
         data: emailData,
-        emailTemplate: "contact",
+        emailTemplate:"contact",
       });
 
       const resultDB = await SendEmail.create({
@@ -87,11 +87,11 @@ const sendContactMessage = async (
       });
 
       // Real-time socket notification
-      io.to(roomId).emit('notification', {
-        type: 'email_sent',
-        message: `Email sent to ${toEmail}`,
-        data: resultDB,
-      });
+      // io.to(roomId).emit('notification', {
+      //   type: 'email_sent',
+      //   message: `Email sent to ${toEmail}`,
+      //   data: resultDB,
+      // });
 
       await logActivity({
         createdBy: userId,
@@ -173,10 +173,10 @@ const sendContactMessage = async (
       });
 
       // Notify sender via socket about failure
-      io.to(roomId).emit('notification', {
-        type: 'email_failed',
-        message: `Failed to send email to ${toEmail}.`,
-      });
+      // io.to(roomId).emit('notification', {
+      //   type: 'email_failed',
+      //   message: `Failed to send email to ${toEmail}.`,
+      // });
 
       // ✅ Notify sender of failure
       await createNotification({
@@ -193,10 +193,11 @@ const sendContactMessage = async (
 
   if (method === 'sms' && toPhone) {
     try {
-      const result = await sendSMS({ to: toPhone, message });
+      const result = await sendSMS({ to:'+8801407950926', message });
 
       const resultSmsDB = await SendSMS.create({
         to: toPhone,
+      
         message,
         sentBy: user._id,
         leadId,
@@ -206,11 +207,11 @@ const sendContactMessage = async (
         metadata: result,
       });
 
-      io.to(roomId).emit('notification', {
-        type: 'sms_sent',
-        message: `SMS sent to ${toPhone}`,
-        data: resultSmsDB,
-      });
+      // io.to(roomId).emit('notification', {
+      //   type: 'sms_sent',
+      //   message: `SMS sent to ${toPhone}`,
+      //   data: resultSmsDB,
+      // });
 
       await logActivity({
         createdBy: userId,
@@ -290,11 +291,10 @@ const sendContactMessage = async (
         },
       });
 
-      io.to(roomId).emit('notification', {
-        type: 'sms_failed',
-        message: `Failed to send SMS to ${toPhone}.`,
-      });
-
+      // io.to(roomId).emit('notification', {
+      //   type: 'sms_failed',
+      //   message: `Failed to send SMS to ${toPhone}.`,
+      // });
 
 
 
