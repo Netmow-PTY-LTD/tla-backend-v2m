@@ -131,19 +131,15 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       email: newUser.email,
       defaultPassword: userData.password,
       dashboardUrl: `${config.client_url}/lawyer/dashboard`,
-      appName: 'The Law App',
+      appName: 'TheLawApp',
       paracticeArea
     }
-    const subject = 'Lawyer Registration'
-    const emailTemplate = "welcome_to_lawyer"
-
+  
     await sendEmail({
       to: newUser.email,
-      subject,
-      // text,
-      // html,
+      subject:'Thank you for registering as a lawyer',
       data,
-      emailTemplate,
+      emailTemplate:"welcome_to_lawyer",
     });
 
 
