@@ -55,6 +55,10 @@ export const sendEmail = async ({
   if(emailTemplate =="lawyer_sent_text_to_client"){
 
   }
+  if(emailTemplate =="contact"){
+    html=data
+  }
+
   if(emailTemplate =="newLeads"){
     html=leadEmailTemplate(data)
 
