@@ -240,136 +240,6 @@ export const newLeadAlertToLawyer = (data: {
 
 
 
-// export const welcomeLeadSubmitted = (data: {
-//   name: string;
-//   caseType: string;
-//   involvedMembers: string;
-//   preferredServiceType: string;
-//   likelihoodOfHiring: string;
-//   preferredContactTime: string;
-//   dashboardUrl: string;
-//   appName: string;
-//   email?: string;
-// }) => {
-//   const {
-//     name,
-//     caseType,
-//     involvedMembers,
-//     preferredServiceType,
-//     likelihoodOfHiring,
-//     preferredContactTime,
-//     dashboardUrl,
-//     appName,
-//     email = 'support@yourdomain.com',
-//   } = data;
-
-//   return `
-// <!DOCTYPE html>
-// <html lang="en">
-// <head>
-//   <meta charset="UTF-8" />
-//   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-//   <title>Welcome - Lead Submitted</title>
-//   <style>
-//     body {
-//       margin: 0;
-//       padding: 0;
-//       font-family: Arial, sans-serif;
-//       background-color: #f4f4f4;
-//       color: #333;
-//       line-height: 1.6;
-//     }
-//     a {
-//       text-decoration: none;
-//     }
-//   </style>
-// </head>
-// <body>
-//   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
-
-//     <!-- Logo -->
-//     <tr>
-//       <td align="center" style="padding: 20px 0; background: #ffffff;">
-//         <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="${appName} Logo" width="190" style="display: block;" />
-//       </td>
-//     </tr>
-
-//     <!-- Greeting -->
-//     <tr>
-//       <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
-//         Hi ${name},
-//       </td>
-//     </tr>
-
-//     <!-- Message -->
-//     <tr>
-//       <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
-//         We're reviewing your case details and matching you with the right lawyer. You’ll be contacted shortly by a qualified legal professional.
-//       </td>
-//     </tr>
-
-//     <!-- Case Summary -->
-//     <tr>
-//       <td style="padding: 0 25px 25px;">
-//         <h3 style="margin: 20px 0 10px; font-size: 18px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
-//           📝 Case Summary
-//         </h3>
-//         <p style="margin: 0 0 10px;"><strong>📌 What type of case is this for?</strong><br>${caseType}</p>
-//         <p style="margin: 0 0 10px;"><strong>👥 Involved members:</strong><br>${involvedMembers}</p>
-//         <p style="margin: 0 0 10px;"><strong>📍 Preferred Service Type:</strong><br>${preferredServiceType}</p>
-//         <p style="margin: 0 0 10px;"><strong>💡 Likelihood of Hiring:</strong><br>${likelihoodOfHiring}</p>
-//         <p style="margin: 0;"><strong>🕒 Preferred Contact Time:</strong><br>${preferredContactTime}</p>
-//       </td>
-//     </tr>
-
-//     <!-- CTA Button -->
-//     <tr>
-//       <td align="center" style="padding: 30px 0;">
-//         <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
-//           Go to Dashboard
-//         </a>
-//       </td>
-//     </tr>
-
-//     <!-- Support Message -->
-//     <tr>
-//       <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
-//         If you need help setting up your account or understanding how leads work, our support team is here to help.
-//         <br><br>
-//         Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.
-//       </td>
-//     </tr>
-
-//     <!-- Signoff -->
-//     <tr>
-//       <td style="padding: 0 25px 30px; font-size: 16px; color: #333;">
-//         Best Regards,<br>
-//         <strong style="color: #f68c1f;">${appName} Team</strong>
-//       </td>
-//     </tr>
-
-//     <!-- Footer -->
-//     <tr>
-//       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
-//         <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
-//         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
-//           You are receiving this email because you registered on ${appName} as a legal professional.</p>
-//         <p style="margin: 0;">
-//           <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
-//           <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
-//           <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
-//           <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
-//         </p>
-//       </td>
-//     </tr>
-//   </table>
-// </body>
-// </html>
-//   `;
-// };
-
-
-
 
 export const welcomeLawyerEmail = (data: {
   name: string;
@@ -385,7 +255,7 @@ export const welcomeLawyerEmail = (data: {
     <meta charset="UTF-8" />
     <title>Welcome Lawyer</title>
 </head>
-<body style="font-family: Arial, sans-serif; background-color: #ffffff; margin: 0; padding: 0;">
+<body style="font-family: Arial, sans-serif; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; margin: 0; padding: 0;">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; padding: 40px 20px;">
         <!-- Logo -->
         <tr>
@@ -871,4 +741,193 @@ export const welcomeLeadSubmitted = (data: {
 </html>
 
   `;
+};
+
+
+
+
+export const interactionEmail = (data: {
+  name: string;
+  userRole: string;
+  dashboardUrl: string;
+  senderName: string;
+  timestamp: string;
+  message: string;
+}) => {
+  const { name, userRole, dashboardUrl, message, timestamp, senderName } = data;
+  const appName = 'TheLawApp';
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email Interaction</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding: 20px 0; background: #ffffff;">
+        <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="${appName} Logo" width="190" style="display: block;" />
+      </td>
+    </tr>
+
+    <!-- Greeting -->
+    <tr>
+      <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
+        Hi ${name},
+      </td>
+    </tr>
+
+    <!-- Message Section -->
+    <tr>
+      <td style="padding: 0 25px;">
+        <h3 style="font-size: 18px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin: 20px 0 10px;">
+          📨 Recent Conversation
+        </h3>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">
+          <tr>
+            <td style="font-size: 13px; color: #888; padding-bottom: 8px;">
+              <strong>${senderName}</strong> • ${timestamp}
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size: 15px; color: #555;">
+              ${message}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Button -->
+    <tr>
+      <td align="center" style="padding: 30px 0;">
+        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+          View Full Conversation
+        </a>
+      </td>
+    </tr>
+
+    <!-- Support Info -->
+    <tr>
+      <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
+        If you have any questions, our support team is always ready to assist you.
+        <br><br>
+        Thanks for using <strong>${appName}</strong> to communicate with your legal connections.
+      </td>
+    </tr>
+
+    <!-- Sign-off -->
+    <tr>
+      <td style="padding: 0 25px 30px; font-size: 16px; color: #333;">
+        Best Regards,<br>
+        <strong style="color: #f68c1f;">${appName} Team</strong>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0 0 10px;">
+          © 2025 ${appName}. All rights reserved.<br>
+          You are receiving this email because you're a registered ${userRole} on ${appName}.
+        </p>
+        <p style="margin: 0;">
+          <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+          <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+          <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+          <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+};
+
+
+export const publicContactEmail = (data: {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}) => {
+  const { name, email, phone, message } = data;
+  const appName = 'TheLawApp';
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Contact Request</title>
+</head>
+<body style="margin: 0; padding: 10%; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding: 20px 0; background: #ffffff;">
+        <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="${appName} Logo" width="190" style="display: block;" />
+      </td>
+    </tr>
+
+    <!-- Heading -->
+    <tr>
+      <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
+        New Contact Request
+      </td>
+    </tr>
+
+    <!-- Details -->
+    <tr>
+      <td style="padding: 0 25px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">
+          <tr>
+            <td style="font-size: 15px; color: #333;"><strong>Name:</strong></td>
+            <td style="font-size: 15px; color: #555;">${name}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 15px; color: #333;"><strong>Email:</strong></td>
+            <td style="font-size: 15px; color: #555;">${email}</td>
+          </tr>
+          ${phone ? `
+          <tr>
+            <td style="font-size: 15px; color: #333;"><strong>Phone:</strong></td>
+            <td style="font-size: 15px; color: #555;">${phone}</td>
+          </tr>` : ''}
+          <tr>
+            <td colspan="2" style="padding-top: 15px; font-size: 15px; color: #333;"><strong>Message:</strong></td>
+          </tr>
+          <tr>
+            <td colspan="2" style="font-size: 15px; color: #555;">${message}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 25px; font-size: 14px; color: #555;">
+        This message was submitted through the public contact form on <strong>${appName}</strong>.
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="padding: 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0;">© 2025 ${appName}. All rights reserved.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
 };

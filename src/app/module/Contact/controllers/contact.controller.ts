@@ -19,8 +19,19 @@ const sendContact = catchAsync(async (req, res) => {
   });
 });
 
+const contact = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const result = await contactservice.contactWithEmail(payload);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: null,
+  });
+});
 
 
 export const contactController = {
-  sendContact
+  sendContact,
+  contact
 };

@@ -11,6 +11,10 @@ import UserProfile from '../../User/models/user.model';
 import { SendEmail } from '../models/SendEmail.model';
 import { SendSMS } from '../models/SendSMS.model';
 import { getIO } from '../../../sockets';
+import { IUser } from '../../Auth/interfaces/auth.interface';
+import User from '../../Auth/models/auth.model';
+import { IUserProfile } from '../../User/interfaces/user.interface';
+import config from '../../../config';
 
 
 const sendContactMessage = async (
@@ -45,26 +49,36 @@ const sendContactMessage = async (
     roomId
   } = payload;
 
+  const toUser = await User.findOne({ email: toEmail })
+    .select('email profile')
+    .populate<{ profile: IUserProfile }>('profile');
   const objectId = responseId || leadId;
   const io = getIO(); // Get socket instance
 
 
   if (method === 'email' && toEmail) {
     try {
-      const html = `<p>${emailText}</p>`;
+
+      const emailData = {
+        message: emailText,
+        name: toUser?.profile?.name || 'User',
+        userRole: toUser?.regUserType || 'client',
+        dashboardUrl: `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        senderName: user.name || 'User',
+        timestamp: new Date().toLocaleString(),
+      };
 
       const result = await sendEmail({
         to: toEmail,
         subject: "Contact with Lawyer or client",
-        data: html,
+        data: emailData,
         emailTemplate: "contact",
       });
-
 
       const resultDB = await SendEmail.create({
         to: toEmail,
         subject,
-        html,
+        // html,
         sentBy: user._id,
         leadId,
         text: emailText,
@@ -302,8 +316,47 @@ const sendContactMessage = async (
   throw new Error('Invalid method or missing contact info');
 };
 
+
+interface IEmail {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+
+
+}
+
+
+const contactWithEmail = async (payload: IEmail) => {
+  try {
+    await sendEmail({
+      to: "maksud.netmow@gmail.com",
+      subject: `You have received a message from ${payload.name}`,
+      data: payload,
+      emailTemplate: "public-contact",
+    });
+
+    return {
+      success: true,
+      message: "Email sent successfully",
+    };
+  } catch (error) {
+    console.error("Email sending failed:", error);
+
+    return {
+      success: false,
+      message: "Failed to send email",
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+
+}
+
+
+
 export const contactservice = {
   sendContactMessage,
+  contactWithEmail
 };
 
 
