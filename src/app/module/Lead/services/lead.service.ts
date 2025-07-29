@@ -289,10 +289,13 @@ const getAllLeadFromDB = async (
     services = user.serviceIds;
   }
 
+const userObjectId = new mongoose.Types.ObjectId(user._id);
+
   const baseFilter: any = {
     deletedAt: null,
     serviceId: { $in: services.length ? services : user.serviceIds },
-    status: "approved"
+    status: "approved",
+    userProfileId:{$ne:userObjectId}
     
   };
 
