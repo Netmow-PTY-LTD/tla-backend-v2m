@@ -609,10 +609,15 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
     })
     .populate({
       path: 'responseBy',
-      populate: {
-        path: 'user',
-        select: '_id name email',
-      },
+      populate: [
+        {
+          path: 'user',
+          select: '_id name email',
+        },
+        {
+          path: 'serviceIds',
+        },
+      ],
     });
 
   const combineCredit = await Promise.all(
