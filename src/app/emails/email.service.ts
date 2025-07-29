@@ -55,9 +55,7 @@ export const sendEmail = async ({
   if(emailTemplate =="lawyer_sent_text_to_client"){
 
   }
-  if(emailTemplate =="contact"){
-    html=data
-  }
+
 
   if(emailTemplate =="newLeads"){
     html=leadEmailTemplate(data)
@@ -92,6 +90,7 @@ export const sendEmail = async ({
     return result;
   } catch (error) {
     // eslint-disable-next-line no-console
+    console.log('error ===>',error)
     console.error('📧 Email sending failed:', error instanceof Error ? error.message : error);
     throw new Error('Failed to send email');
   }
