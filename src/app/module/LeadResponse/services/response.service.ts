@@ -694,7 +694,7 @@ const updateResponseStatus = async (
       name: userProfile.name,
       role: roleLabel,
       dashboardUrl: `${config.client_url}/lawyer/dashboard`,
-      appName: 'The Law App',
+      appName: 'TheLawApp',
     };
 
     await sendEmail({

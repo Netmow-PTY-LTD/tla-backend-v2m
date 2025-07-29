@@ -2,12 +2,10 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
-
 import router from './app/routes';
 import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
-
 
 const app: Application = express();
 //parsers
@@ -43,6 +41,9 @@ app.use(
     credentials: true,
   }),
 );
+
+
+
 
 // application routes
 app.use('/api/v1', router);
