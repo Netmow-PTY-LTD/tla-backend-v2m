@@ -191,7 +191,10 @@ const getAllLeadForAdminDashboardFromDB = async (
 
   const leadQuery = new QueryBuilder(
     Lead.find({})
-      .populate('userProfileId')
+      .populate({
+        path:'userProfileId',
+        populate: { path: 'user' },
+      })
       .populate('serviceId')
       .lean(),
     query,
