@@ -153,8 +153,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       email: 'support@yourdomain.com',
     };
 
-    console.log('email data ==>', emailData)
-
+ 
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
@@ -243,7 +242,6 @@ const getAllLeadFromDB = async (
   );
   if (!user) return null;
 
-  console.log('query', query);
 
   const conditionalExcludeFields = [
     'credits',
