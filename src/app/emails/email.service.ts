@@ -77,7 +77,7 @@ export const sendEmail = async ({
 
   const mailOptions = {
     // from: config.mailgun_from_email_address, // e.g. "My App <noreply@yourdomain.com>"
-    from: "The Law App <noreply@thelawapp.com.au>",
+    from: "TheLawApp <noreply@thelawapp.com.au>",
     to,
     subject,
     text,

@@ -153,8 +153,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       email: 'support@yourdomain.com',
     };
 
-    console.log('email data ==>', emailData)
-
+ 
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
@@ -191,7 +190,10 @@ const getAllLeadForAdminDashboardFromDB = async (
 
   const leadQuery = new QueryBuilder(
     Lead.find({})
-      .populate('userProfileId')
+      .populate({
+        path:'userProfileId',
+        populate: { path: 'user' },
+      })
       .populate('serviceId')
       .lean(),
     query,
@@ -240,7 +242,6 @@ const getAllLeadFromDB = async (
   );
   if (!user) return null;
 
-  console.log('query', query);
 
   const conditionalExcludeFields = [
     'credits',
