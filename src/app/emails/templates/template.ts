@@ -248,15 +248,40 @@ export const welcomeLawyerEmail = (data: {
 }) => {
   const { name, paracticeArea, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
 
-  return `
+return `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8" />
     <title>Welcome Lawyer</title>
+    <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+    }
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 18px;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #555;
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; margin: 0; padding: 0;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; padding: 40px 20px;">
+<body>
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; padding: 20px 20px;">
         <!-- Logo -->
         <tr>
             <td align="center" style="padding-bottom: 20px;">
@@ -337,7 +362,8 @@ export const welcomeLawyerEmail = (data: {
     </table>
 </body>
 </html>
-  `;
+`
+
 };
 
 
