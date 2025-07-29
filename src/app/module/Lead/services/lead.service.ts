@@ -242,7 +242,7 @@ const getAllLeadFromDB = async (
   );
   if (!user) return null;
 
-
+console.log('query page number ==>',query?.page)
   const conditionalExcludeFields = [
     'credits',
     'keyword',
@@ -298,6 +298,7 @@ const userObjectId = new mongoose.Types.ObjectId(user._id);
     userProfileId:{$ne:userObjectId}
     
   };
+
 
   // ---------------- CREDIT RANGE FILTER -----------------
 
