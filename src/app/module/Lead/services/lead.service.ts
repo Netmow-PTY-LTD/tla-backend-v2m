@@ -242,7 +242,7 @@ const getAllLeadFromDB = async (
   );
   if (!user) return null;
 
-
+console.log('query page number ==>',query?.page)
   const conditionalExcludeFields = [
     'credits',
     'keyword',
@@ -289,12 +289,16 @@ const getAllLeadFromDB = async (
     services = user.serviceIds;
   }
 
+const userObjectId = new mongoose.Types.ObjectId(user._id);
+
   const baseFilter: any = {
     deletedAt: null,
     serviceId: { $in: services.length ? services : user.serviceIds },
-    status: "approved"
+    status: "approved",
+    userProfileId:{$ne:userObjectId}
     
   };
+
 
   // ---------------- CREDIT RANGE FILTER -----------------
 
