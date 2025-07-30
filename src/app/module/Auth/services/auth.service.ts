@@ -232,7 +232,7 @@ const forgetPassword = async (userEmail: string) => {
   );
 
   // Construct the reset password UI link containing the token
-  const resetUILink = `${config.reset_pass_ui_link}/reset-password?email=${user.email}&token=${resetToken}`;
+  const resetUILink = `${config.client_url}/reset-password?email=${user.email}&token=${resetToken}`;
 
   // Prepare email content for password reset
   const restEmailData = {
@@ -262,6 +262,8 @@ const resetPassword = async (
 ) => {
   // Check if the user exists by their email
   const user = await User.isUserExistsByEmail(payload?.email);
+
+
 
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
