@@ -417,7 +417,7 @@ export const sendContactMessage = async (
 
       const sendResult = await sendEmail({
         to: toEmail,
-        subject: 'Contact with Lawyer or Client',
+        subject: `You have received a new message from ${sentByUserName}`,
         data: emailData,
         emailTemplate: 'contact',
       });

@@ -29,7 +29,7 @@ const createLawyerResponseAndSpendCredit = async (
 
       // User has saved cards — suggest automatic credit purchase
       const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
-      const requiredCredits = credit - user.credits;
+     const requiredCredits = Math.max(0, credit - user.credits);
       const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
 
 
@@ -45,7 +45,7 @@ const createLawyerResponseAndSpendCredit = async (
           status: HTTP_STATUS.PRECONDITION_FAILED, // 412 or 400 as you prefer
           message: 'Insufficient credits and no saved payment method. Please add a card first.',
           needAddCard: true,
-          requiredCredits: credit - user.credits,
+          requiredCredits: requiredCredits,
           recommendedPackage
         };
       }
