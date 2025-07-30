@@ -801,28 +801,28 @@ export const interactionEmail = (data: {
       </td>
     </tr>
 
-    <!-- Greeting -->
-    <tr>
+     <tr>
       <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
-        Hi ${name},
+        Hello ${name},
       </td>
     </tr>
 
     <!-- Message Section -->
     <tr>
       <td style="padding: 0 25px;">
-        <h3 style="font-size: 18px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin: 20px 0 10px;">
-          📨 Recent Conversation
-        </h3>
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">
+        <p style="font-size: 16px; color: #555; margin: 20px 0 10px;">
+          You’ve received a new message through <strong>${appName}</strong>. Here’s a quick preview:
+        </p>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border-radius: 6px; padding: 15px;">
           <tr>
-            <td style="font-size: 13px; color: #888; padding-bottom: 8px;">
+            <td style="font-size: 13px; color: #888; padding-bottom: 6px;">
               <strong>${senderName}</strong> • ${timestamp}
             </td>
           </tr>
           <tr>
-            <td style="font-size: 15px; color: #555;">
-              ${message}
+            <td style="font-size: 15px; color: #444; line-height: 1.6;">
+              "${message}"
             </td>
           </tr>
         </table>
@@ -832,7 +832,7 @@ export const interactionEmail = (data: {
     <!-- Button -->
     <tr>
       <td align="center" style="padding: 30px 0;">
-        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block; text-decoration: none;">
           View Full Conversation
         </a>
       </td>
@@ -840,20 +840,21 @@ export const interactionEmail = (data: {
 
     <!-- Support Info -->
     <tr>
-      <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
-        If you have any questions, our support team is always ready to assist you.
+      <td style="padding: 0 25px 20px; font-size: 15px; color: #555; line-height: 1.6;">
+        Need help or have questions? Our support team is here to assist you anytime.
         <br><br>
-        Thanks for using <strong>${appName}</strong> to communicate with your legal connections.
+        Thank you for using <strong>${appName}</strong> to stay connected.
       </td>
     </tr>
 
     <!-- Sign-off -->
     <tr>
       <td style="padding: 0 25px 30px; font-size: 16px; color: #333;">
-        Best Regards,<br>
-        <strong style="color: #f68c1f;">${appName} Team</strong>
+        Warm regards,<br>
+        <strong style="color: #f68c1f;">The ${appName} Team</strong>
       </td>
     </tr>
+
 
     <!-- Footer -->
     <tr>
