@@ -75,8 +75,6 @@ const getUserNotificationsFromDB = async (
 
   const notifications = await Notification.find(filter)
     .sort({ createdAt: -1 })
-    .limit(50);
-
   return notifications;
 };
 
