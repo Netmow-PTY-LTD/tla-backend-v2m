@@ -72,7 +72,7 @@ const sendContactMessage = async (
         to: toEmail,
         subject: "Contact with Lawyer or client",
         data: emailData,
-        emailTemplate:"contact",
+        emailTemplate: "contact",
       });
 
       const resultDB = await SendEmail.create({
@@ -193,11 +193,11 @@ const sendContactMessage = async (
 
   if (method === 'sms' && toPhone) {
     try {
-      const result = await sendSMS({ to:'+8801407950926', message });
+      const result = await sendSMS({ to: '+8801407950926', message });
 
       const resultSmsDB = await SendSMS.create({
         to: toPhone,
-      
+
         message,
         sentBy: user._id,
         leadId,
@@ -354,9 +354,34 @@ const contactWithEmail = async (payload: IEmail) => {
 
 
 
+
+const sendNotificationService = async (payload: any) => {
+  if (!payload) {
+    throw new Error('Payload is missing');
+  }
+
+  const { toUserId, text, leadId } = payload;
+
+  if (!toUserId || !text || !leadId) {
+    throw new Error('Missing required fields in payload');
+  }
+  const io = getIO();
+
+  const data = {
+    text,
+    leadId,
+    timestamp: Date.now(),
+  };
+
+  io.to(`user:${toUserId}`).emit('notification', data);
+
+  
+};
+
 export const contactservice = {
   sendContactMessage,
-  contactWithEmail
+  contactWithEmail,
+  sendNotificationService
 };
 
 
