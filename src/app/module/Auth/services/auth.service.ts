@@ -242,7 +242,7 @@ const forgetPassword = async (userEmail: string) => {
   };
   await sendEmail({
     to: user.email,
-    subject: 'Reset Your Password',
+    subject: 'Reset Your Password to Regain Access',
     data: restEmailData,
     emailTemplate: 'password_reset',
   });
