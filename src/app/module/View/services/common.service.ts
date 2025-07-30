@@ -156,6 +156,7 @@ const createLawyerResponseAndSpendCredit = async (
 
       await createNotification({
         userId: populatedLeadUser?.userProfileId?.user,
+        toUser:userId,
         title: "You've received a new contact request",
         message: `${user.name} wants to connect with you.`,
         module: 'lead',        // module relates to the lead domain
@@ -167,6 +168,7 @@ const createLawyerResponseAndSpendCredit = async (
       // 4. Create notification for the lawyer
       await createNotification({
         userId: userId,
+        toUser:populatedLeadUser?.userProfileId?.user,
         title: "Your message was sent",
         message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
         module: 'response',    // module relates to response domain
