@@ -15,6 +15,12 @@ router.post(
 
 );
 
+
 router.post('/',contactController.contact);
+
+router.post(
+    '/notify',
+    auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+    contactController.sendNotification);
 
 export const contactRouter = router;
