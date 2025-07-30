@@ -1,5 +1,6 @@
 
 
+import { getIO } from '../../../sockets';
 import { createNotification } from '../../Notification/utils/createNotification';
 import { ActivityLog } from '../models/activityLog.model';
 
@@ -18,7 +19,10 @@ export const getUserActivityLogs = async (userId: string) => {
 
 const requiredFields = ['activityNote', 'activityType', 'module'];
 
+
 const createUserActivityLogs = async (userId: string, payload: any) => {
+    const io = getIO();
+
     // Validate required fields
     for (const field of requiredFields) {
         if (!payload[field]) {
@@ -45,13 +49,29 @@ const createUserActivityLogs = async (userId: string, payload: any) => {
         await createNotification({
             userId,
             //  next it will change of to user logic
-            toUser:userId,
+            toUser: payload.toUser,
             title: notificationTitle,
             message: notificationMessage,
             module: payload.module || 'general',       // Use activity module or fallback
             type: payload.activityType || 'other',     // Use activity type or fallback
             link,
         });
+
+        io.to(`user:${payload.toUser}`).emit('notification', {
+            userId,
+            toUser: payload.toUser,
+            title: notificationTitle,
+            message: notificationMessage,
+            module: payload.module || 'general',       // Use activity module or fallback
+            type: payload.activityType || 'other',     // Use activity type or fallback
+            link,
+        });
+
+
+
+
+
+
     }
 
 
