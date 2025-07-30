@@ -5,6 +5,7 @@ import { Notification } from "../models/notification.model";
 
 export const createNotification = async ({
   userId,
+  toUser,
   title,
   message,
   module,
@@ -13,6 +14,7 @@ export const createNotification = async ({
   session = null,
 }: {
   userId: string | Types.ObjectId;
+  toUser: string | Types.ObjectId;
   title: string;
   message: string;
   module:string;
@@ -25,6 +27,7 @@ export const createNotification = async ({
       [
         {
           userId,
+          toUser,
           title,
           message,
           module,

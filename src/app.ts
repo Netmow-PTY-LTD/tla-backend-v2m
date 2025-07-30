@@ -1,51 +1,41 @@
+
+import express, { Application, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { Application, Request, Response } from 'express';
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
 import router from './app/routes';
 import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
 
+// Create Express app
 const app: Application = express();
-//parsers
+
+// Middlewares
 app.use(express.json());
 app.use(cookieParser());
 
-// app.use(
-//   cors({
-//     origin: [`${config.client_url}`, 'http://localhost:3000'],
-//     credentials: true,
-//   }),
-// );
-
 const allowedOrigins = [
-  'http://localhost:3000', // local dev
-  `${config.client_url}`, // deployed frontend
+  'http://localhost:3000',
+  `${config.client_url}`,
   'https://thelawapp.netlify.app',
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
-      // Allow all origins
-      if (allowedOrigins.includes(origin)) {
-        // Allow web origins you trust
+      if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      // Reject unknown origins (optional: allow all for full open API)
-      return callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
-  }),
+  })
 );
 
-
-
-
-// application routes
+// Routes
 app.use('/api/v1', router);
 
 app.get('/server-info', (req: Request, res: Response) => {
@@ -57,13 +47,24 @@ app.get('/server-info', (req: Request, res: Response) => {
   });
 });
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
   res.send('Welcome to TLA Backend 3.0');
 });
 
 app.use(globalErrorHandler);
-
-//Not Found
 app.use(apiNotFound);
 
-export default app;
+// Create HTTP server
+const server = http.createServer(app);
+
+// Create Socket.IO server using HTTP server
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+  },
+  transports: ['websocket', 'polling'],
+});
+
+// Export everything for use in `server.ts`
+export { app, server, io };
