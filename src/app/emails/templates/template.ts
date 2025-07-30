@@ -811,10 +811,10 @@ export const interactionEmail = (data: {
     <!-- Message Section -->
     <tr>
       <td style="padding: 0 25px;">
-        <h3 style="font-size: 18px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin: 20px 0 10px;">
+        <h3 style="font-size: 18px; color: #333;  padding-bottom: 5px; margin: 20px 0 10px;">
           📨 Recent Conversation
         </h3>
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style=" padding: 15px;">
           <tr>
             <td style="font-size: 13px; color: #888; padding-bottom: 8px;">
               <strong>${senderName}</strong> • ${timestamp}
@@ -831,12 +831,12 @@ export const interactionEmail = (data: {
 
     <!-- Button -->
     <tr>
-      <td align="center" style="padding: 30px 0;">
-        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
-          View Full Conversation
-        </a>
-      </td>
-    </tr>
+  <td align="center" style="padding: 30px 0;">
+    <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block; text-decoration: none;">
+      View Full Conversation
+    </a>
+  </td>
+</tr>
 
     <!-- Support Info -->
     <tr>
