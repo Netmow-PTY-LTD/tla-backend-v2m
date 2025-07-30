@@ -16,260 +16,590 @@ import User from '../../Auth/models/auth.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
 import config from '../../../config';
 
+//  -------------------- old code  ---------------------------------
+// const sendContactMessage = async (
+//   userId: string,
+//   payload: {
+//     toEmail?: string;
+//     toPhone?: string;
+//     subject: string;
+//     emailText: string;
+//     message: string;
+//     leadId?: string;
+//     responseId?: string;
+//     method: 'email' | 'sms';
+//     roomId: any
+//   }
+// ) => {
+//   const user = await UserProfile.findOne({ user: userId }).select('_id');
 
-const sendContactMessage = async (
+//   if (!user) {
+//     return sendNotFoundResponse('User profile not found');
+//   }
+
+//   const {
+//     toEmail,
+//     toPhone,
+//     subject,
+//     message,
+//     leadId,
+//     method,
+//     responseId,
+//     emailText,
+//     roomId
+//   } = payload;
+
+//   const toUser = await User.findOne({ email: toEmail })
+//     .select('email profile')
+//     .populate<{ profile: IUserProfile }>('profile');
+//   const objectId = responseId || leadId;
+//   const io = getIO(); // Get socket instance
+
+
+//   if (method === 'email' && toEmail) {
+//     try {
+
+//       const emailData = {
+//         message: emailText,
+//         name: toUser?.profile?.name || 'User',
+//         userRole: toUser?.regUserType || 'client',
+//         dashboardUrl: `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
+//         senderName: user.name || 'User',
+//         timestamp: new Date().toLocaleString(),
+//       };
+
+//       const result = await sendEmail({
+//         to: toEmail,
+//         subject: "Contact with Lawyer or client",
+//         data: emailData,
+//         emailTemplate: "contact",
+//       });
+
+//       const resultDB = await SendEmail.create({
+//         to: toEmail,
+//         subject,
+//         // html,
+//         sentBy: user._id,
+//         leadId,
+//         text: emailText,
+//         responseId,
+//         status: 'sent',
+//       });
+
+
+
+//       await logActivity({
+//         createdBy: userId,
+//         activityNote: `Sent email to ${toEmail}`,
+//         activityType: 'sendemail',
+//         module: 'response',
+//         objectId,
+//         extraField: {
+//           leadId,
+//           responseId,
+//           subject,
+//           to: toEmail,
+//         },
+//       });
+
+//       // Fetch lead to get recipient user
+//       const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' })
+//       // Type assertion to safely access user field
+//       const populatedLeadUser = leadUser as typeof leadUser & {
+//         userProfileId: {
+//           _id: Types.ObjectId;
+//           name: string;
+//           user: Types.ObjectId;
+//         };
+//       };
+
+
+//       if (populatedLeadUser?.userProfileId && typeof populatedLeadUser.userProfileId !== 'string') {
+//         const recipientUserId = populatedLeadUser.userProfileId.user;
+//         const recipientName = populatedLeadUser.userProfileId.name;
+
+//         await createNotification({
+//           userId: recipientUserId,
+//           toUser: userId,
+//           title: "You've received a new contact message",
+//           message: `${user.name} sent you an email.`,
+//           module: 'response',
+//           type: 'sendemail',
+//           link: `/lead/messages/${responseId}`,
+//         });
+
+//         // Real-time socket notification
+
+
+//         io.to(`user:${recipientUserId}`).emit('notification', {
+//           userId: recipientUserId,
+//           toUser: userId,
+//           title: "You've received a new contact message",
+//           message: `${user.name} sent you an email.`,
+//           module: 'response',
+//           type: 'sendemail',
+//           link: `/lead/messages/${responseId}`,
+//         });
+
+
+//         await createNotification({
+//           userId,
+//           toUser: recipientUserId,
+//           title: "Your email was sent",
+//           message: `You successfully sent an email to ${recipientName}.`,
+//           module: 'response',
+//           type: 'sendemail',
+//           link: `/lawyer/responses/${responseId}`,
+//         });
+
+//         io.to(`user:${userId}`).emit('notification', {
+//           userId,
+//           toUser: recipientUserId,
+//           title: "Your email was sent",
+//           message: `You successfully sent an email to ${recipientName}.`,
+//           module: 'response',
+//           type: 'sendemail',
+//           link: `/lawyer/responses/${responseId}`,
+//         });
+
+//       }
+
+
+
+//       return { message: 'Email sent successfully', data: resultDB };
+//     } catch (error: any) {
+//       const html = `<p>${emailText}</p>`;
+//       await SendEmail.create({
+//         to: toEmail,
+//         subject,
+//         html,
+//         sentBy: user._id,
+//         leadId,
+//         text: emailText,
+//         responseId,
+//         status: 'failed',
+//         error: error.message,
+//       });
+
+//       await logActivity({
+//         createdBy: userId,
+//         activityNote: `Failed to send email to ${toEmail}`,
+//         activityType: 'sendemail',
+//         module: 'response',
+//         objectId,
+//         extraField: {
+//           leadId,
+//           responseId,
+//           subject,
+//           to: toEmail,
+//           error: error.message,
+//         },
+//       });
+
+//       // Notify sender via socket about failure
+//       // io.to(roomId).emit('notification', {
+//       //   type: 'email_failed',
+//       //   message: `Failed to send email to ${toEmail}.`,
+//       // });
+
+
+//       // ✅ Notify sender of failure
+//       await createNotification({
+//         userId,
+//         toUser: recipientUserId,
+//         title: 'Failed to send email',
+//         message: `We couldn’t send your email to ${toEmail}.`,
+//         module: 'response',
+//         type: 'failed_email',
+//         link: `/lawyer/responses/${responseId}`,
+//       });
+//       throw new Error(`Failed to send email: ${error.message}`);
+//     }
+//   }
+
+//   if (method === 'sms' && toPhone) {
+//     try {
+//       const result = await sendSMS({ to: '+8801407950926', message });
+
+//       const resultSmsDB = await SendSMS.create({
+//         to: toPhone,
+
+//         message,
+//         sentBy: user._id,
+//         leadId,
+//         responseId,
+//         status: 'sent',
+//         provider: 'twilio',
+//         metadata: result,
+//       });
+
+//       // io.to(roomId).emit('notification', {
+//       //   type: 'sms_sent',
+//       //   message: `SMS sent to ${toPhone}`,
+//       //   data: resultSmsDB,
+//       // });
+
+//       await logActivity({
+//         createdBy: userId,
+//         activityNote: `Sent SMS to ${toPhone}`,
+//         activityType: 'sendsms',
+//         module: 'response',
+//         objectId,
+//         extraField: {
+//           leadId,
+//           responseId,
+//           to: toPhone,
+//         },
+//       });
+
+
+//       const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' })
+//       // Type assertion to safely access user field
+//       const populatedLeadUser = leadUser as typeof leadUser & {
+//         userProfileId: {
+//           _id: Types.ObjectId;
+//           name: string;
+//           user: Types.ObjectId;
+//         };
+//       };
+
+
+
+//       if (populatedLeadUser?.userProfileId && typeof populatedLeadUser.userProfileId !== 'string') {
+//         const recipientUserId = populatedLeadUser.userProfileId.user;
+//         const recipientName = populatedLeadUser.userProfileId.name;
+
+//         await createNotification({
+//           userId: recipientUserId,
+//           toUser: userId,
+//           title: "You've received a new contact message",
+//           message: `${user.name} sent you an SMS.`,
+//           module: 'response',
+//           type: 'sendsms',
+//           link: `/lead/messages/${responseId}`,
+//         });
+
+//         await createNotification({
+//           userId,
+//           toUser: recipientUserId,
+//           title: "Your SMS was sent",
+//           message: `You successfully sent an SMS to ${recipientName}.`,
+//           module: 'response',
+//           type: 'sendsms',
+//           link: `/lawyer/responses/${responseId}`,
+//         });
+//       }
+
+
+
+//       return { message: 'SMS sent successfully', data: resultSmsDB };
+//     } catch (error: any) {
+//       await SendSMS.create({
+//         to: toPhone,
+//         message,
+//         sentBy: user._id,
+//         leadId,
+//         responseId,
+//         status: 'failed',
+//         provider: 'twilio',
+//         error: error.message,
+//       });
+
+//       await logActivity({
+//         createdBy: userId,
+//         activityNote: `Failed to send SMS to ${toPhone}`,
+//         activityType: 'sendsms',
+//         module: 'response',
+//         objectId,
+//         extraField: {
+//           leadId,
+//           responseId,
+//           to: toPhone,
+//           error: error.message,
+//         },
+//       });
+
+//       // io.to(roomId).emit('notification', {
+//       //   type: 'sms_failed',
+//       //   message: `Failed to send SMS to ${toPhone}.`,
+//       // });
+
+
+
+
+//       // ✅ Notify sender of failure
+//       await createNotification({
+//         userId,
+//         toUser: recipientUserId,
+//         title: 'Failed to send SMS',
+//         message: `We couldn’t send your SMS to ${toPhone}.`,
+//         module: 'response',
+//         type: 'failed_sms',
+//         link: `/lawyer/responses/${responseId}`,
+//       });
+
+//       throw new Error(`Failed to send SMS: ${error.message}`);
+//     }
+//   }
+
+//   throw new Error('Invalid method or missing contact info');
+// };
+
+
+
+
+
+//  -------------------- new code  ---------------------------------
+type ContactPayload = {
+  toEmail?: string;
+  toPhone?: string;
+  subject: string;
+  emailText: string;
+  message: string;
+  leadId?: string;
+  responseId?: string;
+  method: 'email' | 'sms';
+  roomId?: string;
+};
+
+export const sendContactMessage = async (
   userId: string,
-  payload: {
-    toEmail?: string;
-    toPhone?: string;
-    subject: string;
-    emailText: string;
-    message: string;
-    leadId?: string;
-    responseId?: string;
-    method: 'email' | 'sms';
-    roomId: any
-  }
+  payload: ContactPayload
 ) => {
-  const user = await UserProfile.findOne({ user: userId }).select('_id');
+  const userProfile = await UserProfile.findOne({ user: userId }).select('name _id');
+  if (!userProfile) return sendNotFoundResponse('User profile not found');
 
-  if (!user) {
-    return sendNotFoundResponse('User profile not found');
-  }
-
+  console.log('user id ===>test ',userId)
   const {
     toEmail,
     toPhone,
     subject,
     message,
+    emailText,
     leadId,
     method,
     responseId,
-    emailText,
-    roomId
+    roomId,
   } = payload;
 
-  const toUser = await User.findOne({ email: toEmail })
-    .select('email profile')
-    .populate<{ profile: IUserProfile }>('profile');
+  const io = getIO();
   const objectId = responseId || leadId;
-  // const io = getIO(); // Get socket instance
+
+  const leadUser = leadId
+    ? await Lead.findById(leadId).populate({
+      path: 'userProfileId',
+      select: 'name user',
+    })
+    : null;
 
 
-  if (method === 'email' && toEmail) {
-    try {
+
+
+
+
+  const recipientUserId = (leadUser?.userProfileId as any)?.user;
+  const recipientName = (leadUser?.userProfileId as any)?.name || 'Recipient';
+
+  const sendSocketNotification = (targetUserId: string, title: string, msg: string, type: string, link: string) => {
+    io.to(`user:${targetUserId}`).emit('notification', {
+      userId: targetUserId,
+      toUser: userId,
+      title,
+      message: msg,
+      module: 'response',
+      type,
+      link,
+    });
+  };
+
+  try {
+    if (method === 'email' && toEmail) {
+      const toUser = await User.findOne({ email: toEmail })
+        .select('email regUserType profile')
+        .populate<{ profile: IUserProfile }>('profile');
 
       const emailData = {
         message: emailText,
         name: toUser?.profile?.name || 'User',
         userRole: toUser?.regUserType || 'client',
         dashboardUrl: `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
-        senderName: user.name || 'User',
+        senderName: userProfile.name || 'User',
         timestamp: new Date().toLocaleString(),
       };
 
-      const result = await sendEmail({
+      const sendResult = await sendEmail({
         to: toEmail,
-        subject: "Contact with Lawyer or client",
+        subject: 'Contact with Lawyer or Client',
         data: emailData,
-        emailTemplate: "contact",
+        emailTemplate: 'contact',
       });
 
-      const resultDB = await SendEmail.create({
+      const emailRecord = await SendEmail.create({
         to: toEmail,
         subject,
-        // html,
-        sentBy: user._id,
+        sentBy: userProfile._id,
         leadId,
-        text: emailText,
         responseId,
+        text: emailText,
         status: 'sent',
       });
 
-      // Real-time socket notification
-      // io.to(roomId).emit('notification', {
-      //   type: 'email_sent',
-      //   message: `Email sent to ${toEmail}`,
-      //   data: resultDB,
-      // });
-
       await logActivity({
         createdBy: userId,
-        activityNote: `Sent email to ${toEmail}`,
+        activityNote: `Sent email to ${recipientName}`,
         activityType: 'sendemail',
         module: 'response',
         objectId,
-        extraField: {
-          leadId,
-          responseId,
-          subject,
-          to: toEmail,
-        },
+        extraField: { leadId, responseId, subject, to: toEmail },
       });
 
-      // Fetch lead to get recipient user
-      const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' })
-      // Type assertion to safely access user field
-      const populatedLeadUser = leadUser as typeof leadUser & {
-        userProfileId: {
-          _id: Types.ObjectId;
-          name: string;
-          user: Types.ObjectId;
-        };
-      };
-
-
-      if (populatedLeadUser?.userProfileId && typeof populatedLeadUser.userProfileId !== 'string') {
-        const recipientUserId = populatedLeadUser.userProfileId.user;
-        const recipientName = populatedLeadUser.userProfileId.name;
-
+      if (recipientUserId) {
         await createNotification({
           userId: recipientUserId,
+          toUser: userId,
           title: "You've received a new contact message",
-          message: `${user.name} sent you an email.`,
+          message: `${userProfile.name} sent you an email.`,
           module: 'response',
           type: 'sendemail',
           link: `/lead/messages/${responseId}`,
         });
 
+        sendSocketNotification(
+          recipientUserId.toString(),
+          "You've received a new contact message",
+          `${userProfile.name} sent you an email.`,
+          'sendemail',
+          `/lead/messages/${responseId}`
+        );
+
         await createNotification({
           userId,
-          title: "Your email was sent",
+          toUser: recipientUserId,
+          title: 'Your email was sent',
           message: `You successfully sent an email to ${recipientName}.`,
           module: 'response',
           type: 'sendemail',
           link: `/lawyer/responses/${responseId}`,
         });
+
+        sendSocketNotification(
+          userId,
+          'Your email was sent',
+          `You successfully sent an email to ${recipientName}.`,
+          'sendemail',
+          `/lawyer/responses/${responseId}`
+        );
       }
 
-      return { message: 'Email sent successfully', data: resultDB };
-    } catch (error: any) {
-      const html = `<p>${emailText}</p>`;
-      await SendEmail.create({
-        to: toEmail,
-        subject,
-        html,
-        sentBy: user._id,
+      return { message: 'Email sent successfully', data: emailRecord };
+    }
+
+    if (method === 'sms' && toPhone) {
+      const smsResult = await sendSMS({ to: toPhone, message });
+
+      const smsRecord = await SendSMS.create({
+        to: toPhone,
+        message,
+        sentBy: userProfile._id,
         leadId,
-        text: emailText,
         responseId,
-        status: 'failed',
-        error: error.message,
+        status: 'sent',
+        provider: 'twilio',
+        metadata: smsResult,
       });
 
       await logActivity({
         createdBy: userId,
-        activityNote: `Failed to send email to ${toEmail}`,
-        activityType: 'sendemail',
+        activityNote: `Sent SMS to ${recipientName}`,
+        activityType: 'sendsms',
         module: 'response',
         objectId,
-        extraField: {
-          leadId,
-          responseId,
-          subject,
-          to: toEmail,
-          error: error.message,
-        },
+        extraField: { leadId, responseId, to: toPhone },
       });
 
-      // Notify sender via socket about failure
-      // io.to(roomId).emit('notification', {
-      //   type: 'email_failed',
-      //   message: `Failed to send email to ${toEmail}.`,
-      // });
+      if (recipientUserId) {
+        console.log('test block')
+        await createNotification({
+          userId: recipientUserId,
+          toUser: userId,
+          title: "You've received a new contact message",
+          message: `${userProfile.name} sent you an SMS.`,
+          module: 'response',
+          type: 'sendsms',
+          link: `/lead/messages/${responseId}`,
+        });
 
-      // ✅ Notify sender of failure
+        await createNotification({
+          userId,
+          toUser: recipientUserId,
+          title: 'Your SMS was sent',
+          message: `You successfully sent an SMS to ${recipientName}.`,
+          module: 'response',
+          type: 'sendsms',
+          link: `/lawyer/responses/${responseId}`,
+        });
+
+        sendSocketNotification(
+          recipientUserId.toString(),
+          "You've received a new contact message",
+          `${userProfile.name} sent you an SMS.`,
+          'sendsms',
+          `/lead/messages/${responseId}`
+        );
+
+        sendSocketNotification(
+          userId,
+          'Your SMS was sent',
+          `You successfully sent an SMS to ${recipientName}.`,
+          'sendsms',
+          `/lawyer/responses/${responseId}`
+        );
+      }
+
+      return { message: 'SMS sent successfully', data: smsRecord };
+    }
+
+    throw new Error('Invalid method or missing contact info');
+  } catch (error: any) {
+    // Handle email failure
+    if (method === 'email' && toEmail) {
+      await SendEmail.create({
+        to: toEmail,
+        subject,
+        sentBy: userProfile._id,
+        leadId,
+        responseId,
+        status: 'failed',
+        text: emailText,
+        error: error.message,
+      });
+
       await createNotification({
         userId,
+        toUser: recipientUserId,
         title: 'Failed to send email',
         message: `We couldn’t send your email to ${toEmail}.`,
         module: 'response',
         type: 'failed_email',
         link: `/lawyer/responses/${responseId}`,
       });
-      throw new Error(`Failed to send email: ${error.message}`);
+
+      sendSocketNotification(
+        userId,
+        'Failed to send email',
+        `We couldn’t send your email to ${toEmail}.`,
+        'failed_email',
+        `/lawyer/responses/${responseId}`
+      );
+
     }
-  }
 
-  if (method === 'sms' && toPhone) {
-    try {
-      const result = await sendSMS({ to: '+8801407950926', message });
-
-      const resultSmsDB = await SendSMS.create({
-        to: toPhone,
-
-        message,
-        sentBy: user._id,
-        leadId,
-        responseId,
-        status: 'sent',
-        provider: 'twilio',
-        metadata: result,
-      });
-
-      // io.to(roomId).emit('notification', {
-      //   type: 'sms_sent',
-      //   message: `SMS sent to ${toPhone}`,
-      //   data: resultSmsDB,
-      // });
-
-      await logActivity({
-        createdBy: userId,
-        activityNote: `Sent SMS to ${toPhone}`,
-        activityType: 'sendsms',
-        module: 'response',
-        objectId,
-        extraField: {
-          leadId,
-          responseId,
-          to: toPhone,
-        },
-      });
-
-
-      const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' })
-      // Type assertion to safely access user field
-      const populatedLeadUser = leadUser as typeof leadUser & {
-        userProfileId: {
-          _id: Types.ObjectId;
-          name: string;
-          user: Types.ObjectId;
-        };
-      };
-
-
-
-      if (populatedLeadUser?.userProfileId && typeof populatedLeadUser.userProfileId !== 'string') {
-        const recipientUserId = populatedLeadUser.userProfileId.user;
-        const recipientName = populatedLeadUser.userProfileId.name;
-
-        await createNotification({
-          userId: recipientUserId,
-          title: "You've received a new contact message",
-          message: `${user.name} sent you an SMS.`,
-          module: 'response',
-          type: 'sendsms',
-          link: `/lead/messages/${responseId}`,
-        });
-
-        await createNotification({
-          userId,
-          title: "Your SMS was sent",
-          message: `You successfully sent an SMS to ${recipientName}.`,
-          module: 'response',
-          type: 'sendsms',
-          link: `/lawyer/responses/${responseId}`,
-        });
-      }
-
-
-
-      return { message: 'SMS sent successfully', data: resultSmsDB };
-    } catch (error: any) {
+    // Handle SMS failure
+    if (method === 'sms' && toPhone) {
       await SendSMS.create({
         to: toPhone,
         message,
-        sentBy: user._id,
+        sentBy: userProfile._id,
         leadId,
         responseId,
         status: 'failed',
@@ -277,31 +607,9 @@ const sendContactMessage = async (
         error: error.message,
       });
 
-      await logActivity({
-        createdBy: userId,
-        activityNote: `Failed to send SMS to ${toPhone}`,
-        activityType: 'sendsms',
-        module: 'response',
-        objectId,
-        extraField: {
-          leadId,
-          responseId,
-          to: toPhone,
-          error: error.message,
-        },
-      });
-
-      // io.to(roomId).emit('notification', {
-      //   type: 'sms_failed',
-      //   message: `Failed to send SMS to ${toPhone}.`,
-      // });
-
-
-
-
-      // ✅ Notify sender of failure
       await createNotification({
         userId,
+        toUser: recipientUserId,
         title: 'Failed to send SMS',
         message: `We couldn’t send your SMS to ${toPhone}.`,
         module: 'response',
@@ -309,12 +617,46 @@ const sendContactMessage = async (
         link: `/lawyer/responses/${responseId}`,
       });
 
-      throw new Error(`Failed to send SMS: ${error.message}`);
+      sendSocketNotification(
+        userId,
+        'Failed to send SMS',
+        `We couldn’t send your SMS to ${toPhone}.`,
+        'failed_sms',
+        `/lawyer/responses/${responseId}`
+      );
     }
-  }
 
-  throw new Error('Invalid method or missing contact info');
+    await logActivity({
+      createdBy: userId,
+      activityNote: `Failed to send ${method.toUpperCase()} to ${recipientName || recipientName}`,
+      activityType: method === 'email' ? 'sendemail' : 'sendsms',
+      module: 'response',
+      objectId,
+      extraField: {
+        leadId,
+        responseId,
+        to: toEmail || toPhone,
+        error: error.message,
+      },
+    });
+
+    throw new Error(`Failed to send ${method}: ${error.message}`);
+  }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 interface IEmail {
@@ -375,7 +717,7 @@ const sendNotificationService = async (payload: any) => {
 
   io.to(`user:${toUserId}`).emit('notification', data);
 
-  
+
 };
 
 export const contactservice = {
