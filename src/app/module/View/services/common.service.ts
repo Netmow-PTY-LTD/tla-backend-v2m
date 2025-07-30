@@ -32,11 +32,8 @@ const createLawyerResponseAndSpendCredit = async (
      const requiredCredits = Math.max(0, credit - user.credits);
       const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
 
-
       // Check if user has saved payment methods
-
       const savedCards = await PaymentMethod.find({ userProfileId: user._id, isActive: true, isDefault: true });
-
 
       if (savedCards.length === 0) {
         // No saved card — tell frontend to ask user to add a card first
@@ -49,7 +46,6 @@ const createLawyerResponseAndSpendCredit = async (
           recommendedPackage
         };
       }
-
 
 
       return {
