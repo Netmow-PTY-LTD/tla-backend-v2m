@@ -44,6 +44,8 @@ const createUserActivityLogs = async (userId: string, payload: any) => {
 
         await createNotification({
             userId,
+            //  next it will change of to user logic
+            toUser:userId,
             title: notificationTitle,
             message: notificationMessage,
             module: payload.module || 'general',       // Use activity module or fallback
