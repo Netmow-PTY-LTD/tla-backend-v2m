@@ -27,8 +27,6 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
 
 
 
-
-
 export const registerSocketEvents = (socket: Socket, io: Server) => {
   // Join user-specific room
   socket.on('join_user_room', (userId: string) => {

@@ -29,9 +29,24 @@ const contact = catchAsync(async (req, res) => {
     data: null,
   });
 });
+const sendNotification = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const result = await contactservice.sendNotificationService(payload);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'success socket',
+    data: result,
+  });
+});
+
+
+
+
 
 
 export const contactController = {
   sendContact,
-  contact
+  contact,
+  sendNotification
 };
