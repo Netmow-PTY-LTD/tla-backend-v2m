@@ -65,8 +65,8 @@ const companyProfileSchema = new mongoose.Schema(
         'self_employed',
         '2_10_employees',
         '11_50_employees',
-        '51_100_employees',
-        'over_100_employees',
+        '51_200_employees',
+        'over_200_employees',
       ],
       default: 'self_employed',
       set: (value: string) => {
