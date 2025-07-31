@@ -174,6 +174,23 @@ const logOut = catchAsync(async (req, res) => {
   });
 });
 
+
+const verifyEmail = catchAsync(async (req, res) => {
+
+  const { token } = req.body;
+
+  const result = await authService.verifyEmailService(token);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Verify Successfully!',
+    data: result,
+  });
+});
+
+
+
 export const authController = {
   login,
   refreshToken,
@@ -182,4 +199,5 @@ export const authController = {
   resetPassword,
   logOut,
   // userAuthUpdate,
+  verifyEmail
 };

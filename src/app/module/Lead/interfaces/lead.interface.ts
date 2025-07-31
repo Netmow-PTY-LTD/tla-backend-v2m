@@ -14,6 +14,7 @@ export interface ILead {
   deletedAt?: Date | null;
   status: LeadStatus,
   leadPriority: PriorityOption;
+  responders?:Types.ObjectId[]
   leadAnswers?: ILeadServiceAnswer[];
 }
 

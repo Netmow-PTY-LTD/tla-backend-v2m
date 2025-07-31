@@ -111,7 +111,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
 
         //  --------------------  Lead Answer Format for Email sending
-        
+
         const questionIds = [...new Set(questions.map((q: any) => q.questionId))];
         const optionIds = [
           ...new Set(
@@ -144,9 +144,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
               .map((opt: any) => optionMap.get(opt.id) || 'Unknown Option')
               .join(', ');
 
-            return `<strong>${questionText}:</strong><br> ${
-              selectedOptions || 'No selection'
-            }`;
+            return `<strong>${questionText}:</strong><br> ${selectedOptions || 'No selection'
+              }`;
           })
           .join('<br/>');
 
@@ -174,8 +173,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     const service = await Service.findById(serviceId).select('name').session(session);
 
-    await session.commitTransaction();
-    session.endSession();
 
     // -------------------------------------   send email -------------------------------------------
 
@@ -273,6 +270,28 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       config.jwt_refresh_secret as StringValue,
       config.jwt_refresh_expires_in as StringValue,
     );
+
+    //  Save accessToken in DB for email verification
+    newUser.verifyToken = accessToken;
+    await newUser.save({ session });
+
+    //  Send Email Verification Email
+    const emailVerificationUrl = `${config.client_url}/verify-email?token=${accessToken}`;
+
+    await sendEmail({
+      to: newUser.email,
+      subject: 'Verify Your Email Address – TheLawApp',
+      data: {
+        name: newProfile?.name,
+        verifyUrl: emailVerificationUrl,
+        role: 'Client'
+      },
+      emailTemplate: 'verify_email',
+    });
+
+    await session.commitTransaction();
+    session.endSession();
+
 
     return {
       accessToken,

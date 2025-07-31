@@ -40,6 +40,11 @@ router.post(
 );
 
 router.post(
+  '/verify-email',
+  authController.verifyEmail,
+);
+
+router.post(
   '/logout',
   validateRequest(authZodValidation.logOutTokenValidationSchema),
   authController.logOut,

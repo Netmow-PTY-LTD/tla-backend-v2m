@@ -48,7 +48,7 @@ app.get('/server-info', (req: Request, res: Response) => {
 });
 
 app.get('/', (_req: Request, res: Response) => {
-  res.send('Welcome to TLA Backend 3.0');
+  res.send('Welcome to TLA Backend 1.0');
 });
 
 app.use(globalErrorHandler);

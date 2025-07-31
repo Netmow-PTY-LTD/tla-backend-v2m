@@ -47,6 +47,12 @@ const leadSchema = new Schema<ILead>(
       enum: PRIORITY_OPTIONS,
       default: 'not_sure',
     },
+    responders: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'UserProfile',
+      },
+    ],
     deletedAt: {
       type: Date,
       default: null,

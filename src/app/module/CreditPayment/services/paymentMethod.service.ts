@@ -291,7 +291,7 @@ const purchaseCredits = async (
 
     await sendEmail({
       to: (userProfile.user as IUser)?.email,
-      subject: `🎉 Congrats! You're now a ${roleLabel}`,
+      subject: `🎉 Congrats! Your profile has been upgraded to ${roleLabel}.`,
       data: emailData,
       emailTemplate: 'lawyerPromotion',
     });

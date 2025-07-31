@@ -14,7 +14,6 @@ import { IUser } from '../interfaces/auth.interface';
 import { REGISTER_USER_TYPE } from '../constant/auth.constant';
 import { createLeadService } from '../utils/lawyerRegister.utils';
 import { LocationType } from '../../LeadSettings/constant/UserWiseLocation.constant';
-import { generateRegistrationEmail } from '../../../emails/templates/registrationEmail';
 import { sendEmail } from '../../../emails/email.service';
 import Service from '../../Service/models/service.model';
 
@@ -110,9 +109,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
 
 
-    // Commit the transaction (save changes to the database)
-    await session.commitTransaction();
-    session.endSession();
 
 
     // ----------------------  send email  -----------------------------------------------
@@ -125,8 +121,8 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     const paracticeArea = services.map((service) => service.name);
 
-   
-    const data = {
+
+    const commonEmailData = {
       name: newProfile?.name || 'User',
       email: newUser.email,
       defaultPassword: userData.password,
@@ -134,18 +130,18 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       appName: 'TheLawApp',
       paracticeArea
     }
-  
+
     await sendEmail({
       to: newUser.email,
-      subject:'Thank you for registering as a lawyer',
-      data,
-      emailTemplate:"welcome_to_lawyer",
+      subject: 'Thank you for registering as a lawyer',
+      data: commonEmailData,
+      emailTemplate: "welcome_to_lawyer",
     });
 
 
 
 
-     // const { subject, text, html } = generateRegistrationEmail({
+    // const { subject, text, html } = generateRegistrationEmail({
     //   name: newProfile?.name || 'User',
     //   email: newUser.email,
     //   defaultPassword: userData.password,
@@ -158,13 +154,8 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     //   subject,
     //   text,
     //   html,
-      
+
     // });
-
-
-
-
-
 
 
 
@@ -191,6 +182,29 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       config.jwt_refresh_secret as StringValue,
       config.jwt_refresh_expires_in as StringValue,
     );
+
+    //  Save accessToken in DB for email verification
+    newUser.verifyToken = accessToken;
+    await newUser.save({ session });
+
+    //  Send Email Verification Email
+    const emailVerificationUrl = `${config.client_url}/verify-email?token=${accessToken}`;
+
+
+    // Commit the transaction (save changes to the database)
+    await session.commitTransaction();
+    session.endSession();
+
+       await sendEmail({
+      to: newUser.email,
+      subject: 'Verify Your Email Address – TheLawApp',
+      data: {
+        name: newProfile?.name,
+        verifyUrl: emailVerificationUrl,
+        role: 'Lawyer'
+      },
+      emailTemplate: 'verify_email',
+    });
 
     // Return the generated tokens and user data
     return {
