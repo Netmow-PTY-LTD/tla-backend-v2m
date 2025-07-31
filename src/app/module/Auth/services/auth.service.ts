@@ -51,9 +51,10 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   const jwtPayload = {
     userId: user?._id,
     // username: user.username,
+    regUserType: user?.regUserType,
     email: user?.email,
     role: user?.role,
-    status: user?.accountStatus,
+    accountStatus: user.accountStatus,
   };
 
   // Generate access token
@@ -117,6 +118,7 @@ const refreshToken = async (token: string) => {
     userId: user._id,
     email: user.email,
     role: user.role,
+    regUserType:user.regUserType,
     accountStatus: user.accountStatus,
   };
 
@@ -222,6 +224,8 @@ const forgetPassword = async (userEmail: string) => {
     // username: user.username,
     email: user?.email,
     role: user?.role,
+    regUserType:user?.regUserType,
+       accountStatus: user.accountStatus,
   };
 
   // Create a JWT reset token valid for 10 minutes
@@ -419,6 +423,7 @@ const resendVerificationEmail = async (email: string) => {
     userId: user._id,
     email: user.email,
     role: user.role,
+    regUserType:user.regUserType,
     accountStatus: user.accountStatus,
   };
 
