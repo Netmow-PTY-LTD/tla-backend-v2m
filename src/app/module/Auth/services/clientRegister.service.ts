@@ -258,7 +258,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     newUser.verifyToken = accessToken;
     await newUser.save({ session });
     //  Send Email Verification Email
-    const emailVerificationUrl = `${config.client_url}/verify-email?token=${accessToken}`;
+    const emailVerificationUrl = `${config.client_url}/verify-email?code=${accessToken}`;
     await sendEmail({
       to: newUser.email,
       subject: 'Verify your account – TheLawApp',

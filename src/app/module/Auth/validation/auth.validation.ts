@@ -48,6 +48,21 @@ const forgetPasswordValidationSchema = z.object({
   }),
 });
 
+const resendEmailValidation = z.object({
+  body: z.object({
+    email: z.string().email('Invalid email format'),
+  })
+});
+
+const verifyEmailToken = z.object({
+  body: z.object({
+    code: z.string({
+      required_error: 'Code is required!',
+    }),
+    
+  })
+});
+
 // Validation schema for resetting password (requires email and new password)
 const resetPasswordValidationSchema = z.object({
   body: z.object({
@@ -81,6 +96,16 @@ export const accountStatusChangeValidationSchema = z.object({
   }),
 });
 
+
+
+
+
+
+
+
+
+
+
 // Exporting all validation schemas
 export const authZodValidation = {
   userZodValidationSchema,
@@ -91,4 +116,6 @@ export const authZodValidation = {
   resetPasswordValidationSchema,
   logOutTokenValidationSchema,
   accountStatusChangeValidationSchema,
+  resendEmailValidation,
+  verifyEmailToken
 };

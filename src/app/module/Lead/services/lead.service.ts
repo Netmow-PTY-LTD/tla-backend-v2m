@@ -242,7 +242,7 @@ const getAllLeadFromDB = async (
   );
   if (!user) return null;
 
-console.log('query page number ==>',query?.page)
+
   const conditionalExcludeFields = [
     'credits',
     'keyword',
