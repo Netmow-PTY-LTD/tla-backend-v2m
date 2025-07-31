@@ -373,6 +373,28 @@ const accountStatusChangeIntoDB = async (
   return result;
 };
 
+
+
+
+const verifyEmailService = async (token: string): Promise<string> => {
+  if (!token) throw new AppError(400, 'Missing token');
+  const decoded = jwt.verify(token, config.jwt_refresh_secret as StringValue) as JwtPayload;
+  const user = await User.findById(decoded.userId);
+  if (!user) throw new AppError(404, 'User not found');
+
+  if (user.isVerifiedAccount) {
+    return 'Already verified';
+  }
+  user. isVerifiedAccount = true;
+  user.verifyToken = ''; // Optional cleanup
+  await user.save();
+
+  return 'Email verified successfully';
+};
+
+
+
+
 export const authService = {
   loginUserIntoDB,
   refreshToken,
@@ -381,4 +403,5 @@ export const authService = {
   resetPassword,
   logOutToken,
   accountStatusChangeIntoDB,
+  verifyEmailService
 };
