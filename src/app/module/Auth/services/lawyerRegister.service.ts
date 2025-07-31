@@ -166,6 +166,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       userId: newUser._id,
       email: newUser.email,
       // username: newUser.username,
+      regUserType: newUser.regUserType,
       role: newUser.role,
       accountStatus: newUser.accountStatus,
     };
@@ -337,7 +338,8 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 //   const jwtPayload = {
 //     userId,
 //     email: lawyerEmail,
-//     role: 'lawyer', // or newUser.role if accessible here
+//     role: 'user', // or newUser.role if accessible here
+  // regUserType:"lawyer",
 //     accountStatus: 'active', // or actual status if accessible
 //   };
 

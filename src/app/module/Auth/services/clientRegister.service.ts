@@ -252,6 +252,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       userId: newUser._id,
       email: newUser.email,
       role: newUser.role,
+      regUserType:newUser.regUserType,
       accountStatus: newUser.accountStatus,
     };
 
