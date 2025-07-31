@@ -57,7 +57,7 @@ export const sendEmail = async ({
   }
   
   if(emailTemplate =="verify_email"){
-    emailTemplate=emailVerificationTemplate(data)
+    html=emailVerificationTemplate(data)
   }
 
 
