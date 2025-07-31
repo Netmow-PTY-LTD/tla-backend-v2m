@@ -244,7 +244,7 @@ export const welcomeLawyerEmail = (data: {
 }) => {
   const { name, paracticeArea, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
 
-return `
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -959,9 +959,9 @@ export const publicContactEmail = (data: {
 export const emailVerificationTemplate = (data: {
   name: string;
   verifyUrl: string;
-  role:string;
+  role: string;
 }) => {
-  const { name, verifyUrl ,role} = data;
+  const { name, verifyUrl, role } = data;
 
   return `
 <!DOCTYPE html>
