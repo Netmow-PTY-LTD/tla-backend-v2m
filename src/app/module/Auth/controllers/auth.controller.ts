@@ -177,9 +177,10 @@ const logOut = catchAsync(async (req, res) => {
 
 const verifyEmail = catchAsync(async (req, res) => {
 
-  const { token } = req.body;
+  const { code } = req.body;
 
-  const result = await authService.verifyEmailService(token);
+
+  const result = await authService.verifyEmailService(code);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -188,6 +189,20 @@ const verifyEmail = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+const resendVerificationEmail = catchAsync(
+  async (req, res) => {
+    const { email } = req.body;
+    const result = await authService.resendVerificationEmail(email);
+
+    sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      message: 'Verification email resent!',
+      data: result, // usually null or { email, isVerified: false }
+    });
+  }
+);
 
 
 
@@ -198,6 +213,6 @@ export const authController = {
   forgetPassword,
   resetPassword,
   logOut,
-  // userAuthUpdate,
-  verifyEmail
+  verifyEmail,
+  resendVerificationEmail
 };

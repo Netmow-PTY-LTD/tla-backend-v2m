@@ -376,21 +376,91 @@ const accountStatusChangeIntoDB = async (
 
 
 
-const verifyEmailService = async (token: string): Promise<string> => {
-  if (!token) throw new AppError(400, 'Missing token');
-  const decoded = jwt.verify(token, config.jwt_refresh_secret as StringValue) as JwtPayload;
+const verifyEmailService = async (code: string): Promise<string> => {
+
+  if (!code) throw new AppError(400, 'Missing code');
+  const decoded = jwt.verify(code, config.jwt_access_secret as StringValue) as JwtPayload;
+
   const user = await User.findById(decoded.userId);
   if (!user) throw new AppError(404, 'User not found');
 
   if (user.isVerifiedAccount) {
     return 'Already verified';
   }
-  user. isVerifiedAccount = true;
+  user.isVerifiedAccount = true;
   user.verifyToken = ''; // Optional cleanup
   await user.save();
 
   return 'Email verified successfully';
 };
+
+
+
+const resendVerificationEmail = async (email: string) => {
+  if (!email) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Email is required');
+  }
+
+  const user = await User.findOne({ email }).populate('profile');
+  if (!user) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+  }
+
+  if (user.isVerifiedAccount) {
+    throw new AppError(HTTP_STATUS.CONFLICT, 'Email is already verified');
+  }
+
+  // Clear existing code
+  user.verifyToken = '';
+  await user.save();
+
+  // Generate new code
+  const jwtPayload = {
+    userId: user._id,
+    email: user.email,
+    role: user.role,
+    accountStatus: user.accountStatus,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as StringValue,
+    config.jwt_access_expires_in as StringValue,
+  );
+
+  // Save code for verification
+  user.verifyToken = accessToken;
+  await user.save();
+
+  // Prepare email
+  const emailVerificationUrl = `${config.client_url}/verify-email?code=${accessToken}`;
+  await sendEmail({
+    to: user.email,
+    subject: 'Verify your account – TheLawApp',
+    data: {
+      name: (user?.profile as any)?.name,
+      verifyUrl: emailVerificationUrl,
+      role: user.role,
+    },
+    emailTemplate: 'verify_email',
+  });
+
+  return { email: user.email, isVerified: user.isVerifiedAccount };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -403,5 +473,6 @@ export const authService = {
   resetPassword,
   logOutToken,
   accountStatusChangeIntoDB,
-  verifyEmailService
+  verifyEmailService,
+  resendVerificationEmail
 };

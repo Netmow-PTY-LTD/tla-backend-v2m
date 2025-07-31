@@ -242,7 +242,7 @@ const getAllLeadFromDB = async (
   );
   if (!user) return null;
 
-console.log('query page number ==>',query?.page)
+
   const conditionalExcludeFields = [
     'credits',
     'keyword',
@@ -415,7 +415,7 @@ const getMyAllLeadFromDB = async (
       .populate('userProfileId')
       .populate('serviceId')
       .populate({
-        path:' responders',
+        path:'responders',
         select:'profilePicture name'
       })
       .lean(),

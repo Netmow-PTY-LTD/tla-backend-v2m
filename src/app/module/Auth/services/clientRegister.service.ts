@@ -176,7 +176,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     // -------------------------------------   send email -------------------------------------------
 
-
     const emailData = {
       name: newProfile?.name,
       caseType: service?.name || 'Not specified',
@@ -235,22 +234,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
 
 
-    // const { subject, text, html } = generateRegistrationEmail({
-    //   name: newProfile?.name || 'User',
-    //   email: newUser.email,
-    //   defaultPassword:config.default_password,
-    //   loginUILink: `${config.client_url}/login`,
-    //   appName: 'The Law App',
-    // });
-
-    // await sendEmail({
-    //   to: newUser.email,
-    //   subject,
-    //   text,
-    //   html,
-    // });
-
-
     // ------------------------- token genrator ----------------------------------------
     const jwtPayload = {
       userId: newUser._id,
@@ -274,13 +257,11 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     //  Save accessToken in DB for email verification
     newUser.verifyToken = accessToken;
     await newUser.save({ session });
-
     //  Send Email Verification Email
-    const emailVerificationUrl = `${config.client_url}/verify-email?token=${accessToken}`;
-
+    const emailVerificationUrl = `${config.client_url}/verify-email?code=${accessToken}`;
     await sendEmail({
       to: newUser.email,
-      subject: 'Verify Your Email Address – TheLawApp',
+      subject: 'Verify your account – TheLawApp',
       data: {
         name: newProfile?.name,
         verifyUrl: emailVerificationUrl,

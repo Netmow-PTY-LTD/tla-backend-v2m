@@ -41,7 +41,13 @@ router.post(
 
 router.post(
   '/verify-email',
+  validateRequest(authZodValidation.verifyEmailToken),
   authController.verifyEmail,
+);
+router.post(
+  '/resend-verification-email',
+    validateRequest(authZodValidation.resendEmailValidation),
+  authController.resendVerificationEmail,
 );
 
 router.post(
