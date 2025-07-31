@@ -94,7 +94,7 @@ export const sendEmail = async ({
     return result;
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.log('error ===>',error)
+  
     console.error('📧 Email sending failed:', error instanceof Error ? error.message : error);
     throw new Error('Failed to send email');
   }

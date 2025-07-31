@@ -188,7 +188,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     await newUser.save({ session });
 
     //  Send Email Verification Email
-    const emailVerificationUrl = `${config.client_url}/verify-email?token=${accessToken}`;
+    const emailVerificationUrl = `${config.client_url}/verify-email?code=${accessToken}`;
 
 
     // Commit the transaction (save changes to the database)
