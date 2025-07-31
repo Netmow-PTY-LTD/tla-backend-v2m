@@ -810,14 +810,14 @@ export const interactionEmail = (data: {
           You’ve received a new message through <strong>${appName}</strong>. Here’s a quick preview:
         </p>
 
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border-radius: 6px; padding: 15px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="; border-radius: 6px; padding: 15px;">
           <tr>
-            <td style="font-size: 13px; color: #888; padding-bottom: 6px;">
+            <td style="font-size: 16px; color: #888; padding-bottom: 6px;">
               <strong>${senderName}</strong> • ${timestamp}
             </td>
           </tr>
           <tr>
-            <td style="font-size: 15px; color: #444; line-height: 1.6;">
+            <td style="font-size: 15px; color: #555; line-height: 1.6;">
               "${message}"
             </td>
           </tr>
