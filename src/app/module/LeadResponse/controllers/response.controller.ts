@@ -74,6 +74,7 @@ const updateResponseStatus = catchAsync(async (req, res) => {
     userId
   );
 
+ 
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,

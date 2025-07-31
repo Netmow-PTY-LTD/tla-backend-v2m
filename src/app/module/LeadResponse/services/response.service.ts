@@ -15,6 +15,8 @@ import { USER_PROFILE, UserProfileEnum } from '../../User/constants/user.constan
 import config from '../../../config';
 import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/interfaces/auth.interface';
+import { logActivity } from '../../Activity/utils/logActivityLog';
+import { getIO } from '../../../sockets';
 
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
@@ -653,11 +655,30 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
 
 //  --------------- update Response Status -------------------------------------
 
+
+
+interface PopulatedLeadUser {
+  responseBy: {
+    user: IUser & { _id: Types.ObjectId };
+  },
+  leadId: {
+    userProfileId: {
+      user: IUser & { _id: Types.ObjectId };
+      _id: Types.ObjectId;
+    };
+  };
+}
+
+
+
+
+
 const updateResponseStatus = async (
   responseId: string,
   status: ILeadResponse['status'],
   userId: string
 ) => {
+  const io = getIO();
   validateObjectId(responseId, 'Response');
 
   const result = await LeadResponse.findOneAndUpdate(
@@ -702,13 +723,119 @@ const updateResponseStatus = async (
       appName: 'TheLawApp',
     };
 
+
     await sendEmail({
       to: userEmail,
       subject: `🎉 Congrats! You're now a ${roleLabel}`,
       data: emailData,
       emailTemplate: 'lawyerPromotion',
     });
+
+
+
+
   }
+
+
+  //  ------------ for Notifiction and Activity logic here --------------------------
+  const leadUser = await LeadResponse.findById(responseId)
+    .populate([
+      {
+        path: 'leadId',
+        populate: {
+          path: 'userProfileId',
+          populate: {
+            path: 'user',
+            model: 'User',
+            select: 'email role',
+          },
+        },
+      },
+      {
+        path: 'responseBy',
+        model: 'UserProfile',
+      },
+    ])
+    .lean<PopulatedLeadUser>();
+
+  const possibleToUser = leadUser?.leadId?.userProfileId?.user?._id?.toString();
+  const responseByUser = leadUser?.responseBy?.user?.toString();
+
+ 
+  // ✅ Ensure current and other user are correctly identified
+  let currentUserId: string | null = null;
+  let otherUserId: string | null = null;
+
+  if (userId === possibleToUser) {
+    currentUserId = userId;
+   otherUserId = responseByUser ?? null; 
+  } else {
+    currentUserId = userId;
+      otherUserId = possibleToUser ?? null;
+  }
+
+  // 🚫 Exit if either ID is missing
+  if (!currentUserId || !otherUserId) return;
+
+
+
+  if (!currentUserId || !otherUserId) return;
+
+  await logActivity({
+    createdBy: currentUserId,
+    activityNote: `Response status updated to "${status}"`,
+    activityType: status,
+    module: 'response',
+    objectId: responseId,
+    extraField: {
+      leadId: result.leadId,
+      affectedUser: otherUserId,
+    },
+  });
+
+
+  // 🔔 Notifications
+  await createNotification({
+    userId: currentUserId,
+    toUser: otherUserId,
+    title: `Response Status Changed`,
+    message: `The status of your response has been updated to "${status}". Please check for details.`,
+    module: 'response',
+    type: status,
+    link: `/lawyer/responses/${responseId}`,
+  });
+
+  await createNotification({
+    userId: otherUserId,
+    toUser: currentUserId,
+    title: `Response Status Changed`,
+    message: `The response status has been successfully updated to "${status}".`,
+    module: 'response',
+    type: status,
+    link: `/lawyer/responses/${responseId}`,
+  });
+
+  // 📡 Emit socket notifications
+  io.to(`user:${currentUserId}`).emit('notification', {
+    userId: currentUserId,
+    toUser: otherUserId,
+    title: `Response Status Changed`,
+    message: `The status of your response has been updated to "${status}". Please check for details.`,
+    module: 'response',
+    type: status,
+    link: `/lawyer/responses/${responseId}`,
+  });
+
+  io.to(`user:${otherUserId}`).emit('notification', {
+    userId: otherUserId,
+    toUser: currentUserId,
+    title: `Response Status Changed`,
+    message: `The response status has been successfully updated to "${status}".`,
+    module: 'response',
+    type: status,
+    link: `/lawyer/responses/${responseId}`,
+  });
+
 
   return result;
 };
