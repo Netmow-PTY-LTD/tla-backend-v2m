@@ -1044,10 +1044,11 @@ export const emailVerificationTemplate = (data: {
 
 export const welcomeClientEmail = (data: {
   name: string;
+  email: string;
   defaultPassword: string;
   dashboardUrl?: string;
 }) => {
-  const { name, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+  const { name, email,defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
 
   return `
 <!DOCTYPE html>
@@ -1111,7 +1112,7 @@ export const welcomeClientEmail = (data: {
 
                 Here are your login details:
                 <br />
-                <strong>Email:</strong> Your registered email address<br />
+                <strong>Email:</strong> ${email}<br />
                 <strong>Password:</strong> ${defaultPassword}
 
                 <br /><br />

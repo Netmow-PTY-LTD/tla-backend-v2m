@@ -195,6 +195,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     });
     const clientData = {
       name: newProfile?.name,
+      email: newUser?.email,
       defaultPassword: config.default_password,
       dashboardUrl: `${config.client_url}/client/dashboard`,
     };
