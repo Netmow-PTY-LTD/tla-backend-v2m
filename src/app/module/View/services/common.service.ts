@@ -9,11 +9,13 @@ import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface"
 import { logActivity } from "../../Activity/utils/logActivityLog";
 import { createNotification } from "../../Notification/utils/createNotification";
 import Lead from "../../Lead/models/lead.model";
+import { getIO } from "../../../sockets";
 
 const createLawyerResponseAndSpendCredit = async (
   userId: Types.ObjectId,
   payload: { leadId: Types.ObjectId; credit: number; serviceId: Types.ObjectId }
 ) => {
+  const io = getIO();
   const session = await mongoose.startSession();
 
   try {
@@ -29,7 +31,7 @@ const createLawyerResponseAndSpendCredit = async (
 
       // User has saved cards — suggest automatic credit purchase
       const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
-     const requiredCredits = Math.max(0, credit - user.credits);
+      const requiredCredits = Math.max(0, credit - user.credits);
       const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
 
       // Check if user has saved payment methods
@@ -150,9 +152,12 @@ const createLawyerResponseAndSpendCredit = async (
       };
 
 
+      // Return the leadResponse in the outer scope
+      resultLeadResponse = leadResponse; // declare this before transaction
+
       await createNotification({
         userId: populatedLeadUser?.userProfileId?.user,
-        toUser:userId,
+        toUser: userId,
         title: "You've received a new contact request",
         message: `${user.name} wants to connect with you.`,
         module: 'lead',        // module relates to the lead domain
@@ -164,7 +169,7 @@ const createLawyerResponseAndSpendCredit = async (
       // 4. Create notification for the lawyer
       await createNotification({
         userId: userId,
-        toUser:populatedLeadUser?.userProfileId?.user,
+        toUser: populatedLeadUser?.userProfileId?.user,
         title: "Your message was sent",
         message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
         module: 'response',    // module relates to response domain
@@ -173,8 +178,32 @@ const createLawyerResponseAndSpendCredit = async (
         session,
       });
 
-      // Return the leadResponse in the outer scope
-      resultLeadResponse = leadResponse; // declare this before transaction
+
+
+      // 📡 Emit socket notifications
+      io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit('notification', {
+        userId: populatedLeadUser?.userProfileId?.user,
+        toUser: userId,
+        title: "You've received a new contact request",
+        message: `${user.name} wants to connect with you.`,
+        module: 'lead',        // module relates to the lead domain
+        type: 'contact',       // type indicates a contact request notification
+        link: `/lead/messages/${leadResponse._id}`,
+        session,
+      });
+
+      io.to(`user:${userId}`).emit('notification', {
+        userId: userId,
+        toUser: populatedLeadUser?.userProfileId?.user,
+        title: "Your message was sent",
+        message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
+        module: 'response',    // module relates to response domain
+        type: 'create',        // type for creating a response/contact
+        link: `/lawyer/responses/${leadResponse._id}`,
+        session,
+      });
+
+
 
     });
 
