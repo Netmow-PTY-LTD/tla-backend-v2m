@@ -662,6 +662,7 @@ interface PopulatedLeadUser {
     user: IUser & { _id: Types.ObjectId };
   },
   leadId: {
+    _id: Types.ObjectId
     userProfileId: {
       user: IUser & { _id: Types.ObjectId };
       _id: Types.ObjectId;
@@ -759,19 +760,20 @@ const updateResponseStatus = async (
     .lean<PopulatedLeadUser>();
 
   const possibleToUser = leadUser?.leadId?.userProfileId?.user?._id?.toString();
+  const leadId = leadUser?.leadId?._id
   const responseByUser = leadUser?.responseBy?.user?.toString();
 
- 
+
   // ✅ Ensure current and other user are correctly identified
   let currentUserId: string | null = null;
   let otherUserId: string | null = null;
 
   if (userId === possibleToUser) {
     currentUserId = userId;
-   otherUserId = responseByUser ?? null; 
+    otherUserId = responseByUser ?? null;
   } else {
     currentUserId = userId;
-      otherUserId = possibleToUser ?? null;
+    otherUserId = possibleToUser ?? null;
   }
 
   // 🚫 Exit if either ID is missing
@@ -802,7 +804,7 @@ const updateResponseStatus = async (
     message: `The status of your response has been updated to "${status}". Please check for details.`,
     module: 'response',
     type: status,
-    link: `/lawyer/responses/${responseId}`,
+    link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
   });
 
   await createNotification({
@@ -812,7 +814,7 @@ const updateResponseStatus = async (
     message: `The response status has been successfully updated to "${status}".`,
     module: 'response',
     type: status,
-    link: `/lawyer/responses/${responseId}`,
+    link: `/client/dashboard/my-leads/${leadId}`,
   });
 
   // 📡 Emit socket notifications
@@ -823,7 +825,7 @@ const updateResponseStatus = async (
     message: `The status of your response has been updated to "${status}". Please check for details.`,
     module: 'response',
     type: status,
-    link: `/lawyer/responses/${responseId}`,
+    link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
   });
 
   io.to(`user:${otherUserId}`).emit('notification', {
@@ -833,7 +835,7 @@ const updateResponseStatus = async (
     message: `The response status has been successfully updated to "${status}".`,
     module: 'response',
     type: status,
-    link: `/lawyer/responses/${responseId}`,
+    link: `/client/dashboard/my-leads/${leadId}`,
   });
 
 

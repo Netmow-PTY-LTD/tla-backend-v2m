@@ -157,7 +157,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
-      subject: 'Lead Submission Confirmation – TheLawApp',
+      subject: "We've received your legal request — Awaiting approval",
       data: emailData,
       emailTemplate:'welcome_Lead_submission',
     });
@@ -331,6 +331,7 @@ const userObjectId = new mongoose.Types.ObjectId(user._id);
     Lead.find(baseFilter)
       .populate('userProfileId')
       .populate('serviceId')
+      .populate('responders')
       .lean(),
     filteredQuery,
   )
@@ -456,6 +457,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     .populate({
       path: 'serviceId',
     })
+    .populate('responders')
     .lean(); // Convert to plain JS object
 
   if (!leadDoc) return null;

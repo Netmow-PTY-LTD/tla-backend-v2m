@@ -401,7 +401,7 @@ const createLawyerResponseAndSpendCredit = async (
         message: `${user.name} wants to connect with you.`,
         module: 'lead',        // module relates to the lead domain
         type: 'contact',       // type indicates a contact request notification
-        link: `/lead/messages/${leadResponse._id}`,
+        link: `/client/dashboard/my-leads/${leadId}`,
         session,
       });
 
@@ -413,7 +413,7 @@ const createLawyerResponseAndSpendCredit = async (
         message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
         module: 'response',    // module relates to response domain
         type: 'create',        // type for creating a response/contact
-        link: `/lawyer/responses/${leadResponse._id}`,
+        link: `/lawyer/dashboard/my-responses?responseId=${leadResponse._id}`,
         session,
       });
 
@@ -428,7 +428,7 @@ const createLawyerResponseAndSpendCredit = async (
       message: `${user.name} wants to connect with you.`,
       module: 'lead',        // module relates to the lead domain
       type: 'contact',       // type indicates a contact request notification
-      link: `/lead/messages/${(resultLeadResponse as any)?._id}`,
+      link: `/client/dashboard/my-leads/${leadId}`,
 
     });
     io.to(`user:${userId}`).emit('notification', {
@@ -438,7 +438,7 @@ const createLawyerResponseAndSpendCredit = async (
       message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
       module: 'response',    // module relates to response domain
       type: 'create',        // type for creating a response/contact
-      link: `/lawyer/responses/${(resultLeadResponse as any)?._id}`,
+      link: `/lawyer/dashboard/my-responses?responseId=${(resultLeadResponse as any)?._id}`,
     });
 
 
