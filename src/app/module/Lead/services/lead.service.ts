@@ -415,7 +415,7 @@ const getMyAllLeadFromDB = async (
       .populate('userProfileId')
       .populate('serviceId')
       .populate({
-        path:' responders',
+        path:'responders',
         select:'profilePicture name'
       })
       .lean(),
