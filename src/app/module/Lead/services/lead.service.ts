@@ -157,7 +157,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
-      subject: 'Lead Submission Confirmation – TheLawApp',
+      subject: "We've received your legal request — Awaiting approval",
       data: emailData,
       emailTemplate:'welcome_Lead_submission',
     });

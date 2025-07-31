@@ -189,7 +189,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     await sendEmail({
       to: newUser.email,
-      subject: 'Lead Submission Confirmation – TheLawApp',
+      subject: "We've received your legal request — Awaiting approval",
       data: leadData,
       emailTemplate: 'welcome_Lead_submission',
     });
@@ -202,7 +202,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     await sendEmail({
       to: newUser.email,
-      subject: 'Thank you for registering as a Client',
+      subject: 'Thank you for Registering',
       data: clientData,
       emailTemplate: 'welcome_to_client',
     });
@@ -252,7 +252,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       userId: newUser._id,
       email: newUser.email,
       role: newUser.role,
-      regUserType:newUser.regUserType,
+      regUserType: newUser.regUserType,
       accountStatus: newUser.accountStatus,
     };
 

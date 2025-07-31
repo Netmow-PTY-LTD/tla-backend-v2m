@@ -449,7 +449,7 @@ export const sendContactMessage = async (
           message: `${userProfile.name} sent you an email.`,
           module: 'response',
           type: 'sendemail',
-          link: `/lead/messages/${responseId}`,
+          link: `/client/dashboard/my-leads/${leadId}`,
         });
 
         sendSocketNotification(
@@ -457,7 +457,7 @@ export const sendContactMessage = async (
           "You've received a new contact message",
           `${userProfile.name} sent you an email.`,
           'sendemail',
-          `/lead/messages/${responseId}`
+          `/client/dashboard/my-leads/${leadId}`
         );
 
         await createNotification({
@@ -467,7 +467,7 @@ export const sendContactMessage = async (
           message: `You successfully sent an email to ${recipientName}.`,
           module: 'response',
           type: 'sendemail',
-          link: `/lawyer/responses/${responseId}`,
+          link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
         });
 
         sendSocketNotification(
@@ -475,7 +475,7 @@ export const sendContactMessage = async (
           'Your email was sent',
           `You successfully sent an email to ${recipientName}.`,
           'sendemail',
-          `/lawyer/responses/${responseId}`
+          `/lawyer/dashboard/my-responses?responseId=${responseId}`
         );
       }
 
@@ -506,7 +506,7 @@ export const sendContactMessage = async (
       });
 
       if (recipientUserId) {
-       
+
         await createNotification({
           userId: recipientUserId,
           toUser: userId,
@@ -514,7 +514,7 @@ export const sendContactMessage = async (
           message: `${userProfile.name} sent you an SMS.`,
           module: 'response',
           type: 'sendsms',
-          link: `/lead/messages/${responseId}`,
+          link: `/client/dashboard/my-leads/${leadId}`,
         });
 
         await createNotification({
@@ -524,7 +524,7 @@ export const sendContactMessage = async (
           message: `You successfully sent an SMS to ${recipientName}.`,
           module: 'response',
           type: 'sendsms',
-          link: `/lawyer/responses/${responseId}`,
+          link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
         });
 
         sendSocketNotification(
@@ -532,7 +532,7 @@ export const sendContactMessage = async (
           "You've received a new contact message",
           `${userProfile.name} sent you an SMS.`,
           'sendsms',
-          `/lead/messages/${responseId}`
+          `/client/dashboard/my-leads/${leadId}`
         );
 
         sendSocketNotification(
@@ -540,7 +540,7 @@ export const sendContactMessage = async (
           'Your SMS was sent',
           `You successfully sent an SMS to ${recipientName}.`,
           'sendsms',
-          `/lawyer/responses/${responseId}`
+          `/lawyer/dashboard/my-responses?responseId=${responseId}`
         );
       }
 
@@ -549,21 +549,11 @@ export const sendContactMessage = async (
 
     throw new Error('Invalid method or missing contact info');
   } catch (error: any) {
-  
+
 
     throw new Error(`Failed to send ${method}: ${error.message}`);
   }
 };
-
-
-
-
-
-
-
-
-
-
 
 
 
