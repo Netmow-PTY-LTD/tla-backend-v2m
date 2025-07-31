@@ -176,7 +176,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     // -------------------------------------   send email -------------------------------------------
 
-    const emailData = {
+    const leadData = {
       name: newProfile?.name,
       caseType: service?.name || 'Not specified',
       leadAnswer: formattedAnswers,
@@ -189,8 +189,21 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     await sendEmail({
       to: newUser.email,
-      subject: 'Lead Registration & Submission Confirmation',
-      data: emailData,
+      subject: 'Lead Submission Confirmation – TheLawApp',
+      data: leadData,
+      emailTemplate: 'welcome_Lead_submission',
+    });
+    const clientData = {
+      name: newProfile?.name,
+      email: newUser?.email,
+      defaultPassword: config.default_password,
+      dashboardUrl: `${config.client_url}/client/dashboard`,
+    };
+
+    await sendEmail({
+      to: newUser.email,
+      subject: 'Thank you for registering as a Client',
+      data: clientData,
       emailTemplate: 'welcome_to_client',
     });
 

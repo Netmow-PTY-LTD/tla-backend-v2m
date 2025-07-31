@@ -1039,3 +1039,132 @@ export const emailVerificationTemplate = (data: {
 </html>
   `;
 };
+
+
+
+export const welcomeClientEmail = (data: {
+  name: string;
+  email: string;
+  defaultPassword: string;
+  dashboardUrl?: string;
+}) => {
+  const { name, email,defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Welcome Client</title>
+    <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+    }
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 18px;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; padding: 20px 20px;">
+        <!-- Logo -->
+        <tr>
+            <td align="center" style="padding-bottom: 20px;">
+                <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+            </td>
+        </tr>
+
+        <!-- Greeting -->
+        <tr>
+            <td style="font-size: 20px; font-weight: bold; padding-bottom: 15px;">
+                Hi ${name},
+            </td>
+        </tr>
+
+        <!-- Body Content -->
+        <tr>
+            <td style="font-size: 16px; line-height: 1.6; color: #333;">
+                Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.
+                <br /><br />
+                Your account has been successfully created. You can now:
+                <ul>
+                    <li>Search for legal services tailored to your needs</li>
+                    <li>Send inquiries and receive offers from verified lawyers</li>
+                    <li>Track your legal requests in one convenient place</li>
+                </ul>
+
+                Here are your login details:
+                <br />
+                <strong>Email:</strong> ${email}<br />
+                <strong>Password:</strong> ${defaultPassword}
+
+                <br /><br />
+                For security, we recommend updating your password after your first login.
+            </td>
+        </tr>
+
+        <!-- CTA Button -->
+        <tr>
+            <td align="center" style="padding: 30px 0;">
+                <a href="${dashboardUrl}"
+                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+                    Go to Dashboard
+                </a>
+            </td>
+        </tr>
+
+        <!-- Support Message -->
+        <tr>
+            <td style="font-size: 15px; color: #555; line-height: 1.5;">
+                If you need assistance or have any questions, our support team is here to help.
+                <br /><br />
+                Thank you for choosing TheLawApp — we’re here to simplify your legal journey.
+            </td>
+        </tr>
+
+        <!-- Signoff -->
+        <tr>
+            <td style="padding-top: 30px; font-size: 16px;">
+                Best Regards, <br />
+                <strong style="color: #f68c1f;">TheLawApp Team</strong>
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
+                <hr style="border: none; height: 1px; background-color: #eee;" />
+                <p>
+                    © 2025 TheLawApp. All rights reserved.<br />
+                    You are receiving this email because you registered on TheLawApp as a client.
+                </p>
+                <p>
+                    <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+                    <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+                    <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+                    <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+`
+};
