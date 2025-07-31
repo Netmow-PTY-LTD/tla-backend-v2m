@@ -159,7 +159,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       to: (userProfile.user as IUser).email,
       subject: 'Lead Submission Confirmation – TheLawApp',
       data: emailData,
-      emailTemplate: 'welcome_to_client',
+      emailTemplate:'welcome_Lead_submission',
     });
 
 
