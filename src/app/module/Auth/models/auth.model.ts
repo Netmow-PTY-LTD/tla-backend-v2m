@@ -80,6 +80,8 @@ const userSchema = new mongoose.Schema(
       enum: Object.values(USER_STATUS),
       default: USER_STATUS.ACTIVE,
     },
+    isOnline: { type: Boolean, default: false },
+    lastSeen: { type: Date, default: null },
     deletedAt: {
       type: Date,
       default: null,
@@ -91,13 +93,13 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: {
       transform(doc, ret) {
-        ret.password='';
+        ret.password = '';
         return ret;
       },
     },
     toObject: {
       transform(doc, ret) {
-       ret.password='';
+        ret.password = '';
         return ret;
       },
     },
