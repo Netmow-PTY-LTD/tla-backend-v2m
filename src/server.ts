@@ -62,8 +62,8 @@ async function main() {
     console.log('✅ Connected to MongoDB');
 
     // Set and initialize sockets
-    setSocketServerInstance(io);
-    initializeSockets(io);
+    //setSocketServerInstance(io);
+    //initializeSockets(io);
 
     // Start server
     server.listen(config.port, () => {
