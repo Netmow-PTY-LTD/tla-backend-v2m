@@ -23,7 +23,7 @@ const clientRegister = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Client Register Successfully',
+    message: 'Client registered successfully.',
     token: accessToken,
     data: userData,
   });

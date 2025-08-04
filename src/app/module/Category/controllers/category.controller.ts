@@ -14,7 +14,7 @@ const createCategory = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Category Create successfully',
+   message: 'Category created successfully.',
     data: result,
   });
 });
@@ -26,7 +26,7 @@ const getSingleCategory = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Category is retrieved successfully',
+   message: 'Category retrieved successfully.',
     data: result,
   });
 });
@@ -38,7 +38,7 @@ const deleteSingleCategory = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Category delete successfully',
+  message: 'Category deleted successfully.',
     data: result,
   });
 });
@@ -53,7 +53,7 @@ const updateSingleCategory = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Category Update successfully',
+   message: 'Category updated successfully.',
     data: result,
   });
 });
@@ -64,7 +64,7 @@ const getAllCategory = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'All Category is retrieved successfully',
+    message: 'All categories retrieved successfully.',
     data: result,
   });
 });
@@ -74,7 +74,7 @@ const getAllCategoryPublic = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'All Category is retrieved successfully',
+    message: 'All categories retrieved successfully.',
     data: result,
   });
 });
