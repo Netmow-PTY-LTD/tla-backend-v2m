@@ -972,7 +972,7 @@ export const emailVerificationTemplate = (data: {
   <title>Email Verification</title>
 </head>
 <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background-color:#ffffff; padding: 20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; padding: 20px;border: 1px solid #e0e0e0; border-radius: 6px;">
     
     <!-- Logo -->
     <tr>
