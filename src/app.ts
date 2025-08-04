@@ -51,7 +51,6 @@ app.get('/server-info', (req: Request, res: Response) => {
 
 app.get('/online-users', async (_req: Request, res: Response) => {
   const onlineUserIds = Array.from(userSocketsMap.keys());
-
   // const users = await User.find({ _id: { $in: onlineUserIds } }).populate('profile').select('name')
   //   .select('_id email profile'); // Add fields as needed
 
@@ -61,6 +60,7 @@ app.get('/online-users', async (_req: Request, res: Response) => {
   //   users,
   // });
 
+  
    res.status(200).json({
     success: true,
     message: 'Online users fetched successfully.',
