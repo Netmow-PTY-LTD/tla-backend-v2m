@@ -892,7 +892,7 @@ export const publicContactEmail = (data: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>New Contact Request</title>
 </head>
-<body style="margin: 0; padding: 10%; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;">
+<body style="margin: 0; padding: 10%; font-family: Arial, sans-serif;  color: #333;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
 
     <!-- Logo -->
@@ -912,7 +912,7 @@ export const publicContactEmail = (data: {
     <!-- Details -->
     <tr>
       <td style="padding: 0 25px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">
+        <table width="100%" cellpadding="0" cellspacing="0" ">
           <tr>
             <td style="font-size: 15px; color: #333;"><strong>Name:</strong></td>
             <td style="font-size: 15px; color: #555;">${name}</td>
@@ -1061,7 +1061,7 @@ export const welcomeClientEmail = (data: {
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      // background-color: #f4f4f4;
       color: #333;
       line-height: 1.6;
     }
