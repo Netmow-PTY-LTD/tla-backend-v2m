@@ -11,21 +11,11 @@ const onlineUsers: Record<string, Set<string>> = {}; // userId -> Set of socketI
 
 
 
-
 export const setupSocket = (server: HttpServer) => {
-
-
-  const allowedOrigins = [
-    'http://localhost:3000',
-    `${config.client_url}`,
-    'https://thelawapp.netlify.app',
-  ];
-
   const io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: "https://api.thelawap.com.au",
       methods: ["GET", "POST"],
-      credentials: true,
     },
   });
 
