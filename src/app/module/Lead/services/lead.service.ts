@@ -414,10 +414,28 @@ const getAllLeadFromDB = async (
   ).filter(Boolean); // ✅ Remove all `null` entries
 
 
+  // Recalculate pagination meta based on filtered data
+  const page = Number(leadQuery?.query?.page) || 1;
+  const limit = Number(leadQuery?.query?.limit) || 10;
+  const total = result.length;
+  const totalPage = Math.ceil(total / limit);
+
+  meta = {
+    page,
+    limit,
+    total,
+    totalPage,
+  };
+
+  // Paginate filtered data manually
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedResult = result.slice(startIndex, endIndex);
+
 
   return {
     meta,
-    data: result,
+    data: paginatedResult,
   };
 };
 
