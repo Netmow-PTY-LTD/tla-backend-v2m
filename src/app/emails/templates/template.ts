@@ -413,10 +413,13 @@ export const welcomeLeadSubmitted = (data: {
       padding-bottom: 5px;
     }
     p {
-      margin: 0 0 5px;
+      margin: 0 0 8px;
       font-size: 15px;
-      color: #555;
+      color: #111;
     }
+    span.im {
+       color: #555 !important;
+      }
   </style>
 </head>
 <body>
@@ -500,7 +503,6 @@ export const welcomeLeadSubmitted = (data: {
   </table>
 </body>
 </html>
-
   `;
 };
 

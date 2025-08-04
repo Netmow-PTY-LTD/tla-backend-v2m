@@ -127,14 +127,14 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
             .join(', ');
 
           return `
-       <p>
-    <strong>${questionText}:</strong><br/>
-    ${selectedOptions || 'No selection'}
-  </p><br/>
-    `;
+       <p style="margin-bottom: 8px;">
+    <strong>${questionText}</strong><br/>
+    <span>${selectedOptions || 'No selection'}</span>
+  </p>
+    `
 
         })
-        .join('<br/>');
+        .join('');
 
 
     }
