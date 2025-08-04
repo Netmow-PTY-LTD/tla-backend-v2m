@@ -329,7 +329,11 @@ const userObjectId = new mongoose.Types.ObjectId(user._id);
 
   const leadQuery = new QueryBuilder(
     Lead.find(baseFilter)
-      .populate('userProfileId')
+      // .populate('userProfileId')
+      .populate({
+        path:'userProfileId',
+        populate:'user'
+      })
       .populate('serviceId')
       .populate('responders')
       .lean(),
