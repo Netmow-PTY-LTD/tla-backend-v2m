@@ -292,13 +292,14 @@ const getAllLeadFromDB = async (
     services = user.serviceIds;
   }
 
-  const userObjectId = new mongoose.Types.ObjectId(user._id);
+  const userObjectId = new mongoose.Types.ObjectId(user._id.toString());
 
   const baseFilter: any = {
     deletedAt: null,
     serviceId: { $in: services.length ? services : user.serviceIds },
     status: "approved",
-    userProfileId: { $ne: userObjectId }
+    userProfileId: { $ne: userObjectId },
+    responders: { $ne: userObjectId }, // exclude leads where 
 
   };
 
@@ -331,7 +332,10 @@ const getAllLeadFromDB = async (
   }
 
   const leadQuery = new QueryBuilder(
-    Lead.find(baseFilter)
+    Lead.find({
+    ...baseFilter,
+    responders: { $ne: userObjectId }, // Exclude leads where current user has already responded
+  })
       // .populate('userProfileId')
       .populate({
         path: 'userProfileId',
@@ -379,63 +383,64 @@ const getAllLeadFromDB = async (
   }
 
 
-  // const result = await Promise.all(
-  //   data.map(async (lead) => {
-  //     const existingResponse = await LeadResponse.exists({
-  //       leadId: lead._id,
-  //       responseBy: user._id,
-  //     });
+  const result = await Promise.all(
+    data.map(async (lead) => {
+      // const existingResponse = await LeadResponse.exists({
+      //   leadId: lead._id,
+      //   responseBy: user._id,
+      // });
 
-  //     return {
-  //       ...lead,
-  //       credit: customCreditLogic(lead?.credit as number),
-  //       isContact: !!existingResponse,
-  //     };
-  //   }),
-  // );
+      return {
+        ...lead,
+        credit: customCreditLogic(lead?.credit as number),
+        // isContact: !!existingResponse,
+      };
+    }),
+  );
 
-  const result = (
-    await Promise.all(
-      data.map(async (lead) => {
-        const existingResponse = await LeadResponse.exists({
-          leadId: lead._id,
-          responseBy: user._id,
-        });
+  // const result = (
+  //   await Promise.all(
+  //     data.map(async (lead) => {
+  //       const existingResponse = await LeadResponse.exists({
+  //         leadId: lead._id,
+  //         responseBy: user._id,
+  //       });
 
-        if (existingResponse) return null; // ❌ Exclude this lead
+  //       if (existingResponse) return null; // ❌ Exclude this lead
 
-        return {
-          ...lead,
-          credit: customCreditLogic(lead?.credit as number),
-          isContact: false,
-        };
-      }),
-    )
-  ).filter(Boolean); // ✅ Remove all `null` entries
+  //       return {
+  //         ...lead,
+  //         credit: customCreditLogic(lead?.credit as number),
+  //         isContact: false,
+  //       };
+  //     }),
+  //   )
+  // ).filter(Boolean); // ✅ Remove all `null` entries
 
 
-  // Recalculate pagination meta based on filtered data
-  const page = Number(leadQuery?.query?.page) || 1;
-  const limit = Number(leadQuery?.query?.limit) || 10;
-  const total = result.length;
-  const totalPage = Math.ceil(total / limit);
+  // // Recalculate pagination meta based on filtered data
+  // const page = Number(leadQuery?.query?.page) || 1;
+  // const limit = Number(leadQuery?.query?.limit) || 10;
+  // const total = result.length;
+  // const totalPage = Math.ceil(total / limit);
 
-  meta = {
-    page,
-    limit,
-    total,
-    totalPage,
-  };
+  // meta = {
+  //   page,
+  //   limit,
+  //   total,
+  //   totalPage,
+  // };
 
-  // Paginate filtered data manually
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedResult = result.slice(startIndex, endIndex);
+  // // Paginate filtered data manually
+  // const startIndex = (page - 1) * limit;
+  // const endIndex = startIndex + limit;
+  // const paginatedResult = result.slice(startIndex, endIndex);
 
 
   return {
     meta,
-    data: paginatedResult,
+    // data: paginatedResult,
+    data: result,
   };
 };
 
