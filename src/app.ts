@@ -9,6 +9,8 @@ import router from './app/routes';
 import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
+import { userSocketsMap } from './app/sockets';
+import User from './app/module/Auth/models/auth.model';
 
 // Create Express app
 const app: Application = express();
@@ -45,6 +47,30 @@ app.get('/server-info', (req: Request, res: Response) => {
     message: 'Server information retrieved successfully',
     data: info,
   });
+});
+
+app.get('/online-users', async (_req: Request, res: Response) => {
+  const onlineUserIds = Array.from(userSocketsMap.keys());
+  // const users = await User.find({ _id: { $in: onlineUserIds } }).populate('profile').select('name')
+  //   .select('_id email profile'); // Add fields as needed
+
+  // res.status(200).json({
+  //   status: 'success',
+  //   total: users.length,
+  //   users,
+  // });
+
+  
+   res.status(200).json({
+    success: true,
+    message: 'Online users fetched successfully.',
+    data: {
+      count: onlineUserIds.length,
+      users: onlineUserIds,
+    },
+  });
+
+  
 });
 
 app.get('/', (_req: Request, res: Response) => {

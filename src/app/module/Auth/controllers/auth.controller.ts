@@ -123,8 +123,8 @@ const forgetPassword = catchAsync(async (req, res) => {
  */
 const resetPassword = catchAsync(async (req, res) => {
   // Extract the reset token from the Authorization header
-  const token = req.headers.authorization;
-
+  // const token = req.headers.authorization;
+  const token = req.body.token;
   // If no token is provided, throw an error
   if (!token) {
     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Something went wrong !');
