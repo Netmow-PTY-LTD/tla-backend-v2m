@@ -447,7 +447,7 @@ export const welcomeLeadSubmitted = (data: {
     <tr>
       <td style="padding: 0 25px 25px;">
         <h3>📝 Case Summary</h3>
-        <p>${leadAnswer}</p>
+        ${leadAnswer}
         <p><strong>What type of case is this for?</strong><br>${caseType}</p>
         <p><strong>When are you looking to get started?</strong><br>${preferredContactTime}</p>
         <p>
@@ -639,7 +639,7 @@ export const welcomeClientEmail = (data: {
   defaultPassword: string;
   dashboardUrl?: string;
 }) => {
-  const { name, email,defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+  const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
 
   return `
 <!DOCTYPE html>
