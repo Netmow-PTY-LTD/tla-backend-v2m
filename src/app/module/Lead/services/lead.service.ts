@@ -126,12 +126,15 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
             .map((opt: any) => optionMap.get(opt.id) || 'Unknown Option')
             .join(', ');
 
-          return `<strong>${questionText}:</strong><br> ${selectedOptions || 'No selection'
-            }`;
+          return `
+       <p style="margin-bottom: 8px;">
+    <strong>${questionText}</strong><br/>
+    <span>${selectedOptions || 'No selection'}</span>
+  </p>
+    `
+
         })
-        .join('<br/>');
-
-
+        .join('');
 
 
     }
@@ -153,13 +156,13 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       email: 'support@yourdomain.com',
     };
 
- 
+
 
     await sendEmail({
       to: (userProfile.user as IUser).email,
       subject: "We've received your legal request — Awaiting approval",
       data: emailData,
-      emailTemplate:'welcome_Lead_submission',
+      emailTemplate: 'welcome_Lead_submission',
     });
 
 
@@ -191,7 +194,7 @@ const getAllLeadForAdminDashboardFromDB = async (
   const leadQuery = new QueryBuilder(
     Lead.find({})
       .populate({
-        path:'userProfileId',
+        path: 'userProfileId',
         populate: { path: 'user' },
       })
       .populate('serviceId')
@@ -289,14 +292,15 @@ const getAllLeadFromDB = async (
     services = user.serviceIds;
   }
 
-const userObjectId = new mongoose.Types.ObjectId(user._id);
+  const userObjectId = new mongoose.Types.ObjectId(user._id.toString());
 
   const baseFilter: any = {
     deletedAt: null,
     serviceId: { $in: services.length ? services : user.serviceIds },
     status: "approved",
-    userProfileId:{$ne:userObjectId}
-    
+    userProfileId: { $ne: userObjectId },
+    responders: { $ne: userObjectId }, // exclude leads where 
+
   };
 
 
@@ -328,11 +332,14 @@ const userObjectId = new mongoose.Types.ObjectId(user._id);
   }
 
   const leadQuery = new QueryBuilder(
-    Lead.find(baseFilter)
+    Lead.find({
+    ...baseFilter,
+    responders: { $ne: userObjectId }, // Exclude leads where current user has already responded
+  })
       // .populate('userProfileId')
       .populate({
-        path:'userProfileId',
-        populate:'user'
+        path: 'userProfileId',
+        populate: 'user'
       })
       .populate('serviceId')
       .populate('responders')
@@ -376,44 +383,63 @@ const userObjectId = new mongoose.Types.ObjectId(user._id);
   }
 
 
-  // const result = await Promise.all(
-  //   data.map(async (lead) => {
-  //     const existingResponse = await LeadResponse.exists({
-  //       leadId: lead._id,
-  //       responseBy: user._id,
-  //     });
-
-  //     return {
-  //       ...lead,
-  //       credit: customCreditLogic(lead?.credit as number),
-  //       isContact: !!existingResponse,
-  //     };
-  //   }),
-  // );
-
-const result = (
-  await Promise.all(
+  const result = await Promise.all(
     data.map(async (lead) => {
-      const existingResponse = await LeadResponse.exists({
-        leadId: lead._id,
-        responseBy: user._id,
-      });
-
-      if (existingResponse) return null; // ❌ Exclude this lead
+      // const existingResponse = await LeadResponse.exists({
+      //   leadId: lead._id,
+      //   responseBy: user._id,
+      // });
 
       return {
         ...lead,
         credit: customCreditLogic(lead?.credit as number),
-        isContact: false,
+        // isContact: !!existingResponse,
       };
     }),
-  )
-).filter(Boolean); // ✅ Remove all `null` entries
+  );
 
+  // const result = (
+  //   await Promise.all(
+  //     data.map(async (lead) => {
+  //       const existingResponse = await LeadResponse.exists({
+  //         leadId: lead._id,
+  //         responseBy: user._id,
+  //       });
+
+  //       if (existingResponse) return null; // ❌ Exclude this lead
+
+  //       return {
+  //         ...lead,
+  //         credit: customCreditLogic(lead?.credit as number),
+  //         isContact: false,
+  //       };
+  //     }),
+  //   )
+  // ).filter(Boolean); // ✅ Remove all `null` entries
+
+
+  // // Recalculate pagination meta based on filtered data
+  // const page = Number(leadQuery?.query?.page) || 1;
+  // const limit = Number(leadQuery?.query?.limit) || 10;
+  // const total = result.length;
+  // const totalPage = Math.ceil(total / limit);
+
+  // meta = {
+  //   page,
+  //   limit,
+  //   total,
+  //   totalPage,
+  // };
+
+  // // Paginate filtered data manually
+  // const startIndex = (page - 1) * limit;
+  // const endIndex = startIndex + limit;
+  // const paginatedResult = result.slice(startIndex, endIndex);
 
 
   return {
     meta,
+    // data: paginatedResult,
     data: result,
   };
 };
@@ -441,8 +467,8 @@ const getMyAllLeadFromDB = async (
       .populate('userProfileId')
       .populate('serviceId')
       .populate({
-        path:'responders',
-        select:'profilePicture name'
+        path: 'responders',
+        select: 'profilePicture name'
       })
       .lean(),
     query,
@@ -633,7 +659,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   // Add hardcoded data into leadAnswers
   leadAnswers.push(hardCodedAnswer);
 
-//  -------------------- CHECK ANY RESPONSE THIS LEAD FOR CURRENT USER END ---------------
+  //  -------------------- CHECK ANY RESPONSE THIS LEAD FOR CURRENT USER END ---------------
   const existingResponse = await LeadResponse.exists({
     leadId: leadId,
     responseBy: user._id,

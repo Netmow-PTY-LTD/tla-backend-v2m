@@ -144,13 +144,20 @@ const clientRegisterUserIntoDB = async (payload: any) => {
               .map((opt: any) => optionMap.get(opt.id) || 'Unknown Option')
               .join(', ');
 
-            return `<strong>${questionText}:</strong><br> ${selectedOptions || 'No selection'
-              }`;
+            return `
+          <p style="margin-bottom: 8px;">
+               <strong>${questionText}</strong><br/>
+           <span>${selectedOptions || 'No selection'}</span>
+          </p>`;
           })
-          .join('<br/>');
-
+          .join('');
 
       }
+
+
+
+
+
 
 
     }

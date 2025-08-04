@@ -413,10 +413,13 @@ export const welcomeLeadSubmitted = (data: {
       padding-bottom: 5px;
     }
     p {
-      margin: 0 0 5px;
+      margin: 0 0 8px;
       font-size: 15px;
-      color: #555;
+      color: #111;
     }
+    span.im {
+       color: #555 !important;
+      }
   </style>
 </head>
 <body>
@@ -447,7 +450,7 @@ export const welcomeLeadSubmitted = (data: {
     <tr>
       <td style="padding: 0 25px 25px;">
         <h3>📝 Case Summary</h3>
-        <p>${leadAnswer}</p>
+        ${leadAnswer}
         <p><strong>What type of case is this for?</strong><br>${caseType}</p>
         <p><strong>When are you looking to get started?</strong><br>${preferredContactTime}</p>
         <p>
@@ -500,7 +503,6 @@ export const welcomeLeadSubmitted = (data: {
   </table>
 </body>
 </html>
-
   `;
 };
 
@@ -639,7 +641,7 @@ export const welcomeClientEmail = (data: {
   defaultPassword: string;
   dashboardUrl?: string;
 }) => {
-  const { name, email,defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+  const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
 
   return `
 <!DOCTYPE html>
