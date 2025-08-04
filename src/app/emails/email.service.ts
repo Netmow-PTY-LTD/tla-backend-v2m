@@ -2,7 +2,7 @@
 
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/utils/settingsConfig";
-import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, leadEmailTemplate, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
+import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 
 interface SendEmailParams {
@@ -12,7 +12,7 @@ interface SendEmailParams {
   // html?: string;
   data?: any;
   replyTo?: string;
- emailTemplate?: string;
+  emailTemplate?: string;
 }
 
 
@@ -33,50 +33,40 @@ export const sendEmail = async ({
   }
 
   let html;
-  if(emailTemplate=='welcome_Lead_submission'){
-   html=  welcomeLeadSubmitted(data)
+  if (emailTemplate == 'welcome_Lead_submission') {
+    html = welcomeLeadSubmitted(data)
   }
-  if(emailTemplate=='welcome_to_client'){
-   html=  welcomeClientEmail(data)
-  }
-
-  if(emailTemplate =="welcome_to_lawyer"){
-    html=welcomeLawyerEmail(data)
-  }
-  if(emailTemplate==="contact"){
-    html=interactionEmail(data)
-  }
-  if(emailTemplate==="public-contact"){
-    html=publicContactEmail(data)
-  }
-  if(emailTemplate =="lawyer_response_to_lead"){
-
-  }
-  if(emailTemplate =="client_sent_text_to_lawyer"){
-
-  }
-  if(emailTemplate =="lawyer_sent_text_to_client"){
-
-  }
-  
-  if(emailTemplate =="verify_email"){
-    html=emailVerificationTemplate(data)
+  if (emailTemplate == 'welcome_to_client') {
+    html = welcomeClientEmail(data)
   }
 
-
-  if(emailTemplate =="newLeads"){
-    html=leadEmailTemplate(data)
-
+  if (emailTemplate == "welcome_to_lawyer") {
+    html = welcomeLawyerEmail(data)
   }
-  if(emailTemplate =="password_reset"){
-    html=passwordResetEmail(data)
+  if (emailTemplate === "contact") {
+    html = interactionEmail(data)
   }
-  if(emailTemplate =="otp_email"){
-    html=otpEmail(data)
+  if (emailTemplate === "public-contact") {
+    html = publicContactEmail(data)
   }
 
-  if(emailTemplate =="lawyerPromotion"){
-    html=congratulationsLawyerPromotion(data)
+  if (emailTemplate == "verify_email") {
+    html = emailVerificationTemplate(data)
+  }
+
+  if (emailTemplate == "new_lead_alert") {
+    html = newLeadAlertToLawyer(data)
+
+  }
+  if (emailTemplate == "password_reset") {
+    html = passwordResetEmail(data)
+  }
+  if (emailTemplate == "otp_email") {
+    html = otpEmail(data)
+  }
+
+  if (emailTemplate == "lawyerPromotion") {
+    html = congratulationsLawyerPromotion(data)
 
   }
 
@@ -97,7 +87,7 @@ export const sendEmail = async ({
     return result;
   } catch (error) {
     // eslint-disable-next-line no-console
-  
+
     console.error('📧 Email sending failed:', error instanceof Error ? error.message : error);
     throw new Error('Failed to send email');
   }

@@ -120,7 +120,7 @@ const createUserActivityLogs = async (userId: string, payload: any) => {
   // Trigger notification unless explicitly disabled
   if (payload.notify !== false) {
     const {
-      notificationTitle = 'Activity Logged',
+      notificationTitle = payload.activityNote||'Activity Logged',
       notificationMessage = payload.activityNote,
       link = null,
       toUser,

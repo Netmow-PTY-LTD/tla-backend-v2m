@@ -376,20 +376,41 @@ const userObjectId = new mongoose.Types.ObjectId(user._id);
   }
 
 
-  const result = await Promise.all(
+  // const result = await Promise.all(
+  //   data.map(async (lead) => {
+  //     const existingResponse = await LeadResponse.exists({
+  //       leadId: lead._id,
+  //       responseBy: user._id,
+  //     });
+
+  //     return {
+  //       ...lead,
+  //       credit: customCreditLogic(lead?.credit as number),
+  //       isContact: !!existingResponse,
+  //     };
+  //   }),
+  // );
+
+const result = (
+  await Promise.all(
     data.map(async (lead) => {
       const existingResponse = await LeadResponse.exists({
         leadId: lead._id,
         responseBy: user._id,
       });
 
+      if (existingResponse) return null; // ❌ Exclude this lead
+
       return {
         ...lead,
         credit: customCreditLogic(lead?.credit as number),
-        isContact: !!existingResponse,
+        isContact: false,
       };
     }),
-  );
+  )
+).filter(Boolean); // ✅ Remove all `null` entries
+
+
 
   return {
     meta,
