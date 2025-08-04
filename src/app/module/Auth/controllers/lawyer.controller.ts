@@ -24,7 +24,7 @@ const lawyerRegister = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Register User Successfully',
+    message: 'Lawyer registered successfully.',
     token: accessToken,
     data: userData,
   });
