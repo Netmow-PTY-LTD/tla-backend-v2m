@@ -4,6 +4,48 @@ import config from './app/config';
 import { app, server, io } from './app';
 import { initializeSockets, setSocketServerInstance } from './app/sockets';
 
+import { Server, Socket } from "socket.io";
+import { Server as HttpServer } from "http"; // assuming you're using HTTP server
+
+const onlineUsers: Record<string, Set<string>> = {}; // userId -> Set of socketIds
+
+
+
+export const setupSocket = (server: HttpServer) => {
+  const io = new Server(server, {
+    cors: {
+      origin: "https://api.thelawap.com.au",
+      methods: ["GET", "POST"],
+    },
+  });
+
+  io.on("connection", (socket: Socket) => {
+    const userId = socket.handshake.query.userId as string;
+
+    if (!userId) {
+      socket.disconnect();
+      return;
+    }
+
+    if (!onlineUsers[userId]) {
+      onlineUsers[userId] = new Set();
+      io.emit("userOnline", { userId });
+    }
+
+    onlineUsers[userId].add(socket.id);
+
+    socket.on("disconnect", () => {
+      onlineUsers[userId].delete(socket.id);
+      if (onlineUsers[userId].size === 0) {
+        delete onlineUsers[userId];
+        io.emit("userOffline", { userId });
+      }
+    });
+  });
+
+  return io;
+};
+
 async function main() {
   try {
     await mongoose.connect(config.database_url as string);
