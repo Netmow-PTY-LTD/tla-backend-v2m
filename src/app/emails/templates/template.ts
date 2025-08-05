@@ -37,6 +37,31 @@ export const congratulationsLawyerPromotion = (data: {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Congratulations Email</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      // background-color: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+    }
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 18px;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #555;
+    }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; line-height: 1.6;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
