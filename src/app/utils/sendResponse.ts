@@ -24,6 +24,11 @@ type TResponse<T> = {
   queryTime?:QueryTime
   token?: string;
   data: T;
+  counts?: {
+    total?: number;
+    matched?: number;
+    [key: string]: number | undefined;
+  };
 };
 
 const sendResponse = <T>(res: Response, data: TResponse<T>) => {
@@ -31,8 +36,9 @@ const sendResponse = <T>(res: Response, data: TResponse<T>) => {
     success: data.success,
     message: data.message,
     // meta: data.meta,
-    pagination: data.pagination,
     queryTime:data.queryTime,
+    pagination: data.pagination,
+    counts: data.counts,
     token: data.token,
     data: data.data,
   });

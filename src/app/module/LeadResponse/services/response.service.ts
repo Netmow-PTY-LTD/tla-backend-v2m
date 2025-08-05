@@ -213,6 +213,12 @@ type TMeta = {
 type PaginatedResult<T> = {
   data: T[];
   pagination: TMeta;
+  responseCount?: {
+    hired: number;
+    pending: number;
+    archive: number;
+    urgent: number;
+  };
 };
 
 
@@ -351,32 +357,105 @@ const getMyAllResponseFromDB = async (
     },
   });
 
-  // ---------- SORTING ----------
-  pipeline.push({ $sort: { [sortField]: sortOrder } });
 
-  // ---------- PAGINATION ----------
-  pipeline.push({ $skip: skip });
-  pipeline.push({ $limit: limit });
+ // ---------- FACET: Data + Counts ----------
+  pipeline.push({
+    $facet: {
+      data: [
+        { $project: {
+            _id: 1,
+            status: 1,
+            createdAt: 1,
+            responseBy: 1,
+            leadId: 1,
+            serviceId: 1,
+        }},
+        { $sort: { [sortField]: sortOrder } },
+        { $skip: skip },
+        { $limit: limit },
+      ],
+      metaCounts: [
+        {
+          $group: {
+            _id: null,
+            totalHired: {
+              $sum: { $cond: [{ $eq: ['$status', 'hired'] }, 1, 0] },
+            },
+            totalPending: {
+              $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] },
+            },
+            totalArchive: {
+              $sum: { $cond: [{ $eq: ['$status', 'archive'] }, 1, 0] },
+            },
+            totalUrgent: {
+              $sum: { $cond: [{ $eq: ['$leadId.leadPriority', 'urgent'] }, 1, 0] },
+            },
+            total: { $sum: 1 },
+          },
+        },
+      ],
+    },
+  });
+
+
+
+  
+  // ---------- SORTING ----------
+  // pipeline.push({ $sort: { [sortField]: sortOrder } });
+
+  // // ---------- PAGINATION ----------
+  // pipeline.push({ $skip: skip });
+  // pipeline.push({ $limit: limit });
 
   // ---------- EXECUTE ----------
-  const responses = await LeadResponse.aggregate(pipeline);
+  // const responses = await LeadResponse.aggregate(pipeline);
 
   // Total Count for pagination
-  const countPipeline = [...pipeline];
-  countPipeline.splice(countPipeline.findIndex(stage => stage.$skip), 2); // remove skip & limit
-  countPipeline.push({ $count: 'total' });
-  const totalResult = await LeadResponse.aggregate(countPipeline);
-  const total = totalResult[0]?.total || 0;
+  // const countPipeline = [...pipeline];
+  // countPipeline.splice(countPipeline.findIndex(stage => stage.$skip), 2); // remove skip & limit
+  // countPipeline.push({ $count: 'total' });
+  // const totalResult = await LeadResponse.aggregate(countPipeline);
+  // const total = totalResult[0]?.total || 0;
+
+
+  
+  // return {
+  //   data: responses || [],
+  //   pagination: {
+  //     total,
+  //     page,
+  //     limit,
+  //     totalPage: Math.ceil(total / limit),
+  //   },
+  // };
+
+
+
+ // ---------- EXECUTE ----------
+  const result = await LeadResponse.aggregate(pipeline);
+  const totalResult = result[0]?.data || [];
+  const meta = result[0]?.metaCounts?.[0] || {};
 
   return {
-    data: responses || [],
+    data: totalResult,
     pagination: {
-      total,
+      total: meta.total || 0,
       page,
       limit,
-      totalPage: Math.ceil(total / limit),
+      totalPage: Math.ceil((meta.total || 0) / limit),
+    },
+   responseCount: {
+      hired: meta.totalHired || 0,
+      pending: meta.totalPending || 0,
+      archive: meta.totalArchive || 0,
+      urgent: meta.totalUrgent || 0,
     },
   };
+
+
+
+
+
 };
 
 
