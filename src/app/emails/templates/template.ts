@@ -874,6 +874,7 @@ export const interactionEmail = (data: {
 };
 
 
+//  ttt
 export const publicContactEmail = (data: {
   name: string;
   email: string;
@@ -958,6 +959,7 @@ export const publicContactEmail = (data: {
 
 //  ---------------- Authentication Related Email Template --------------------------------------
 
+//  ttt
 export const emailVerificationTemplate = (data: {
   name: string;
   verifyUrl: string;
@@ -1043,6 +1045,87 @@ export const emailVerificationTemplate = (data: {
 };
 
 
+// export const passwordResetEmail = (data: {
+//   name: string;
+//   resetUrl: string;
+// }) => {
+//   const { name, resetUrl } = data;
+
+//   return `
+// <!DOCTYPE html>
+// <html lang="en">     
+// <head>
+//   <meta charset="UTF-8">
+//   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//   <title>Password Reset</title>
+// </head>
+// <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
+//   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px;">
+   
+//      <!-- Logo -->
+//         <tr>
+//             <td align="center" style="padding-bottom: 20px;">
+//                 <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+//             </td>
+//         </tr>
+
+//     <!-- Greeting -->
+//     <tr>
+//       <td style="padding: 0 30px;">
+//         <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+//         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+//           You have requested us to send a link to reset your password for your TheLawApp account. Click on the button below to proceed.
+//         </p>
+//         <!-- Button -->
+//         <div style="text-align: center; margin-bottom: 30px;">
+//           <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+//             Reset password
+//           </a>
+//         </div>
+//         <p style="font-size: 14px; color: #555;">
+//           If you didn’t initiate this request, you can safely ignore this email.
+//         </p>
+//         <p style="font-size: 14px; margin-top: 20px;">
+//           Best Regards,<br>
+//           <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+//         </p>
+//       </td>
+//     </tr>
+
+//     <!-- Social Links -->
+//     <tr>
+//       <td style="text-align:center; padding:30px 0;">
+//         <a href="https://instagram.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width:30px; margin:0 10px;"></a>
+//         <a href="https://facebook.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width:30px; margin:0 10px;"></a>
+//       </td>
+//     </tr>
+
+//     <!-- Footer -->
+//     <tr>
+//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
+//         © 2025 TheLawApp. All rights reserved.
+//       </td>
+//     </tr>
+//     <tr>
+//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888; line-height: 1.5;">
+//         You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below.
+//       </td>
+//     </tr>
+//     <tr>
+//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
+//         <a href="https://thelawapp.com/privacy" style="color: #FF7F27; text-decoration: none;">Privacy policy</a> • 
+//         <a href="https://thelawapp.com/terms" style="color: #FF7F27; text-decoration: none;">Terms of service</a> • 
+//         <a href="https://thelawapp.com/help" style="color: #FF7F27; text-decoration: none;">Help center</a> • 
+//         <a href="https://thelawapp.com/unsubscribe" style="color: #FF7F27; text-decoration: none;">Unsubscribe</a>
+//       </td>
+//     </tr>
+//   </table>
+// </body>
+// </html>
+//   `;
+// };
+
+
 export const passwordResetEmail = (data: {
   name: string;
   resetUrl: string;
@@ -1056,6 +1139,31 @@ export const passwordResetEmail = (data: {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Password Reset</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      // background-color: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+    }
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 18px;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #555;
+    }
+  </style>
 </head>
 <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px;">
@@ -1090,33 +1198,22 @@ export const passwordResetEmail = (data: {
       </td>
     </tr>
 
-    <!-- Social Links -->
-    <tr>
-      <td style="text-align:center; padding:30px 0;">
-        <a href="https://instagram.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width:30px; margin:0 10px;"></a>
-        <a href="https://facebook.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width:30px; margin:0 10px;"></a>
-      </td>
-    </tr>
-
     <!-- Footer -->
-    <tr>
-      <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
-        © 2025 TheLawApp. All rights reserved.
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888; line-height: 1.5;">
-        You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below.
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
-        <a href="https://thelawapp.com/privacy" style="color: #FF7F27; text-decoration: none;">Privacy policy</a> • 
-        <a href="https://thelawapp.com/terms" style="color: #FF7F27; text-decoration: none;">Terms of service</a> • 
-        <a href="https://thelawapp.com/help" style="color: #FF7F27; text-decoration: none;">Help center</a> • 
-        <a href="https://thelawapp.com/unsubscribe" style="color: #FF7F27; text-decoration: none;">Unsubscribe</a>
-      </td>
-    </tr>
+        <tr>
+            <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
+                <hr style="border: none; height: 1px; background-color: #eee;" />
+                <p>
+                    © 2025 TheLawApp. All rights reserved.<br />
+                     You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below. 
+                </p>
+                <p>
+                    <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+                    <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+                    <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+                    <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+                </p>
+            </td>
+        </tr>
   </table>
 </body>
 </html>
