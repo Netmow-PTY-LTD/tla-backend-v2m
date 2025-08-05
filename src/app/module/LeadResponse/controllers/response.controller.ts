@@ -202,6 +202,7 @@ const getMyAllResponse = catchAsync(async (req, res) => {
   const queryTime = timer.endQueryTimer();
   const data = result.data || []; // ensure it's never null
   const pagination = result.pagination || {}; 
+  const counts = result.responseCount || {}; 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: data.length > 0,
@@ -211,6 +212,7 @@ const getMyAllResponse = catchAsync(async (req, res) => {
     queryTime,
     data,
     pagination: pagination,
+    counts
   });
 });
 
