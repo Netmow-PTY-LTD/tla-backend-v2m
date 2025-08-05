@@ -533,20 +533,144 @@ export const welcomeLeadSubmitted = (data: {
 
 
 //  -------------------------- Welcome Lawyer For Registration ---------------------------
+// export const welcomeLawyerEmail = (data: {
+//   name: string;
+//   paracticeArea: string;
+//   dashboardUrl?: string;
+// }) => {
+//   const { name, paracticeArea, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+
+//   return `
+// <!DOCTYPE html>
+// <html>
+// <head>
+//     <meta charset="UTF-8" />
+//     <title>Welcome Lawyer</title>
+//     <style>
+//     body {
+//       margin: 0;
+//       padding: 0;
+//       font-family: Arial, sans-serif;
+//       background-color: #f4f4f4;
+//       color: #333;
+//       line-height: 1.6;
+//     }
+//     a {
+//       text-decoration: none;
+//     }
+//     h3 {
+//       margin: 20px 0 10px;
+//       font-size: 18px;
+//       color: #333;
+//       border-bottom: 1px solid #ddd;
+//       padding-bottom: 5px;
+//     }
+//     p {
+//       margin: 0 0 10px;
+//       font-size: 15px;
+//       color: #555;
+//     }
+//   </style>
+// </head>
+// <body>
+//     <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; padding: 20px 20px;">
+//         <!-- Logo -->
+//         <tr>
+//             <td align="center" style="padding-bottom: 20px;">
+//                 <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+//             </td>
+//         </tr>
+
+//         <!-- Greeting -->
+//         <tr>
+//             <td style="font-size: 20px; font-weight: bold; padding-bottom: 15px;">
+//                 Hi ${name},
+//             </td>
+//         </tr>
+
+//         <!-- Body Content -->
+//         <tr>
+//             <td style="font-size: 16px; line-height: 1.6; color: #333;">
+//                 Welcome to <strong>TheLawApp!</strong> We're thrilled to have you join our growing network of legal
+//                 professionals.
+
+//                 <br /><br />
+//                 You’ve successfully created your account as a <strong>${paracticeArea}</strong>. You can now:
+//                 <ul>
+//                     <li>Start receiving legal inquiries</li>
+//                     <li>Review leads and reply directly</li>
+//                     <li>Build your reputation on the platform</li>
+//                 </ul>
+
+//                 To get started, visit your dashboard and complete your profile to improve your visibility and trust
+//                 score.
+//             </td>
+//         </tr>
+
+//         <!-- CTA Button -->
+//         <tr>
+//             <td align="center" style="padding: 30px 0;">
+//                 <a href="${dashboardUrl}"
+//                     style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+//                     Go to Dashboard
+//                 </a>
+//             </td>
+//         </tr>
+
+//         <!-- Support Message -->
+//         <tr>
+//             <td style="font-size: 15px; color: #555; line-height: 1.5;">
+//                 If you need help setting up your account or understanding how leads work, our support team is here to
+//                 help.
+//                 <br /><br />
+//                 Thank you for joining TheLawApp — we're excited to support your legal journey.
+//             </td>
+//         </tr>
+
+//         <!-- Signoff -->
+//         <tr>
+//             <td style="padding-top: 30px; font-size: 16px;">
+//                 Best Regards, <br />
+//                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
+//             </td>
+//         </tr>
+
+//         <!-- Footer -->
+//         <tr>
+//             <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
+//                 <hr style="border: none; height: 1px; background-color: #eee;" />
+//                 <p>
+//                     © 2025 TheLawApp. All rights reserved.<br />
+//                     You are receiving this email because you registered on TheLawApp as a legal professional.
+//                 </p>
+//                 <p>
+//                     <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+//                     <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+//                     <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+//                     <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+//                 </p>
+//             </td>
+//         </tr>
+//     </table>
+// </body>
+// </html>
+// `
+
+// };
 export const welcomeLawyerEmail = (data: {
   name: string;
   paracticeArea: string;
   dashboardUrl?: string;
 }) => {
   const { name, paracticeArea, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
-
+const appName = 'TheLawApp';
   return `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8" />
     <title>Welcome Lawyer</title>
-    <style>
+ <style>
     body {
       margin: 0;
       padding: 0;
@@ -566,31 +690,34 @@ export const welcomeLawyerEmail = (data: {
       padding-bottom: 5px;
     }
     p {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       font-size: 15px;
-      color: #555;
+      color: #111;
     }
+    span.im {
+       color: #555 !important;
+      }
   </style>
 </head>
 <body>
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; padding: 20px 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; ">
         <!-- Logo -->
         <tr>
-            <td align="center" style="padding-bottom: 20px;">
+            <td align="center" style="padding: 20px 0;">
                 <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
             </td>
         </tr>
 
         <!-- Greeting -->
         <tr>
-            <td style="font-size: 20px; font-weight: bold; padding-bottom: 15px;">
+            <td style="font-size: 20px; font-weight: bold; padding: 10px 20px;">
                 Hi ${name},
             </td>
         </tr>
 
         <!-- Body Content -->
         <tr>
-            <td style="font-size: 16px; line-height: 1.6; color: #333;">
+            <td style="font-size: 16px; padding: 0 20px; line-height: 1.6; color: #333;">
                 Welcome to <strong>TheLawApp!</strong> We're thrilled to have you join our growing network of legal
                 professionals.
 
@@ -609,7 +736,7 @@ export const welcomeLawyerEmail = (data: {
 
         <!-- CTA Button -->
         <tr>
-            <td align="center" style="padding: 30px 0;">
+            <td align="center" style="padding: 30px 20px;">
                 <a href="${dashboardUrl}"
                     style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
                     Go to Dashboard
@@ -619,7 +746,7 @@ export const welcomeLawyerEmail = (data: {
 
         <!-- Support Message -->
         <tr>
-            <td style="font-size: 15px; color: #555; line-height: 1.5;">
+            <td style="font-size: 15px; color: #555; line-height: 1.5;padding: 0 20px ;">
                 If you need help setting up your account or understanding how leads work, our support team is here to
                 help.
                 <br /><br />
@@ -629,7 +756,7 @@ export const welcomeLawyerEmail = (data: {
 
         <!-- Signoff -->
         <tr>
-            <td style="padding-top: 30px; font-size: 16px;">
+            <td style="padding-top: 30px; font-size: 16px; padding:0 20px">
                 Best Regards, <br />
                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
             </td>
@@ -637,20 +764,18 @@ export const welcomeLawyerEmail = (data: {
 
         <!-- Footer -->
         <tr>
-            <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
-                <hr style="border: none; height: 1px; background-color: #eee;" />
-                <p>
-                    © 2025 TheLawApp. All rights reserved.<br />
-                    You are receiving this email because you registered on TheLawApp as a legal professional.
-                </p>
-                <p>
-                    <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
-                    <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
-                    <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
-                    <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
-                </p>
-            </td>
-        </tr>
+      <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
+            You are receiving this email because you registered on TheLawApp as a legal professional.</p>
+        <p style="margin: 0;">
+          <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+          <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+          <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+          <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
     </table>
 </body>
 </html>
@@ -660,6 +785,132 @@ export const welcomeLawyerEmail = (data: {
 
 
 //  -------------------------- Welcome client For Registration ---------------------------
+// export const welcomeClientEmail = (data: {
+//   name: string;
+//   email: string;
+//   defaultPassword: string;
+//   dashboardUrl?: string;
+// }) => {
+//   const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+
+//   return `
+// <!DOCTYPE html>
+// <html>
+// <head>
+//     <meta charset="UTF-8" />
+//     <title>Welcome Client</title>
+//     <style>
+//     body {
+//       margin: 0;
+//       padding: 0;
+//       font-family: Arial, sans-serif;
+//       // background-color: #f4f4f4;
+//       color: #333;
+//       line-height: 1.6;
+//     }
+//     a {
+//       text-decoration: none;
+//     }
+//     h3 {
+//       margin: 20px 0 10px;
+//       font-size: 18px;
+//       color: #333;
+//       border-bottom: 1px solid #ddd;
+//       padding-bottom: 5px;
+//     }
+//     p {
+//       margin: 0 0 10px;
+//       font-size: 15px;
+//       color: #555;
+//     }
+//   </style>
+// </head>
+// <body>
+//     <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; padding: 20px 20px;">
+//         <!-- Logo -->
+//         <tr>
+//             <td align="center" style="padding-bottom: 20px;">
+//                 <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+//             </td>
+//         </tr>
+
+//         <!-- Greeting -->
+//         <tr>
+//             <td style="font-size: 20px; font-weight: bold; padding-bottom: 15px;">
+//                 Hi ${name},
+//             </td>
+//         </tr>
+
+//         <!-- Body Content -->
+//         <tr>
+//             <td style="font-size: 16px; line-height: 1.6; color: #333;">
+//                 Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.
+//                 <br /><br />
+//                 Your account has been successfully created. You can now:
+//                 <ul>
+//                     <li>Search for legal services tailored to your needs</li>
+//                     <li>Send inquiries and receive offers from verified lawyers</li>
+//                     <li>Track your legal requests in one convenient place</li>
+//                 </ul>
+
+//                 Here are your login details:
+//                 <br />
+//                 <strong>Email:</strong> ${email}<br />
+//                 <strong>Password:</strong> ${defaultPassword}
+
+//                 <br /><br />
+//                 For security, we recommend updating your password after your first login.
+//             </td>
+//         </tr>
+
+//         <!-- CTA Button -->
+//         <tr>
+//             <td align="center" style="padding: 30px 0;">
+//                 <a href="${dashboardUrl}"
+//                     style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+//                     Go to Dashboard
+//                 </a>
+//             </td>
+//         </tr>
+
+//         <!-- Support Message -->
+//         <tr>
+//             <td style="font-size: 15px; color: #555; line-height: 1.5;">
+//                 If you need assistance or have any questions, our support team is here to help.
+//                 <br /><br />
+//                 Thank you for choosing TheLawApp — we’re here to simplify your legal journey.
+//             </td>
+//         </tr>
+
+//         <!-- Signoff -->
+//         <tr>
+//             <td style="padding-top: 30px; font-size: 16px;">
+//                 Best Regards, <br />
+//                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
+//             </td>
+//         </tr>
+
+//         <!-- Footer -->
+//         <tr>
+//             <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
+//                 <hr style="border: none; height: 1px; background-color: #eee;" />
+//                 <p>
+//                     © 2025 TheLawApp. All rights reserved.<br />
+//                     You are receiving this email because you registered on TheLawApp as a client.
+//                 </p>
+//                 <p>
+//                     <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+//                     <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+//                     <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+//                     <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+//                 </p>
+//             </td>
+//         </tr>
+//     </table>
+// </body>
+// </html>
+// `
+// };
 export const welcomeClientEmail = (data: {
   name: string;
   email: string;
@@ -667,7 +918,7 @@ export const welcomeClientEmail = (data: {
   dashboardUrl?: string;
 }) => {
   const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
-
+const appName = 'TheLawApp';
   return `
 <!DOCTYPE html>
 <html>
@@ -701,24 +952,24 @@ export const welcomeClientEmail = (data: {
   </style>
 </head>
 <body>
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; padding: 20px 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; ">
         <!-- Logo -->
         <tr>
-            <td align="center" style="padding-bottom: 20px;">
+            <td align="center" style="padding: 20px 0;">
                 <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
             </td>
         </tr>
 
         <!-- Greeting -->
         <tr>
-            <td style="font-size: 20px; font-weight: bold; padding-bottom: 15px;">
+            <td style="font-size: 20px; font-weight: bold; padding:0 20px 15px 20px;">
                 Hi ${name},
             </td>
         </tr>
 
         <!-- Body Content -->
         <tr>
-            <td style="font-size: 16px; line-height: 1.6; color: #333;">
+            <td style="font-size: 16px; line-height: 1.6; color: #333; padding: 0 20px;">
                 Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.
                 <br /><br />
                 Your account has been successfully created. You can now:
@@ -740,7 +991,7 @@ export const welcomeClientEmail = (data: {
 
         <!-- CTA Button -->
         <tr>
-            <td align="center" style="padding: 30px 0;">
+            <td align="center" style="padding: 30px ;">
                 <a href="${dashboardUrl}"
                     style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
                     Go to Dashboard
@@ -750,7 +1001,7 @@ export const welcomeClientEmail = (data: {
 
         <!-- Support Message -->
         <tr>
-            <td style="font-size: 15px; color: #555; line-height: 1.5;">
+            <td style="font-size: 15px; color: #555; line-height: 1.5; padding: 0 20px;">
                 If you need assistance or have any questions, our support team is here to help.
                 <br /><br />
                 Thank you for choosing TheLawApp — we’re here to simplify your legal journey.
@@ -759,7 +1010,7 @@ export const welcomeClientEmail = (data: {
 
         <!-- Signoff -->
         <tr>
-            <td style="padding-top: 30px; font-size: 16px;">
+            <td style="padding: 30px 20px;; font-size: 16px;">
                 Best Regards, <br />
                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
             </td>
@@ -767,20 +1018,18 @@ export const welcomeClientEmail = (data: {
 
         <!-- Footer -->
         <tr>
-            <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
-                <hr style="border: none; height: 1px; background-color: #eee;" />
-                <p>
-                    © 2025 TheLawApp. All rights reserved.<br />
-                    You are receiving this email because you registered on TheLawApp as a client.
-                </p>
-                <p>
-                    <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
-                    <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
-                    <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
-                    <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
-                </p>
-            </td>
-        </tr>
+      <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0 0 10px;">© 2025 ${appName}. © 2025 TheLawApp. All rights reserved.<br />
+                    You are receiving this email because you registered on TheLawApp as a client.</p>
+        <p style="margin: 0;">
+          <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+          <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+          <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+          <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
     </table>
 </body>
 </html>
