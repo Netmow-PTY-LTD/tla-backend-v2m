@@ -663,7 +663,7 @@ export const welcomeLawyerEmail = (data: {
   dashboardUrl?: string;
 }) => {
   const { name, paracticeArea, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
-const appName = 'TheLawApp';
+  const appName = 'TheLawApp';
   return `
 <!DOCTYPE html>
 <html>
@@ -918,7 +918,7 @@ export const welcomeClientEmail = (data: {
   dashboardUrl?: string;
 }) => {
   const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
-const appName = 'TheLawApp';
+  const appName = 'TheLawApp';
   return `
 <!DOCTYPE html>
 <html>
@@ -1491,9 +1491,10 @@ export const publicContactEmail = (data: {
        <tr>
       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
         <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
-        <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
-          You are receiving this email because you registered on ${appName} as a legal professional.
-        </p>
+       <p>
+                    © 2025 TheLawApp. All rights reserved.<br />
+                    You are receiving this email because you registered on TheLawApp
+                </p>
         <p style="margin: 0;">
           <a href="https://thelawapp.com/privacy" style="color: #999; text-decoration: none;">Privacy Policy</a> •
           <a href="https://thelawapp.com/terms" style="color: #999; text-decoration: none;">Terms</a> •
@@ -1513,6 +1514,7 @@ export const publicContactEmail = (data: {
 //  ---------------- Authentication Related Email Template --------------------------------------
 
 
+
 // export const emailVerificationTemplate = (data: {
 //   name: string;
 //   verifyUrl: string;
@@ -1527,10 +1529,35 @@ export const publicContactEmail = (data: {
 //   <meta charset="UTF-8">
 //   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 //   <title>Email Verification</title>
+//    <style>
+//     body {
+//       margin: 0;
+//       padding: 0;
+//       font-family: Arial, sans-serif;
+//       // background-color: #f4f4f4;
+//       color: #333;
+//       line-height: 1.6;
+//     }
+//     a {
+//       text-decoration: none;
+//     }
+//     h3 {
+//       margin: 20px 0 10px;
+//       font-size: 18px;
+//       color: #333;
+//       border-bottom: 1px solid #ddd;
+//       padding-bottom: 5px;
+//     }
+//     p {
+//       margin: 0 0 10px;
+//       font-size: 15px;
+//       color: #555;
+//     }
+//   </style>
 // </head>
 // <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
 //   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px;">
-    
+
 //     <!-- Logo -->
 //     <tr>
 //       <td align="center" style="padding-bottom: 20px;">
@@ -1564,33 +1591,24 @@ export const publicContactEmail = (data: {
 //       </td>
 //     </tr>
 
-//     <!-- Social Links -->
-//     <tr>
-//       <td style="text-align:center; padding:30px 0;">
-//         <a href="https://instagram.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width:30px; margin:0 10px;"></a>
-//         <a href="https://facebook.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width:30px; margin:0 10px;"></a>
-//       </td>
-//     </tr>
 
-//     <!-- Footer -->
-//     <tr>
-//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
-//         © 2025 TheLawApp. All rights reserved.
-//       </td>
-//     </tr>
-//     <tr>
-//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888; line-height: 1.5;">
-//         You are receiving this mail because you signed up at TheLawApp. If this wasn't you, feel free to ignore this message.
-//       </td>
-//     </tr>
-//     <tr>
-//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
-//         <a href="https://thelawapp.com/privacy" style="color: #FF7F27; text-decoration: none;">Privacy policy</a> • 
-//         <a href="https://thelawapp.com/terms" style="color: #FF7F27; text-decoration: none;">Terms of service</a> • 
-//         <a href="https://thelawapp.com/help" style="color: #FF7F27; text-decoration: none;">Help center</a> • 
-//         <a href="https://thelawapp.com/unsubscribe" style="color: #FF7F27; text-decoration: none;">Unsubscribe</a>
-//       </td>
-//     </tr>
+
+//      <!-- Footer -->
+//         <tr>
+//             <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
+//                 <hr style="border: none; height: 1px; background-color: #f9f9f9;" />
+//                 <p>
+//                     © 2025 TheLawApp. All rights reserved.<br />
+//                            You are receiving this mail because you signed up at TheLawApp. If this wasn't you, feel free to ignore this message.
+//                 </p>
+//                 <p>
+//                     <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+//                     <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+//                     <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+//                     <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+//                 </p>
+//             </td>
+//         </tr>
 //   </table>
 // </body>
 // </html>
@@ -1602,7 +1620,7 @@ export const emailVerificationTemplate = (data: {
   role: string;
 }) => {
   const { name, verifyUrl, role } = data;
-
+ const appName = 'TheLawApp';
   return `
 <!DOCTYPE html>
 <html lang="en">     
@@ -1637,11 +1655,11 @@ export const emailVerificationTemplate = (data: {
   </style>
 </head>
 <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff;  border: 1px solid #e0e0e0; border-radius: 6px;">
     
     <!-- Logo -->
     <tr>
-      <td align="center" style="padding-bottom: 20px;">
+      <td align="center" style="padding: 20px;">
         <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
       </td>
     </tr>
@@ -1676,25 +1694,25 @@ export const emailVerificationTemplate = (data: {
 
      <!-- Footer -->
         <tr>
-            <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
-                <hr style="border: none; height: 1px; background-color: #f9f9f9;" />
-                <p>
-                    © 2025 TheLawApp. All rights reserved.<br />
+      <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0 0 10px;">© 2025 ${appName}.  © 2025 TheLawApp. All rights reserved.<br />
                            You are receiving this mail because you signed up at TheLawApp. If this wasn't you, feel free to ignore this message.
-                </p>
-                <p>
-                    <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
-                    <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
-                    <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
-                    <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
-                </p>
-            </td>
-        </tr>
+        </p>
+        <p style="margin: 0;">
+          <a href="https://thelawapp.com/privacy" style="color: #999; text-decoration: none;">Privacy Policy</a> •
+          <a href="https://thelawapp.com/terms" style="color: #999; text-decoration: none;">Terms</a> •
+          <a href="https://thelawapp.com/help" style="color: #999; text-decoration: none;">Help Center</a> •
+          <a href="https://thelawapp.com/unsubscribe" style="color: #999; text-decoration: none;">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
   </table>
 </body>
 </html>
   `;
 };
+
 
 
 // export const passwordResetEmail = (data: {
@@ -1710,6 +1728,31 @@ export const emailVerificationTemplate = (data: {
 //   <meta charset="UTF-8">
 //   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 //   <title>Password Reset</title>
+//   <style>
+//     body {
+//       margin: 0;
+//       padding: 0;
+//       font-family: Arial, sans-serif;
+//       // background-color: #f4f4f4;
+//       color: #333;
+//       line-height: 1.6;
+//     }
+//     a {
+//       text-decoration: none;
+//     }
+//     h3 {
+//       margin: 20px 0 10px;
+//       font-size: 18px;
+//       color: #333;
+//       border-bottom: 1px solid #ddd;
+//       padding-bottom: 5px;
+//     }
+//     p {
+//       margin: 0 0 10px;
+//       font-size: 15px;
+//       color: #555;
+//     }
+//   </style>
 // </head>
 // <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
 //   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px;">
@@ -1744,46 +1787,33 @@ export const emailVerificationTemplate = (data: {
 //       </td>
 //     </tr>
 
-//     <!-- Social Links -->
-//     <tr>
-//       <td style="text-align:center; padding:30px 0;">
-//         <a href="https://instagram.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width:30px; margin:0 10px;"></a>
-//         <a href="https://facebook.com/thelawapp"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width:30px; margin:0 10px;"></a>
-//       </td>
-//     </tr>
-
 //     <!-- Footer -->
-//     <tr>
-//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
-//         © 2025 TheLawApp. All rights reserved.
-//       </td>
-//     </tr>
-//     <tr>
-//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888; line-height: 1.5;">
-//         You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below.
-//       </td>
-//     </tr>
-//     <tr>
-//       <td style="padding: 10px 30px; text-align: center; font-size: 12px; color: #888;">
-//         <a href="https://thelawapp.com/privacy" style="color: #FF7F27; text-decoration: none;">Privacy policy</a> • 
-//         <a href="https://thelawapp.com/terms" style="color: #FF7F27; text-decoration: none;">Terms of service</a> • 
-//         <a href="https://thelawapp.com/help" style="color: #FF7F27; text-decoration: none;">Help center</a> • 
-//         <a href="https://thelawapp.com/unsubscribe" style="color: #FF7F27; text-decoration: none;">Unsubscribe</a>
-//       </td>
-//     </tr>
+//         <tr>
+//             <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
+//                 <hr style="border: none; height: 1px; background-color: #eee;" />
+//                 <p>
+//                     © 2025 TheLawApp. All rights reserved.<br />
+//                      You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below. 
+//                 </p>
+//                 <p>
+//                     <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+//                     <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+//                     <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+//                     <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+//                 </p>
+//             </td>
+//         </tr>
 //   </table>
 // </body>
 // </html>
 //   `;
 // };
-
-
 export const passwordResetEmail = (data: {
   name: string;
   resetUrl: string;
 }) => {
   const { name, resetUrl } = data;
-
+const appName = 'TheLawApp';
   return `
 <!DOCTYPE html>
 <html lang="en">     
@@ -1818,11 +1848,11 @@ export const passwordResetEmail = (data: {
   </style>
 </head>
 <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; border: 1px solid #e0e0e0; border-radius: 6px;">
    
      <!-- Logo -->
         <tr>
-            <td align="center" style="padding-bottom: 20px;">
+            <td align="center" style="padding: 20px;">
                 <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
             </td>
         </tr>
@@ -1852,20 +1882,19 @@ export const passwordResetEmail = (data: {
 
     <!-- Footer -->
         <tr>
-            <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
-                <hr style="border: none; height: 1px; background-color: #eee;" />
-                <p>
-                    © 2025 TheLawApp. All rights reserved.<br />
-                     You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below. 
-                </p>
-                <p>
-                    <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
-                    <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
-                    <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
-                    <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
-                </p>
-            </td>
-        </tr>
+      <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
+          You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below. 
+        </p>
+        <p style="margin: 0;">
+          <a href="https://thelawapp.com/privacy" style="color: #999; text-decoration: none;">Privacy Policy</a> •
+          <a href="https://thelawapp.com/terms" style="color: #999; text-decoration: none;">Terms</a> •
+          <a href="https://thelawapp.com/help" style="color: #999; text-decoration: none;">Help Center</a> •
+          <a href="https://thelawapp.com/unsubscribe" style="color: #999; text-decoration: none;">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
   </table>
 </body>
 </html>
