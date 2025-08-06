@@ -1279,6 +1279,7 @@ export const interactionEmail = (data: {
 
 
 
+
 // export const publicContactEmail = (data: {
 //   name: string;
 //   email: string;
@@ -1295,8 +1296,33 @@ export const interactionEmail = (data: {
 //   <meta charset="UTF-8" />
 //   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 //   <title>New Contact Request</title>
+//   <style>
+//     body {
+//       margin: 0;
+//       padding: 0;
+//       font-family: Arial, sans-serif;
+//       // background-color: #f4f4f4;
+//       color: #333;
+//       line-height: 1.6;
+//     }
+//     a {
+//       text-decoration: none;
+//     }
+//     h3 {
+//       margin: 20px 0 10px;
+//       font-size: 18px;
+//       color: #333;
+//       border-bottom: 1px solid #ddd;
+//       padding-bottom: 5px;
+//     }
+//     p {
+//       margin: 0 0 10px;
+//       font-size: 15px;
+//       color: #555;
+//     }
+//   </style>
 // </head>
-// <body style="margin: 0; padding: 10%; font-family: Arial, sans-serif;  color: #333;">
+// <body style="margin: 0; padding: 5%; font-family: Arial, sans-serif;  color: #333;">
 //   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
 
 //     <!-- Logo -->
@@ -1347,12 +1373,22 @@ export const interactionEmail = (data: {
 //       </td>
 //     </tr>
 
-//     <tr>
-//       <td align="center" style="padding: 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
-//         <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
-//         <p style="margin: 0;">© 2025 ${appName}. All rights reserved.</p>
-//       </td>
-//     </tr>
+//     <!-- Footer -->
+//         <tr>
+//             <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
+//                 <hr style="border: none; height: 1px; background-color: #eee;" />
+//                 <p>
+//                     © 2025 TheLawApp. All rights reserved.<br />
+//                     You are receiving this email because you registered on TheLawApp
+//                 </p>
+//                 <p>
+//                     <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
+//                     <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
+//                     <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
+//                     <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+//                 </p>
+//             </td>
+//         </tr>
 //   </table>
 // </body>
 // </html>
@@ -1400,7 +1436,7 @@ export const publicContactEmail = (data: {
     }
   </style>
 </head>
-<body style="margin: 0; padding: 10%; font-family: Arial, sans-serif;  color: #333;">
+<body style="margin: 0; padding: 5%; font-family: Arial, sans-serif;  color: #333;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
 
     <!-- Logo -->
@@ -1452,21 +1488,20 @@ export const publicContactEmail = (data: {
     </tr>
 
     <!-- Footer -->
-        <tr>
-            <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
-                <hr style="border: none; height: 1px; background-color: #eee;" />
-                <p>
-                    © 2025 TheLawApp. All rights reserved.<br />
-                    You are receiving this email because you registered on TheLawApp
-                </p>
-                <p>
-                    <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
-                    <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
-                    <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
-                    <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
-                </p>
-            </td>
-        </tr>
+       <tr>
+      <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
+        <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+        <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
+          You are receiving this email because you registered on ${appName} as a legal professional.
+        </p>
+        <p style="margin: 0;">
+          <a href="https://thelawapp.com/privacy" style="color: #999; text-decoration: none;">Privacy Policy</a> •
+          <a href="https://thelawapp.com/terms" style="color: #999; text-decoration: none;">Terms</a> •
+          <a href="https://thelawapp.com/help" style="color: #999; text-decoration: none;">Help Center</a> •
+          <a href="https://thelawapp.com/unsubscribe" style="color: #999; text-decoration: none;">Unsubscribe</a>
+        </p>
+      </td>
+    </tr>
   </table>
 </body>
 </html>
@@ -1642,7 +1677,7 @@ export const emailVerificationTemplate = (data: {
      <!-- Footer -->
         <tr>
             <td align="center" style="padding-top: 40px; font-size: 12px; color: #999;">
-                <hr style="border: none; height: 1px; background-color: #eee;" />
+                <hr style="border: none; height: 1px; background-color: #f9f9f9;" />
                 <p>
                     © 2025 TheLawApp. All rights reserved.<br />
                            You are receiving this mail because you signed up at TheLawApp. If this wasn't you, feel free to ignore this message.
