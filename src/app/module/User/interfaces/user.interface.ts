@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
-import {  UserProfileEnum } from '../constants/user.constant';
+import { UserProfileEnum } from '../constants/user.constant';
 import { IUser } from '../../Auth/interfaces/auth.interface';
 
+export type Gender = 'male' | 'female' | 'other';
 export interface IBillingAddress {
   contactName?: string;
   addressLine1?: string;
@@ -19,8 +20,11 @@ export interface IUserProfile {
   name: string;
   slug?: string;
   designation?: string;
-  lawyerContactEmail?:string;
-  profileType?:UserProfileEnum,
+  gender?: Gender;
+  lawyerContactEmail?: string;
+  law_society_member_number?: string;
+  practising_certificate_number?: string;
+  profileType?: UserProfileEnum,
   country?: Types.ObjectId;
   zipCode?: Types.ObjectId;
   profilePicture?: string;
