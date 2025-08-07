@@ -602,6 +602,7 @@ const contactWithEmail = async (payload: IEmail) => {
   try {
     await sendEmail({
       to: "maksud.netmow@gmail.com",
+      // to: "rabby.netmow@gmail.com",
       subject: `You have received a message from ${payload.name}`,
       data: payload,
       emailTemplate: "public-contact",

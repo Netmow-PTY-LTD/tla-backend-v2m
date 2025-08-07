@@ -100,6 +100,17 @@ export const initializeSockets = (ioInstance: Server) => {
       console.log(`👥 User joined response:${responseId}`);
     });
 
+    // Listen for watch-users to send current online statuses
+    socket.on("watch-users", (watchUserIds: string[]) => {
+      watchUserIds.forEach((watchId) => {
+        if (userSocketsMap.has(watchId)) {
+          socket.emit("userOnline", { userId: watchId });
+        }
+      });
+    });
+
+
+
     // Handle disconnect
     socket.on("disconnect", async () => {
       const uid = onlineUsersMap.get(socket.id);
@@ -139,4 +150,4 @@ export const getIO = (): Server => {
 
 
 
-
+export { userSocketsMap };

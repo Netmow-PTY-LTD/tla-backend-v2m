@@ -367,7 +367,7 @@ const createLawyerResponseAndSpendCredit = async (
         activityType: 'credit_spent',
         module: 'response',
         objectId: leadResponse._id,
-        activityNote: `Spent ${credit} credits to contact lead.`,
+        activityNote: `Spent ${credit} credits to contact`,
         extraField: {
           creditsBefore,
           creditsAfter,
@@ -382,7 +382,7 @@ const createLawyerResponseAndSpendCredit = async (
         activityType: 'create',
         module: 'response',
         objectId: leadResponse._id,
-        activityNote: `Created response for this lead.`,
+        activityNote: `Created response`,
         extraField: {
           leadId,
           serviceId,

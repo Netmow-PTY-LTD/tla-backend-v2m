@@ -29,7 +29,24 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
     },
-  
+    law_society_member_number: {
+      type: String,
+      trim: true,
+    },
+    practising_certificate_number: {
+      type: String,
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: {
+        values: ['male', 'female', 'other'],
+        message: 'Gender must be either male, female, or other',
+      },
+      trim: true,
+      default: ''
+    },
+
     profileType: {
       type: String,
       enum: Object.values(USER_PROFILE),

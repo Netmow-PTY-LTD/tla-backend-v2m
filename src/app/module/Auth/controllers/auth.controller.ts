@@ -33,7 +33,7 @@ const login = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'User logged in Successfully',
+    message: 'User logged in successfully.',
     token: accessToken,
     data: userData,
   });
@@ -58,7 +58,7 @@ const refreshToken = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Access token is retrieved successfully!',
+    message: 'Access token retrieved successfully',
     data: result,
   });
 });
@@ -85,7 +85,7 @@ const changePassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Password is change successfully!',
+    message: 'Password changed successfully',
     data: result,
   });
 });
@@ -108,7 +108,7 @@ const forgetPassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Reset link is generated successfully!',
+    message: 'Reset link generated successfully',
     data: result,
   });
 });
@@ -123,8 +123,8 @@ const forgetPassword = catchAsync(async (req, res) => {
  */
 const resetPassword = catchAsync(async (req, res) => {
   // Extract the reset token from the Authorization header
-  const token = req.headers.authorization;
-
+  // const token = req.headers.authorization;
+  const token = req.body.token;
   // If no token is provided, throw an error
   if (!token) {
     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Something went wrong !');
@@ -137,7 +137,7 @@ const resetPassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Password reset successfully!',
+    message: 'Password reset successfully.',
     data: result,
   });
 });
@@ -169,7 +169,7 @@ const logOut = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Clear RefreshToken successfully!',
+    message: 'Refresh token cleared successfully.',
     data: null,
   });
 });
@@ -185,7 +185,7 @@ const verifyEmail = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Verify Successfully!',
+    message: 'Verification successful.',
     data: result,
   });
 });
@@ -198,7 +198,7 @@ const resendVerificationEmail = catchAsync(
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: true,
-      message: 'Verification email resent!',
+     message: 'Verification email resent successfully.',
       data: result, // usually null or { email, isVerified: false }
     });
   }
