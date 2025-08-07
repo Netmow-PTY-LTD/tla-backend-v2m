@@ -566,28 +566,42 @@ const getAllLeadFromDB = async (
     };
   }
 
-  // Lead submission (date range)
+
   if (filters.leadSubmission) {
-    const now = new Date();
-    let startDate: Date | null = null;
+  const now = new Date();
+  let startDate: Date | null = null;
 
-    switch (filters.leadSubmission) {
-      case 'last-hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
-      case 'today': startDate = new Date(now.setHours(0, 0, 0, 0)); break;
-      case 'yesterday': startDate = new Date(now.setDate(now.getDate() - 1)); break;
-      case '3days-ago': startDate = new Date(now.setDate(now.getDate() - 3)); break;
-      case '7days-ago': startDate = new Date(now.setDate(now.getDate() - 7)); break;
-      case '2weeks-ago': startDate = new Date(now.setDate(now.getDate() - 14)); break;
-      case 'last-month': startDate = new Date(now.setMonth(now.getMonth() - 1)); break;
-      case 'six-month': startDate = new Date(now.setMonth(now.getMonth() - 6)); break;
-      case 'last-year': startDate = new Date(now.setFullYear(now.getFullYear() - 1)); break;
-      case 'one-year-ago': startDate = new Date(0); break;
-    }
-
-    if (startDate) {
-      matchStage.createdAt = { $gte: startDate };
-    }
+  switch (filters.leadSubmission) {
+    case 'last_1_hour':
+      startDate = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
+      break;
+    case 'last_24_hours':
+      startDate = new Date();
+      startDate.setHours(0, 0, 0, 0); // today at 00:00
+      break;
+    case 'last_48_hours':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 1); // yesterday
+      break;
+    case 'last_3_days':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 3);
+      break;
+    case 'last_7_days':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+      break;
+    case 'last_14_days':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 14);
+      break;
+    // Add more if you add them on frontend
   }
+
+  if (startDate) {
+    matchStage.createdAt = { $gte: startDate };
+  }
+}
 
 
   //  View will be next time add logic
