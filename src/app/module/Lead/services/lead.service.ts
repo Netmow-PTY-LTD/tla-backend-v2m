@@ -545,19 +545,37 @@ const getAllLeadFromDB = async (
     };
   }
 
-  // Credits
-  if (filters.credits?.length) {
-    const creditConditions = filters.credits.map((range: string) => {
-      if (range === 'free') return { credit: 0 };
-      if (range === '1-5') return { credit: { $gte: 1, $lte: 5 } };
-      if (range === '6-10') return { credit: { $gte: 6, $lte: 10 } };
-      if (range === '10+') return { credit: { $gte: 11 } };
-    }).filter(Boolean);
 
-    if (creditConditions.length) {
-      matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+// Credits
+if (filters.credits?.length) {
+  const creditConditions = filters.credits.map((range: string) => {
+    switch (range) {
+      case 'Free':
+        return { credit: 0 };
+      case '1-5 credits':
+        return { credit: { $gte: 1, $lte: 5 } };
+      case '5-10 credits':
+        return { credit: { $gte: 5, $lte: 10 } };
+      case '10-20 credits':
+        return { credit: { $gte: 10, $lte: 20 } };
+      case '20-30 credits':
+        return { credit: { $gte: 20, $lte: 30 } };
+      case '30-40 credits':
+        return { credit: { $gte: 30, $lte: 40 } };
+      case '40-50 credits':
+        return { credit: { $gte: 40, $lte: 50 } };
+      case '50-100 credits':
+        return { credit: { $gte: 50, $lte: 100 } };
+      default:
+        return null;
     }
+  }).filter(Boolean);
+
+  if (creditConditions.length) {
+    matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
   }
+}
+
 
   // Location
   if (filters.location?.length) {
