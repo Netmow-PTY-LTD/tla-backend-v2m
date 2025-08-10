@@ -236,216 +236,474 @@ const getAllLeadForAdminDashboardFromDB = async (
 //  --------------  Get all lead for lawyer dashboard ----------
 
 
-const getAllLeadFromDB = async (
-  userId: string,
-  query: Record<string, unknown>,
-) => {
-  const user = await UserProfile.findOne({ user: userId }).select(
-    '_id serviceIds',
-  );
-  if (!user) return null;
+// const getAllLeadFromDB = async (
+//   userId: string,
+//   query: Record<string, unknown>,
+// ) => {
+//   const user = await UserProfile.findOne({ user: userId }).select(
+//     '_id serviceIds',
+//   );
+//   if (!user) return null;
 
 
-  const conditionalExcludeFields = [
-    'credits',
-    'keyword',
-    'leadSubmission',
-    'location',
-    'services',
-    'spotlight',
-    'view',
-    'sort',
-  ];
+//   const conditionalExcludeFields = [
+//     'credits',
+//     'keyword',
+//     'leadSubmission',
+//     'location',
+//     'services',
+//     'spotlight',
+//     'view',
+//     'sort',
+//   ];
 
-  let parsedKeyword: any = {};
-  try {
-    if (typeof query.searchKeyword === 'string') {
-      parsedKeyword = JSON.parse(query.searchKeyword);
-    }
-  } catch (err) {
-    console.error('Invalid JSON in searchKeyword:', err);
-  }
+//   let parsedKeyword: any = {};
+//   try {
+//     if (typeof query.searchKeyword === 'string') {
+//       parsedKeyword = JSON.parse(query.searchKeyword);
+//     }
+//   } catch (err) {
+//     console.error('Invalid JSON in searchKeyword:', err);
+//   }
 
-  //  --------------- dont remove it , it will use next time -------------------------
-  const isKeywordEmpty =
-    !parsedKeyword || typeof parsedKeyword !== 'object' || !Object.keys(parsedKeyword).length;
+//   //  --------------- dont remove it , it will use next time -------------------------
+//   const isKeywordEmpty =
+//     !parsedKeyword || typeof parsedKeyword !== 'object' || !Object.keys(parsedKeyword).length;
 
-  const filteredQuery = Object.fromEntries(
-    Object.entries(query).filter(([key]) => {
-      if (key === 'searchKeyword') return false;
-      return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
-    }),
-  );
+//   const filteredQuery = Object.fromEntries(
+//     Object.entries(query).filter(([key]) => {
+//       if (key === 'searchKeyword') return false;
+//       return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
+//     }),
+//   );
 
-  if (parsedKeyword?.sort) {
-    filteredQuery.sort = parsedKeyword.sort;
-  }
+//   if (parsedKeyword?.sort) {
+//     filteredQuery.sort = parsedKeyword.sort;
+//   }
 
-  let services: any[] = [];
+//   let services: any[] = [];
 
-  if (
-    Array.isArray(parsedKeyword?.services) &&
-    parsedKeyword.services.length > 0
-  ) {
-    services = parsedKeyword.services;
-  } else if (Array.isArray(user.serviceIds) && user.serviceIds.length > 0) {
-    services = user.serviceIds;
-  }
+//   if (
+//     Array.isArray(parsedKeyword?.services) &&
+//     parsedKeyword.services.length > 0
+//   ) {
+//     services = parsedKeyword.services;
+//   } else if (Array.isArray(user.serviceIds) && user.serviceIds.length > 0) {
+//     services = user.serviceIds;
+//   }
 
-  const userObjectId = new mongoose.Types.ObjectId(user._id.toString());
+//   const userObjectId = new mongoose.Types.ObjectId(user._id.toString());
 
-  const baseFilter: any = {
-    deletedAt: null,
-    serviceId: { $in: services.length ? services : user.serviceIds },
-    status: "approved",
-    userProfileId: { $ne: userObjectId },
-    responders: { $ne: userObjectId }, // exclude leads where 
+//   const baseFilter: any = {
+//     deletedAt: null,
+//     serviceId: { $in: services.length ? services : user.serviceIds },
+//     status: "approved",
+//     userProfileId: { $ne: userObjectId },
+//     responders: { $ne: userObjectId }, // exclude leads where 
 
-  };
-
-
-  // ---------------- CREDIT RANGE FILTER -----------------
-
-  if (Array.isArray(parsedKeyword?.credits) && parsedKeyword.credits.length > 0) {
-    const creditFilter = buildCreditFilter(parsedKeyword.credits);
-    Object.assign(baseFilter, creditFilter);
-  }
+//   };
 
 
-  // ---------------- LEAD SUBMISSION FILTER -----------------
+//   // ---------------- CREDIT RANGE FILTER -----------------
 
-  if (parsedKeyword?.['leadSubmission']) {
-    const now = new Date();
-    const submissionRanges: Record<string, number> = {
-      last_1_hour: 1,
-      last_24_hours: 24,
-      last_48_hours: 48,
-      last_3_days: 72,
-      last_7_days: 168,
-      last_14_days: 336,
-    };
-
-    const hours = submissionRanges[parsedKeyword['leadSubmission']];
-    if (hours) {
-      baseFilter.createdAt = { $gte: new Date(now.getTime() - hours * 60 * 60 * 1000) };
-    }
-  }
-
-  const leadQuery = new QueryBuilder(
-    Lead.find({
-    ...baseFilter,
-    responders: { $ne: userObjectId }, // Exclude leads where current user has already responded
-  })
-      // .populate('userProfileId')
-      .populate({
-        path: 'userProfileId',
-        populate: 'user'
-      })
-      .populate('serviceId')
-      .populate('responders')
-      .lean(),
-    filteredQuery,
-  )
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
-
-  let meta = await leadQuery.countTotal();
-  let data = await leadQuery.modelQuery;
+//   if (Array.isArray(parsedKeyword?.credits) && parsedKeyword.credits.length > 0) {
+//     const creditFilter = buildCreditFilter(parsedKeyword.credits);
+//     Object.assign(baseFilter, creditFilter);
+//   }
 
 
-  if (parsedKeyword?.keyword?.trim()) {
-    const keyword = parsedKeyword.keyword.trim().toLowerCase();
-    data = data?.filter((lead) => {
-      const profile = lead?.userProfileId as unknown as IUserProfile;
-      return profile?.name?.toLowerCase().includes(keyword);
-    });
+//   // ---------------- LEAD SUBMISSION FILTER -----------------
 
-    // Recalculate pagination meta based on filtered data
-    const page = Number(leadQuery?.query?.page) || 1;
-    const limit = Number(leadQuery?.query?.limit) || 10;
-    const total = data.length;
-    const totalPage = Math.ceil(total / limit);
+//   if (parsedKeyword?.['leadSubmission']) {
+//     const now = new Date();
+//     const submissionRanges: Record<string, number> = {
+//       last_1_hour: 1,
+//       last_24_hours: 24,
+//       last_48_hours: 48,
+//       last_3_days: 72,
+//       last_7_days: 168,
+//       last_14_days: 336,
+//     };
 
-    meta = {
-      page,
-      limit,
-      total,
-      totalPage,
-    };
+//     const hours = submissionRanges[parsedKeyword['leadSubmission']];
+//     if (hours) {
+//       baseFilter.createdAt = { $gte: new Date(now.getTime() - hours * 60 * 60 * 1000) };
+//     }
+//   }
 
-    // Paginate filtered data manually
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    data = data.slice(startIndex, endIndex);
+//   const leadQuery = new QueryBuilder(
+//     Lead.find({
+//     ...baseFilter,
+//     responders: { $ne: userObjectId }, // Exclude leads where current user has already responded
+//   })
+//       // .populate('userProfileId')
+//       .populate({
+//         path: 'userProfileId',
+//         populate: 'user'
+//       })
+//       .populate('serviceId')
+//       .populate('responders')
+//       .lean(),
+//     filteredQuery,
+//   )
+//     .filter()
+//     .sort()
+//     .paginate()
+//     .fields();
 
-  }
-
-
-  const result = await Promise.all(
-    data.map(async (lead) => {
-      // const existingResponse = await LeadResponse.exists({
-      //   leadId: lead._id,
-      //   responseBy: user._id,
-      // });
-
-      return {
-        ...lead,
-        credit: customCreditLogic(lead?.credit as number),
-        // isContact: !!existingResponse,
-      };
-    }),
-  );
-
-  // const result = (
-  //   await Promise.all(
-  //     data.map(async (lead) => {
-  //       const existingResponse = await LeadResponse.exists({
-  //         leadId: lead._id,
-  //         responseBy: user._id,
-  //       });
-
-  //       if (existingResponse) return null; // ❌ Exclude this lead
-
-  //       return {
-  //         ...lead,
-  //         credit: customCreditLogic(lead?.credit as number),
-  //         isContact: false,
-  //       };
-  //     }),
-  //   )
-  // ).filter(Boolean); // ✅ Remove all `null` entries
+//   let meta = await leadQuery.countTotal();
+//   let data = await leadQuery.modelQuery;
 
 
-  // // Recalculate pagination meta based on filtered data
-  // const page = Number(leadQuery?.query?.page) || 1;
-  // const limit = Number(leadQuery?.query?.limit) || 10;
-  // const total = result.length;
-  // const totalPage = Math.ceil(total / limit);
+//   if (parsedKeyword?.keyword?.trim()) {
+//     const keyword = parsedKeyword.keyword.trim().toLowerCase();
+//     data = data?.filter((lead) => {
+//       const profile = lead?.userProfileId as unknown as IUserProfile;
+//       return profile?.name?.toLowerCase().includes(keyword);
+//     });
 
-  // meta = {
-  //   page,
-  //   limit,
-  //   total,
-  //   totalPage,
-  // };
+//     // Recalculate pagination meta based on filtered data
+//     const page = Number(leadQuery?.query?.page) || 1;
+//     const limit = Number(leadQuery?.query?.limit) || 10;
+//     const total = data.length;
+//     const totalPage = Math.ceil(total / limit);
 
-  // // Paginate filtered data manually
-  // const startIndex = (page - 1) * limit;
-  // const endIndex = startIndex + limit;
-  // const paginatedResult = result.slice(startIndex, endIndex);
+//     meta = {
+//       page,
+//       limit,
+//       total,
+//       totalPage,
+//     };
+
+//     // Paginate filtered data manually
+//     const startIndex = (page - 1) * limit;
+//     const endIndex = startIndex + limit;
+//     data = data.slice(startIndex, endIndex);
+
+//   }
 
 
-  return {
-    meta,
-    // data: paginatedResult,
-    data: result,
+//   const result = await Promise.all(
+//     data.map(async (lead) => {
+//       // const existingResponse = await LeadResponse.exists({
+//       //   leadId: lead._id,
+//       //   responseBy: user._id,
+//       // });
+
+//       return {
+//         ...lead,
+//         credit: customCreditLogic(lead?.credit as number),
+//         // isContact: !!existingResponse,
+//       };
+//     }),
+//   );
+
+//   // const result = (
+//   //   await Promise.all(
+//   //     data.map(async (lead) => {
+//   //       const existingResponse = await LeadResponse.exists({
+//   //         leadId: lead._id,
+//   //         responseBy: user._id,
+//   //       });
+
+//   //       if (existingResponse) return null; // ❌ Exclude this lead
+
+//   //       return {
+//   //         ...lead,
+//   //         credit: customCreditLogic(lead?.credit as number),
+//   //         isContact: false,
+//   //       };
+//   //     }),
+//   //   )
+//   // ).filter(Boolean); // ✅ Remove all `null` entries
+
+
+//   // // Recalculate pagination meta based on filtered data
+//   // const page = Number(leadQuery?.query?.page) || 1;
+//   // const limit = Number(leadQuery?.query?.limit) || 10;
+//   // const total = result.length;
+//   // const totalPage = Math.ceil(total / limit);
+
+//   // meta = {
+//   //   page,
+//   //   limit,
+//   //   total,
+//   //   totalPage,
+//   // };
+
+//   // // Paginate filtered data manually
+//   // const startIndex = (page - 1) * limit;
+//   // const endIndex = startIndex + limit;
+//   // const paginatedResult = result.slice(startIndex, endIndex);
+
+
+//   return {
+//     meta,
+//     // data: paginatedResult,
+//     data: result,
+//   };
+// };
+
+
+type TMeta = {
+  total: number;     // Total number of documents
+  page: number;      // Current page
+  limit: number;     // Number of items per page
+  totalPage: number; // Total pages (Math.ceil(total / limit))
+};
+
+type PaginatedResult<T> = {
+  data: T[];
+  pagination: TMeta;
+  responseCount?: {
+    hired: number;
+    pending: number;
+    archive: number;
+    urgent: number;
   };
 };
 
 
 
+/// ------------------------------- search query -----------------------
+
+
+  //  keyword: parsedKeyword.keyword || '',
+  //   spotlight: parsedKeyword.spotlight || '',
+  //   view: parsedKeyword.view || '',
+  //   leadSubmission: parsedKeyword.leadSubmission || '',
+  //   location: parsedKeyword.location || '',
+  //   services: parsedKeyword.services || [],
+  //   credits: parsedKeyword.credits || [],
+
+
+/// ------------------------------- search query -----------------------
+
+
+
+
+
+
+
+
+const getAllLeadFromDB = async (
+  userId: string,
+  filters: any = {},
+  options: {
+    page: number;
+    limit: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }
+): Promise<PaginatedResult<any>> => {
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+  if (!userProfile) {
+    return {
+      data: [],
+      pagination: {
+        total: 0,
+        page: options.page,
+        limit: options.limit,
+        totalPage: 0,
+      },
+    };
+  }
+
+  const page = options.page || 1;
+  const limit = options.limit || 10;
+  const skip = (page - 1) * limit;
+  const sortField = options.sortBy || 'createdAt';
+  const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
+  const matchStage: any = {
+    deletedAt: null,
+    userProfileId: { $ne: userProfile._id },
+    responders: { $ne: userProfile._id },
+    serviceId: { $in: userProfile.serviceIds },
+  };
+
+
+  if (filters.keyword) {
+  const keywordRegex = new RegExp(filters.keyword, 'i');
+  matchStage.$or = [
+    { 'userProfileId.name': { $regex: keywordRegex } },
+    { additionalDetails: { $regex: keywordRegex } },
+  ];
+}
+
+  // Spotlight (leadPriority)
+  if (filters.spotlight?.length) {
+    matchStage.leadPriority = { $in: filters.spotlight };
+  }
+
+
+
+  // Services
+  if (filters.services?.length) {
+    matchStage.serviceId = {
+      $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)),
+    };
+  }
+
+
+// Credits
+if (filters.credits?.length) {
+  const creditConditions = filters.credits.map((range: string) => {
+    switch (range) {
+      case 'Free':
+        return { credit: 0 };
+      case '1-5 credits':
+        return { credit: { $gte: 1, $lte: 5 } };
+      case '5-10 credits':
+        return { credit: { $gte: 5, $lte: 10 } };
+      case '10-20 credits':
+        return { credit: { $gte: 10, $lte: 20 } };
+      case '20-30 credits':
+        return { credit: { $gte: 20, $lte: 30 } };
+      case '30-40 credits':
+        return { credit: { $gte: 30, $lte: 40 } };
+      case '40-50 credits':
+        return { credit: { $gte: 40, $lte: 50 } };
+      case '50-100 credits':
+        return { credit: { $gte: 50, $lte: 100 } };
+      default:
+        return null;
+    }
+  }).filter(Boolean);
+
+  if (creditConditions.length) {
+    matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+  }
+}
+
+
+  // Location
+  if (filters.location?.length) {
+    matchStage.locationId = {
+      $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)),
+    };
+  }
+
+
+  if (filters.leadSubmission) {
+  const now = new Date();
+  let startDate: Date | null = null;
+
+  switch (filters.leadSubmission) {
+    case 'last_1_hour':
+      startDate = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
+      break;
+    case 'last_24_hours':
+      startDate = new Date();
+      startDate.setHours(0, 0, 0, 0); // today at 00:00
+      break;
+    case 'last_48_hours':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 1); // yesterday
+      break;
+    case 'last_3_days':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 3);
+      break;
+    case 'last_7_days':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+      break;
+    case 'last_14_days':
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 14);
+      break;
+    // Add more if you add them on frontend
+  }
+
+  if (startDate) {
+    matchStage.createdAt = { $gte: startDate };
+  }
+}
+
+
+  //  View will be next time add logic
+  if(filters.view){
+    console.log('view')
+  }
+
+
+  const aggregationPipeline: any[] = [
+    { $match: matchStage },
+
+    // Lookups
+    {
+      $lookup: {
+        from: 'userprofiles',
+        localField: 'userProfileId',
+        foreignField: '_id',
+        as: 'userProfileId',
+      },
+    },
+    { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
+
+
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'serviceId',
+        foreignField: '_id',
+        as: 'serviceId',
+      },
+    },
+    { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+
+    {
+      $lookup: {
+        from: 'locations',
+        localField: 'locationId',
+        foreignField: '_id',
+        as: 'locationId',
+      },
+    },
+    { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
+
+    // ✅ Lookup responders array (NEW)
+    {
+      $lookup: {
+        from: 'userprofiles',
+        localField: 'responders',
+        foreignField: '_id',
+        as: 'responders',
+      },
+    },
+
+    // Sort, skip, limit
+    { $sort: { [sortField]: sortOrder } },
+    { $skip: skip },
+    { $limit: limit },
+  ];
+
+  const [data, totalCountResult] = await Promise.all([
+    Lead.aggregate(aggregationPipeline),
+    Lead.aggregate([
+      { $match: matchStage },
+      { $count: 'total' },
+    ]),
+  ]);
+
+  const total = totalCountResult[0]?.total || 0;
+
+  return {
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+    data,
+  };
+};
+
+
+
+
+//   ------------------ GET ALL MY LEAD -----------------------------
 const getMyAllLeadFromDB = async (
   userId: string,
   query: Record<string, unknown>,

@@ -85,33 +85,115 @@ const updateSingleLead = catchAsync(async (req, res) => {
   });
 });
 
+// const getAllLead = catchAsync(async (req, res) => {
+//   const userId = req.user.userId;
+//   const timer = startQueryTimer();
+//   const query = req.query
+//   const result = await leadService.getAllLeadFromDB(userId, query);
+//   const queryTime = timer.endQueryTimer();
+//   if (!result?.data.length) {
+
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.OK,
+//       success: false,
+//       message: 'Lead  not found.',
+//       queryTime,
+//       data: [],
+//     });
+//   }
+
+
+//   sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: 'All Lead is retrieved successfully',
+//     queryTime,
+//     pagination: result?.meta,
+//     data: result?.data,
+//   });
+// });
+
+
 const getAllLead = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
   const timer = startQueryTimer();
-  const query = req.query
-  const result = await leadService.getAllLeadFromDB(userId, query);
-  const queryTime = timer.endQueryTimer();
-  if (!result?.data.length) {
+  const userId = req.user.userId;
 
+  // Parse complex searchKeyword JSON safely
+  let parsedKeyword: any = {};
+  try {
+    parsedKeyword = req?.query?.searchKeyword
+      ? JSON.parse(req.query.searchKeyword as string)
+      : {};
+  } catch (error) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: false,
-      message: 'Lead  not found.',
-      queryTime,
-      data: [],
-    });
-  }
-
-
-  sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'All Lead is retrieved successfully',
-    queryTime,
-    pagination: result?.meta,
-    data: result?.data,
+    message: 'Invalid searchKeyword JSON format',
+    data: null,
   });
+ 
+  }
+
+  const filters = {
+    keyword: parsedKeyword.keyword || '',
+    spotlight: parsedKeyword.spotlight || '',
+    view: parsedKeyword.view || '',
+    leadSubmission: parsedKeyword.leadSubmission || '',
+    location: parsedKeyword.location || '',
+    services: parsedKeyword.services || [],
+    credits: parsedKeyword.credits || [],
+    // You can add more fields here if needed
+  };
+
+  const options: {
+    page: number;
+    limit: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  } = {
+    page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
+    limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
+    sortBy: parsedKeyword.sort || 'createdAt',
+    sortOrder: parsedKeyword.sort === 'asc' ? 'asc' : 'desc',
+  };
+
+  // Fetch filtered results
+  const result = await leadService.getAllLeadFromDB(userId, filters, options);
+  const queryTime = timer.endQueryTimer();
+
+  const data = result.data || [];
+  const pagination = result.pagination || {};
+  
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: data.length > 0,
+    message: data.length > 0
+      ? 'All Lead is retrieved successfully'
+      : 'Lead not found.',
+    queryTime,
+    pagination,
+    data,
+   
+  });
+
+
+
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 const getMyAllLead = catchAsync(async (req, res) => {
