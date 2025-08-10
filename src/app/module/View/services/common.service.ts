@@ -11,6 +11,7 @@ import { createNotification } from "../../Notification/utils/createNotification"
 import Lead from "../../Lead/models/lead.model";
 import { getIO } from "../../../sockets";
 import { ResponseWiseChatMessage } from "../models/chatMessage.model";
+import QueryBuilder from "../../../builder/QueryBuilder";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -482,15 +483,55 @@ const getChatHistoryFromDB = async (responseId: string) => {
 }
 
 
-const getLawyerSuggestionsFromDB = async (userId: string, serviceId: string) => {
-  const suggestLawyer = await UserProfile.find({
-    serviceIds: { $in: [serviceId] },  // $in expects an array
-    user: { $ne: userId },             // exclude current user
-  }).populate('user')
+// const getLawyerSuggestionsFromDB = async (userId: string, serviceId: string,) => {
+//   const suggestLawyer = await UserProfile.find({
+//     serviceIds: { $in: [serviceId] },  // $in expects an array
+//     user: { $ne: userId },             // exclude current user
+//   }).populate('user')
 
-  return suggestLawyer
+//   return suggestLawyer;
 
-}
+// }
+
+
+const getLawyerSuggestionsFromDB = async (
+  userId: string,
+  serviceId: string,
+  options: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  } = {}
+) => {
+  const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'asc' } = options;
+
+  const skip = (page - 1) * limit;
+  const sortOption: Record<string, number> = {};
+  sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+  // Find matching lawyers
+  const query = {
+    serviceIds: { $in: [serviceId] },
+    user: { $ne: userId },
+  };
+
+  // Get total count for pagination
+  const totalCount = await UserProfile.countDocuments(query);
+
+  const lawyers = await UserProfile.find(query)
+    .populate('user')
+    .sort(sortOption)
+    .skip(skip)
+    .limit(limit);
+
+  return {
+    lawyers,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page,
+  };
+};
 
 
 
