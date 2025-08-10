@@ -47,6 +47,23 @@ const footerDesign = `
         <tr>
       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
         <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
+          <!-- Social Icons -->
+   
+    <table cellpadding="0" cellspacing="0" border="0" align="center" style="margin-bottom: 15px;">
+      <tr>
+        <td style="padding: 0 8px;">
+          <a href="https://facebook.com" target="_blank">
+            <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/fb.png" alt="Facebook" width="30" height="30" style="display: block;" />
+          </a>
+        </td>
+        <td style="padding: 0 8px;">
+          <a href="https://www.instagram.com" target="_blank">
+            <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/insta.png" alt="Instagram" width="30" height="30" style="display: block;" />
+          </a>
+        </td>
+        
+      </tr>
+    </table>
         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
             You are receiving this email because you registered on TheLawApp as a legal professional.</p>
         <p style="margin: 0;">
@@ -453,7 +470,7 @@ export const newLeadAlertToLawyer = (data: {
 //   } = data;
 
 //   return `
-  
+
 //   <!DOCTYPE html>
 // <html lang="en">
 // <head>
@@ -491,7 +508,7 @@ export const newLeadAlertToLawyer = (data: {
 // </head>
 // <body>
 //   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
-    
+
 //     <!-- Logo -->
 //     <tr>
 //       <td align="center" style="padding: 20px 0; background: #ffffff;">
@@ -1479,7 +1496,7 @@ ${headerDesign}
 // </head>
 // <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
 //   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff;  border: 1px solid #e0e0e0; border-radius: 6px;">
-    
+
 //     <!-- Logo -->
 //     <tr>
 //       <td align="center" style="padding: 20px;">
@@ -1513,7 +1530,7 @@ ${headerDesign}
 //       </td>
 //     </tr>
 
-    
+
 
 //      <!-- Footer -->
 //         <tr>
@@ -1622,7 +1639,7 @@ export const emailVerificationTemplate = (data: {
 // </head>
 // <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
 //   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:30px auto; background-color:#ffffff; border: 1px solid #e0e0e0; border-radius: 6px;">
-   
+
 //      <!-- Logo -->
 //         <tr>
 //             <td align="center" style="padding: 20px;">
