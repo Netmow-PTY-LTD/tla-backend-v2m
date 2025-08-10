@@ -59,8 +59,24 @@ const contactLawyer = catchAsync(async (req, res) => {
 });
 
 
+const getChatHistory = catchAsync(async (req, res) => {
+  const responseId = req.params.responseId;
+  
+  const result = await commonService.getChatHistoryFromDB(responseId);
+
+ 
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'chat retrivied successfully',
+    data: result,
+  });
+});
+
+
 
 export const commonController = {
-contactLawyer
+contactLawyer,
+getChatHistory
   
 };
