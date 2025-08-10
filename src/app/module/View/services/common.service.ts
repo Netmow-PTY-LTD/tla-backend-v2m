@@ -10,6 +10,7 @@ import { logActivity } from "../../Activity/utils/logActivityLog";
 import { createNotification } from "../../Notification/utils/createNotification";
 import Lead from "../../Lead/models/lead.model";
 import { getIO } from "../../../sockets";
+import { ResponseWiseChatMessage } from "../models/chatMessage.model";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -460,6 +461,27 @@ const createLawyerResponseAndSpendCredit = async (
 
 
 
+const getChatHistoryFromDB=async(responseId:string)=>{
+
+   const messages = await ResponseWiseChatMessage.find({ responseId })
+    .populate({
+      path: 'from',
+      populate: {
+        path: 'profile',
+        select: 'name',
+      },
+    })
+    .sort({ createdAt: -1 }); // newest messages first
+
+
+   
+
+
+  return messages
+
+}
+
 export const commonService = {
   createLawyerResponseAndSpendCredit,
+  getChatHistoryFromDB
 };

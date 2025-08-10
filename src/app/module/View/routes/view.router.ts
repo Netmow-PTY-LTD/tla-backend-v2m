@@ -27,5 +27,10 @@ router.post(
   auth(USER_ROLE.ADMIN,USER_ROLE.USER),
   commonController.contactLawyer,
 );
+router.get(
+  '/chat/:responseId',
+  auth(USER_ROLE.ADMIN,USER_ROLE.USER),
+  commonController.getChatHistory,
+);
 
 export const viewRouter = router;
