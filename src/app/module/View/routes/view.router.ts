@@ -33,9 +33,15 @@ router.get(
   commonController.getChatHistory,
 );
 router.get(
-   '/lawyer-suggestions/:serviceId',
+   '/lawyer-suggestions',
   auth(USER_ROLE.ADMIN,USER_ROLE.USER),
   commonController.getLawyerSuggestions,
 );
+
+// router.get(
+//    '/lawyer-suggestions/:serviceId',
+//   auth(USER_ROLE.ADMIN,USER_ROLE.USER),
+//   commonController.getLawyerSuggestions,
+// );
 
 export const viewRouter = router;

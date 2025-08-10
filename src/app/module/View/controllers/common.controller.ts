@@ -64,7 +64,6 @@ const getChatHistory = catchAsync(async (req, res) => {
 
   const result = await commonService.getChatHistoryFromDB(responseId);
 
-
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -73,28 +72,64 @@ const getChatHistory = catchAsync(async (req, res) => {
   });
 });
 
+// const getLawyerSuggestions = catchAsync(async (req, res) => {
+//   const userId = req.user.userId;
+//   const serviceId = req.params.serviceId;
+
+//   const result = await commonService.getLawyerSuggestionsFromDB(userId, serviceId);
+//   if (!result.length) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.OK,
+//       success: false,
+//       message: 'No suggested lawyers found.',
+//       data: null,
+//     });
+//   }
+
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: "Suggested lawyers retrieved successfully.",
+//     data: result
+//   });
+// });
+
+
 const getLawyerSuggestions = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
-  const serviceId = req.params.serviceId;
+  const userId = req.user?.id || req.query.userId; // adapt as per your auth middleware
+  const serviceId = req.query.serviceId as string;
 
-  const result = await commonService.getLawyerSuggestionsFromDB(userId, serviceId);
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const sortBy = (req.query.sortBy as string) || 'createdAt';
+  const sortOrder = (req.query.sortOrder as string) === 'desc' ? 'desc' : 'asc';
 
-  if (!result.length) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: false,
-      message: "No suggested lawyers found.",
-      data: null,
-    });
-  }
+
+  const result = await commonService.getLawyerSuggestionsFromDB(userId, serviceId, {
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+  });
+
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Suggested lawyers retrieved successfully.",
-    data: result,
+
+    pagination: {
+      total: result.totalCount,
+      totalPage: result.totalPages,
+      page: result.currentPage,
+      limit,
+    },
+    data: result.lawyers,
   });
 });
+
+
+
 
 
 
