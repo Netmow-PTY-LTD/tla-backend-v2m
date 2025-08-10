@@ -153,16 +153,18 @@ const getAllLead = catchAsync(async (req, res) => {
   } = {
     page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
     limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
-    sortBy: parsedKeyword.sort || 'createdAt',
+    sortBy: parsedKeyword.sortBy || 'createdAt',
     sortOrder: parsedKeyword.sort === 'asc' ? 'asc' : 'desc',
   };
 
+ 
   // Fetch filtered results
   const result = await leadService.getAllLeadFromDB(userId, filters, options);
   const queryTime = timer.endQueryTimer();
 
   const data = result.data || [];
   const pagination = result.pagination || {};
+  const leadCount = result.leadCount || {};
   
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -172,6 +174,7 @@ const getAllLead = catchAsync(async (req, res) => {
       : 'Lead not found.',
     queryTime,
     pagination,
+    counts:leadCount,
     data,
    
   });
