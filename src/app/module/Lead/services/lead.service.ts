@@ -732,6 +732,7 @@ const getAllLeadFromDB = async (
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
     serviceId: { $in: userProfile.serviceIds },
+    status:'approved'
   };
 
   // Spotlight
