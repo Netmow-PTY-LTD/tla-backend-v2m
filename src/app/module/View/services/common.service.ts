@@ -461,9 +461,9 @@ const createLawyerResponseAndSpendCredit = async (
 
 
 
-const getChatHistoryFromDB=async(responseId:string)=>{
+const getChatHistoryFromDB = async (responseId: string) => {
 
-   const messages = await ResponseWiseChatMessage.find({ responseId })
+  const messages = await ResponseWiseChatMessage.find({ responseId })
     .populate({
       path: 'from',
       populate: {
@@ -474,14 +474,28 @@ const getChatHistoryFromDB=async(responseId:string)=>{
     .sort({ createdAt: -1 }); // newest messages first
 
 
-   
+
 
 
   return messages
 
 }
 
+
+const getLawyerSuggestionsFromDB = async (userId: string, serviceId: string) => {
+  const suggestLawyer = await UserProfile.find({
+    serviceIds: { $in: [serviceId] },  // $in expects an array
+    user: { $ne: userId },             // exclude current user
+  }).populate('user')
+
+  return suggestLawyer
+
+}
+
+
+
 export const commonService = {
   createLawyerResponseAndSpendCredit,
-  getChatHistoryFromDB
+  getChatHistoryFromDB,
+  getLawyerSuggestionsFromDB
 };

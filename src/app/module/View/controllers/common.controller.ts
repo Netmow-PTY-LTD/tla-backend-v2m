@@ -28,7 +28,7 @@ const contactLawyer = catchAsync(async (req, res) => {
       data: {
         needAddCard: true,
         requiredCredits: result.requiredCredits,
-        recommendedPackage:result.recommendedPackage
+        recommendedPackage: result.recommendedPackage
 
       },
     });
@@ -61,10 +61,10 @@ const contactLawyer = catchAsync(async (req, res) => {
 
 const getChatHistory = catchAsync(async (req, res) => {
   const responseId = req.params.responseId;
-  
+
   const result = await commonService.getChatHistoryFromDB(responseId);
 
- 
+
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -73,10 +73,34 @@ const getChatHistory = catchAsync(async (req, res) => {
   });
 });
 
+const getLawyerSuggestions = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const serviceId = req.params.serviceId;
+
+  const result = await commonService.getLawyerSuggestionsFromDB(userId, serviceId);
+
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: "No suggested lawyers found.",
+      data: null,
+    });
+  }
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Suggested lawyers retrieved successfully.",
+    data: result,
+  });
+});
+
 
 
 export const commonController = {
-contactLawyer,
-getChatHistory
-  
+  contactLawyer,
+  getChatHistory,
+  getLawyerSuggestions
+
 };
