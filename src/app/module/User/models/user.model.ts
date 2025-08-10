@@ -40,7 +40,7 @@ const userProfileSchema = new Schema<IUserProfile>(
     gender: {
       type: String,
       enum: {
-        values: ['male', 'female', 'other'],
+        values: ['male', 'female', 'other',''],
         message: 'Gender must be either male, female, or other',
       },
       trim: true,
