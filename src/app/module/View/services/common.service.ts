@@ -508,7 +508,8 @@ const getLawyerSuggestionsFromDB = async (
 
   const skip = (page - 1) * limit;
   const sortOption: Record<string, number> = {};
-  sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  // sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  const sort = sortOrder === 'asc' ? 1 : -1;
 
   // Find matching lawyers
   const query = {
@@ -521,7 +522,7 @@ const getLawyerSuggestionsFromDB = async (
 
   const lawyers = await UserProfile.find(query)
     .populate('user')
-    .sort(sortOption)
+    .sort(sortBy)
     .skip(skip)
     .limit(limit);
 
