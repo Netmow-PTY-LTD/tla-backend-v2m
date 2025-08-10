@@ -455,10 +455,7 @@ type TMeta = {
 type PaginatedResult<T> = {
   data: T[];
   pagination: TMeta;
-  responseCount?: {
-    hired: number;
-    pending: number;
-    archive: number;
+ leadCount?: {
     urgent: number;
   };
 };
@@ -720,12 +717,15 @@ const getAllLeadFromDB = async (
     };
   }
 
-  console.log('filters.keyword',filters.keyword)
+ 
   const page = options.page || 1;
   const limit = options.limit || 10;
   const skip = (page - 1) * limit;
   const sortField = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
+
+
 
   const matchStage: any = {
     deletedAt: null,
@@ -817,6 +817,10 @@ const getAllLeadFromDB = async (
         ],
         totalCount: [
           { $count: 'total' }
+        ],
+         urgentCount: [
+          { $match: { leadPriority: 'urgent' } },
+          { $count: 'total' }
         ]
       }
     }
@@ -826,10 +830,14 @@ const getAllLeadFromDB = async (
 
   const data = result[0]?.data || [];
   const total = result[0]?.totalCount[0]?.total || 0;
+  const urgentCount = result[0]?.urgentCount[0]?.total || 0;
 
   return {
     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
     data,
+   leadCount:{
+      urgent: urgentCount,
+    }
   };
 };
 
