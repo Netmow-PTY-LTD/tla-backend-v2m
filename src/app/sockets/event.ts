@@ -16,12 +16,6 @@ export const registerNotificationEvents = (socket: Socket, io: Server) => {
 
 
 
-export const registerChatEvents = (socket: Socket, io: Server) => {
-  socket.on('send_message', (message) => {
-    console.log('📨 Message received:', message);
-    io.emit('receive_message', message); // broadcast to all
-  });
-};
 
 
 
@@ -50,5 +44,39 @@ export const registerSocketEvents = (socket: Socket, io: Server) => {
   socket.on('send_response_room_message', ({ roomId, text }) => {
     io.to(roomId).emit('response_room_message', { text });
     console.log(`💬 Sent response to room ${roomId}:`, text);
+  });
+};
+
+
+
+
+
+
+export const registerChatEvents = (socket: Socket, io: Server) => {
+  // Join a response room
+  socket.on("join-response", (responseId: string) => {
+    socket.join(`response:${responseId}`);
+    console.log(`👥 User joined response:${responseId}`);
+  });
+
+  // Join a generic chat room
+  socket.on("joinRoom", ({ responseId, userId }) => {
+    socket.join(responseId);
+    console.log(`${userId} joined room: ${responseId}`);
+  });
+
+  // Send a chat message
+  socket.on("message", ({ responseId, from, message }) => {
+    io.to(responseId).emit("message", { responseId, from, message });
+  });
+
+  // Future: Typing indicator
+  socket.on("typing", ({ responseId, userId }) => {
+    socket.to(responseId).emit("typing", { userId });
+  });
+
+  // Future: Message read receipt
+  socket.on("message-read", ({ responseId, messageId, userId }) => {
+    io.to(responseId).emit("message-read", { responseId, messageId, userId });
   });
 };
