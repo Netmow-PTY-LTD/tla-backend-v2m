@@ -486,6 +486,222 @@ type PaginatedResult<T> = {
 
 
 
+// const getAllLeadFromDB = async (
+//   userId: string,
+//   filters: any = {},
+//   options: {
+//     page: number;
+//     limit: number;
+//     sortBy: string;
+//     sortOrder: 'asc' | 'desc';
+//   }
+// ): Promise<PaginatedResult<any>> => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+//   if (!userProfile) {
+//     return {
+//       data: [],
+//       pagination: {
+//         total: 0,
+//         page: options.page,
+//         limit: options.limit,
+//         totalPage: 0,
+//       },
+//     };
+//   }
+
+//   const page = options.page || 1;
+//   const limit = options.limit || 10;
+//   const skip = (page - 1) * limit;
+//   const sortField = options.sortBy || 'createdAt';
+//   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
+//   const matchStage: any = {
+//     deletedAt: null,
+//     userProfileId: { $ne: userProfile._id },
+//     responders: { $ne: userProfile._id },
+//     serviceId: { $in: userProfile.serviceIds },
+//   };
+
+
+//   if (filters.keyword) {
+//   const keywordRegex = new RegExp(filters.keyword, 'i');
+//   matchStage.$or = [
+//     { 'userProfileId.name': { $regex: keywordRegex } },
+//     { additionalDetails: { $regex: keywordRegex } },
+//   ];
+// }
+
+//   // Spotlight (leadPriority)
+//   if (filters.spotlight?.length) {
+//     matchStage.leadPriority = { $in: filters.spotlight };
+//   }
+
+
+
+//   // Services
+//   if (filters.services?.length) {
+//     matchStage.serviceId = {
+//       $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)),
+//     };
+//   }
+
+
+// // Credits
+// if (filters.credits?.length) {
+//   const creditConditions = filters.credits.map((range: string) => {
+//     switch (range) {
+//       case 'Free':
+//         return { credit: 0 };
+//       case '1-5 credits':
+//         return { credit: { $gte: 1, $lte: 5 } };
+//       case '5-10 credits':
+//         return { credit: { $gte: 5, $lte: 10 } };
+//       case '10-20 credits':
+//         return { credit: { $gte: 10, $lte: 20 } };
+//       case '20-30 credits':
+//         return { credit: { $gte: 20, $lte: 30 } };
+//       case '30-40 credits':
+//         return { credit: { $gte: 30, $lte: 40 } };
+//       case '40-50 credits':
+//         return { credit: { $gte: 40, $lte: 50 } };
+//       case '50-100 credits':
+//         return { credit: { $gte: 50, $lte: 100 } };
+//       default:
+//         return null;
+//     }
+//   }).filter(Boolean);
+
+//   if (creditConditions.length) {
+//     matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+//   }
+// }
+
+
+//   // Location
+//   if (filters.location?.length) {
+//     matchStage.locationId = {
+//       $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)),
+//     };
+//   }
+
+
+//   if (filters.leadSubmission) {
+//   const now = new Date();
+//   let startDate: Date | null = null;
+
+//   switch (filters.leadSubmission) {
+//     case 'last_1_hour':
+//       startDate = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
+//       break;
+//     case 'last_24_hours':
+//       startDate = new Date();
+//       startDate.setHours(0, 0, 0, 0); // today at 00:00
+//       break;
+//     case 'last_48_hours':
+//       startDate = new Date();
+//       startDate.setDate(startDate.getDate() - 1); // yesterday
+//       break;
+//     case 'last_3_days':
+//       startDate = new Date();
+//       startDate.setDate(startDate.getDate() - 3);
+//       break;
+//     case 'last_7_days':
+//       startDate = new Date();
+//       startDate.setDate(startDate.getDate() - 7);
+//       break;
+//     case 'last_14_days':
+//       startDate = new Date();
+//       startDate.setDate(startDate.getDate() - 14);
+//       break;
+//     // Add more if you add them on frontend
+//   }
+
+//   if (startDate) {
+//     matchStage.createdAt = { $gte: startDate };
+//   }
+// }
+
+
+//   //  View will be next time add logic
+//   if(filters.view){
+//     console.log('view')
+//   }
+
+
+//   const aggregationPipeline: any[] = [
+//     { $match: matchStage },
+
+//     // Lookups
+//     {
+//       $lookup: {
+//         from: 'userprofiles',
+//         localField: 'userProfileId',
+//         foreignField: '_id',
+//         as: 'userProfileId',
+//       },
+//     },
+//     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
+
+
+//     {
+//       $lookup: {
+//         from: 'services',
+//         localField: 'serviceId',
+//         foreignField: '_id',
+//         as: 'serviceId',
+//       },
+//     },
+//     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+
+//     {
+//       $lookup: {
+//         from: 'locations',
+//         localField: 'locationId',
+//         foreignField: '_id',
+//         as: 'locationId',
+//       },
+//     },
+//     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
+
+//     // ✅ Lookup responders array (NEW)
+//     {
+//       $lookup: {
+//         from: 'userprofiles',
+//         localField: 'responders',
+//         foreignField: '_id',
+//         as: 'responders',
+//       },
+//     },
+
+//     // Sort, skip, limit
+//     { $sort: { [sortField]: sortOrder } },
+//     { $skip: skip },
+//     { $limit: limit },
+//   ];
+
+//   const [data, totalCountResult] = await Promise.all([
+//     Lead.aggregate(aggregationPipeline),
+//     Lead.aggregate([
+//       { $match: matchStage },
+//       { $count: 'total' },
+//     ]),
+//   ]);
+
+//   const total = totalCountResult[0]?.total || 0;
+
+//   return {
+//     pagination: {
+//       total,
+//       page,
+//       limit,
+//       totalPage: Math.ceil(total / limit),
+//     },
+//     data,
+//   };
+// };
+
+
+
 const getAllLeadFromDB = async (
   userId: string,
   filters: any = {},
@@ -500,15 +716,11 @@ const getAllLeadFromDB = async (
   if (!userProfile) {
     return {
       data: [],
-      pagination: {
-        total: 0,
-        page: options.page,
-        limit: options.limit,
-        totalPage: 0,
-      },
+      pagination: { total: 0, page: options.page, limit: options.limit, totalPage: 0 },
     };
   }
 
+  console.log('filters.keyword',filters.keyword)
   const page = options.page || 1;
   const limit = options.limit || 10;
   const skip = (page - 1) * limit;
@@ -522,184 +734,104 @@ const getAllLeadFromDB = async (
     serviceId: { $in: userProfile.serviceIds },
   };
 
-
-  if (filters.keyword) {
-  const keywordRegex = new RegExp(filters.keyword, 'i');
-  matchStage.$or = [
-    { 'userProfileId.name': { $regex: keywordRegex } },
-    { additionalDetails: { $regex: keywordRegex } },
-  ];
-}
-
-  // Spotlight (leadPriority)
+  // Spotlight
   if (filters.spotlight?.length) {
     matchStage.leadPriority = { $in: filters.spotlight };
   }
 
-
-
   // Services
   if (filters.services?.length) {
-    matchStage.serviceId = {
-      $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)),
-    };
+    matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
   }
 
-
-// Credits
-if (filters.credits?.length) {
-  const creditConditions = filters.credits.map((range: string) => {
-    switch (range) {
-      case 'Free':
-        return { credit: 0 };
-      case '1-5 credits':
-        return { credit: { $gte: 1, $lte: 5 } };
-      case '5-10 credits':
-        return { credit: { $gte: 5, $lte: 10 } };
-      case '10-20 credits':
-        return { credit: { $gte: 10, $lte: 20 } };
-      case '20-30 credits':
-        return { credit: { $gte: 20, $lte: 30 } };
-      case '30-40 credits':
-        return { credit: { $gte: 30, $lte: 40 } };
-      case '40-50 credits':
-        return { credit: { $gte: 40, $lte: 50 } };
-      case '50-100 credits':
-        return { credit: { $gte: 50, $lte: 100 } };
-      default:
-        return null;
+  // Credits
+  if (filters.credits?.length) {
+    const creditConditions = filters.credits.map((range: string) => {
+      switch (range) {
+        case 'Free': return { credit: 0 };
+        case '1-5 credits': return { credit: { $gte: 1, $lte: 5 } };
+        case '5-10 credits': return { credit: { $gte: 5, $lte: 10 } };
+        case '10-20 credits': return { credit: { $gte: 10, $lte: 20 } };
+        case '20-30 credits': return { credit: { $gte: 20, $lte: 30 } };
+        case '30-40 credits': return { credit: { $gte: 30, $lte: 40 } };
+        case '40-50 credits': return { credit: { $gte: 40, $lte: 50 } };
+        case '50-100 credits': return { credit: { $gte: 50, $lte: 100 } };
+        default: return null;
+      }
+    }).filter(Boolean);
+    if (creditConditions.length) {
+      matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
     }
-  }).filter(Boolean);
-
-  if (creditConditions.length) {
-    matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
   }
-}
-
 
   // Location
   if (filters.location?.length) {
-    matchStage.locationId = {
-      $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)),
-    };
+    matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };
   }
 
-
+  // Lead submission time filter
   if (filters.leadSubmission) {
-  const now = new Date();
-  let startDate: Date | null = null;
-
-  switch (filters.leadSubmission) {
-    case 'last_1_hour':
-      startDate = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
-      break;
-    case 'last_24_hours':
-      startDate = new Date();
-      startDate.setHours(0, 0, 0, 0); // today at 00:00
-      break;
-    case 'last_48_hours':
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 1); // yesterday
-      break;
-    case 'last_3_days':
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 3);
-      break;
-    case 'last_7_days':
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 7);
-      break;
-    case 'last_14_days':
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 14);
-      break;
-    // Add more if you add them on frontend
+    let startDate: Date | null = null;
+    switch (filters.leadSubmission) {
+      case 'last_1_hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
+      case 'last_24_hours': startDate = new Date(); startDate.setHours(0, 0, 0, 0); break;
+      case 'last_48_hours': startDate = new Date(); startDate.setDate(startDate.getDate() - 1); break;
+      case 'last_3_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 3); break;
+      case 'last_7_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 7); break;
+      case 'last_14_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 14); break;
+    }
+    if (startDate) matchStage.createdAt = { $gte: startDate };
   }
 
-  if (startDate) {
-    matchStage.createdAt = { $gte: startDate };
-  }
-}
-
-
-  //  View will be next time add logic
-  if(filters.view){
-    console.log('view')
-  }
-
-
+  // Build pipeline with keyword filter AFTER lookup
   const aggregationPipeline: any[] = [
     { $match: matchStage },
 
-    // Lookups
-    {
-      $lookup: {
-        from: 'userprofiles',
-        localField: 'userProfileId',
-        foreignField: '_id',
-        as: 'userProfileId',
-      },
-    },
+    { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
 
-
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'serviceId',
-        foreignField: '_id',
-        as: 'serviceId',
-      },
-    },
+    { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceId' } },
     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
 
-    {
-      $lookup: {
-        from: 'locations',
-        localField: 'locationId',
-        foreignField: '_id',
-        as: 'locationId',
-      },
-    },
+    { $lookup: { from: 'locations', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
 
-    // ✅ Lookup responders array (NEW)
-    {
-      $lookup: {
-        from: 'userprofiles',
-        localField: 'responders',
-        foreignField: '_id',
-        as: 'responders',
-      },
-    },
+    { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
 
-    // Sort, skip, limit
+    // Keyword match here (AFTER we have userProfileId.name)
+    ...(filters.keyword
+      ? [{ $match: { $or: [
+          { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+          { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+        ] } }]
+      : []),
+
     { $sort: { [sortField]: sortOrder } },
-    { $skip: skip },
-    { $limit: limit },
+
+    // One DB call for data + total
+    {
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+        ],
+        totalCount: [
+          { $count: 'total' }
+        ]
+      }
+    }
   ];
 
-  const [data, totalCountResult] = await Promise.all([
-    Lead.aggregate(aggregationPipeline),
-    Lead.aggregate([
-      { $match: matchStage },
-      { $count: 'total' },
-    ]),
-  ]);
+  const result = await Lead.aggregate(aggregationPipeline);
 
-  const total = totalCountResult[0]?.total || 0;
+  const data = result[0]?.data || [];
+  const total = result[0]?.totalCount[0]?.total || 0;
 
   return {
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPage: Math.ceil(total / limit),
-    },
+    pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
     data,
   };
 };
-
 
 
 
