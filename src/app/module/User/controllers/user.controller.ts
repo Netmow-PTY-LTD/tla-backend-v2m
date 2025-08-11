@@ -81,14 +81,16 @@ const updateProfile = catchAsync(async (req, res) => {
       );
   }
 
-  if (fileMap['agreementfiles']) {
-    console.log('test ===>')
+
+  if (fileMap['agreementfiles']||fileMap['agreementfiles']===undefined) {
+
     agreementResult =
       await agreementService.updateProfileAgreementIntoDB(
         userId,
         fileMap['agreementfiles']?.[0],
       );
   }
+
 
   if (parsedData?.socialMediaInfo) {
     socialMediaResult =
