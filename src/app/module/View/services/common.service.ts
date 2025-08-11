@@ -472,7 +472,7 @@ const getChatHistoryFromDB = async (responseId: string) => {
         select: 'name',
       },
     })
-    .sort({ createdAt: -1 }); // newest messages first
+    .sort({ createdAt: 1 }); // oldest messages first
 
 
 
