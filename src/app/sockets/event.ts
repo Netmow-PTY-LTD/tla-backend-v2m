@@ -88,11 +88,30 @@ export const registerSocketEvents = (socket: Socket, io: Server) => {
 
 export const registerChatEvents = (socket: Socket, io: Server) => {
   // ✅ Join a response chat room
-  socket.on("joinRoom", ({ responseId, userId }) => {
+  socket.on("joinRoom",async ({ responseId, userId }) => {
     if (!responseId || !userId) return;
     const roomName = `response:${responseId}`;
     socket.join(roomName);
     console.log(`👥 User ${userId} joined room: ${roomName}`);
+
+  // Fetch unread messages for this user
+    try {
+      const unreadMessages = await ResponseWiseChatMessage.find({
+        responseId,
+        readBy: { $ne: userId },
+      }).populate({
+        path: "from",
+        populate: { path: "profile", select: "name" },
+      });
+
+      if (unreadMessages.length > 0) {
+        socket.emit("unread-messages", unreadMessages);
+      }
+    } catch (err) {
+      console.error("❌ Failed to fetch unread messages", err);
+    }
+
+    
   });
 
   // ✅ Send and save a chat message
@@ -115,7 +134,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
           select: 'name',
         },
       });
-     
+
       const roomName = `response:${responseId}`;
       io.to(roomName).emit("message", savedMessage);
     } catch (err) {
@@ -130,8 +149,27 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
   });
 
   // ✅ Message read receipt
-  socket.on("message-read", ({ responseId, messageId, userId }) => {
+  socket.on("message-read", async({ responseId, messageId, userId }) => {
+
     if (!responseId || !messageId || !userId) return;
-    io.to(`response:${responseId}`).emit("message-read", { responseId, messageId, userId });
+
+    try {
+      await ResponseWiseChatMessage.findByIdAndUpdate(messageId, {
+        $addToSet: { readBy: userId }, // prevent duplicates
+      });
+
+      // Emit event to everyone in the room
+      io.to(`response:${responseId}`).emit("message-read", {
+        responseId,
+        messageId,
+        userId
+      });
+    } catch (err) {
+      console.error("❌ Failed to mark message as read", err);
+    }
+
+
+
+    // io.to(`response:${responseId}`).emit("message-read", { responseId, messageId, userId });
   });
 };
