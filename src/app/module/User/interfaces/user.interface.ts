@@ -31,6 +31,7 @@ export interface IUserProfile {
   bio?: string;
   phone: string;
   address?: string;
+  languages?:string[];
   // new field
   businessName?: string;
   credits: number;
