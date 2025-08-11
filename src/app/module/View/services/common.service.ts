@@ -522,6 +522,7 @@ const getLawyerSuggestionsFromDB = async (
 
   const lawyers = await UserProfile.find(query)
     .populate('user')
+    .populate('serviceIds')
     .sort(sortBy)
     .skip(skip)
     .limit(limit);
