@@ -13,6 +13,8 @@ const experienceSchema = new Schema(
     // startDate: { type: String },
     // endDate: { type: String },
     // description: { type: String },
+    years: { type: String },
+    months: { type: String },
     experience: {
       type: String,
       default: '',

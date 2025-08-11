@@ -7,6 +7,8 @@ export interface IExperience {
   // startDate?: string;
   // endDate?: string;
   // description?: string;
+  years:string;
+  months:string
   experience?: string;
   experienceHighlight?: string;
 }
