@@ -39,7 +39,8 @@ const updateProfileAgreementIntoDB = async (
 
   if (agreement) {
     // Update existing agreement document
-    agreement.agreement = uploadedUrl ?? agreement.agreement;
+    // agreement.agreement = uploadedUrl ?? agreement.agreement;
+    agreement.agreement = uploadedUrl;
     await agreement.save();
   } else {
     // Create new agreement document
