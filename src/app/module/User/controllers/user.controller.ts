@@ -81,7 +81,7 @@ const updateProfile = catchAsync(async (req, res) => {
       );
   }
 
-  if (fileMap['agreementfiles']?.length) {
+  if (fileMap['agreementfiles']) {
     console.log('test ===>')
     agreementResult =
       await agreementService.updateProfileAgreementIntoDB(
