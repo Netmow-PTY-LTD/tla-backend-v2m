@@ -12,6 +12,7 @@ import { profileQAService } from '../services/profileQA.service';
 import { profileExperienceService } from '../services/profileExperience.service';
 import { profileFaqService } from '../services/profileFaq.service';
 import { startQueryTimer } from '../../../utils/queryTimer';
+import { agreementService } from '../services/agreement.service';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -23,7 +24,8 @@ import { startQueryTimer } from '../../../utils/queryTimer';
 
 const updateProfile = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const parsedData = JSON.parse(req.body.data);
+  // const parsedData = JSON.parse(req.body.data);
+  const parsedData = req.body.data ? JSON.parse(req.body.data) : {};
   const files = req.files as TUploadedFile[];
 
   const fileMap: Record<string, TUploadedFile[]> = {};
@@ -38,6 +40,7 @@ const updateProfile = catchAsync(async (req, res) => {
   let companyProfileResult = null;
   let profilePhotosResult = null;
   let accreditationResult = null;
+  let agreementResult = null;
   let socialMediaResult = null;
   let serviceInfoResult = null;
   let profileQAResult = null;
@@ -75,6 +78,15 @@ const updateProfile = catchAsync(async (req, res) => {
         userId,
         parsedData.accreditationInfo,
         fileMap['attachment']?.[0],
+      );
+  }
+
+  if (fileMap['agreementfiles']?.length) {
+    console.log('test ===>')
+    agreementResult =
+      await agreementService.updateProfileAgreementIntoDB(
+        userId,
+        fileMap['agreementfiles']?.[0],
       );
   }
 
@@ -126,7 +138,7 @@ const updateProfile = catchAsync(async (req, res) => {
     serviceInfoResult ||
     profileQAResult ||
     profileExperienceResult ||
-    socialMediaResult ||
+    socialMediaResult || agreementResult ||
     faqResult;
 
   if (!result) {
@@ -152,7 +164,7 @@ const updateProfile = catchAsync(async (req, res) => {
               ? 'Experience updated successfully.'
               : faqResult
                 ? 'FAQ updated successfully.'
-                : 'Profile photos updated successfully.';
+                : agreementResult ? 'Agreement update successfully' : 'Profile photos updated successfully.';
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -195,7 +207,7 @@ const getSingleUserProfileData = catchAsync(async (req, res) => {
  */
 
 const getUserProfileInfo = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
+  const timer = startQueryTimer();
   // Extract the logged-in user information from the request (from JWT payload)
   const user = req.user;
 
@@ -220,7 +232,7 @@ const getUserProfileInfo = catchAsync(async (req, res) => {
  * @throws {AppError} Throws an error if fetching user profiles fails.
  */
 const getAllUserProfile = catchAsync(async (req, res) => {
-    const timer = startQueryTimer();
+  const timer = startQueryTimer();
   // Call the service function to retrieve all user profiles from the database
   const result = await UserProfileService.getAllUserIntoDB();
   const queryTime = timer.endQueryTimer();
