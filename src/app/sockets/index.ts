@@ -95,10 +95,6 @@ export const initializeSockets = (ioInstance: Server) => {
     }
 
 
-    // ✅ Register separated chat events
-    registerChatEvents(socket, ioInstance);
-
-
 
     // Listen for watch-users to send current online statuses
     socket.on("watch-users", (watchUserIds: string[]) => {
@@ -109,23 +105,14 @@ export const initializeSockets = (ioInstance: Server) => {
       });
     });
 
-        //  ------------------------  Chat related ---------------------
+    
+    // ✅ Register separated chat events
+    // registerChatEvents(socket, ioInstance);
 
-    // // Handle response room join
-    // socket.on("join-response", (responseId: string) => {
-    //   socket.join(`response:${responseId}`);
-    //   console.log(`👥 User joined response:${responseId}`);
-    // });
+    // ------------------  handle connection  ------------------------------
+    handleConnection(socket, ioInstance)
 
-
-    // socket.on("joinRoom", ({ responseId, userId }) => {
-    //   socket.join(responseId);
-    //   console.log(`${userId} joined room: ${responseId}`);
-    // });
-
-    // socket.on("message", ({ responseId, from, message }) => {
-    //   io.to(responseId).emit("message", { responseId, from, message });
-    // });
+  
 
 
 
