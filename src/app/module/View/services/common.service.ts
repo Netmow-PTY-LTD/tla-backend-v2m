@@ -12,6 +12,7 @@ import Lead from "../../Lead/models/lead.model";
 import { getIO } from "../../../sockets";
 import { ResponseWiseChatMessage } from "../models/chatMessage.model";
 import QueryBuilder from "../../../builder/QueryBuilder";
+import { LeadContactRequest } from "../models/LeadContactRequest.model";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -537,8 +538,64 @@ const getLawyerSuggestionsFromDB = async (
 
 
 
+
+
+export const createLeadContactRequest = async (
+  leadId: string,
+  requestedId: string,
+  toRequestId: string,
+  message?: string
+) => {
+  // Prevent duplicate request
+  const existing = await LeadContactRequest.findOne({
+    leadId,
+    requestedId,
+    toRequestId,
+  });
+
+  if (existing) {
+    throw new Error('Request already exists for this lead.');
+  }
+
+  const request = await LeadContactRequest.create({
+    leadId: new Types.ObjectId(leadId),
+    requestedId: new Types.ObjectId(requestedId),
+    toRequestId: new Types.ObjectId(toRequestId),
+    message,
+  });
+
+  return request;
+};
+
+export const getLeadContactRequestsForUser = async (userId: string) => {
+  return LeadContactRequest.find({ toRequestId: userId })
+    .populate('leadId')
+    .populate('requestedId')
+    .populate('toRequestId')
+    .sort({ createdAt: -1 });
+};
+
+export const updateLeadContactRequestStatus = async (
+  requestId: string,
+  status: 'pending' | 'accepted' | 'rejected'
+) => {
+  return LeadContactRequest.findByIdAndUpdate(
+    requestId,
+    { status },
+    { new: true }
+  );
+};
+
+
+
+
+
 export const commonService = {
   createLawyerResponseAndSpendCredit,
   getChatHistoryFromDB,
-  getLawyerSuggestionsFromDB
+  getLawyerSuggestionsFromDB,
+  updateLeadContactRequestStatus,
+  createLeadContactRequest,
+  getLeadContactRequestsForUser
+  
 };

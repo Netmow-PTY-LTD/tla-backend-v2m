@@ -131,11 +131,75 @@ const getLawyerSuggestions = catchAsync(async (req, res) => {
 
 
 
+// Create a new contact request
+export const createLeadContactRequest = catchAsync(async (req, res) => {
+  const { leadId, toRequestId, message } = req.body;
+  const requestedId = req.user.userId; // from auth middleware
+
+  const result = await commonService.createLeadContactRequest(
+    leadId,
+    requestedId,
+    toRequestId,
+    message
+  );
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: 'Lead contact request created successfully.',
+    data: result,
+  });
+});
+
+// Get all requests received by the current user
+export const getLeadContactRequests = catchAsync(async (req, res) => {
+  const result = await commonService.getLeadContactRequestsForUser(
+    req.user.userId
+  );
+
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'No lead contact requests found.',
+      data: [],
+    });
+  }
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Lead contact requests retrieved successfully.',
+    data: result,
+  });
+});
+
+// Update request status (accept/reject)
+export const updateLeadContactRequestStatus = catchAsync(async (req, res) => {
+  const { status } = req.body;
+  const result = await commonService.updateLeadContactRequestStatus(
+    req.params.leadRquestId,
+    status
+  );
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: `Lead contact request ${status} successfully.`,
+    data: result,
+  });
+});
+
+
+
 
 
 export const commonController = {
   contactLawyer,
   getChatHistory,
-  getLawyerSuggestions
+  getLawyerSuggestions,
+  createLeadContactRequest,
+  getLeadContactRequests,
+  updateLeadContactRequestStatus
 
 };
