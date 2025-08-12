@@ -11,7 +11,6 @@ import { createNotification } from "../../Notification/utils/createNotification"
 import Lead from "../../Lead/models/lead.model";
 import { getIO } from "../../../sockets";
 import { ResponseWiseChatMessage } from "../models/chatMessage.model";
-import QueryBuilder from "../../../builder/QueryBuilder";
 import { LeadContactRequest } from "../models/LeadContactRequest.model";
 import User from "../../Auth/models/auth.model";
 import { AppError } from "../../../errors/error";
@@ -350,7 +349,7 @@ const createLawyerResponseAndSpendCredit = async (
         { session }
       );
 
-      const lead = await Lead.findOneAndUpdate(
+     await Lead.findOneAndUpdate(
         { _id: leadId }, // Find the lead by its _id
         [
           {

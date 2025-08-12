@@ -132,7 +132,7 @@ const updateCategoryIntoDB = async (
         // 'avatars', // optional folder or 'categories'
       );
       payload.image = uploadedUrl;
-    } catch (err) {
+    } catch (err:unknown) {
       throw new AppError(
         HTTP_STATUS.INTERNAL_SERVER_ERROR,
         'File upload failed during update'

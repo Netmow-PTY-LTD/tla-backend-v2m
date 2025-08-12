@@ -409,14 +409,13 @@ export const sendContactMessage = async (
   const leadUser = checkLead?.userProfileId?.user?._id
   const recipientName = toUser?.profile?.name || 'Recipient';
   const sentByUserName = userProfile?.name || 'SentBy';
-console.log('lead id check==>',leadUser)
-console.log('recipientUserId check==>',recipientUserId)
+
 
 let sendingLink;
 
 if (recipientUserId?.toString() === leadUser?.toString()) {
   sendingLink = leadUser ?? null;
-  console.log('test');
+ 
 }
 
   const sendSocketNotification = (targetUserId: string, title: string, msg: string, type: string, link: string) => {
@@ -443,7 +442,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
         timestamp: new Date().toLocaleString(),
       };
 
-      const sendResult = await sendEmail({
+       await sendEmail({
         to: toEmail,
         subject: `Your Legal Inquiry – Response from  ${sentByUserName}`,
         data: emailData,

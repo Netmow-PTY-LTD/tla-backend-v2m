@@ -1,6 +1,6 @@
 import config from '../../../config';
 import { AppError } from '../../../errors/error';
-import { ILoginUser, IUser } from '../interfaces/auth.interface';
+import { ILoginUser } from '../interfaces/auth.interface';
 import User from '../models/auth.model';
 import { createToken, verifyToken } from '../utils/auth.utils';
 import { USER_STATUS } from '../constant/auth.constant';
@@ -86,7 +86,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
  * @desc   Registers a new user in the database by checking if the user already exists,
  *         creating a new user record, creating a profile for the user, and generating
  *         access and refresh tokens for the user.
- * @param  {IUser} payload - The user registration data.
+//  * @param  {IUser} payload - The user registration data.
  * @returns  An object containing the access token, refresh token, and user data.
  */
 

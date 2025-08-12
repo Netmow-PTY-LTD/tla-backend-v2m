@@ -608,7 +608,7 @@ export const welcomeLeadSubmitted = (data: {
     additionalDetails,
     dashboardUrl,
     appName,
-    email = 'support@yourdomain.com',
+    // email = 'support@yourdomain.com',
   } = data;
 
   return `
@@ -1004,7 +1004,7 @@ export const welcomeClientEmail = (data: {
   dashboardUrl?: string;
 }) => {
   const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
-  const appName = 'TheLawApp';
+  // const appName = 'TheLawApp';
   return `
 ${headerDesign}
 
@@ -1404,7 +1404,7 @@ export const publicContactEmail = (data: {
   message: string;
 }) => {
   const { name, email, phone, message } = data;
-  const appName = 'TheLawApp';
+  // const appName = 'TheLawApp';
 
   return `
 ${headerDesign}
@@ -1559,7 +1559,7 @@ export const emailVerificationTemplate = (data: {
   role: string;
 }) => {
   const { name, verifyUrl, role } = data;
-  const appName = 'TheLawApp';
+  // const appName = 'TheLawApp';
   return `
   ${headerDesign}
 
@@ -1696,7 +1696,7 @@ export const passwordResetEmail = (data: {
   resetUrl: string;
 }) => {
   const { name, resetUrl } = data;
-  const appName = 'TheLawApp';
+  // const appName = 'TheLawApp';
   return `
 ${headerDesign}
 
