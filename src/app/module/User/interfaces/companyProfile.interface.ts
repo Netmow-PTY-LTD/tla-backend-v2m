@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 type IAddressInfo = {
   countryId:string;
-  zipCode: string;         // Assuming `rest.location.address` is a string
+  zipcode: string;         // Assuming `rest.location.address` is a string
   countryCode: string;     // Example: 'AU'
   latitude?: number;       // Optional because you’re using ?. 
   longitude?: number;      // Optional because you’re using ?.

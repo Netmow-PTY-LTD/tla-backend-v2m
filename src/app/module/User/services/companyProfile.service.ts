@@ -44,9 +44,9 @@ const updateCompanyProfileIntoDB = async (
 
 
   // 4️⃣ Handle ZipCode data (only if addressInfo provided)
-  if (addressInfo?.zipCode && addressInfo?.countryCode && addressInfo?.countryId) {
+  if (addressInfo?.zipcode && addressInfo?.countryCode && addressInfo?.countryId) {
     const zipCodeExists = await ZipCode.findOne({
-      zipcode: addressInfo.zipCode,
+      zipcode: addressInfo.zipcode,
       countryCode: addressInfo.countryCode,
       countryId: addressInfo.countryId,
       latitude: addressInfo.latitude,
@@ -56,8 +56,10 @@ const updateCompanyProfileIntoDB = async (
     if (!zipCodeExists) {
       try {
         await ZipCode.create(addressInfo);
+
       } catch (zipErr) {
         console.error('Failed to create ZipCode entry:', zipErr);
+
         throw new Error('ZipCode creation failed');
       }
     }
