@@ -477,7 +477,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `${userProfile.name} sent you an email.`,
           module: 'response',
           type: 'sendemail',
-          link:sendingLink? `/client/dashboard/my-leads/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
+          link:sendingLink? `/client/dashboard/my-cases/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
         });
 
         sendSocketNotification(
@@ -485,7 +485,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           "You've received a new contact message",
           `${userProfile.name} sent you an email.`,
           'sendemail',
-          `/client/dashboard/my-leads/${leadId}`
+          `/client/dashboard/my-cases/${leadId}`
         );
 
         await createNotification({
@@ -495,7 +495,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `You successfully sent an email to ${recipientName}.`,
           module: 'response',
           type: 'sendemail',
-          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-leads/${leadId}`,
+          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-cases/${leadId}`,
         });
 
         sendSocketNotification(
@@ -542,7 +542,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `${userProfile.name} sent you an SMS.`,
           module: 'response',
           type: 'sendsms',
-          link:sendingLink? `/client/dashboard/my-leads/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
+          link:sendingLink? `/client/dashboard/my-cases/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
         });
 
         await createNotification({
@@ -552,7 +552,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `You successfully sent an SMS to ${recipientName}.`,
           module: 'response',
           type: 'sendsms',
-          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-leads/${leadId}`,
+          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-cases/${leadId}`,
         });
 
         sendSocketNotification(
@@ -560,7 +560,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           "You've received a new contact message",
           `${userProfile.name} sent you an SMS.`,
           'sendsms',
-          `/client/dashboard/my-leads/${leadId}`
+          `/client/dashboard/my-cases/${leadId}`
         );
 
         sendSocketNotification(

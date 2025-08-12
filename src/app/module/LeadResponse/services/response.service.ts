@@ -896,7 +896,7 @@ const updateResponseStatus = async (
     message: `The response status has been successfully updated to "${status}".`,
     module: 'response',
     type: status,
-    link: `/client/dashboard/my-leads/${leadId}`,
+    link: `/client/dashboard/my-cases/${leadId}`,
   });
 
   // 📡 Emit socket notifications
@@ -917,7 +917,7 @@ const updateResponseStatus = async (
     message: `The response status has been successfully updated to "${status}".`,
     module: 'response',
     type: status,
-    link: `/client/dashboard/my-leads/${leadId}`,
+    link: `/client/dashboard/my-cases/${leadId}`,
   });
 
 
