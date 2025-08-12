@@ -101,7 +101,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
         readBy: { $ne: userId },
       }).populate({
         path: "from",
-        populate: { path: "profile", select: "name" },
+        populate: { path: "profile", select: "name profilePicture" },
       });
 
       if (unreadMessages.length > 0) {
@@ -131,7 +131,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
         path: 'from',
         populate: {
           path: 'profile',
-          select: 'name',
+          select: 'name profilePicture',
         },
       });
 
