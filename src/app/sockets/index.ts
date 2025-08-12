@@ -105,14 +105,14 @@ export const initializeSockets = (ioInstance: Server) => {
       });
     });
 
-    
+
     // ✅ Register separated chat events
     // registerChatEvents(socket, ioInstance);
 
     // ------------------  handle connection  ------------------------------
     handleConnection(socket, ioInstance)
 
-  
+
 
 
 
@@ -127,9 +127,10 @@ export const initializeSockets = (ioInstance: Server) => {
 
         // If user has no more sockets, mark offline
         if (!socketSet || socketSet.size === 0) {
+          // userSocketsMap.delete(uid);
+          ioInstance.emit("userOffline", { userId: uid });
           userSocketsMap.delete(uid);
           await setUserOnlineStatus(uid, false);
-          ioInstance.emit("userOffline", { userId: uid });
           console.log(`❌ User ${uid} is now OFFLINE`);
         }
       } else {
