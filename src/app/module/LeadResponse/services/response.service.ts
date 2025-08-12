@@ -9,7 +9,6 @@ import { ILeadResponse } from '../interfaces/response.interface';
 import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
 import { ActivityLog } from '../../Activity/models/activityLog.model';
-import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
 import { createNotification } from '../../Notification/utils/createNotification';
 import { USER_PROFILE, UserProfileEnum } from '../../User/constants/user.constant';
 import config from '../../../config';
@@ -358,18 +357,20 @@ const getMyAllResponseFromDB = async (
   });
 
 
- // ---------- FACET: Data + Counts ----------
+  // ---------- FACET: Data + Counts ----------
   pipeline.push({
     $facet: {
       data: [
-        { $project: {
+        {
+          $project: {
             _id: 1,
             status: 1,
             createdAt: 1,
             responseBy: 1,
             leadId: 1,
             serviceId: 1,
-        }},
+          }
+        },
         { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: limit },
@@ -399,7 +400,7 @@ const getMyAllResponseFromDB = async (
 
 
 
-  
+
   // ---------- SORTING ----------
   // pipeline.push({ $sort: { [sortField]: sortOrder } });
 
@@ -418,7 +419,7 @@ const getMyAllResponseFromDB = async (
   // const total = totalResult[0]?.total || 0;
 
 
-  
+
   // return {
   //   data: responses || [],
   //   pagination: {
@@ -431,7 +432,7 @@ const getMyAllResponseFromDB = async (
 
 
 
- // ---------- EXECUTE ----------
+  // ---------- EXECUTE ----------
   const result = await LeadResponse.aggregate(pipeline);
   const totalResult = result[0]?.data || [];
   const meta = result[0]?.metaCounts?.[0] || {};
@@ -444,7 +445,7 @@ const getMyAllResponseFromDB = async (
       limit,
       totalPage: Math.ceil((meta.total || 0) / limit),
     },
-   responseCount: {
+    responseCount: {
       hired: meta.totalHired || 0,
       pending: meta.totalPending || 0,
       archive: meta.totalArchive || 0,
@@ -641,8 +642,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     objectId: new mongoose.Types.ObjectId(responseId),   // cast if you have a string
     // createdBy: new mongoose.Types.ObjectId(userId),
   })
-    .sort({ createdAt: -1 })                              // newest → oldest
-    .populate({
+    .sort({ createdAt: -1 }).populate({
       path: 'createdBy',                                  // 1️⃣ first‑level: User
       select: 'email role profile',                       //   pull only what you need
       populate: {
@@ -722,7 +722,7 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
 
   // return combineCredit;
 
-return responses;
+  return responses;
 
 };
 

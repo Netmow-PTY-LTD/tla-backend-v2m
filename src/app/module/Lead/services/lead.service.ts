@@ -12,8 +12,6 @@ import { customCreditLogic } from '../utils/customCreditLogic';
 
 import QueryBuilder from '../../../builder/QueryBuilder';
 import LeadResponse from '../../LeadResponse/models/response.model';
-import { IUserProfile } from '../../User/interfaces/user.interface';
-import { buildCreditFilter } from '../utils/buildCreditFilter';
 import Service from '../../Service/models/service.model';
 import config from '../../../config';
 import { sendEmail } from '../../../emails/email.service';
