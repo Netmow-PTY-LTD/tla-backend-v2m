@@ -20,6 +20,19 @@ const zipCodeSchema = new mongoose.Schema(
       enum: ['default', 'custom'],
       default: 'custom',
     },
+    countryCode: {
+      type: String,
+      trim: true
+    },
+    latitude: {
+      type: String,
+      trim: true
+    },
+    longitude: {
+      type: String,
+      trim: true
+    },
+
     deletedAt: {
       type: Date,
       default: null,
