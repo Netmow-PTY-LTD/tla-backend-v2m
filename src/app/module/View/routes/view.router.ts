@@ -32,11 +32,25 @@ router.get(
   auth(USER_ROLE.ADMIN,USER_ROLE.USER),
   commonController.getChatHistory,
 );
+
 router.get(
    '/lawyer-suggestions',
   auth(USER_ROLE.ADMIN,USER_ROLE.USER),
   commonController.getLawyerSuggestions,
 );
+
+
+
+// Create a new contact request
+router.post('/lead-request', auth(USER_ROLE.ADMIN,USER_ROLE.USER), commonController.createLeadContactRequest);
+
+// Get requests received by the logged-in user
+router.get('/lead-requests', auth(USER_ROLE.ADMIN,USER_ROLE.USER), commonController.getLeadContactRequests);
+router.get('/lead-request/:leadRequestId', auth(USER_ROLE.ADMIN,USER_ROLE.USER), commonController.getSingleLeadContactRequests);
+// Update status (accept/reject)
+router.patch('/lead-request/:leadRquestId/status', auth(USER_ROLE.ADMIN,USER_ROLE.USER), commonController.updateLeadContactRequestStatus);
+
+
 
 // router.get(
 //    '/lawyer-suggestions/:serviceId',
