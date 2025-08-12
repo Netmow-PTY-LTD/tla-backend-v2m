@@ -743,7 +743,7 @@ const getLawyerSuggestionsFromDB = async (
     //  Add requested: true/false
     {
       $addFields: {
-        requested: { $gt: [{ $size: '$requestInfo' }, 0] }
+        isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
       }
     },
 
@@ -864,7 +864,14 @@ export const getLeadContactRequestsForUser = async (userId: string) => {
 
 export const getSingleLeadContactRequestsForUser = async (leadRequestId: string) => {
   return LeadContactRequest.findById(leadRequestId)
-    .populate('leadId')
+    .populate({
+      path: 'leadId',
+      populate: [
+      { path: 'userProfileId' },
+      { path: 'serviceId' }
+    ]
+
+    })
     .populate('requestedId')
     .populate('toRequestId')
     .sort({ createdAt: -1 });
