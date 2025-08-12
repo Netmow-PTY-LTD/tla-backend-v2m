@@ -473,7 +473,7 @@ const getChatHistoryFromDB = async (responseId: string) => {
       path: 'from',
       populate: {
         path: 'profile',
-        select: 'name',
+        select: 'name profilePicture',
       },
     })
     .sort({ createdAt: 1 }); // oldest messages first
