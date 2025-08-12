@@ -864,7 +864,10 @@ export const getLeadContactRequestsForUser = async (userId: string) => {
 
 export const getSingleLeadContactRequestsForUser = async (leadRequestId: string) => {
   return LeadContactRequest.findById(leadRequestId)
-    .populate('leadId')
+    .populate({
+      path: 'leadId',
+      populate: "userProfileId"
+    })
     .populate('requestedId')
     .populate('toRequestId')
     .sort({ createdAt: -1 });
