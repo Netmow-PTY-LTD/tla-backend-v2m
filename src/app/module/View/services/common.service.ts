@@ -743,7 +743,7 @@ const getLawyerSuggestionsFromDB = async (
     //  Add requested: true/false
     {
       $addFields: {
-        requested: { $gt: [{ $size: '$requestInfo' }, 0] }
+        isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
       }
     },
 
@@ -866,7 +866,11 @@ export const getSingleLeadContactRequestsForUser = async (leadRequestId: string)
   return LeadContactRequest.findById(leadRequestId)
     .populate({
       path: 'leadId',
-      populate: "userProfileId"
+      populate: [
+      { path: 'userProfileId' },
+      { path: 'serviceId' }
+    ]
+
     })
     .populate('requestedId')
     .populate('toRequestId')
