@@ -14,6 +14,8 @@ import { ResponseWiseChatMessage } from "../models/chatMessage.model";
 import QueryBuilder from "../../../builder/QueryBuilder";
 import { LeadContactRequest } from "../models/LeadContactRequest.model";
 import User from "../../Auth/models/auth.model";
+import { AppError } from "../../../errors/error";
+import { validateObjectId } from "../../../utils/validateObjectId";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -592,36 +594,96 @@ const getLawyerSuggestionsFromDB = async (
 
 
 
+// export const createLeadContactRequest = async (
+//   leadId: string,
+//   requestedId: string,
+//   toRequestId: string,
+//   message?: string
+// ) => {
+//   // Prevent duplicate request
+//   const existing = await LeadContactRequest.findOne({
+//     leadId,
+//     requestedId,
+//     toRequestId,
+//   });
+
+//   if (existing) {
+//     throw new Error('Request already exists for this lead.');
+//   }
+
+//   const request = await LeadContactRequest.create({
+//     leadId: new Types.ObjectId(leadId),
+//     requestedId: new Types.ObjectId(requestedId),
+//     toRequestId: new Types.ObjectId(toRequestId),
+//     message,
+//   });
+
+//   return request;
+// };
+
+
 export const createLeadContactRequest = async (
   leadId: string,
-  requestedId: string,
-  toRequestId: string,
+  requestedUserId: string,
+  toRequestUserId: string,
   message?: string
 ) => {
-  // Prevent duplicate request
-  const existing = await LeadContactRequest.findOne({
-    leadId,
-    requestedId,
-    toRequestId,
-  });
 
-  if (existing) {
-    throw new Error('Request already exists for this lead.');
+  validateObjectId(leadId,"leadId")
+  validateObjectId(requestedUserId,"requestedUserId")
+  validateObjectId(toRequestUserId,"toRequestUserId")
+  
+  // Prevent self-request
+  if (requestedUserId === toRequestUserId) {
+    throw new AppError(400, 'You cannot send a request to yourself.');
   }
 
-  const request = await LeadContactRequest.create({
+  // Fetch both profiles in one query batch
+  const [requestedProfile, toRequestProfile] = await Promise.all([
+    UserProfile.findOne({ user: requestedUserId }).select('_id'),
+    UserProfile.findOne({ user: toRequestUserId }).select('_id'),
+  ]);
+
+  if (!requestedProfile) {
+    throw new AppError(404, 'Requested user profile not found.');
+  }
+  if (!toRequestProfile) {
+    throw new AppError(404, 'Target user profile not found.');
+  }
+
+  // Check for existing request
+  const existingRequest = await LeadContactRequest.findOne({
     leadId: new Types.ObjectId(leadId),
-    requestedId: new Types.ObjectId(requestedId),
-    toRequestId: new Types.ObjectId(toRequestId),
-    message,
+    requestedId: requestedProfile._id,
+    toRequestId: toRequestProfile._id,
   });
 
-  return request;
+  if (existingRequest) {
+    throw new AppError(409, 'Request already exists for this lead.');
+  }
+
+  // Create request
+  const newRequest = await LeadContactRequest.create({
+    leadId: new Types.ObjectId(leadId),
+    requestedId: requestedProfile._id,
+    toRequestId: toRequestProfile._id,
+    message: message?.trim() || null,
+    status: 'unread', // Default for new requests
+    createdAt: new Date(),
+  });
+
+  return newRequest;
 };
+
+
+
 
 export const getLeadContactRequestsForUser = async (userId: string) => {
   return LeadContactRequest.find({ toRequestId: userId })
-    .populate('leadId')
+    .populate({
+      path:'leadId',
+      populate:"userProfileId"
+    })
     .populate('requestedId')
     .populate('toRequestId')
     .sort({ createdAt: -1 });
