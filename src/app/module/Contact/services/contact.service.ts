@@ -409,14 +409,13 @@ export const sendContactMessage = async (
   const leadUser = checkLead?.userProfileId?.user?._id
   const recipientName = toUser?.profile?.name || 'Recipient';
   const sentByUserName = userProfile?.name || 'SentBy';
-console.log('lead id check==>',leadUser)
-console.log('recipientUserId check==>',recipientUserId)
+
 
 let sendingLink;
 
 if (recipientUserId?.toString() === leadUser?.toString()) {
   sendingLink = leadUser ?? null;
-  console.log('test');
+ 
 }
 
   const sendSocketNotification = (targetUserId: string, title: string, msg: string, type: string, link: string) => {
@@ -443,7 +442,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
         timestamp: new Date().toLocaleString(),
       };
 
-      const sendResult = await sendEmail({
+       await sendEmail({
         to: toEmail,
         subject: `Your Legal Inquiry – Response from  ${sentByUserName}`,
         data: emailData,
@@ -477,7 +476,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `${userProfile.name} sent you an email.`,
           module: 'response',
           type: 'sendemail',
-          link:sendingLink? `/client/dashboard/my-leads/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
+          link:sendingLink? `/client/dashboard/my-cases/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
         });
 
         sendSocketNotification(
@@ -485,7 +484,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           "You've received a new contact message",
           `${userProfile.name} sent you an email.`,
           'sendemail',
-          `/client/dashboard/my-leads/${leadId}`
+          `/client/dashboard/my-cases/${leadId}`
         );
 
         await createNotification({
@@ -495,7 +494,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `You successfully sent an email to ${recipientName}.`,
           module: 'response',
           type: 'sendemail',
-          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-leads/${leadId}`,
+          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-cases/${leadId}`,
         });
 
         sendSocketNotification(
@@ -542,7 +541,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `${userProfile.name} sent you an SMS.`,
           module: 'response',
           type: 'sendsms',
-          link:sendingLink? `/client/dashboard/my-leads/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
+          link:sendingLink? `/client/dashboard/my-cases/${leadId}`:`/lawyer/dashboard/my-responses?responseId=${responseId}`,
         });
 
         await createNotification({
@@ -552,7 +551,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           message: `You successfully sent an SMS to ${recipientName}.`,
           module: 'response',
           type: 'sendsms',
-          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-leads/${leadId}`,
+          link: sendingLink?`/lawyer/dashboard/my-responses?responseId=${responseId}`:`/client/dashboard/my-cases/${leadId}`,
         });
 
         sendSocketNotification(
@@ -560,7 +559,7 @@ if (recipientUserId?.toString() === leadUser?.toString()) {
           "You've received a new contact message",
           `${userProfile.name} sent you an SMS.`,
           'sendsms',
-          `/client/dashboard/my-leads/${leadId}`
+          `/client/dashboard/my-cases/${leadId}`
         );
 
         sendSocketNotification(
