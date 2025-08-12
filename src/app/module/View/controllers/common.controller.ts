@@ -96,7 +96,7 @@ const getChatHistory = catchAsync(async (req, res) => {
 
 
 const getLawyerSuggestions = catchAsync(async (req, res) => {
-  const userId = req.user?.id || req.query.userId; // adapt as per your auth middleware
+  const userId = req.user?.userId || req.query.userId; // adapt as per your auth middleware
   const serviceId = req.query.serviceId as string;
 
   const page = parseInt(req.query.page as string) || 1;
