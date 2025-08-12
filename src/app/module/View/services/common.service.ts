@@ -575,9 +575,17 @@ export const getLeadContactRequestsForUser = async (userId: string) => {
     .sort({ createdAt: -1 });
 };
 
+export const getSingleLeadContactRequestsForUser = async (leadRequestId: string) => {
+  return LeadContactRequest.findById(leadRequestId)
+    .populate('leadId')
+    .populate('requestedId')
+    .populate('toRequestId')
+    .sort({ createdAt: -1 });
+};
+
 export const updateLeadContactRequestStatus = async (
   requestId: string,
-  status: 'pending' | 'accepted' | 'rejected'
+  status: 'read' | 'unread' | 'deleted'
 ) => {
   return LeadContactRequest.findByIdAndUpdate(
     requestId,
@@ -596,6 +604,7 @@ export const commonService = {
   getLawyerSuggestionsFromDB,
   updateLeadContactRequestStatus,
   createLeadContactRequest,
-  getLeadContactRequestsForUser
+  getLeadContactRequestsForUser,
+  getSingleLeadContactRequestsForUser
   
 };

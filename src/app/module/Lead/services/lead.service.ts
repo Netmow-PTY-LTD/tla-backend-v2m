@@ -867,7 +867,7 @@ const getMyAllLeadFromDB = async (
       .populate('serviceId')
       .populate({
         path: 'responders',
-        select: 'profilePicture name'
+        select: 'profilePicture name user'
       })
       .lean(),
     query,
