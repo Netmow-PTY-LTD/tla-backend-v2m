@@ -2,6 +2,7 @@ import { uploadToSpaces } from '../../../config/upload';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
 import { TUploadedFile } from '../../../interface/file.interface';
+import ZipCode from '../../Country/models/zipcode.model';
 
 import { ICompanyProfile } from '../interfaces/companyProfile.interface';
 import CompanyProfile from '../models/companyProfile.model';
@@ -12,6 +13,8 @@ const updateCompanyProfileIntoDB = async (
   payload: Partial<ICompanyProfile>,
   file?: TUploadedFile,
 ) => {
+
+  const { addressInfo, ...companyProfileData } = payload;
   // Step 1: Get the userProfileId
   const userProfile = await UserProfile.findOne({ user: userId });
 
@@ -30,17 +33,41 @@ const updateCompanyProfileIntoDB = async (
         file.originalname,
         userId,
       );
-      payload.logoUrl = uploadedUrl;
+      // payload.logoUrl = uploadedUrl;
+      companyProfileData.logoUrl = uploadedUrl;
+
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
       throw new Error('File upload failed');
     }
   }
 
+
+  // 4️⃣ Handle ZipCode data (only if addressInfo provided)
+  if (addressInfo?.zipCode && addressInfo?.countryCode && addressInfo?.countryId) {
+    const zipCodeExists = await ZipCode.findOne({
+      zipcode: addressInfo.zipCode,
+      countryCode: addressInfo.countryCode,
+      countryId: addressInfo.countryId,
+      latitude: addressInfo.latitude,
+      longitude: addressInfo.longitude,
+    });
+
+    if (!zipCodeExists) {
+      try {
+        await ZipCode.create(addressInfo);
+      } catch (zipErr) {
+        console.error('Failed to create ZipCode entry:', zipErr);
+        throw new Error('ZipCode creation failed');
+      }
+    }
+  }
+
+
   // Step 3: Update or create company profile
   const updatedCompanyProfile = await CompanyProfile.findOneAndUpdate(
     { userProfileId: userProfile._id },
-    payload,
+    companyProfileData,
     {
       upsert: true,
       new: true,
