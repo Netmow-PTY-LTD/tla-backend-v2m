@@ -629,10 +629,10 @@ export const createLeadContactRequest = async (
   message?: string
 ) => {
 
-  validateObjectId(leadId,"leadId")
-  validateObjectId(requestedUserId,"requestedUserId")
-  validateObjectId(toRequestUserId,"toRequestUserId")
-  
+  validateObjectId(leadId, "leadId")
+  validateObjectId(requestedUserId, "requestedUserId")
+  validateObjectId(toRequestUserId, "toRequestUserId")
+
   // Prevent self-request
   if (requestedUserId === toRequestUserId) {
     throw new AppError(400, 'You cannot send a request to yourself.');
@@ -679,10 +679,13 @@ export const createLeadContactRequest = async (
 
 
 export const getLeadContactRequestsForUser = async (userId: string) => {
-  return LeadContactRequest.find({ toRequestId: userId })
+
+  const toUser = await UserProfile.findOne({ user: userId }).select('_id');
+
+  return LeadContactRequest.find({ toRequestId: toUser?._id })
     .populate({
-      path:'leadId',
-      populate:"userProfileId"
+      path: 'leadId',
+      populate: "userProfileId"
     })
     .populate('requestedId')
     .populate('toRequestId')
