@@ -174,6 +174,29 @@ export const getLeadContactRequests = catchAsync(async (req, res) => {
   });
 });
 
+// Get all requests received by the current user
+export const getSingleLeadContactRequests = catchAsync(async (req, res) => {
+  const result = await commonService.getSingleLeadContactRequestsForUser(
+    req.params.leadRequestId
+  );
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'No lead contact requests found.',
+      data: [],
+    });
+  }
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Lead contact requests retrieved successfully.',
+    data: result,
+  });
+});
+
 // Update request status (accept/reject)
 export const updateLeadContactRequestStatus = catchAsync(async (req, res) => {
   const { status } = req.body;
@@ -200,6 +223,7 @@ export const commonController = {
   getLawyerSuggestions,
   createLeadContactRequest,
   getLeadContactRequests,
-  updateLeadContactRequestStatus
+  updateLeadContactRequestStatus,
+  getSingleLeadContactRequests
 
 };

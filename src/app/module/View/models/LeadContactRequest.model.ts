@@ -22,8 +22,8 @@ const leadContactRequestSchema = new Schema<ILeadContactRequest>(
     },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected'],
-      default: 'pending',
+      enum: ['read', 'unread', 'deleted'],
+      default: 'unread',
     },
     message: {
       type: String,
