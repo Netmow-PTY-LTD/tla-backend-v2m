@@ -1,7 +1,7 @@
 
 import mongoose from 'mongoose';
 import config from './app/config';
-import { app, server, io } from './app';
+import { server, io } from './app';
 import { initializeSockets, setSocketServerInstance } from './app/sockets';
 
 async function main() {
