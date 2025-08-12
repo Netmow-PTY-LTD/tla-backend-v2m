@@ -7,7 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
 import config from './index';
 import { s3Client } from './s3Client';
 
-const allowedTypes = ['application/pdf']; // Keep PDFs explicitly
+const allowedTypes = [
+  'application/pdf', // PDF
+  'application/msword', // .doc
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
+];
 
 // Multer memory storage (required for uploading to S3)
 const storage = multer.memoryStorage();
