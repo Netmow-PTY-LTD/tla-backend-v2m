@@ -49,12 +49,10 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
           countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
         };
 
+        zipCode = await ZipCode.findOne(query).session(session);
 
-        const zipCodeExists = await ZipCode.findOne(query);
-
-
-        if (!zipCodeExists) {
-          zipCode = await ZipCode.create({
+        if (!zipCode) {
+          zipCode = await ZipCode.create([{
             zipcode: addressInfo.zipcode,
             postalCode: addressInfo.postalCode,
             countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
@@ -62,11 +60,8 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
             countryCode: addressInfo.countryCode,
             latitude: addressInfo.latitude,
             longitude: addressInfo.longitude,
-          });
+          }], { session }).then((res) => res[0]);
 
-        } else {
-          // ✅ New logic: assign found record
-          zipCode = zipCodeExists;
         }
       } catch (err: unknown) {
         console.error("ZipCode save error:", err);
@@ -74,13 +69,12 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     }
 
 
-
     // const address = await ZipCode.findById(lawyerServiceMap?.zipCode);
     // Prepare the profile data with a reference to the user
     const profileData = {
       ...profile,
       user: newUser._id,
-      address: lawyerServiceMap.zipCode ,
+      address: lawyerServiceMap.zipCode,
       zipCode: zipCode?._id,
       lawyerContactEmail: newUser?.email,
 
@@ -111,7 +105,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
-        zipCode:zipCode?._id,
+        zipCode: zipCode?._id,
         userProfile: newProfile._id,
       };
 
@@ -121,7 +115,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     const locationGroup = await ZipCode.findOne({
       countryId: newProfile?.country,
       zipCodeType: 'default',
-    });
+    }).session(session);;
     // adding nation wide user location 
     const userLocationServiceMapData = {
       userProfileId: newProfile._id,
@@ -175,7 +169,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       data: commonEmailData,
       emailTemplate: "welcome_to_lawyer",
     });
-
 
 
 
