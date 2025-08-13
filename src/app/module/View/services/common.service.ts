@@ -16,6 +16,7 @@ import User from "../../Auth/models/auth.model";
 import { AppError } from "../../../errors/error";
 import { validateObjectId } from "../../../utils/validateObjectId";
 import { USER_STATUS } from "../../Auth/constant/auth.constant";
+import { IUser } from "../../Auth/interfaces/auth.interface";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -252,10 +253,25 @@ const createLawyerResponseAndSpendCredit = async (
 
   try {
     // Find user profile
-    let user = await UserProfile.findOne({ user: userId });
+    let user = await UserProfile.findOne({ user: userId }).populate('user');
     if (!user) {
       return { success: false, status: HTTP_STATUS.NOT_FOUND, message: 'User not found' };
     }
+
+
+   
+   // 2️⃣ Check if account status is approved
+    const accountStatus = (user.user as IUser)?.accountStatus; // if using User ref
+    // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
+
+    if (accountStatus !== USER_STATUS.APPROVED) {
+      return {
+        success: false,
+        status: HTTP_STATUS.FORBIDDEN,
+        message: "Your account is not approved yet. Please wait until it is approved by the admin."
+      };
+    }
+
 
     const { leadId, credit, serviceId } = payload;
 

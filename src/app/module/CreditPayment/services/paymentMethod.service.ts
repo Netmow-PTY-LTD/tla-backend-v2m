@@ -14,6 +14,7 @@ import { USER_PROFILE } from '../../User/constants/user.constant';
 import { sendEmail } from '../../../emails/email.service';
 import config from '../../../config';
 import { IUser } from '../../Auth/interfaces/auth.interface';
+import { USER_STATUS } from '../../Auth/constant/auth.constant';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -217,9 +218,29 @@ const purchaseCredits = async (
 ) => {
   validateObjectId(packageId, 'credit package ID');
 
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+  if (!userProfile) return sendNotFoundResponse('User profile not found');
+
+  // 2️⃣ Check if account status is approved
+  const accountStatus = (userProfile.user as IUser)?.accountStatus; // if using User ref
+  // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
+
+  if (accountStatus !== USER_STATUS.APPROVED) {
+    return {
+      success: false,
+      message: "Your account is not approved yet. Please wait until it is approved by the admin."
+    };
+  }
+
+
   // 1. Find credit package
   const creditPackage = await CreditPackage.findById(packageId);
   if (!creditPackage) return sendNotFoundResponse('Credit package not found');
+
+
+
+
+
 
   // 2. Apply discount if coupon exists
   let discount = 0;
@@ -242,8 +263,9 @@ const purchaseCredits = async (
   ); // in cents
 
   // 4. Get user's default payment method
-  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
-  if (!userProfile) return sendNotFoundResponse('User profile not found');
+
+
+
 
   const paymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,

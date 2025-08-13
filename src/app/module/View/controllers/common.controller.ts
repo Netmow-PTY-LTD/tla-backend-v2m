@@ -19,6 +19,17 @@ const contactLawyer = catchAsync(async (req, res) => {
     });
   }
 
+  // Handle: account not approved
+  if (result.status === HTTP_STATUS.FORBIDDEN) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: result.message, // e.g., "Your account is not approved yet..."
+      data: null,
+    });
+  }
+
+
   // Handle: need to add card
   if (result.needAddCard) {
     return sendResponse(res, {
