@@ -206,6 +206,34 @@ const resendVerificationEmail = catchAsync(
 
 
 
+export const updateAccountStatusController = catchAsync(
+  async (req, res) => {
+    const userId = req.params.userId;
+    const { accountStatus } = req.body;
+
+    try {
+      const updatedUser = await authService.changeAccountStatus(userId, accountStatus);
+
+      return sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Account status updated successfully',
+        data: updatedUser,
+      });
+    } catch (error: any) {
+      // You can customize error handling here or rely on your global error handler
+      return sendResponse(res, {
+        statusCode: HTTP_STATUS.BAD_REQUEST,
+        success: false,
+        message: error.message || 'Failed to update account status',
+        data:null
+      });
+    }
+  }
+);
+
+
+
 export const authController = {
   login,
   refreshToken,
@@ -214,5 +242,6 @@ export const authController = {
   resetPassword,
   logOut,
   verifyEmail,
-  resendVerificationEmail
+  resendVerificationEmail,
+  updateAccountStatusController
 };

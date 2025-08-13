@@ -12,6 +12,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import UserProfile from '../../User/models/user.model';
 
 import { sendEmail } from '../../../emails/email.service';
+import { validateObjectId } from '../../../utils/validateObjectId';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -362,21 +363,6 @@ export const logOutToken = async (
   };
 };
 
-const accountStatusChangeIntoDB = async (
-  userId: string,
-  accountStatus: string,
-) => {
-  const result = await User.findOneAndUpdate(
-    { _id: userId, deletedAt: null },
-    {
-      accountStatus,
-    },
-    { new: true },
-  );
-
-  return result;
-};
-
 
 
 
@@ -457,11 +443,29 @@ const resendVerificationEmail = async (email: string) => {
 
 
 
+export const changeAccountStatus = async (
+  userId: string,
+  accountStatus: "pending" | "approved" | "suspended" | "rejected" | "archived",
+) => {
 
+  validateObjectId( userId,'User')
 
+  if (!Object.values(USER_STATUS).includes(accountStatus)) {
+    throw new Error('Invalid account status value');
+  }
 
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: userId, deletedAt: null },
+    { accountStatus },
+    { new: true },
+  );
 
+  if (!updatedUser) {
+    throw new Error('User not found or deleted');
+  }
 
+  return updatedUser;
+};
 
 
 
@@ -477,7 +481,7 @@ export const authService = {
   forgetPassword,
   resetPassword,
   logOutToken,
-  accountStatusChangeIntoDB,
+  changeAccountStatus,
   verifyEmailService,
   resendVerificationEmail
 };
