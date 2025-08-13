@@ -39,11 +39,12 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     let zipCode;
 
-    if (addressInfo?.zipcode && addressInfo?.countryCode && addressInfo?.countryId) {
+    if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
 
       try {
         const query = {
           zipcode: addressInfo.zipcode,
+          postalCode: addressInfo.postalCode,
           countryCode: addressInfo.countryCode,
           countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
         };
@@ -55,6 +56,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
         if (!zipCodeExists) {
           zipCode = await ZipCode.create({
             zipcode: addressInfo.zipcode,
+            postalCode: addressInfo.postalCode,
             countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
             zipCodeType: addressInfo.zipCodeType || 'custom',
             countryCode: addressInfo.countryCode,
