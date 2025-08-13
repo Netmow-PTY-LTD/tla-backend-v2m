@@ -56,7 +56,7 @@ router.post(
   authController.logOut,
 );
 
-router.patch('/users/:userId/status',authController.updateAccountStatusController);
+router.patch('/users/:userId/status', auth(USER_ROLE.ADMIN), authController.updateAccountStatusController);
 
 
 //  --------------- client Register  ----------------------------
