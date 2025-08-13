@@ -78,7 +78,7 @@ const userSchema = new mongoose.Schema(
     accountStatus: {
       type: String,
       enum: Object.values(USER_STATUS),
-      default: USER_STATUS.ACTIVE,
+      default: USER_STATUS.PENDING,
     },
     isOnline: { type: Boolean, default: false },
     lastSeen: { type: Date, default: null },
