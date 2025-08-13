@@ -59,7 +59,7 @@ const verifyEmailToken = z.object({
     code: z.string({
       required_error: 'Code is required!',
     }),
-    
+
   })
 });
 
@@ -88,11 +88,13 @@ export const accountStatusChangeValidationSchema = z.object({
     userId: z.string({
       required_error: 'User id is required!',
     }),
-    accountStatus: z.enum(['active', 'inactive', 'suspended'], {
+    accountStatus: z.enum(
+      ['pending', 'approved', 'suspended', 'rejected', 'archived'], {
       required_error: 'Account status is required!',
       invalid_type_error:
-        'Account status must be one of: active, inactive, blocked',
-    }),
+        'Account status must be one of: pending, approved, suspended, rejected, archived',
+    }
+    ),
   }),
 });
 

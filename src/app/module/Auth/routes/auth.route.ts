@@ -56,6 +56,8 @@ router.post(
   authController.logOut,
 );
 
+router.patch('/users/:userId/status',authController.updateAccountStatusController);
+
 
 //  --------------- client Register  ----------------------------
 router.post('/register/client', clientRegisterController.clientRegister);

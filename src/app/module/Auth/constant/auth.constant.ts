@@ -1,8 +1,17 @@
+// export const USER_STATUS = {
+//   ACTIVE: 'active',
+//   SUSPENDED: 'suspended',
+//   INACTIVE: 'inactive',
+// } as const;
+
 export const USER_STATUS = {
-  ACTIVE: 'active',
-  SUSPENDED: 'suspended',
-  INACTIVE: 'inactive',
+  PENDING: 'pending',         // New account, waiting for admin/auto approval
+  APPROVED: 'approved',       // Verified & active
+  SUSPENDED: 'suspended',     // Temporarily restricted
+  REJECTED: 'rejected',       // Permanently denied
+  ARCHIVED: 'archived',       // Inactive, kept for records
 } as const;
+
 
 export type UserStatus = (typeof USER_STATUS)[keyof typeof USER_STATUS]; // for typescript interface
 
