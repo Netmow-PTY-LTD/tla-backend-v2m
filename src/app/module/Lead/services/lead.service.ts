@@ -18,6 +18,7 @@ import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/interfaces/auth.interface';
 import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import Option from '../../Option/models/option.model';
+import ZipCode from '../../Country/models/zipcode.model';
 
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
@@ -44,13 +45,46 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       locationId,
       countryId,
       leadPriority,
+      addressInfo
     } = payload;
+
+
+    let zipCode;
+
+    if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
+
+      try {
+        const query = {
+          zipcode: addressInfo.zipcode,
+          postalCode: addressInfo.postalCode,
+          countryCode: addressInfo.countryCode,
+          countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+        };
+
+        zipCode = await ZipCode.findOne(query).session(session);
+
+        if (!zipCode) {
+          zipCode = await ZipCode.create([{
+            zipcode: addressInfo.zipcode,
+            postalCode: addressInfo.postalCode,
+            countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+            zipCodeType: addressInfo.zipCodeType || 'custom',
+            countryCode: addressInfo.countryCode,
+            latitude: addressInfo.latitude,
+            longitude: addressInfo.longitude,
+          }], { session }).then((res) => res[0]);
+
+        }
+      } catch (err: unknown) {
+        console.error("ZipCode save error:", err);
+      }
+    }
 
     const creditInfo = await CountryWiseServiceWiseField.findOne({
       countryId,
       serviceId,
       deletedAt: null,
-    }).select('baseCredit');
+    }).select('baseCredit').session(session);
 
     let formattedAnswers = '';
     const [leadUser] = await Lead.create(
@@ -61,7 +95,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           serviceId,
           additionalDetails,
           budgetAmount,
-          locationId,
+          locationId: zipCode?._id,
           credit: creditInfo?.baseCredit,
           leadPriority
         },
@@ -453,7 +487,7 @@ type TMeta = {
 type PaginatedResult<T> = {
   data: T[];
   pagination: TMeta;
- leadCount?: {
+  leadCount?: {
     urgent: number;
   };
 };
@@ -463,13 +497,13 @@ type PaginatedResult<T> = {
 /// ------------------------------- search query -----------------------
 
 
-  //  keyword: parsedKeyword.keyword || '',
-  //   spotlight: parsedKeyword.spotlight || '',
-  //   view: parsedKeyword.view || '',
-  //   leadSubmission: parsedKeyword.leadSubmission || '',
-  //   location: parsedKeyword.location || '',
-  //   services: parsedKeyword.services || [],
-  //   credits: parsedKeyword.credits || [],
+//  keyword: parsedKeyword.keyword || '',
+//   spotlight: parsedKeyword.spotlight || '',
+//   view: parsedKeyword.view || '',
+//   leadSubmission: parsedKeyword.leadSubmission || '',
+//   location: parsedKeyword.location || '',
+//   services: parsedKeyword.services || [],
+//   credits: parsedKeyword.credits || [],
 
 
 /// ------------------------------- search query -----------------------
@@ -715,7 +749,7 @@ const getAllLeadFromDB = async (
     };
   }
 
- 
+
   const page = options.page || 1;
   const limit = options.limit || 10;
   const skip = (page - 1) * limit;
@@ -730,7 +764,7 @@ const getAllLeadFromDB = async (
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
     serviceId: { $in: userProfile.serviceIds },
-    status:'approved'
+    status: 'approved'
   };
 
   // Spotlight
@@ -799,10 +833,14 @@ const getAllLeadFromDB = async (
 
     // Keyword match here (AFTER we have userProfileId.name)
     ...(filters.keyword
-      ? [{ $match: { $or: [
-          { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
-          { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
-        ] } }]
+      ? [{
+        $match: {
+          $or: [
+            { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+            { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+          ]
+        }
+      }]
       : []),
 
     { $sort: { [sortField]: sortOrder } },
@@ -817,7 +855,7 @@ const getAllLeadFromDB = async (
         totalCount: [
           { $count: 'total' }
         ],
-         urgentCount: [
+        urgentCount: [
           { $match: { leadPriority: 'urgent' } },
           { $count: 'total' }
         ]
@@ -834,7 +872,7 @@ const getAllLeadFromDB = async (
   return {
     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
     data,
-   leadCount:{
+    leadCount: {
       urgent: urgentCount,
     }
   };
