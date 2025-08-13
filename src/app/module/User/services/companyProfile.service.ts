@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { uploadToSpaces } from '../../../config/upload';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
@@ -14,6 +15,7 @@ const updateCompanyProfileIntoDB = async (
   file?: TUploadedFile,
 ) => {
 
+
   const { addressInfo, ...companyProfileData } = payload;
   // Step 1: Get the userProfileId
   const userProfile = await UserProfile.findOne({ user: userId });
@@ -24,7 +26,7 @@ const updateCompanyProfileIntoDB = async (
       'user profile data not found for update company profile',
     );
   }
-
+ 
   // Step 2: Handle file upload if present
   if (file?.buffer) {
     try {
@@ -43,25 +45,34 @@ const updateCompanyProfileIntoDB = async (
   }
 
 
-  // 4️⃣ Handle ZipCode data (only if addressInfo provided)
-  if (addressInfo?.zipCode && addressInfo?.countryCode && addressInfo?.countryId) {
-    const zipCodeExists = await ZipCode.findOne({
-      zipcode: addressInfo.zipCode,
+if (addressInfo?.zipcode && addressInfo?.countryCode && addressInfo?.countryId) {
+
+  try {
+    const query = {
+      zipcode: addressInfo.zipcode,
       countryCode: addressInfo.countryCode,
-      countryId: addressInfo.countryId,
-      latitude: addressInfo.latitude,
-      longitude: addressInfo.longitude,
-    });
+      countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+    };
+  
+
+    const zipCodeExists = await ZipCode.findOne(query);
+
 
     if (!zipCodeExists) {
-      try {
-        await ZipCode.create(addressInfo);
-      } catch (zipErr) {
-        console.error('Failed to create ZipCode entry:', zipErr);
-        throw new Error('ZipCode creation failed');
-      }
+       await ZipCode.create({
+        zipcode: addressInfo.zipcode,
+        countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+        zipCodeType: addressInfo.zipCodeType || 'custom',
+        countryCode: addressInfo.countryCode,
+        latitude: addressInfo.latitude,
+        longitude: addressInfo.longitude,
+      });
+      
     }
+  } catch (err:unknown) {
+    console.error("ZipCode save error:",  err);
   }
+}
 
 
   // Step 3: Update or create company profile

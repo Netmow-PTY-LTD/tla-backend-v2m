@@ -12,6 +12,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import UserProfile from '../../User/models/user.model';
 
 import { sendEmail } from '../../../emails/email.service';
+import { validateObjectId } from '../../../utils/validateObjectId';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -38,7 +39,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
   }
@@ -118,7 +119,7 @@ const refreshToken = async (token: string) => {
     userId: user._id,
     email: user.email,
     role: user.role,
-    regUserType:user.regUserType,
+    regUserType: user.regUserType,
     accountStatus: user.accountStatus,
   };
 
@@ -156,8 +157,8 @@ const changePasswordIntoDB = async (
   const userStatus = user?.accountStatus;
 
   if (
-    userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+      userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -213,7 +214,7 @@ const forgetPassword = async (userEmail: string) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -224,8 +225,8 @@ const forgetPassword = async (userEmail: string) => {
     // username: user.username,
     email: user?.email,
     role: user?.role,
-    regUserType:user?.regUserType,
-       accountStatus: user.accountStatus,
+    regUserType: user?.regUserType,
+    accountStatus: user.accountStatus,
   };
 
   // Create a JWT reset token valid for 10 minutes
@@ -283,8 +284,8 @@ const resetPassword = async (
   // Check if the user’s account is blocked or suspended
   const userStatus = user?.accountStatus;
   if (
-    userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+     userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -362,21 +363,6 @@ export const logOutToken = async (
   };
 };
 
-const accountStatusChangeIntoDB = async (
-  userId: string,
-  accountStatus: string,
-) => {
-  const result = await User.findOneAndUpdate(
-    { _id: userId, deletedAt: null },
-    {
-      accountStatus,
-    },
-    { new: true },
-  );
-
-  return result;
-};
-
 
 
 
@@ -423,7 +409,7 @@ const resendVerificationEmail = async (email: string) => {
     userId: user._id,
     email: user.email,
     role: user.role,
-    regUserType:user.regUserType,
+    regUserType: user.regUserType,
     accountStatus: user.accountStatus,
   };
 
@@ -457,11 +443,29 @@ const resendVerificationEmail = async (email: string) => {
 
 
 
+export const changeAccountStatus = async (
+  userId: string,
+  accountStatus: "pending" | "approved" | "suspended" | "rejected" | "archived",
+) => {
 
+  validateObjectId( userId,'User')
 
+  if (!Object.values(USER_STATUS).includes(accountStatus)) {
+    throw new Error('Invalid account status value');
+  }
 
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: userId, deletedAt: null },
+    { accountStatus },
+    { new: true },
+  );
 
+  if (!updatedUser) {
+    throw new Error('User not found or deleted');
+  }
 
+  return updatedUser;
+};
 
 
 
@@ -477,7 +481,7 @@ export const authService = {
   forgetPassword,
   resetPassword,
   logOutToken,
-  accountStatusChangeIntoDB,
+  changeAccountStatus,
   verifyEmailService,
   resendVerificationEmail
 };
