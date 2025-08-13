@@ -26,7 +26,7 @@ const updateCompanyProfileIntoDB = async (
       'user profile data not found for update company profile',
     );
   }
- 
+
   // Step 2: Handle file upload if present
   if (file?.buffer) {
     try {
@@ -45,34 +45,36 @@ const updateCompanyProfileIntoDB = async (
   }
 
 
-if (addressInfo?.zipcode && addressInfo?.countryCode && addressInfo?.countryId) {
+  if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
 
-  try {
-    const query = {
-      zipcode: addressInfo.zipcode,
-      countryCode: addressInfo.countryCode,
-      countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
-    };
-  
-
-    const zipCodeExists = await ZipCode.findOne(query);
-
-
-    if (!zipCodeExists) {
-       await ZipCode.create({
+    try {
+      const query = {
         zipcode: addressInfo.zipcode,
-        countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
-        zipCodeType: addressInfo.zipCodeType || 'custom',
         countryCode: addressInfo.countryCode,
-        latitude: addressInfo.latitude,
-        longitude: addressInfo.longitude,
-      });
-      
+        postalCode: addressInfo.postalCode,
+        countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+      };
+
+
+      const zipCodeExists = await ZipCode.findOne(query);
+
+
+      if (!zipCodeExists) {
+        await ZipCode.create({
+          zipcode: addressInfo.zipcode,
+          postalCode: addressInfo.postalCode,
+          countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+          zipCodeType: addressInfo.zipCodeType || 'custom',
+          countryCode: addressInfo.countryCode,
+          latitude: addressInfo.latitude,
+          longitude: addressInfo.longitude,
+        });
+
+      }
+    } catch (err: unknown) {
+      console.error("ZipCode save error:", err);
     }
-  } catch (err:unknown) {
-    console.error("ZipCode save error:",  err);
   }
-}
 
 
   // Step 3: Update or create company profile

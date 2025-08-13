@@ -3,6 +3,7 @@ import { Model, Types } from 'mongoose';
 export interface IZipCode {
   _id?: string;
   zipcode: string;
+  postalCode?: string;
   countryId: Types.ObjectId;
   deletedAt?: Date | null;
   zipCodeType: string;

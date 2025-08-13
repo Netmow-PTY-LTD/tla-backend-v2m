@@ -10,6 +10,10 @@ const zipCodeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    postalCode: {
+      type: String,
+      trim: true,
+    },
     countryId: {
       type: Schema.Types.ObjectId,
       required: true,
@@ -32,7 +36,6 @@ const zipCodeSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-
     deletedAt: {
       type: Date,
       default: null,

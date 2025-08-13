@@ -6,6 +6,7 @@ type IAddressInfo = {
   countryId:string;
   zipcode: string;         // Assuming `rest.location.address` is a string
   countryCode: string;     // Example: 'AU'
+  postalCode:string;
   latitude?: number;       // Optional because you’re using ?. 
   longitude?: number;      // Optional because you’re using ?.
   zipCodeType?:string;
