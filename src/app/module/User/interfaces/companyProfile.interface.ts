@@ -8,6 +8,7 @@ type IAddressInfo = {
   countryCode: string;     // Example: 'AU'
   latitude?: number;       // Optional because you’re using ?. 
   longitude?: number;      // Optional because you’re using ?.
+  zipCodeType?:string;
 };
 
 
