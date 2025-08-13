@@ -5,6 +5,18 @@ import { TUserRole } from '../../../constant';
 import { ILawyerServiceMap } from '../../User/interfaces/lawyerServiceMap.interface';
 import { ICompanyProfile } from '../../User/interfaces/companyProfile.interface';
 
+
+type IAddressInfo = {
+  countryId:string;
+  zipcode: string;         // Assuming `rest.location.address` is a string
+  countryCode: string;     // Example: 'AU'
+  latitude?: number;       // Optional because you’re using ?. 
+  longitude?: number;      // Optional because you’re using ?.
+  zipCodeType?:string;
+};
+
+
+
 export interface ILoginUser {
   email: string;
   password: string;
@@ -31,7 +43,7 @@ export interface IUser {
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
   profile: Types.ObjectId;
-  lawyerServiceMap: ILawyerServiceMap;
+  lawyerServiceMap: ILawyerServiceMap &{ addressInfo:IAddressInfo};
   companyInfo?: ICompanyProfile;
 }
 

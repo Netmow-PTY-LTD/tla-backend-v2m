@@ -35,16 +35,53 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     // Create the user document in the database
     const [newUser] = await User.create([userData], { session });
+    const addressInfo = lawyerServiceMap?.addressInfo
 
-    const address = await ZipCode.findById(lawyerServiceMap?.zipCode);
+    let zipCode;
+
+    if (addressInfo?.zipcode && addressInfo?.countryCode && addressInfo?.countryId) {
+
+      try {
+        const query = {
+          zipcode: addressInfo.zipcode,
+          countryCode: addressInfo.countryCode,
+          countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+        };
+
+
+        const zipCodeExists = await ZipCode.findOne(query);
+
+
+        if (!zipCodeExists) {
+          zipCode = await ZipCode.create({
+            zipcode: addressInfo.zipcode,
+            countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+            zipCodeType: addressInfo.zipCodeType || 'custom',
+            countryCode: addressInfo.countryCode,
+            latitude: addressInfo.latitude,
+            longitude: addressInfo.longitude,
+          });
+
+        } else {
+          // ✅ New logic: assign found record
+          zipCode = zipCodeExists;
+        }
+      } catch (err: unknown) {
+        console.error("ZipCode save error:", err);
+      }
+    }
+
+
+
+    // const address = await ZipCode.findById(lawyerServiceMap?.zipCode);
     // Prepare the profile data with a reference to the user
     const profileData = {
       ...profile,
       user: newUser._id,
-      address: address ? address.zipcode : '',
-      zipCode: lawyerServiceMap?.zipCode,
+      address: lawyerServiceMap.zipCode ,
+      zipCode: zipCode?._id,
       lawyerContactEmail: newUser?.email,
-      
+
     };
 
     // Create the user profile document in the database
@@ -68,9 +105,11 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     // lawyer service map create
 
+
     if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
+        zipCode:zipCode?._id,
         userProfile: newProfile._id,
       };
 
@@ -95,7 +134,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     // user chooseable location 
     const userLocationServiceMapUserChoiceBase = {
       userProfileId: newProfile._id,
-      locationGroupId: lawyerServiceMap.zipCode,
+      locationGroupId: zipCode?._id,
       locationType: LocationType.DISTANCE_WISE,
       rangeInKm: lawyerServiceMap.rangeInKm,
       serviceIds: lawyerServiceMap.services || [],
@@ -107,10 +146,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     // ✅ Create lead service entries using session
     await createLeadService(newUser?._id, lawyerServiceMap.services, session);
-
-
-
-
 
     // ----------------------  send email  -----------------------------------------------
 
@@ -223,163 +258,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 };
 
 
-// const lawyerRegisterUserIntoDB = async (payload: IUser) => {
-//   const session = await mongoose.startSession();
-
-//   // Cache variables for use after commit
-//   let lawyerEmail: string;
-//   let lawyerName: string;
-//   let userId: Types.ObjectId;
-
-//   try {
-//     session.startTransaction();
-
-//     const existingUser = await User.isUserExistsByEmail(payload.email);
-//     if (existingUser) {
-//       throw new AppError(HTTP_STATUS.CONFLICT, 'This user already exists!');
-//     }
-
-//     const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
-
-//     const [newUser] = await User.create([userData], { session });
-//     lawyerEmail = newUser.email;
-//     userId = newUser._id;
-
-//     const address = await ZipCode.findById(lawyerServiceMap?.zipCode);
-
-//     const profileData = {
-//       ...profile,
-//       user: newUser._id,
-//       address: address ? address.zipcode : '',
-//       zipCode: lawyerServiceMap?.zipCode,
-//       lawyerContactEmail: lawyerEmail,
-//     };
-
-//     const [newProfile] = await UserProfile.create([profileData], { session });
-//     lawyerName = newProfile?.name || 'User';
-
-//     newUser.profile = new Types.ObjectId(newProfile._id);
-//     await newUser.save({ session });
-
-//     if (companyInfo?.companyTeam) {
-//       const companyProfileMapData = {
-//         ...companyInfo,
-//         contactEmail: lawyerEmail,
-//         userProfileId: newProfile._id,
-//       };
-//       await CompanyProfile.create([companyProfileMapData], { session });
-//     }
-
-//     if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
-//       const lawyerServiceMapData = {
-//         ...lawyerServiceMap,
-//         userProfile: newProfile._id,
-//       };
-//       await LawyerServiceMap.create([lawyerServiceMapData], { session });
-//     }
-
-//     const locationGroup = await ZipCode.findOne({
-//       countryId: newProfile?.country,
-//       zipCodeType: 'default',
-//     });
-
-//     const userLocationServiceMapData = {
-//       userProfileId: newProfile._id,
-//       locationGroupId: locationGroup?._id,
-//       locationType: LocationType.NATION_WIDE,
-//       serviceIds: lawyerServiceMap.services || [],
-//     };
-//     await UserLocationServiceMap.create([userLocationServiceMapData], { session });
-
-//     const userLocationServiceMapUserChoiceBase = {
-//       userProfileId: newProfile._id,
-//       locationGroupId: lawyerServiceMap.zipCode,
-//       locationType: LocationType.DISTANCE_WISE,
-//       rangeInKm: lawyerServiceMap.rangeInKm,
-//       serviceIds: lawyerServiceMap.services || [],
-//     };
-//     await UserLocationServiceMap.create([userLocationServiceMapUserChoiceBase], { session });
-
-//     await createLeadService(newUser._id, lawyerServiceMap.services, session);
-
-//     // Send welcome email before commit
-//     const serviceIds = lawyerServiceMap.services.map((id) => new mongoose.Types.ObjectId(id));
-//     const services = await Service.find({ _id: { $in: serviceIds } }).select('name');
-//     const practiceArea = services.map((service) => service.name);
-
-//     const commonEmailData = {
-//       name: lawyerName,
-//       email: lawyerEmail,
-//       defaultPassword: userData.password,
-//       dashboardUrl: `${config.client_url}/lawyer/dashboard`,
-//       appName: 'TheLawApp',
-//       practiceArea,
-//     };
-
-//     await sendEmail({
-//       to: lawyerEmail,
-//       subject: 'Thank you for registering as a lawyer',
-//       data: commonEmailData,
-//       emailTemplate: "welcome_to_lawyer",
-//     });
-
-//     // Commit transaction before generating tokens and sending verify email
-//     await session.commitTransaction();
-
-//   } catch (error) {
-//     if (session.inTransaction()) {
-//       await session.abortTransaction();
-//     }
-//     throw error;
-//   } finally {
-//     session.endSession();
-//   }
-
-//   // Now outside transaction: generate tokens
-//   const jwtPayload = {
-//     userId,
-//     email: lawyerEmail,
-//     role: 'user', // or newUser.role if accessible here
-  // regUserType:"lawyer",
-//     accountStatus: 'active', // or actual status if accessible
-//   };
-
-//   const accessToken = createToken(
-//     jwtPayload,
-//     config.jwt_access_secret as StringValue,
-//     config.jwt_access_expires_in as StringValue,
-//   );
-
-//   const refreshToken = createToken(
-//     jwtPayload,
-//     config.jwt_refresh_secret as StringValue,
-//     config.jwt_refresh_expires_in as StringValue,
-//   );
-
-//   // Save verify token after commit (no session)
-//   await User.findByIdAndUpdate(userId, { verifyToken: accessToken });
-
-//   // Send verify email
-//   const emailVerificationUrl = `${config.client_url}/verify-email?token=${accessToken}`;
-
-//   console.log('Sending verify email:', { lawyerEmail, lawyerName, emailVerificationUrl });
-//   await sendEmail({
-//     to: lawyerEmail,
-//     subject: 'Verify your account – TheLawApp',
-//     data: {
-//       name: lawyerName,
-//       verifyUrl: emailVerificationUrl,
-//       role: 'Lawyer',
-//     },
-//     emailTemplate:'verify_email',
-//   });
-
-//   return {
-//     accessToken,
-//     refreshToken,
-//     userData: { _id: userId, email: lawyerEmail, name: lawyerName },
-//   };
-// };
 
 
 export const lawyerRegisterService = {
