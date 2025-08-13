@@ -22,13 +22,12 @@ import Option from '../../Option/models/option.model';
 import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 
 
-
 const clientRegisterUserIntoDB = async (payload: any) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { leadDetails, countryId, serviceId, questions } = payload;
+    const { leadDetails,addressInfo, countryId, serviceId, questions } = payload;
 
     // findout existing user
     const existingUser = await User.isUserExistsByEmail(payload.email);
@@ -47,7 +46,39 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const [newUser] = await User.create([userData], { session });
 
     // get zipcode detail
-    const address = await ZipCode.findById(leadDetails.zipCode);
+    // const address = await ZipCode.findById(leadDetails.zipCode);
+
+  let zipCode;
+
+    if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
+
+      try {
+        const query = {
+          zipcode: addressInfo.zipcode,
+          postalCode: addressInfo.postalCode,
+          countryCode: addressInfo.countryCode,
+          countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+        };
+
+        zipCode = await ZipCode.findOne(query).session(session);
+
+        if (!zipCode) {
+          zipCode = await ZipCode.create([{
+            zipcode: addressInfo.zipcode,
+            postalCode: addressInfo.postalCode,
+            countryId: new mongoose.Types.ObjectId(addressInfo.countryId),
+            zipCodeType: addressInfo.zipCodeType || 'custom',
+            countryCode: addressInfo.countryCode,
+            latitude: addressInfo.latitude,
+            longitude: addressInfo.longitude,
+          }], { session }).then((res) => res[0]);
+
+        }
+      } catch (err: unknown) {
+        console.error("ZipCode save error:", err);
+      }
+    }
+
 
     // create new userProfile
     const profileData = {
@@ -55,8 +86,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       country: countryId,
       name: leadDetails.name,
       phone: leadDetails.phone,
-      address: address ? address.zipcode : '',
-      zipCode: leadDetails?.zipCode
+      address:leadDetails.zipCode,
+      zipCode: zipCode?._id
     };
     const [newProfile] = await UserProfile.create([profileData], { session });
 
@@ -81,7 +112,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
             serviceId,
             additionalDetails: leadDetails.additionalDetails || '',
             budgetAmount: leadDetails.budgetAmount || '',
-            locationId: leadDetails.zipCode,
+            locationId: zipCode?._id,
             credit: creditInfo?.baseCredit,
             leadPriority: leadDetails?.leadPriority
           },
