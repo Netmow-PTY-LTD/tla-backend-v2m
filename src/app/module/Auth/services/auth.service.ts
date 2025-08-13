@@ -38,7 +38,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
   }
@@ -118,7 +118,7 @@ const refreshToken = async (token: string) => {
     userId: user._id,
     email: user.email,
     role: user.role,
-    regUserType:user.regUserType,
+    regUserType: user.regUserType,
     accountStatus: user.accountStatus,
   };
 
@@ -156,8 +156,8 @@ const changePasswordIntoDB = async (
   const userStatus = user?.accountStatus;
 
   if (
-    userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+      userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -213,7 +213,7 @@ const forgetPassword = async (userEmail: string) => {
   const userStatus = user?.accountStatus;
   if (
     userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -224,8 +224,8 @@ const forgetPassword = async (userEmail: string) => {
     // username: user.username,
     email: user?.email,
     role: user?.role,
-    regUserType:user?.regUserType,
-       accountStatus: user.accountStatus,
+    regUserType: user?.regUserType,
+    accountStatus: user.accountStatus,
   };
 
   // Create a JWT reset token valid for 10 minutes
@@ -283,8 +283,8 @@ const resetPassword = async (
   // Check if the user’s account is blocked or suspended
   const userStatus = user?.accountStatus;
   if (
-    userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.INACTIVE
+     userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
   }
@@ -423,7 +423,7 @@ const resendVerificationEmail = async (email: string) => {
     userId: user._id,
     email: user.email,
     role: user.role,
-    regUserType:user.regUserType,
+    regUserType: user.regUserType,
     accountStatus: user.accountStatus,
   };
 

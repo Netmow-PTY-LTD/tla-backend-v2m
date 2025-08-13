@@ -51,8 +51,8 @@ const auth = (...requiredRoles: TUserRole[]) => {
     const userStatus = user?.accountStatus;
 
     if (
-      userStatus === USER_STATUS.SUSPENDED ||
-      userStatus === USER_STATUS.INACTIVE
+       userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
     ) {
       throw new AppError(
         HTTP_STATUS.FORBIDDEN,
