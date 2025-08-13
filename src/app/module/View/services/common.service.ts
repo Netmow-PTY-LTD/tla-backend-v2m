@@ -15,6 +15,7 @@ import { LeadContactRequest } from "../models/LeadContactRequest.model";
 import User from "../../Auth/models/auth.model";
 import { AppError } from "../../../errors/error";
 import { validateObjectId } from "../../../utils/validateObjectId";
+import { USER_STATUS } from "../../Auth/constant/auth.constant";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -349,7 +350,7 @@ const createLawyerResponseAndSpendCredit = async (
         { session }
       );
 
-     await Lead.findOneAndUpdate(
+      await Lead.findOneAndUpdate(
         { _id: leadId }, // Find the lead by its _id
         [
           {
@@ -513,7 +514,8 @@ const getLawyerSuggestionsFromDB = async (
     // 1. Match users excluding the current one
     {
       $match: {
-        _id: { $ne: new mongoose.Types.ObjectId(userId) }
+        _id: { $ne: new mongoose.Types.ObjectId(userId) },
+        accountStatus: USER_STATUS.APPROVED // ✅ Only approved users
       }
     },
     // 2. Lookup profile
@@ -692,9 +694,9 @@ export const getSingleLeadContactRequestsForUser = async (leadRequestId: string)
     .populate({
       path: 'leadId',
       populate: [
-      { path: 'userProfileId' },
-      { path: 'serviceId' }
-    ]
+        { path: 'userProfileId' },
+        { path: 'serviceId' }
+      ]
 
     })
     .populate('requestedId')
