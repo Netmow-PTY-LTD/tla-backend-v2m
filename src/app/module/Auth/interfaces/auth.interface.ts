@@ -9,6 +9,7 @@ import { ICompanyProfile } from '../../User/interfaces/companyProfile.interface'
 type IAddressInfo = {
   countryId:string;
   zipcode: string;         // Assuming `rest.location.address` is a string
+  postalCode:string;
   countryCode: string;     // Example: 'AU'
   latitude?: number;       // Optional because you’re using ?. 
   longitude?: number;      // Optional because you’re using ?.
