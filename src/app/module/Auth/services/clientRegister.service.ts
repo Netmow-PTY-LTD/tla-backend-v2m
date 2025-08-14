@@ -26,8 +26,11 @@ const clientRegisterUserIntoDB = async (payload: any) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  let leadUser: any = null;
+
+
   try {
-    const { leadDetails,addressInfo, countryId, serviceId, questions } = payload;
+    const { leadDetails, addressInfo, countryId, serviceId, questions } = payload;
 
     // findout existing user
     const existingUser = await User.isUserExistsByEmail(payload.email);
@@ -48,7 +51,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     // get zipcode detail
     // const address = await ZipCode.findById(leadDetails.zipCode);
 
-  let zipCode;
+    let zipCode;
 
     if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
 
@@ -86,7 +89,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       country: countryId,
       name: leadDetails.name,
       phone: leadDetails.phone,
-      address:leadDetails.zipCode,
+      address: leadDetails.zipCode,
       zipCode: zipCode?._id
     };
     const [newProfile] = await UserProfile.create([profileData], { session });
@@ -104,7 +107,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     let formattedAnswers = '';
     if (newUser.regUserType === REGISTER_USER_TYPE.CLIENT) {
-      const [leadUser] = await Lead.create(
+      [leadUser] = await Lead.create(
         [
           {
             userProfileId: newProfile._id,
@@ -184,12 +187,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
           .join('');
 
       }
-
-
-
-
-
-
 
     }
 
@@ -330,6 +327,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       accessToken,
       refreshToken,
       userData: newUser,
+      leadData: leadUser,
     };
   } catch (error) {
     await session.abortTransaction();
