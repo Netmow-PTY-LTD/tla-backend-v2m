@@ -188,6 +188,12 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
       }
 
+
+
+
+
+
+
     }
 
     // ✅ location  realated 
@@ -327,7 +333,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       accessToken,
       refreshToken,
       userData: newUser,
-      leadData: leadUser,
+      leadUser,
+
     };
   } catch (error) {
     await session.abortTransaction();

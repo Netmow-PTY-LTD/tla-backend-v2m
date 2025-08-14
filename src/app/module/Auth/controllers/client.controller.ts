@@ -8,7 +8,7 @@ const clientRegister = catchAsync(async (req, res) => {
   const payload = req.body;
 
   // Register the user and receive tokens along with user data
-  const { accessToken, refreshToken, userData } =
+  const { accessToken, refreshToken, userData, leadUser } =
     await clientRegisterService.clientRegisterUserIntoDB(payload);
 
   // Store the refresh token in a secure HTTP-only cookie
@@ -25,7 +25,10 @@ const clientRegister = catchAsync(async (req, res) => {
     success: true,
     message: 'Client registered successfully.',
     token: accessToken,
-    data: userData,
+    data: {
+      userData,
+      leadUser,
+    },
   });
 });
 
