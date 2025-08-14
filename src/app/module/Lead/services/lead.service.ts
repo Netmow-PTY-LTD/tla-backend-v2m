@@ -197,9 +197,36 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       emailTemplate: 'welcome_Lead_submission',
     });
 
+    const leadDetails = {
+      leadId: leadUser._id?.toString?.() || null,
+      user: {
+        userId: (userProfile.user as IUser)?._id?.toString?.() || '',
+        userProfileId: userProfile._id?.toString?.() || '',
+        name: userProfile.name,
+        email: (userProfile.user as IUser)?.email || '',
+      },
+      service: service ? { id: service._id?.toString?.() || '', name: service.name } : null,
+      location: zipCode
+        ? {
+          _id: zipCode._id?.toString?.() || '',
+          zipcode: zipCode.zipcode,
+          postalCode: zipCode.postalCode,
+          countryId: zipCode.countryId?.toString?.() || '',
+          countryCode: zipCode.countryCode,
+          latitude: zipCode.latitude,
+          longitude: zipCode.longitude,
+        }
+        : null,
+      budgetAmount: budgetAmount ?? null,
+      credit: creditInfo?.baseCredit ?? null,
+      priority: leadPriority ?? null,
+      details: additionalDetails || '',
+      answersHtml: formattedAnswers
+    };
+
+    return { leadUser, leadDetails };
 
 
-    return leadUser;
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
