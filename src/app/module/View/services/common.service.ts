@@ -630,16 +630,6 @@ const getLawyerSuggestionsFromDB = async (
 
 
 
-<<<<<<< HEAD
-
-
-
-
-
-
-
-=======
->>>>>>> d32ff3d0069781bbb3b517bb4041d1aa9b01b87f
 export const createLeadContactRequest = async (
   leadId: string,
   requestedUserId: string,
