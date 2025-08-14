@@ -507,9 +507,134 @@ const getChatHistoryFromDB = async (responseId: string) => {
 
 
 
+// const getLawyerSuggestionsFromDB = async (
+//   userId: string,
+//   serviceId: string,
+//   leadId: string, // ✅ add leadId
+//   options: {
+//     page?: number;
+//     limit?: number;
+//     sortBy?: string;
+//     sortOrder?: 'asc' | 'desc';
+//   } = {}
+// ) => {
+//   const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'asc' } = options;
+
+//   const skip = (page - 1) * limit;
+//   const sortOption: Record<string, 1 | -1> = {};
+//   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+//   // First, get current user's profileId (needed for lookup)
+//   const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1 });
+//   const currentProfileId = currentUserProfile?._id;
+//   const pipeline = [
+//     // 1. Match users excluding the current one
+//     {
+//       $match: {
+//         _id: { $ne: new mongoose.Types.ObjectId(userId) },
+//         accountStatus: USER_STATUS.APPROVED // ✅ Only approved users
+//       }
+//     },
+//     // 2. Lookup profile
+//     {
+//       $lookup: {
+//         from: 'userprofiles',
+//         localField: 'profile',
+//         foreignField: '_id',
+//         as: 'profile'
+//       }
+//     },
+//     // 3. Unwind profile
+//     { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
+//     // 4. Filter only profiles that have serviceId
+//     {
+//       $match: {
+//         'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
+//       }
+//     },
+//     // 5. Lookup serviceIds in profile
+//     {
+//       $lookup: {
+//         from: 'services', // adjust to your services collection name
+//         localField: 'profile.serviceIds',
+//         foreignField: '_id',
+//         as: 'profile.serviceIds'
+//       }
+//     },
+
+
+//     //  Lookup into LeadContactRequest to see if request exists
+//     {
+//       $lookup: {
+//         from: 'leadcontactrequests',
+//         let: { lawyerProfileId: '$profile._id' },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $and: [
+//                   { $eq: ['$requestedId', currentProfileId] }, // current user requested
+//                   { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
+//                 ]
+//               }
+//             }
+//           },
+//           { $limit: 1 }
+//         ],
+//         as: 'requestInfo'
+//       }
+//     },
+//     //  Add requested: true/false
+//     {
+//       $addFields: {
+//         isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
+//       }
+//     },
+
+//     // Hide requestInfo field from output
+//     {
+//       $project: {
+//         requestInfo: 0
+//       }
+//     },
+
+
+//     // 6. Sorting
+//     { $sort: sortOption },
+//     // 7. Facet for paginated data and total count
+//     {
+//       $facet: {
+//         paginatedData: [
+//           { $skip: skip },
+//           { $limit: limit }
+//         ],
+//         totalCount: [
+//           { $count: 'count' }
+//         ]
+//       }
+//     }
+//   ];
+
+//   const result = await User.aggregate(pipeline);
+
+//   const lawyers = result[0]?.paginatedData || [];
+//   const totalCount = result[0]?.totalCount[0]?.count || 0;
+
+//   return {
+//     lawyers,
+//     totalCount,
+//     totalPages: Math.ceil(totalCount / limit),
+//     currentPage: page
+//   };
+// };
+
+
+
+
 const getLawyerSuggestionsFromDB = async (
   userId: string,
   serviceId: string,
+  leadId: string, // ✅ add leadId
   options: {
     page?: number;
     limit?: number;
@@ -523,18 +648,26 @@ const getLawyerSuggestionsFromDB = async (
   const sortOption: Record<string, 1 | -1> = {};
   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-  // First, get current user's profileId (needed for lookup)
+  // (Optional) still fine to fetch current profile if you need it for other things
+  // const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1 });
+
+  // const userObjectId = new mongoose.Types.ObjectId(userId);
   const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1 });
-  const currentProfileId = currentUserProfile?._id;
+  const userObjectId = currentUserProfile?._id;
+
+
+  const serviceObjectId = new mongoose.Types.ObjectId(serviceId);
+  const leadObjectId = new mongoose.Types.ObjectId(leadId);
+
   const pipeline = [
-    // 1. Match users excluding the current one
+    // 1) Start from other approved users
     {
       $match: {
-        _id: { $ne: new mongoose.Types.ObjectId(userId) },
-        accountStatus: USER_STATUS.APPROVED // ✅ Only approved users
+        _id: { $ne: userObjectId },
+        accountStatus: USER_STATUS.APPROVED
       }
     },
-    // 2. Lookup profile
+    // 2) Join profile
     {
       $lookup: {
         from: 'userprofiles',
@@ -543,37 +676,39 @@ const getLawyerSuggestionsFromDB = async (
         as: 'profile'
       }
     },
-    // 3. Unwind profile
-    { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
-    // 4. Filter only profiles that have serviceId
+    // 3) Unwind profile
+    { $unwind: { path: '$profile', preserveNullAndEmptyArrays: false } },
+
+    // 4) Only lawyers that offer the service
     {
       $match: {
-        'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
+        'profile.serviceIds': serviceObjectId
       }
     },
-    // 5. Lookup serviceIds in profile
+
+    // 5) (Optional) expand service details as you had
     {
       $lookup: {
-        from: 'services', // adjust to your services collection name
+        from: 'services',
         localField: 'profile.serviceIds',
         foreignField: '_id',
         as: 'profile.serviceIds'
       }
     },
 
-
-    //  Lookup into LeadContactRequest to see if request exists
+    // 6) Check if a LeadContactRequest already exists for THIS user + THIS lawyer user + THIS lead
     {
       $lookup: {
         from: 'leadcontactrequests',
-        let: { lawyerProfileId: '$profile._id' },
+        let: { lawyerUserId: '$_id' }, // ✅ use user _id, not profile._id
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ['$requestedId', currentProfileId] }, // current user requested
-                  { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
+                  { $eq: ['$requestedId', userObjectId] },  // ✅ current logged-in user
+                  { $eq: ['$toRequestId', '$$lawyerUserId'] }, // ✅ target lawyer USER id
+                  { $eq: ['$leadId', leadObjectId] } // ✅ match the lead/case
                 ]
               }
             }
@@ -583,33 +718,28 @@ const getLawyerSuggestionsFromDB = async (
         as: 'requestInfo'
       }
     },
-    //  Add requested: true/false
+
+    // 7) Flag & filter out already-requested lawyers
     {
       $addFields: {
         isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
       }
     },
+    { $match: { isRequested: false } }, // ✅ only NOT requested
 
-    // Hide requestInfo field from output
+    // 8) Clean up
     {
       $project: {
         requestInfo: 0
       }
     },
 
-
-    // 6. Sorting
+    // 9) Sort + paginate
     { $sort: sortOption },
-    // 7. Facet for paginated data and total count
     {
       $facet: {
-        paginatedData: [
-          { $skip: skip },
-          { $limit: limit }
-        ],
-        totalCount: [
-          { $count: 'count' }
-        ]
+        paginatedData: [{ $skip: skip }, { $limit: limit }],
+        totalCount: [{ $count: 'count' }]
       }
     }
   ];
@@ -625,9 +755,6 @@ const getLawyerSuggestionsFromDB = async (
     currentPage: page
   };
 };
-
-
-
 
 
 
