@@ -573,7 +573,7 @@ const getLawyerSuggestionsFromDB = async (
               $expr: {
                 $and: [
                   { $eq: ['$requestedId', currentProfileId] }, // current user requested
-                  { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
+                  { $eq: ['$toRequestId', '$lawyerProfileId'] } // to this lawyer
                 ]
               }
             }
