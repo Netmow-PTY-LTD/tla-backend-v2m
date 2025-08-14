@@ -510,7 +510,6 @@ const getChatHistoryFromDB = async (responseId: string) => {
 // const getLawyerSuggestionsFromDB = async (
 //   userId: string,
 //   serviceId: string,
-//   leadId: string, // ✅ add leadId
 //   options: {
 //     page?: number;
 //     limit?: number;
@@ -630,7 +629,7 @@ const getChatHistoryFromDB = async (responseId: string) => {
 
 
 
-
+// ✅ Minimal change version of YOUR code — only adds `$match: { isRequested: false }`
 const getLawyerSuggestionsFromDB = async (
   userId: string,
   serviceId: string,
@@ -647,26 +646,19 @@ const getLawyerSuggestionsFromDB = async (
   const sortOption: Record<string, 1 | -1> = {};
   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-  // (Optional) still fine to fetch current profile if you need it for other things
-  // const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1 });
-
-  // const userObjectId = new mongoose.Types.ObjectId(userId);
+  // First, get current user's profileId (needed for lookup)
   const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1 });
-  const userObjectId = currentUserProfile?._id;
-
-
-  const serviceObjectId = new mongoose.Types.ObjectId(serviceId);
-  const leadObjectId = new mongoose.Types.ObjectId(serviceId);
+  const currentProfileId = currentUserProfile?._id;
 
   const pipeline = [
-    // 1) Start from other approved users
+    // 1. Match users excluding the current one
     {
       $match: {
-        _id: { $ne: userObjectId },
-        accountStatus: USER_STATUS.APPROVED
+        _id: { $ne: new mongoose.Types.ObjectId(userId) },
+        accountStatus: USER_STATUS.APPROVED // ✅ Only approved users
       }
     },
-    // 2) Join profile
+    // 2. Lookup profile
     {
       $lookup: {
         from: 'userprofiles',
@@ -675,39 +667,36 @@ const getLawyerSuggestionsFromDB = async (
         as: 'profile'
       }
     },
-    // 3) Unwind profile
-    { $unwind: { path: '$profile', preserveNullAndEmptyArrays: false } },
-
-    // 4) Only lawyers that offer the service
+    // 3. Unwind profile
+    { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
+    // 4. Filter only profiles that have serviceId
     {
       $match: {
-        'profile.serviceIds': serviceObjectId
+        'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
       }
     },
-
-    // 5) (Optional) expand service details as you had
+    // 5. Lookup serviceIds in profile (kept as-is)
     {
       $lookup: {
-        from: 'services',
+        from: 'services', // adjust to your services collection name
         localField: 'profile.serviceIds',
         foreignField: '_id',
         as: 'profile.serviceIds'
       }
     },
 
-    // 6) Check if a LeadContactRequest already exists for THIS user + THIS lawyer user + THIS lead
+    // 🔎 Lookup into LeadContactRequest to see if request exists (by profile -> profile)
     {
       $lookup: {
         from: 'leadcontactrequests',
-        let: { lawyerUserId: '$_id' }, // ✅ use user _id, not profile._id
+        let: { lawyerProfileId: '$profile._id' },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ['$requestedId', userObjectId] },  // ✅ current logged-in user
-                  { $eq: ['$toRequestId', '$$lawyerUserId'] }, // ✅ target lawyer USER id
-                  { $eq: ['$leadId', leadObjectId] } // ✅ match the lead/case
+                  { $eq: ['$requestedId', currentProfileId] }, // current user requested
+                  { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
                 ]
               }
             }
@@ -717,24 +706,25 @@ const getLawyerSuggestionsFromDB = async (
         as: 'requestInfo'
       }
     },
-
-    // 7) Flag & filter out already-requested lawyers
+    // ✅ Add requested: true/false
     {
       $addFields: {
         isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
       }
     },
-    { $match: { isRequested: false } }, // ✅ only NOT requested
+    // ✅ NEW: keep only NOT requested
+    { $match: { isRequested: false } },
 
-    // 8) Clean up
+    // Hide requestInfo field from output
     {
       $project: {
         requestInfo: 0
       }
     },
 
-    // 9) Sort + paginate
+    // 6. Sorting
     { $sort: sortOption },
+    // 7. Facet for paginated data and total count
     {
       $facet: {
         paginatedData: [{ $skip: skip }, { $limit: limit }],
@@ -744,6 +734,7 @@ const getLawyerSuggestionsFromDB = async (
   ];
 
   const result = await User.aggregate(pipeline);
+
   const lawyers = result[0]?.paginatedData || [];
   const totalCount = result[0]?.totalCount[0]?.count || 0;
 
