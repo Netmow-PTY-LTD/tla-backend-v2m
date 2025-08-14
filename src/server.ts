@@ -11,6 +11,7 @@ const onlineUsers: Record<string, Set<string>> = {}; // userId -> Set of socketI
 
 
 
+<<<<<<< HEAD
 
 export const setupSocket = (server: HttpServer) => {
 
@@ -26,6 +27,13 @@ export const setupSocket = (server: HttpServer) => {
       origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
+=======
+export const setupSocket = (server: HttpServer) => {
+  const io = new Server(server, {
+    cors: {
+      origin: "https://api.thelawap.com.au",
+      methods: ["GET", "POST"],
+>>>>>>> origin/maksudul
     },
   });
 
@@ -62,8 +70,8 @@ async function main() {
     console.log('✅ Connected to MongoDB');
 
     // Set and initialize sockets
-    setSocketServerInstance(io);
-    initializeSockets(io);
+    //setSocketServerInstance(io);
+    //initializeSockets(io);
 
     // Start server
     server.listen(config.port, () => {
