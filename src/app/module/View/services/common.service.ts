@@ -634,7 +634,6 @@ const getChatHistoryFromDB = async (responseId: string) => {
 const getLawyerSuggestionsFromDB = async (
   userId: string,
   serviceId: string,
-  leadId: string, // ✅ add leadId
   options: {
     page?: number;
     limit?: number;
@@ -657,7 +656,7 @@ const getLawyerSuggestionsFromDB = async (
 
 
   const serviceObjectId = new mongoose.Types.ObjectId(serviceId);
-  const leadObjectId = new mongoose.Types.ObjectId(leadId);
+  const leadObjectId = new mongoose.Types.ObjectId(serviceId);
 
   const pipeline = [
     // 1) Start from other approved users
