@@ -573,7 +573,7 @@ const getLawyerSuggestionsFromDB = async (
               $expr: {
                 $and: [
                   { $eq: ['$requestedId', currentProfileId] }, // current user requested
-                  { $eq: ['$toRequestId', '$lawyerProfileId'] } // to this lawyer
+                  { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
                 ]
               }
             }
@@ -586,7 +586,8 @@ const getLawyerSuggestionsFromDB = async (
     //  Add requested: true/false
     {
       $addFields: {
-        isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
+        // isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
+        isRequested: { $gt: [{ $size: { $ifNull: ['$requestInfo', []] } }, 0] }
       }
     },
 
