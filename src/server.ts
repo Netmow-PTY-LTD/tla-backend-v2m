@@ -11,7 +11,6 @@ const onlineUsers: Record<string, Set<string>> = {}; // userId -> Set of socketI
 
 
 
-<<<<<<< HEAD
 
 export const setupSocket = (server: HttpServer) => {
 
@@ -27,13 +26,6 @@ export const setupSocket = (server: HttpServer) => {
       origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
-=======
-export const setupSocket = (server: HttpServer) => {
-  const io = new Server(server, {
-    cors: {
-      origin: "https://api.thelawap.com.au",
-      methods: ["GET", "POST"],
->>>>>>> origin/maksudul
     },
   });
 
