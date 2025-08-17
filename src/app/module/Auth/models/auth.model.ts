@@ -49,9 +49,8 @@ const userSchema = new mongoose.Schema(
       type: Date,
     },
     isPhoneVerified: {
-      type: String,
-      enum: Object.values(PHONE_VERIFICATION_STATUS),
-      default: PHONE_VERIFICATION_STATUS.NO,
+      type: Boolean,
+      default: false,
     },
     phoneNo: {
       type: String,

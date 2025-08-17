@@ -504,8 +504,6 @@ const getChatHistoryFromDB = async (responseId: string) => {
 
 
 
-
-
 const getLawyerSuggestionsFromDB = async (
   userId: string,
   serviceId: string,
@@ -665,8 +663,6 @@ const getLawyerSuggestionsFromDB = async (
     currentPage: page
   };
 };
-
-
 
 
 
