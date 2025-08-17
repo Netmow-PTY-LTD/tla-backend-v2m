@@ -109,6 +109,7 @@ const getChatHistory = catchAsync(async (req, res) => {
 const getLawyerSuggestions = catchAsync(async (req, res) => {
   const userId = req.user?.userId || req.query.userId; // adapt as per your auth middleware
   const serviceId = req.query.serviceId as string;
+  const leadId = req.query.leadId as string;
 
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
@@ -116,7 +117,7 @@ const getLawyerSuggestions = catchAsync(async (req, res) => {
   const sortOrder = (req.query.sortOrder as string) === 'desc' ? 'desc' : 'asc';
 
 
-  const result = await commonService.getLawyerSuggestionsFromDB(userId, serviceId, {
+  const result = await commonService.getLawyerSuggestionsFromDB(userId, serviceId, leadId,{
     page,
     limit,
     sortBy,

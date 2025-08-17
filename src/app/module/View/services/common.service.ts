@@ -504,12 +504,10 @@ const getChatHistoryFromDB = async (responseId: string) => {
 
 
 
-
-
-
 const getLawyerSuggestionsFromDB = async (
   userId: string,
   serviceId: string,
+  leadId: string,
   options: {
     page?: number;
     limit?: number;
@@ -522,6 +520,8 @@ const getLawyerSuggestionsFromDB = async (
   const skip = (page - 1) * limit;
   const sortOption: Record<string, 1 | -1> = {};
   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+
 
   // First, get current user's profileId (needed for lookup)
   const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1 });
@@ -544,13 +544,48 @@ const getLawyerSuggestionsFromDB = async (
       }
     },
     // 3. Unwind profile
+
     { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
+
     // 4. Filter only profiles that have serviceId
     {
       $match: {
         'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
       }
     },
+
+
+    // 🔹 Lookup responses for this specific lead
+    {
+      $lookup: {
+        from: 'leadresponses',
+        let: { lawyerId: '$profile._id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$leadId', new mongoose.Types.ObjectId(leadId)] },
+                  { $eq: ['$responseBy', '$$lawyerId'] }
+                ]
+              }
+            }
+          },
+          { $limit: 1 }
+        ],
+        as: 'leadResponseForThisLead'
+      }
+    },
+
+    // 🔹 Exclude lawyers who already responded
+    {
+      $match: {
+        leadResponseForThisLead: { $size: 0 }
+      }
+    },
+
+
+
     // 5. Lookup serviceIds in profile
     {
       $lookup: {
@@ -572,6 +607,7 @@ const getLawyerSuggestionsFromDB = async (
             $match: {
               $expr: {
                 $and: [
+                  { $eq: ['$leadId', new mongoose.Types.ObjectId(leadId)] }, // specific lead request
                   { $eq: ['$requestedId', currentProfileId] }, // current user requested
                   { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
                 ]
@@ -594,7 +630,8 @@ const getLawyerSuggestionsFromDB = async (
     // Hide requestInfo field from output
     {
       $project: {
-        requestInfo: 0
+        requestInfo: 0,
+       leadResponseForThisLead: 0
       }
     },
 
@@ -627,6 +664,10 @@ const getLawyerSuggestionsFromDB = async (
     currentPage: page
   };
 };
+
+
+
+
 
 
 
