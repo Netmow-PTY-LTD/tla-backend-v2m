@@ -74,7 +74,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     const profileData = {
       ...profile,
       user: newUser._id,
-      address: lawyerServiceMap.zipCode,
+      address: zipCode?.zipcode,
       zipCode: zipCode?._id,
       lawyerContactEmail: newUser?.email,
 
