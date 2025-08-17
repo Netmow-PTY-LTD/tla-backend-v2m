@@ -59,6 +59,16 @@ router.post(
 router.patch('/users/:userId/status', auth(USER_ROLE.ADMIN), authController.updateAccountStatusController);
 
 
+router.post(
+  '/change-email',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  validateRequest(authZodValidation.changePasswordValidationSchema),
+  authController.changePassword,
+);
+
+
+
+
 //  --------------- client Register  ----------------------------
 router.post('/register/client', clientRegisterController.clientRegister);
 
