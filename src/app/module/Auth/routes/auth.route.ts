@@ -60,12 +60,16 @@ router.patch('/users/:userId/status', auth(USER_ROLE.ADMIN), authController.upda
 
 
 router.post(
-  '/change-email',
-  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  validateRequest(authZodValidation.changePasswordValidationSchema),
-  authController.changePassword,
+  '/send-otp',
+  authController.sendOtp,
 );
 
+router.post(
+  '/verify-otp',
+  authController.verifyOtp,
+);
+
+router.post("/change-email", authController.changeEmail);
 
 
 
