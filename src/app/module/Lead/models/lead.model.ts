@@ -40,7 +40,7 @@ const leadSchema = new Schema<ILead>(
     status: {
       type: String,
       enum: LEAD_STATUS_ENUM,
-      default: 'pending',
+      default: 'approved',
     },
     leadPriority: {
       type: String,
