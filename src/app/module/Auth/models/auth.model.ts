@@ -86,6 +86,10 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
     profile: { type: mongoose.Schema.Types.ObjectId, ref: 'UserProfile' }, // Reference to profile
+    // New fields for email change
+    pendingEmail: { type: String, lowercase: true, trim: true },
+    emailChangeToken: { type: String },
+    emailChangeTokenExpires: { type: Date },
   },
   {
     versionKey: false,
