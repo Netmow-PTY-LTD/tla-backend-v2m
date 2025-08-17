@@ -625,6 +625,7 @@ const getLawyerSuggestionsFromDB = async (
             $match: {
               $expr: {
                 $and: [
+                  { $eq: ['$leadId', new mongoose.Types.ObjectId(leadId)] }, // specific lead request
                   { $eq: ['$requestedId', currentProfileId] }, // current user requested
                   { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
                 ]
