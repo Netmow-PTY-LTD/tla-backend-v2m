@@ -13,6 +13,7 @@ import UserProfile from '../../User/models/user.model';
 
 import { sendEmail } from '../../../emails/email.service';
 import { validateObjectId } from '../../../utils/validateObjectId';
+import { generateOtp } from '../utils/otp.utils';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -157,7 +158,7 @@ const changePasswordIntoDB = async (
   const userStatus = user?.accountStatus;
 
   if (
-      userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.SUSPENDED ||
     userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
@@ -284,7 +285,7 @@ const resetPassword = async (
   // Check if the user’s account is blocked or suspended
   const userStatus = user?.accountStatus;
   if (
-     userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.SUSPENDED ||
     userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
@@ -448,7 +449,7 @@ export const changeAccountStatus = async (
   accountStatus: "pending" | "approved" | "suspended" | "rejected" | "archived",
 ) => {
 
-  validateObjectId( userId,'User')
+  validateObjectId(userId, 'User')
 
   if (!Object.values(USER_STATUS).includes(accountStatus)) {
     throw new Error('Invalid account status value');
@@ -471,6 +472,64 @@ export const changeAccountStatus = async (
 
 
 
+//  otp 
+
+
+let otpStore: Record<string, string> = {}; // Temporary in-memory { email: otp }
+
+
+const sendOtp = async (email: string): Promise<boolean> => {
+  const otp = generateOtp();
+  otpStore[email] = otp;
+
+
+  await sendEmail({
+    to: email,
+    subject: "Your OTP Code",
+    data: {
+      otp,
+    },
+    emailTemplate: 'otp_email',
+  });
+
+
+  return true;
+};
+
+
+
+const verifyOtp = (email: string, otp: string): boolean => {
+  const cleanOtp = otp.replace(/\s+/g, ""); // remove spaces
+  if (otpStore[email] && otpStore[email] === cleanOtp) {
+    delete otpStore[email]; // clear OTP after verification
+    return true;
+  }
+  return false;
+};
+
+
+
+
+
+// Step 3: Change email to new email
+const changeEmail = async (userId: string, newEmail: string) => {
+  // Check if newEmail already exists
+  const existingUser = await User.findOne({ email: newEmail });
+  if (existingUser) {
+    throw new Error("Email already in use");
+  }
+
+  // Find the current user
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  // Update email
+  user.email = newEmail;
+  await user.save();
+
+  return user;
+};
+
 
 
 
@@ -483,5 +542,8 @@ export const authService = {
   logOutToken,
   changeAccountStatus,
   verifyEmailService,
-  resendVerificationEmail
+  resendVerificationEmail,
+  sendOtp,
+  verifyOtp,
+  changeEmail
 };

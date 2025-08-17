@@ -234,6 +234,81 @@ export const updateAccountStatusController = catchAsync(
 
 
 
+
+const sendOtp = catchAsync(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      success: false,
+      message: "Email is required",
+      data: null,
+    });
+  }
+
+  await authService.sendOtp(email);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "OTP sent successfully",
+    data: null,
+  });
+});
+
+const verifyOtp = catchAsync(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const verified = authService.verifyOtp(email, otp);
+
+  if (!verified) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      success: false,
+      message: "Invalid OTP",
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "OTP verified successfully",
+    data: null,
+  });
+});
+
+
+
+
+// Step 3: Change email
+const changeEmail = catchAsync(async (req, res) => {
+  const { userId, newEmail } = req.body;
+  if (!newEmail) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      success: false,
+      message: "New email is required",
+      data: null,
+    });
+  }
+
+  const updatedUser = await authService.changeEmail(userId, newEmail);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Email changed successfully",
+    data: { email: updatedUser.email },
+  });
+});
+
+
+
+
+
+
 export const authController = {
   login,
   refreshToken,
@@ -243,5 +318,8 @@ export const authController = {
   logOut,
   verifyEmail,
   resendVerificationEmail,
-  updateAccountStatusController
+  updateAccountStatusController,
+  sendOtp,
+  verifyOtp,
+  changeEmail,
 };

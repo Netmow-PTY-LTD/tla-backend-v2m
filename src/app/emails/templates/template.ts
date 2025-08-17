@@ -1730,7 +1730,7 @@ ${headerDesign}
 
 
 export const otpEmail = (data: { name: string; otp: string; expiresIn?: string }) => {
-  const { name, otp, expiresIn = "5 minutes" } = data;
+  const { name='users', otp, expiresIn = "5 minutes" } = data;
 
   return `
 <!DOCTYPE html>
