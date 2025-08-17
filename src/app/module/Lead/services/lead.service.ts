@@ -670,7 +670,10 @@ const getMyAllLeadFromDB = async (
       deletedAt: null,
       // serviceId: { $in: userProfile.serviceIds },
     })
-      .populate('userProfileId')
+      .populate({
+        path:'userProfileId',
+        populate:'user'
+      })
       .populate('serviceId')
       .populate({
         path: 'responders',
