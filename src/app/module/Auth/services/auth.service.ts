@@ -13,6 +13,7 @@ import UserProfile from '../../User/models/user.model';
 
 import { sendEmail } from '../../../emails/email.service';
 import { validateObjectId } from '../../../utils/validateObjectId';
+import { generateOtp } from '../utils/otp.utils';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -157,7 +158,7 @@ const changePasswordIntoDB = async (
   const userStatus = user?.accountStatus;
 
   if (
-      userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.SUSPENDED ||
     userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
@@ -284,7 +285,7 @@ const resetPassword = async (
   // Check if the user’s account is blocked or suspended
   const userStatus = user?.accountStatus;
   if (
-     userStatus === USER_STATUS.SUSPENDED ||
+    userStatus === USER_STATUS.SUSPENDED ||
     userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
   ) {
     throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
@@ -448,7 +449,7 @@ export const changeAccountStatus = async (
   accountStatus: "pending" | "approved" | "suspended" | "rejected" | "archived",
 ) => {
 
-  validateObjectId( userId,'User')
+  validateObjectId(userId, 'User')
 
   if (!Object.values(USER_STATUS).includes(accountStatus)) {
     throw new Error('Invalid account status value');
@@ -471,6 +472,102 @@ export const changeAccountStatus = async (
 
 
 
+interface SendOtpParams {
+  email: string;
+  username: string;
+  expiresInMinutes?: number; // optional
+}
+
+
+
+
+// let otpStore: Record<string, string> = {}; // Temporary in-memory { email: otp }
+let otpStore: Record<
+  string,
+  { otp: string; expiresAt: Date }
+> = {}; // store otp + expiration
+
+
+const sendOtp = async ({
+  email,
+  username = 'user',
+  expiresInMinutes = 3, // default to 3 minutes
+}: SendOtpParams): Promise<boolean> => {
+  const otp = generateOtp();
+  const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+
+  // store OTP + expiration
+  otpStore[email] = { otp, expiresAt };
+
+
+  console.log({
+  email,
+  username: 'user',
+  expiresInMinutes: 3, // default to 3 minutes
+})
+
+  await sendEmail({
+    to: email,
+    subject: "Your OTP Code",
+    data: {
+      otp,
+      username,
+      expiresAt: expiresAt.toLocaleTimeString(), // format as needed
+    },
+    emailTemplate: 'otp_email',
+  });
+
+
+  return true;
+};
+
+
+
+
+const verifyOtp = (email: string, otp: string): boolean => {
+  const cleanOtp = otp.replace(/\s+/g, ""); // remove spaces
+  const record = otpStore[email];
+
+  if (!record) return false; // no OTP found for this email
+
+  // Check expiration
+  if (record.expiresAt < new Date()) {
+    delete otpStore[email]; // remove expired OTP
+    return false;
+  }
+
+  // Compare OTP
+  if (record.otp === cleanOtp) {
+    delete otpStore[email]; // clear OTP after successful verification
+    return true;
+  }
+
+  return false;
+};
+
+
+
+
+
+// Step 3: Change email to new email
+const changeEmail = async (userId: string, newEmail: string) => {
+  // Check if newEmail already exists
+  const existingUser = await User.findOne({ email: newEmail });
+  if (existingUser) {
+    throw new Error("Email already in use");
+  }
+
+  // Find the current user
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  // Update email
+  user.email = newEmail;
+  await user.save();
+
+  return user;
+};
+
 
 
 
@@ -483,5 +580,8 @@ export const authService = {
   logOutToken,
   changeAccountStatus,
   verifyEmailService,
-  resendVerificationEmail
+  resendVerificationEmail,
+  sendOtp,
+  verifyOtp,
+  changeEmail
 };
