@@ -472,22 +472,47 @@ export const changeAccountStatus = async (
 
 
 
-//  otp 
+interface SendOtpParams {
+  email: string;
+  username: string;
+  expiresInMinutes?: number; // optional
+}
 
 
-let otpStore: Record<string, string> = {}; // Temporary in-memory { email: otp }
 
 
-const sendOtp = async (email: string): Promise<boolean> => {
+// let otpStore: Record<string, string> = {}; // Temporary in-memory { email: otp }
+let otpStore: Record<
+  string,
+  { otp: string; expiresAt: Date }
+> = {}; // store otp + expiration
+
+
+const sendOtp = async ({
+  email,
+  username = 'user',
+  expiresInMinutes = 3, // default to 3 minutes
+}: SendOtpParams): Promise<boolean> => {
   const otp = generateOtp();
-  otpStore[email] = otp;
+  const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
+  // store OTP + expiration
+  otpStore[email] = { otp, expiresAt };
+
+
+  console.log({
+  email,
+  username: 'user',
+  expiresInMinutes: 3, // default to 3 minutes
+})
 
   await sendEmail({
     to: email,
     subject: "Your OTP Code",
     data: {
       otp,
+      username,
+      expiresAt: expiresAt.toLocaleTimeString(), // format as needed
     },
     emailTemplate: 'otp_email',
   });
@@ -498,12 +523,25 @@ const sendOtp = async (email: string): Promise<boolean> => {
 
 
 
+
 const verifyOtp = (email: string, otp: string): boolean => {
   const cleanOtp = otp.replace(/\s+/g, ""); // remove spaces
-  if (otpStore[email] && otpStore[email] === cleanOtp) {
-    delete otpStore[email]; // clear OTP after verification
+  const record = otpStore[email];
+
+  if (!record) return false; // no OTP found for this email
+
+  // Check expiration
+  if (record.expiresAt < new Date()) {
+    delete otpStore[email]; // remove expired OTP
+    return false;
+  }
+
+  // Compare OTP
+  if (record.otp === cleanOtp) {
+    delete otpStore[email]; // clear OTP after successful verification
     return true;
   }
+
   return false;
 };
 

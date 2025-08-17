@@ -1729,8 +1729,9 @@ ${headerDesign}
 
 
 
-export const otpEmail = (data: { name: string; otp: string; expiresIn?: string }) => {
-  const { name='users', otp, expiresIn = "5 minutes" } = data;
+export const otpEmail = (data: { username: string; otp: string; expiresAt?: string }) => {
+  const { username = 'users', otp, expiresAt = "3 minutes" } = data;
+
 
   return `
 <!DOCTYPE html>
@@ -1750,7 +1751,7 @@ export const otpEmail = (data: { name: string; otp: string; expiresIn?: string }
         </tr>
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${username},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
           Here is your <strong>One Time Password (OTP)</strong>.<br>
           Please enter this code to verify your email address for TheLawApp:
@@ -1761,7 +1762,7 @@ export const otpEmail = (data: { name: string; otp: string; expiresIn?: string }
           </div>
         </div>
         <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 30px;">
-          OTP will expire in <strong>${expiresIn}</strong>.
+          OTP will expire in <strong>${expiresAt}</strong>.
         </p>         
         <p style="font-size: 14px; margin-top: 20px;">
           Best Regards,<br>

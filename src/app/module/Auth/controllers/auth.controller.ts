@@ -247,7 +247,7 @@ const sendOtp = catchAsync(async (req, res) => {
     });
   }
 
-  await authService.sendOtp(email);
+  await authService.sendOtp(req.body);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
