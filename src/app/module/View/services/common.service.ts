@@ -523,22 +523,6 @@ const getLawyerSuggestionsFromDB = async (
   const sortOption: Record<string, 1 | -1> = {};
   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-  // ✅ Step 1: check if this lead already has responses
-  const existingResponse = await LeadResponse.findOne({
-    leadId: new mongoose.Types.ObjectId(leadId)
-  });
-
-  if (existingResponse) {
-    // ⛔ If a response already exists for this lead → return no suggestions
-    return {
-      lawyers: [],
-      totalCount: 0,
-      totalPages: 0,
-      currentPage: page
-    };
-  }
-
-
 
 
   // First, get current user's profileId (needed for lookup)
