@@ -95,7 +95,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           serviceId,
           additionalDetails,
           budgetAmount,
-          locationId: zipCode?._id,
+          locationId: locationId?locationId:zipCode?._id,
           credit: creditInfo?.baseCredit,
           leadPriority
         },
