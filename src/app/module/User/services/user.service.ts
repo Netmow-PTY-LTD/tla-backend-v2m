@@ -27,7 +27,7 @@ import Agreement from '../models/agreement.model';
  */
 const getAllUserIntoDB = async () => {
   // Fetch all users from the database and populate the 'profile' field for each user
-  const result = await User.find({}).populate('profile');
+  const result = await User.find({}).populate('profile').sort('-createdAt');
   return result;
 };
 
