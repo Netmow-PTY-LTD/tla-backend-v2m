@@ -1,3 +1,5 @@
+import config from "../../config";
+
 const appName = 'TheLawApp';
 const headerDesign = `<!DOCTYPE html>
 <html>
@@ -75,10 +77,10 @@ const footerDesign = `
         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
             You are receiving this email because you registered on TheLawApp as a legal professional.</p>
         <p style="margin: 0;">
-          <a href="https://thelawapp.com/privacy" style="color: #999;">Privacy Policy</a> •
-          <a href="https://thelawapp.com/terms" style="color: #999;">Terms</a> •
-          <a href="https://thelawapp.com/help" style="color: #999;">Help Center</a> •
-          <a href="https://thelawapp.com/unsubscribe" style="color: #999;">Unsubscribe</a>
+          <a href="${config.client_url}/privacy" style="color: #999;">Privacy Policy</a> •
+          <a href="${config.client_url}/terms" style="color: #999;">Terms</a> •
+          <a href="${config.client_url}/help" style="color: #999;">Help Center</a> •
+          <a href="${config.client_url}/unsubscribe" style="color: #999;">Unsubscribe</a>
         </p>
       </td>
     </tr>
