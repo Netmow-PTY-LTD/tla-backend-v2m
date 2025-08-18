@@ -347,7 +347,7 @@ const createLawyerResponseAndSpendCredit = async (
             credit: -credit,
             creditsBefore,
             creditsAfter,
-            description: 'Credits deducted for initiating contact with the lawyer',
+            description: 'Credits are deducted upon initiating case contact',
             relatedLeadId: leadId,
           },
         ],
