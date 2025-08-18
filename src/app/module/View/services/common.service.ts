@@ -630,7 +630,7 @@ const getLawyerSuggestionsFromDB = async (
     {
       $project: {
         requestInfo: 0,
-       leadResponseForThisLead: 0
+        leadResponseForThisLead: 0
       }
     },
 
@@ -676,7 +676,7 @@ export const createLeadContactRequest = async (
   toRequestUserId: string,
   message?: string
 ) => {
-
+  const io = getIO();
   validateObjectId(leadId, "leadId")
   validateObjectId(requestedUserId, "requestedUserId")
   validateObjectId(toRequestUserId, "toRequestUserId")
@@ -719,6 +719,26 @@ export const createLeadContactRequest = async (
     status: 'unread', // Default for new requests
     createdAt: new Date(),
   });
+
+
+  // 📢 Notification content
+  const notificationPayload = {
+    userId: toRequestUserId,        // receiver
+    toUser: requestedUserId,        // sender
+    title: "New Contact Request",
+    message: `${requestedProfile.name} has sent you a contact request regarding a lead.`,
+    module: 'lead',
+    type: 'contact',
+    link: `/lawyer/dashboard/requests`,
+  };
+
+  // Save notification in DB
+  await createNotification(notificationPayload);
+
+  // Emit via socket
+  io.to(`user:${toRequestUserId}`).emit('notification', notificationPayload);
+
+
 
   return newRequest;
 };
