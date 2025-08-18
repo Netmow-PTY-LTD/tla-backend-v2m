@@ -882,6 +882,55 @@ export const updateLeadContactRequestStatus = async (
 
 
 
+const countryWiseServiceWiseLeadFromDB = async ({ countryId, serviceId }: any) => {
+  // Build match filter
+  const match: any = { deletedAt: null };
+  if (countryId) match.countryId = new mongoose.Types.ObjectId(countryId);
+  if (serviceId) match.serviceId = new mongoose.Types.ObjectId(serviceId);
+
+  const result = await Lead.aggregate([
+    { $match: match }, // filter by specific country/service if provided
+    {
+      $lookup: {
+        from: 'countries',
+        localField: 'countryId',
+        foreignField: '_id',
+        as: 'country',
+      },
+    },
+    { $unwind: { path: '$country', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'serviceId',
+        foreignField: '_id',
+        as: 'service',
+      },
+    },
+    { $unwind: { path: '$service', preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: { country: '$country.name', serviceId:'$service._id', service: '$service.name' },
+        totalLeads: { $sum: 1 },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        country: '$_id.country',
+        serviceId: '$_id.serviceId',
+        service: '$_id.service',
+        totalLeads: 1,
+      },
+    },
+  ]);
+
+  return result;
+};
+
+
+
+
 export const commonService = {
   createLawyerResponseAndSpendCredit,
   getChatHistoryFromDB,
@@ -889,6 +938,7 @@ export const commonService = {
   updateLeadContactRequestStatus,
   createLeadContactRequest,
   getLeadContactRequestsForUser,
-  getSingleLeadContactRequestsForUser
+  getSingleLeadContactRequestsForUser,
+  countryWiseServiceWiseLeadFromDB
 
 };
