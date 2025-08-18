@@ -228,6 +228,25 @@ export const updateLeadContactRequestStatus = catchAsync(async (req, res) => {
 
 
 
+const countryWiseServiceWiseLead = catchAsync(async (req, res) => {
+
+  const { countryId, serviceId } = req.query;
+
+  const result = await commonService.countryWiseServiceWiseLeadFromDB({
+    countryId: countryId?.toString(),
+    serviceId: serviceId?.toString(),
+  });
+ 
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'lead stats retrivied successfully',
+    data: result,
+  });
+});
+
+
 
 export const commonController = {
   contactLawyer,
@@ -236,6 +255,7 @@ export const commonController = {
   createLeadContactRequest,
   getLeadContactRequests,
   updateLeadContactRequestStatus,
-  getSingleLeadContactRequests
+  getSingleLeadContactRequests,
+  countryWiseServiceWiseLead
 
 };
