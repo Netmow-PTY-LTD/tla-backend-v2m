@@ -51,11 +51,11 @@ router.get('/lead-request/:leadRequestId', auth(USER_ROLE.ADMIN,USER_ROLE.USER),
 router.patch('/lead-request/:leadRquestId/status', auth(USER_ROLE.ADMIN,USER_ROLE.USER), commonController.updateLeadContactRequestStatus);
 
 
+router.get(
+   '/country-wise-service-wise-lead',
+  commonController.countryWiseServiceWiseLead,
+);
 
-// router.get(
-//    '/lawyer-suggestions/:serviceId',
-//   auth(USER_ROLE.ADMIN,USER_ROLE.USER),
-//   commonController.getLawyerSuggestions,
-// );
+
 
 export const viewRouter = router;
