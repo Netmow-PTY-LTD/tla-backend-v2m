@@ -631,7 +631,7 @@ const getLawyerSuggestionsFromDB = async (
     {
       $project: {
         requestInfo: 0,
-       leadResponseForThisLead: 0
+        leadResponseForThisLead: 0
       }
     },
 
@@ -671,13 +671,87 @@ const getLawyerSuggestionsFromDB = async (
 
 
 
+// export const createLeadContactRequest = async (
+//   leadId: string,
+//   requestedUserId: string,
+//   toRequestUserId: string,
+//   message?: string
+// ) => {
+//   const io = getIO();
+//   validateObjectId(leadId, "leadId")
+//   validateObjectId(requestedUserId, "requestedUserId")
+//   validateObjectId(toRequestUserId, "toRequestUserId")
+
+//   // Prevent self-request
+//   if (requestedUserId === toRequestUserId) {
+//     throw new AppError(400, 'You cannot send a request to yourself.');
+//   }
+
+//   // Fetch both profiles in one query batch
+//   const [requestedProfile, toRequestProfile] = await Promise.all([
+//     UserProfile.findOne({ user: requestedUserId }).select('_id'),
+//     UserProfile.findOne({ user: toRequestUserId }).select('_id'),
+//   ]);
+
+//   if (!requestedProfile) {
+//     throw new AppError(404, 'Requested user profile not found.');
+//   }
+//   if (!toRequestProfile) {
+//     throw new AppError(404, 'Target user profile not found.');
+//   }
+
+//   // Check for existing request
+//   const existingRequest = await LeadContactRequest.findOne({
+//     leadId: new Types.ObjectId(leadId),
+//     requestedId: requestedProfile._id,
+//     toRequestId: toRequestProfile._id,
+//   });
+
+//   if (existingRequest) {
+//     throw new AppError(409, 'Request already exists for this lead.');
+//   }
+
+//   // Create request
+//   const newRequest = await LeadContactRequest.create({
+//     leadId: new Types.ObjectId(leadId),
+//     requestedId: requestedProfile._id,
+//     toRequestId: toRequestProfile._id,
+//     message: message?.trim() || null,
+//     status: 'unread', // Default for new requests
+//     createdAt: new Date(),
+//   });
+
+
+//   // 📢 Notification content
+//   const notificationPayload = {
+//     userId: toRequestUserId,        // receiver
+//     toUser: requestedUserId,        // sender
+//     title: "New Contact Request",
+//     message: `${requestedProfile.name} has sent you a contact request regarding a lead.`,
+//     module: 'lead',
+//     type: 'contact',
+//     link: `/lawyer/dashboard/requests`,
+//   };
+
+//   // Save notification in DB
+//   await createNotification(notificationPayload);
+
+//   // Emit via socket
+//   io.to(`user:${toRequestUserId}`).emit('notification', notificationPayload);
+
+
+
+//   return newRequest;
+// };
+
+
 export const createLeadContactRequest = async (
   leadId: string,
-  requestedUserId: string,
-  toRequestUserId: string,
+  requestedUserId: string,   // sender
+  toRequestUserId: string,   // receiver
   message?: string
 ) => {
-
+  const io = getIO();
   validateObjectId(leadId, "leadId")
   validateObjectId(requestedUserId, "requestedUserId")
   validateObjectId(toRequestUserId, "toRequestUserId")
@@ -687,18 +761,14 @@ export const createLeadContactRequest = async (
     throw new AppError(400, 'You cannot send a request to yourself.');
   }
 
-  // Fetch both profiles in one query batch
+  // Fetch both profiles (with name for notification)
   const [requestedProfile, toRequestProfile] = await Promise.all([
-    UserProfile.findOne({ user: requestedUserId }).select('_id'),
-    UserProfile.findOne({ user: toRequestUserId }).select('_id'),
+    UserProfile.findOne({ user: requestedUserId }).select('_id name'),
+    UserProfile.findOne({ user: toRequestUserId }).select('_id name'),
   ]);
 
-  if (!requestedProfile) {
-    throw new AppError(404, 'Requested user profile not found.');
-  }
-  if (!toRequestProfile) {
-    throw new AppError(404, 'Target user profile not found.');
-  }
+  if (!requestedProfile) throw new AppError(404, 'Requested user profile not found.');
+  if (!toRequestProfile) throw new AppError(404, 'Target user profile not found.');
 
   // Check for existing request
   const existingRequest = await LeadContactRequest.findOne({
@@ -711,18 +781,58 @@ export const createLeadContactRequest = async (
     throw new AppError(409, 'Request already exists for this lead.');
   }
 
-  // Create request
-  const newRequest = await LeadContactRequest.create({
-    leadId: new Types.ObjectId(leadId),
-    requestedId: requestedProfile._id,
-    toRequestId: toRequestProfile._id,
-    message: message?.trim() || null,
-    status: 'unread', // Default for new requests
-    createdAt: new Date(),
-  });
+  // ---------------- Transaction session ----------------
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  return newRequest;
+  try {
+    // Create request
+    const newRequest = await LeadContactRequest.create(
+      [
+        {
+          leadId: new Types.ObjectId(leadId),
+          requestedId: requestedProfile._id,
+          toRequestId: toRequestProfile._id,
+          message: message?.trim() || null,
+          status: 'unread',
+          createdAt: new Date(),
+        },
+      ],
+      { session }
+    );
+
+    // 📢 Notification content
+    const notificationPayload = {
+      userId: toRequestUserId,        // receiver
+      toUser: requestedUserId,        // sender
+      title: "New Contact Request",
+      message: `${requestedProfile.name} has sent you a contact request regarding a lead.`,
+      module: 'lead',
+      type: 'contact',
+      link: `/lawyer/dashboard/requests`,
+  
+    };
+
+    // Save notification in DB (inside same transaction)
+    await createNotification({...notificationPayload,session});
+
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Emit via socket (outside transaction)
+    io.to(`user:${toRequestUserId}`).emit('notification', notificationPayload);
+
+    return newRequest[0];
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
+  }
 };
+
+
+
 
 
 
