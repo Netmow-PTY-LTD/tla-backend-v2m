@@ -809,11 +809,11 @@ export const createLeadContactRequest = async (
       module: 'lead',
       type: 'contact',
       link: `/lawyer/dashboard/requests`,
-      session
+  
     };
 
     // Save notification in DB (inside same transaction)
-    await createNotification(notificationPayload);
+    await createNotification({...notificationPayload,session});
 
     // Commit transaction
     await session.commitTransaction();
