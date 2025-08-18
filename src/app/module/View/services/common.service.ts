@@ -524,7 +524,7 @@ const getLawyerSuggestionsFromDB = async (
 
 
   // First, get current user's profileId (needed for lookup)
-  const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1 });
+  const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1, country: 1 });
   const currentProfileId = currentUserProfile?._id;
   const pipeline = [
     // 1. Match users excluding the current one
@@ -548,8 +548,10 @@ const getLawyerSuggestionsFromDB = async (
     { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
 
     // 4. Filter only profiles that have serviceId
+
     {
       $match: {
+        'profile.country': new mongoose.Types.ObjectId(currentUserProfile?.country),
         'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
       }
     },
@@ -809,11 +811,11 @@ export const createLeadContactRequest = async (
       module: 'lead',
       type: 'contact',
       link: `/lawyer/dashboard/requests`,
-  
+
     };
 
     // Save notification in DB (inside same transaction)
-    await createNotification({...notificationPayload,session});
+    await createNotification({ ...notificationPayload, session });
 
     // Commit transaction
     await session.commitTransaction();

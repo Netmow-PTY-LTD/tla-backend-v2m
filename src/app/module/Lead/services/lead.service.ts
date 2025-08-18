@@ -536,7 +536,7 @@ const getAllLeadFromDB = async (
     sortOrder: 'asc' | 'desc';
   }
 ): Promise<PaginatedResult<any>> => {
-  const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds country');
   if (!userProfile) {
     return {
       data: [],
@@ -559,7 +559,8 @@ const getAllLeadFromDB = async (
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
     serviceId: { $in: userProfile.serviceIds },
-    status: 'approved'
+    status: 'approved',
+
   };
 
   // Spotlight
@@ -633,6 +634,13 @@ const getAllLeadFromDB = async (
 
     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
 
+    //  ---------------------------- match current user and same country lead user -----------------
+    {
+      $match: {
+        'userProfileId.country': new mongoose.Types.ObjectId(userProfile.country)
+
+      }
+    },
     // Keyword match here (AFTER we have userProfileId.name)
     ...(filters.keyword
       ? [{
