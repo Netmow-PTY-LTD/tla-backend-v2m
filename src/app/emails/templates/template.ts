@@ -51,16 +51,24 @@ const footerDesign = `
    
     <table cellpadding="0" cellspacing="0" border="0" align="center" style="margin-bottom: 15px;">
       <tr>
-        <td style="padding: 0 8px;">
-          <a href="https://facebook.com" target="_blank">
-            <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/fb.png" alt="Facebook" width="30" height="30" style="display: block;" />
-          </a>
-        </td>
-        <td style="padding: 0 8px;">
-          <a href="https://www.instagram.com" target="_blank">
-            <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/insta.png" alt="Instagram" width="30" height="30" style="display: block;" />
-          </a>
-        </td>
+       <td style="padding: 0 8px;">
+  <a href="https://www.facebook.com/thelawapp" target="_blank">
+    <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/fb.png" alt="Facebook" width="30" height="30" style="display: block;" />
+  </a>
+</td>
+
+
+<td style="padding: 0 8px;">
+  <a href="https://www.linkedin.com/in/the-law-app-22b048166" target="_blank">
+    <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/linkedin.png" alt="LinkedIn" width="30" height="30" style="display: block;" />
+  </a>
+</td>
+
+<td style="padding: 0 8px;">
+  <a href="https://x.com/TheLawAppOnline" target="_blank">
+    <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/x.png" alt="Twitter" width="30" height="30" style="display: block;" />
+  </a>
+</td>
         
       </tr>
     </table>
