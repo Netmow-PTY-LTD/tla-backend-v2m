@@ -205,6 +205,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
         userProfileId: userProfile._id?.toString?.() || '',
         name: userProfile.name,
         email: (userProfile.user as IUser)?.email || '',
+        regUserType: (userProfile.user as IUser)?.regUserType || '',
       },
       service: service ? { id: service._id?.toString?.() || '', name: service.name } : null,
       location: zipCode
