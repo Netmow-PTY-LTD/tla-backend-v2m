@@ -66,6 +66,7 @@ const handleDuplicateError = (err: any): TGenericErrorResponse => {
   const duplicateKey = Object.keys(err.keyValue || {})[0] || 'Unknown field';
   const duplicateValue = err.keyValue?.[duplicateKey] || 'Unknown value';
 
+
   const errorSources: TErrorSources = [
     {
       path: duplicateKey,
@@ -75,7 +76,7 @@ const handleDuplicateError = (err: any): TGenericErrorResponse => {
 
   return {
     statusCode,
-    message: 'Duplicate entry detected',
+    message: `Duplicate entry detected: ${duplicateKey} with the value (${duplicateValue}) already exists.`,
     errorSources,
   };
 };

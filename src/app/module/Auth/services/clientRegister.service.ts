@@ -32,7 +32,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     // findout existing user
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
-      throw new AppError(HTTP_STATUS.CONFLICT, 'This user already exists!');
+      throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email !');
     }
 
     const userData = {
