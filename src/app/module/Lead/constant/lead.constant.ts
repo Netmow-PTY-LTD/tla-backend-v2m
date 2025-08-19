@@ -2,7 +2,7 @@ import { z } from "zod";
 
 
 //  ------------- lead status ------------------
-export const LEAD_STATUS = ['pending', 'approved', 'rejected', 'archive'] as const;
+export const LEAD_STATUS = ['pending', 'approved', 'rejected', 'archive','closed'] as const;
 export type LeadStatus = (typeof LEAD_STATUS)[number];
 export const LEAD_STATUS_ENUM = [...LEAD_STATUS];
 export const leadStatusSchema = z.enum(LEAD_STATUS);
