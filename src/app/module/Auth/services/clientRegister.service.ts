@@ -32,7 +32,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     // findout existing user
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
-      throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email !');
+      throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
     }
 
     const userData = {
@@ -220,7 +220,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       leadAnswer: formattedAnswers,
       preferredContactTime: leadDetails?.leadPriority || 'not sure',
       additionalDetails: leadDetails.additionalDetails || '',
-      dashboardUrl: `${config.client_url}/client/dashboard/my-leads`,
+      dashboardUrl: `${config.client_url}/client/dashboard/my-cases`,
       appName: 'The Law App',
       email: 'support@yourdomain.com',
     };

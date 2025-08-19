@@ -184,7 +184,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       leadAnswer: formattedAnswers,
       preferredContactTime: leadPriority || 'not sure',
       additionalDetails: additionalDetails || '',
-      dashboardUrl: `${config.client_url}/client/dashboard/my-leads`,
+      dashboardUrl: `${config.client_url}/client/dashboard/my-cases`,
       appName: 'The Law App',
       email: 'support@yourdomain.com',
     };

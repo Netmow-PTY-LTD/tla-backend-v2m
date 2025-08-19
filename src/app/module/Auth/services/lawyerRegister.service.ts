@@ -27,7 +27,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     // Check if the user already exists by email
     const existingUser = await User.isUserExistsByEmail(payload.email);
     if (existingUser) {
-      throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email !');
+      throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
     }
 
     // Separate the profile data from the user data
