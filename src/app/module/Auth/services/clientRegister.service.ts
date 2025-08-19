@@ -20,6 +20,7 @@ import Service from '../../Service/models/service.model';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import Option from '../../Option/models/option.model';
 import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
+import { generateRandomPassword } from '../utils/generateRandomPassword';
 
 
 const clientRegisterUserIntoDB = async (payload: any) => {
@@ -27,7 +28,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
   session.startTransaction();
 
   try {
-    const { leadDetails,addressInfo, countryId, serviceId, questions } = payload;
+    const { leadDetails, addressInfo, countryId, serviceId, questions } = payload;
 
     // findout existing user
     const existingUser = await User.isUserExistsByEmail(payload.email);
@@ -35,11 +36,14 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
     }
 
+    const defaultPassword = generateRandomPassword(8);
+
     const userData = {
       email: leadDetails.email,
       role: USER_ROLE.USER,
       regUserType: REGISTER_USER_TYPE.CLIENT,
-      password: config.default_password,
+      // password: config.default_password,
+      password: defaultPassword,
     };
 
     // create new user
@@ -48,7 +52,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     // get zipcode detail
     // const address = await ZipCode.findById(leadDetails.zipCode);
 
-  let zipCode;
+    let zipCode;
 
     if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
 
@@ -86,7 +90,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       country: countryId,
       name: leadDetails.name,
       phone: leadDetails.phone,
-      address:leadDetails.zipCode,
+      address: leadDetails.zipCode,
       zipCode: zipCode?._id
     };
     const [newProfile] = await UserProfile.create([profileData], { session });
@@ -234,7 +238,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const clientData = {
       name: newProfile?.name,
       email: newUser?.email,
-      defaultPassword: config.default_password,
+      // defaultPassword: config.default_password,
+      defaultPassword: defaultPassword,
       dashboardUrl: `${config.client_url}/client/dashboard`,
     };
 
