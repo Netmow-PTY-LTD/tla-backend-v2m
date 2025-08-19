@@ -20,6 +20,7 @@ import Service from '../../Service/models/service.model';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import Option from '../../Option/models/option.model';
 import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
+import { generateRandomPassword } from '../utils/generateRandomPassword';
 
 
 const clientRegisterUserIntoDB = async (payload: any) => {
@@ -38,11 +39,14 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
     }
 
+    const defaultPassword = generateRandomPassword(8);
+
     const userData = {
       email: leadDetails.email,
       role: USER_ROLE.USER,
       regUserType: REGISTER_USER_TYPE.CLIENT,
-      password: config.default_password,
+      // password: config.default_password,
+      password: defaultPassword,
     };
 
     // create new user
@@ -237,7 +241,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const clientData = {
       name: newProfile?.name,
       email: newUser?.email,
-      defaultPassword: config.default_password,
+      // defaultPassword: config.default_password,
+      defaultPassword: defaultPassword,
       dashboardUrl: `${config.client_url}/client/dashboard`,
     };
 
