@@ -280,7 +280,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name slug bio address profilePicture profileType autoTopUp credits serviceIds country phone designation',
+        'name slug bio address profilePicture profileType autoTopUp credits serviceIds country phone designation languages  law_society_member_number practising_certificate_number ',
       populate: [
         { path: 'serviceIds', select: 'name slug' },
         { path: 'country', select: 'name' },
