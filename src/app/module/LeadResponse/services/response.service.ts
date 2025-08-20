@@ -711,26 +711,7 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
       ],
     });
 
-  // const combineCredit = await Promise.all(
-  //   responses.map(async (response) => {
-  //     const plain = response.toObject ? response.toObject() : response;
-  //     const lawyerUserId = (plain as any)?.responseBy?.user?._id;
-  //     const leadUserId = (plain as any)?.leadId?.userProfileId?.user?._id;
-  //     const [lawyerBadge, leadBadge] = await Promise.all([
-  //       lawyerUserId ? calculateLawyerBadge(lawyerUserId) : null,
-  //       leadUserId ? calculateLawyerBadge(leadUserId) : null,
-  //     ]);
-
-  //     return {
-  //       ...plain,
-  //       lawyerBadge,
-  //       leadBadge,
-
-  //     };
-  //   })
-  // );
-
-  // return combineCredit;
+  
 
   return responses;
 
