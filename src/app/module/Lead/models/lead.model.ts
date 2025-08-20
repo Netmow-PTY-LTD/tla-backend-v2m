@@ -52,6 +52,10 @@ const leadSchema = new Schema<ILead>(
       ref: 'UserProfile',
       default: [],
     },
+    leadClosedReason: {
+      type: String,
+      default: null
+    },
 
     deletedAt: {
       type: Date,

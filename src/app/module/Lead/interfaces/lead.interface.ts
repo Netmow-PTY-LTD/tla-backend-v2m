@@ -15,6 +15,7 @@ export interface ILead {
   status: LeadStatus,
   leadPriority: PriorityOption;
   responders?:Types.ObjectId[]
+  leadClosedReason?:string;
   leadAnswers?: ILeadServiceAnswer[];
 }
 
