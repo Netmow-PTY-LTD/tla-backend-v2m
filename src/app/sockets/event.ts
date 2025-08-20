@@ -143,7 +143,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
         message,
       });
 
-      console.log('to ============>',to)
+   
       // Populate after creation
       // savedMessage = await savedMessage.populate({
       //   path: 'from',
@@ -175,7 +175,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       ]);
 
 
-      // console.log('savedMessage', savedMessage)
+      
       const roomName = `response:${responseId}`;
       io.to(roomName).emit("message", savedMessage);
 
@@ -216,6 +216,6 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
 
 
 
-    // io.to(`response:${responseId}`).emit("message-read", { responseId, messageId, userId });
+    
   });
 };
