@@ -484,15 +484,39 @@ const createLawyerResponseAndSpendCredit = async (
 
 const getChatHistoryFromDB = async (responseId: string) => {
 
+  // const messages = await ResponseWiseChatMessage.find({ responseId })
+  //   .populate({
+  //     path: 'from',
+  //     populate: {
+  //       path: 'profile',
+  //       select: 'name profilePicture',
+  //     },
+  //   })
+  //   .sort({ createdAt: 1 }); // oldest messages first
+
   const messages = await ResponseWiseChatMessage.find({ responseId })
-    .populate({
-      path: 'from',
-      populate: {
-        path: 'profile',
-        select: 'name profilePicture',
+  .populate({
+    path: 'from',
+    populate: {
+      path: 'profile',
+      select: 'name profilePicture',
+    },
+  })
+  .populate({
+    path: 'responseId',
+    select: 'responseBy leadId', // pick the fields you need
+    populate: [
+      {
+        path: 'responseBy',
+        select: 'user', // only the user field
       },
-    })
-    .sort({ createdAt: 1 }); // oldest messages first
+      {
+        path: 'leadId',
+        select: 'userProfileId', // only the lead's owner
+      },
+    ],
+  })
+  .sort({ createdAt: 1 }); // oldest messages first
 
 
 

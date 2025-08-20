@@ -87,14 +87,29 @@ export const registerSocketEvents = (socket: Socket, io: Server) => {
 
 
 export const registerChatEvents = (socket: Socket, io: Server) => {
+
+  // ---------- Allow joining any room (global or response) ----------
+  socket.on('join-room', (roomName: string) => {
+    if (!roomName) return;
+    socket.join(roomName);
+    console.log(`👥 Socket ${socket.id} joined room: ${roomName}`);
+  });
+
+
+
+
+
+
+
+
   // ✅ Join a response chat room
-  socket.on("joinRoom",async ({ responseId, userId }) => {
+  socket.on("joinRoom", async ({ responseId, userId }) => {
     if (!responseId || !userId) return;
     const roomName = `response:${responseId}`;
     socket.join(roomName);
     console.log(`👥 User ${userId} joined room: ${roomName}`);
 
-  // Fetch unread messages for this user
+    // Fetch unread messages for this user
     try {
       const unreadMessages = await ResponseWiseChatMessage.find({
         responseId,
@@ -111,11 +126,12 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       console.error("❌ Failed to fetch unread messages", err);
     }
 
-    
+
   });
 
+
   // ✅ Send and save a chat message
-  socket.on("message", async ({ responseId, from, message }) => {
+  socket.on("message", async ({ responseId, from, message, to }) => {
     if (!responseId || !from || !message?.trim()) return;
 
     try {
@@ -123,20 +139,50 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       let savedMessage = await ResponseWiseChatMessage.create({
         responseId,
         from,
+        to,
         message,
       });
 
+   
       // Populate after creation
-      savedMessage = await savedMessage.populate({
-        path: 'from',
-        populate: {
-          path: 'profile',
-          select: 'name profilePicture',
-        },
-      });
+      // savedMessage = await savedMessage.populate({
+      //   path: 'from',
+      //   populate: {
+      //     path: 'profile',
+      //     select: 'name profilePicture',
+      //   },
+      // });
 
+
+
+
+      savedMessage = await savedMessage.populate([
+        {
+          path: 'from',
+          populate: {
+            path: 'profile',
+            select: 'name profilePicture',
+          },
+        },
+        {
+          path: 'to',
+          populate: {
+            path: 'profile',
+            select: 'name profilePicture',
+          },
+        },
+
+      ]);
+
+
+      
       const roomName = `response:${responseId}`;
       io.to(roomName).emit("message", savedMessage);
+
+      // Emit to global-room for toaster
+      io.to('global-room').emit(`toast:${to}`, savedMessage);
+      console.log('toast:${to }', `toast:${to}`)
+
     } catch (err) {
       console.error("❌ Failed to save message", err);
     }
@@ -149,7 +195,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
   });
 
   // ✅ Message read receipt
-  socket.on("message-read", async({ responseId, messageId, userId }) => {
+  socket.on("message-read", async ({ responseId, messageId, userId }) => {
 
     if (!responseId || !messageId || !userId) return;
 
@@ -170,6 +216,6 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
 
 
 
-    // io.to(`response:${responseId}`).emit("message-read", { responseId, messageId, userId });
+    
   });
 };
