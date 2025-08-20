@@ -13,7 +13,7 @@ const chatMessageSchema = new Schema<IResponseWiseChatMessage>(
   {
     responseId: {
       type: Schema.Types.ObjectId,
-      ref: 'Response', // or your actual response collection
+      ref: 'LeadResponse', // or your actual response collection
       required: true,
     },
     from: {
