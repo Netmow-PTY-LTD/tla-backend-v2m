@@ -1740,26 +1740,62 @@ ${headerDesign}
 
 
 
+// export const otpEmail = (data: { username: string; otp: string; expiresAt?: string }) => {
+//   const { username = 'users', otp, expiresAt = "3 minutes" } = data;
+
+
+//   return `
+// <!DOCTYPE html>
+// <html lang="en">
+// <head>
+//   <meta charset="UTF-8">
+//   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//   <title>Email Verification</title>
+// </head>
+// <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
+//   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background-color:#ffffff;">
+//     <!-- Logo -->
+//         <tr>
+//             <td align="center" style="padding-bottom: 20px;">
+//                 <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
+//             </td>
+//         </tr>
+//     <tr>
+//       <td style="padding: 0 30px;">
+//         <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${username},</h2>
+//         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+//           Here is your <strong>One Time Password (OTP)</strong>.<br>
+//           Please enter this code to verify your email address for TheLawApp:
+//         </p>
+//         <div style="text-align: center; margin: 30px 0;">
+//           <div style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 10px; background-color:#f8f6fc; padding: 12px 20px; border-radius: 6px;">
+//             ${otp.split("").join("&nbsp;")}
+//           </div>
+//         </div>
+//         <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 30px;">
+//           OTP will expire in <strong>${expiresAt}</strong>.
+//         </p>         
+//         <p style="font-size: 14px; margin-top: 20px;">
+//           Best Regards,<br>
+//           <span style="color:#FF7F27; font-weight: bold;">TheLawApp team</span>
+//         </p>
+//       </td>
+//     </tr>
+//   </table>
+// </body>
+// </html>
+//   `;
+// };
+
+
+
+
 export const otpEmail = (data: { username: string; otp: string; expiresAt?: string }) => {
   const { username = 'users', otp, expiresAt = "3 minutes" } = data;
 
 
   return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email Verification</title>
-</head>
-<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background-color:#ffffff;">
-    <!-- Logo -->
-        <tr>
-            <td align="center" style="padding-bottom: 20px;">
-                <img src="https://thelawapp.syd1.digitaloceanspaces.com/profiles/logo.png" alt="Logo" width="190" />
-            </td>
-        </tr>
+${headerDesign}
     <tr>
       <td style="padding: 0 30px;">
         <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${username},</h2>
@@ -1775,15 +1811,10 @@ export const otpEmail = (data: { username: string; otp: string; expiresAt?: stri
         <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 30px;">
           OTP will expire in <strong>${expiresAt}</strong>.
         </p>         
-        <p style="font-size: 14px; margin-top: 20px;">
-          Best Regards,<br>
-          <span style="color:#FF7F27; font-weight: bold;">TheLawApp team</span>
-        </p>
       </td>
     </tr>
-  </table>
-</body>
-</html>
+
+     ${footerDesign}
   `;
 };
 
