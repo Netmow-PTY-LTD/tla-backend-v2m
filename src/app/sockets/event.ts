@@ -129,9 +129,9 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
 
   });
 
-  
+
   // ✅ Send and save a chat message
-  socket.on("message", async ({ responseId, from, message, toUser }) => {
+  socket.on("message", async ({ responseId, from, message, to }) => {
     if (!responseId || !from || !message?.trim()) return;
 
     try {
@@ -139,9 +139,11 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       let savedMessage = await ResponseWiseChatMessage.create({
         responseId,
         from,
+        to,
         message,
       });
 
+      console.log('to ============>',to)
       // Populate after creation
       // savedMessage = await savedMessage.populate({
       //   path: 'from',
@@ -150,6 +152,9 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       //     select: 'name profilePicture',
       //   },
       // });
+
+
+
 
       savedMessage = await savedMessage.populate([
         {
@@ -160,19 +165,13 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
           },
         },
         {
-          path: 'responseId',
-          select: 'responseBy leadId',
-          populate: [
-            {
-              path: 'responseBy',
-              select: 'user', // only the user inside responseBy
-            },
-            {
-              path: 'leadId',
-              select: 'userProfileId', // only the lead’s user
-            },
-          ],
+          path: 'to',
+          populate: {
+            path: 'profile',
+            select: 'name profilePicture',
+          },
         },
+
       ]);
 
 
@@ -181,9 +180,8 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       io.to(roomName).emit("message", savedMessage);
 
       // Emit to global-room for toaster
-      // io.to('global-room').emit('chat-message', savedMessage);
-      io.to('global-room').emit(`toast:${toUser}`, savedMessage);
-      console.log('toast:${toUser}',`toast:${toUser}`)
+      io.to('global-room').emit(`toast:${to}`, savedMessage);
+      console.log('toast:${to }', `toast:${to}`)
 
     } catch (err) {
       console.error("❌ Failed to save message", err);
