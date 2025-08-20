@@ -624,8 +624,8 @@ const getLawyerSuggestionsFromDB = async (
     //  Add requested: true/false
     {
       $addFields: {
-        // isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
-        isRequested: { $gt: [{ $size: { $ifNull: ['$requestInfo', []] } }, 0] }
+        isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
+        // isRequested: { $gt: [{ $size: { $ifNull: ['$requestInfo', []] } }, 0] }
       }
     },
 
