@@ -27,6 +27,9 @@ const clientRegisterUserIntoDB = async (payload: any) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  let leadUser: any = null;
+
+
   try {
     const { leadDetails, addressInfo, countryId, serviceId, questions } = payload;
 
@@ -108,7 +111,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     let formattedAnswers = '';
     if (newUser.regUserType === REGISTER_USER_TYPE.CLIENT) {
-      const [leadUser] = await Lead.create(
+      [leadUser] = await Lead.create(
         [
           {
             userProfileId: newProfile._id,
@@ -335,6 +338,8 @@ const clientRegisterUserIntoDB = async (payload: any) => {
       accessToken,
       refreshToken,
       userData: newUser,
+      leadUser,
+
     };
   } catch (error) {
     await session.abortTransaction();
