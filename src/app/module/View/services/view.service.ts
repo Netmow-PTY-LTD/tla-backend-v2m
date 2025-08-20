@@ -343,7 +343,10 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     photosVideos: photosVideos || {},
     socialMedia: socialMedia || {},
     customService: customService,
-    badge
+    badge,
+   languages:user.profile.languages , 
+   law_society_member_number:user.profile.law_society_member_number ,
+   practising_certificate_number:user.profile.practising_certificate_number
   };
 };
 
