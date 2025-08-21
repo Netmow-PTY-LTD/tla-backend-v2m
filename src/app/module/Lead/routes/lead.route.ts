@@ -36,4 +36,10 @@ router.patch(
   leadController.updateSingleLead,
 );
 
+router.patch(
+  '/:leadId/close',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  leadController.closeLead,
+);
+
 export const leadRouter = router;

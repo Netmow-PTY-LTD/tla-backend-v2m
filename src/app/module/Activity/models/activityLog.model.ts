@@ -30,7 +30,7 @@ const ActivityLogSchema = new Schema<IActivityLog>(
     activityType: {
       type: String,
       required: true,
-      enum: ['login', 'update', 'delete', 'create', 'other','schedule','sendsms','contact','sendemail','whatsapp','pending','archive','hired','credit_spent','Sendestimate'], // you can adjust these
+      enum: ['login', 'update', 'delete', 'create', 'other','schedule','sendsms','contact','sendemail','whatsapp','pending','archive','hired','credit_spent','Sendestimate','hire_request'], // you can adjust these
     },
      module: {
       type: String,
