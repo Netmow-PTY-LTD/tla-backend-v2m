@@ -16,6 +16,8 @@ import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/interfaces/auth.interface';
 import { logActivity } from '../../Activity/utils/logActivityLog';
 import { getIO } from '../../../sockets';
+import Lead from '../../Lead/models/lead.model';
+import { IUserProfile } from '../../User/interfaces/user.interface';
 
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
@@ -511,7 +513,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     typeof responseDoc.leadId !== 'object' ||
     !responseDoc.leadId._id
   ) {
-    throw new Error(`Lead ID is missing or not populated in response for ID: ${responseId}`);
+    throw new Error(`Case ID is missing or not populated in response for ID: ${responseId}`);
   }
 
   const leadObjectId = new mongoose.Types.ObjectId(String(responseDoc.leadId._id));
@@ -711,7 +713,7 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
       ],
     });
 
-  
+
 
   return responses;
 
@@ -938,6 +940,395 @@ const deleteResponseFromDB = async (id: string) => {
 
 
 
+
+//  --------------------  send hire request ----------------------------
+
+// const sendHireRequest = async (
+//   responseId: string,
+//   userId: string,
+//   hireMessage?: string
+// ) => {
+//   const response = await LeadResponse.findById(responseId);
+//   if (!response) {
+//     return { success: false, message: "Response not found" };
+//   }
+
+//   if (response.isHireRequested) {
+//     return { success: false, message: "Hire request already sent" };
+//   }
+//   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+
+//   if (!userProfile) {
+//     return { success: false, message: "User profile not found!" };
+//   }
+//   response.isHireRequested = true;
+//   response.hireRequestedBy = new Types.ObjectId(userProfile?._id);
+//   response.status = "hire_requested";
+//   response.hireMessage = hireMessage || null;
+//   response.isHireRequestedAt = new Date();
+
+
+//   await response.save();
+
+//   return { success: true, message: "Hire request sent successfully", response };
+// };
+const sendHireRequest = async (
+  responseId: string,
+  userId: string,
+  hireMessage?: string
+) => {
+  const response = await LeadResponse.findById(responseId);
+  if (!response) {
+    return { success: false, message: "Response not found" };
+  }
+
+  if (response.isHireRequested) {
+    return { success: false, message: "Hire request already sent" };
+  }
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+
+  if (!userProfile) {
+    return { success: false, message: "User profile not found!" };
+  }
+  response.isHireRequested = true;
+  response.hireRequestedBy = new Types.ObjectId(userProfile?._id);
+  response.status = "hire_requested";
+  response.hireMessage = hireMessage || null;
+  response.isHireRequestedAt = new Date();
+
+
+  await response.save();
+
+  // 5️⃣ Log activity
+  await logActivity({
+    createdBy: userProfile._id,
+    activityNote: `Sent a hire request to the lawyer${hireMessage ? ` with message: "${hireMessage}"` : ""}`,
+    activityType: "hire_request",
+    module: "response",
+    objectId: responseId,
+    extraField: {
+      hireMessage: hireMessage || null,
+      responseId,
+    },
+  });
+
+  // 6️⃣ Create notification
+  await createNotification({
+    userId: userProfile._id,
+    toUser: response.responseBy, // send notification to the lawyer
+    title: `New Hire Request`,
+    message: hireMessage || `A client has requested to hire you.`,
+    module: "response",
+    type: "hire_request",
+    link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+  });
+
+
+
+  return { success: true, message: "Hire request sent successfully", response };
+};
+
+
+//  --------------------  change hire status ----------------------------
+
+// const changeHireStatus = async (
+//   responseId: string,
+//   userId: string,
+//   hireDecision: "accepted" | "rejected"
+// ) => {
+//   const response = await LeadResponse.findById(responseId);
+//   if (!response) {
+//     return { success: false, message: "Response not found" };
+//   }
+
+//   if (!response.isHireRequested) {
+//     return { success: false, message: "No hire request to update" };
+//   }
+
+//   if (response.hireDecision) {
+//     return { success: false, message: "Hire decision already made" };
+//   }
+
+//   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+
+//   if (!userProfile) {
+//     return { success: false, message: "User profile not found!" };
+//   }
+
+//     // 🚫 Prevent the requester from changing their own hire request
+//   if (response.hireRequestedBy?.toString() === userProfile?._id.toString())
+//     return { success: false, message: "You cannot change your own hire request" };
+
+
+
+//   // If hire accepted, check if the lead is already hired
+//   if (hireDecision === "accepted") {
+//     const lead = await Lead.findById(response.leadId);
+//     if (!lead) {
+//       return { success: false, message: "Associated case not found" };
+//     }
+
+//     if (lead.isHired) {
+//       return { success: false, message: "Case is already hired" };
+//     }
+
+//     // Update lead hire info
+//     lead.isHired = true;
+//     lead.hireStatus = "hired"; // optional if you use this field
+//     lead.hiredLawyerId = response.responseBy;
+//     lead.hiredBy = new Types.ObjectId(userProfile._id); // Who accepted the hire
+//     lead.hiredAt = new Date();
+//     await lead.save();
+//   }
+
+
+
+//   response.hireDecision = hireDecision;
+//   response.hireAcceptedBy =
+//     hireDecision === "accepted" ? new Types.ObjectId(userProfile?._id) : null;
+//   response.status = hireDecision === "accepted" ? "hired" : "rejected";
+
+//   await response.save();
+
+
+
+
+//   return { success: true, message: `Hire request ${hireDecision}`, response };
+// };
+
+
+
+
+
+
+
+
+//  new logic  of change hire 
+export const changeHireStatus = async (
+  responseId: string,
+  userId: string,
+  hireDecision: "accepted" | "rejected"
+) => {
+  validateObjectId(responseId, "Response");
+  const io = getIO();
+
+  // 1️⃣ Fetch the response
+  const response = await LeadResponse.findById(responseId);
+  if (!response) return { success: false, message: "Response not found" };
+
+  if (!response.isHireRequested)
+    return { success: false, message: "No hire request to update" };
+  // 2️⃣ Fetch the user profile
+  const userProfile = await UserProfile.findOne({ user: userId }).populate("user");
+  if (!userProfile) return { success: false, message: "User profile not found!" };
+
+  // 🚫 Prevent the requester from changing their own hire request
+  if (response.hireRequestedBy?.toString() === userProfile?._id.toString())
+    return { success: false, message: "You cannot change your own hire request" };
+
+  if (response.hireDecision)
+    return { success: false, message: "Hire decision already made" };
+
+
+  console.log('chek  hire status ==>',)
+  // 3️⃣ If hire accepted, update Lead info
+  if (hireDecision === "accepted") {
+    const lead = await Lead.findById(response.leadId);
+    if (!lead) return { success: false, message: "Associated case not found" };
+    if (lead.isHired) return { success: false, message: "Case is already hired" };
+
+    lead.isHired = true;
+    lead.hireStatus = "hired";
+    lead.hiredLawyerId = response.responseBy;
+    lead.hiredBy = new Types.ObjectId(userProfile._id);
+    lead.hiredAt = new Date();
+    await lead.save();
+  }
+
+  console.log('chek  hire status ==>',)
+
+
+  // 4️⃣ Update response
+  response.hireDecision = hireDecision;
+  response.hireAcceptedBy =
+    hireDecision === "accepted" ? new Types.ObjectId(userProfile._id) : null;
+  response.status = hireDecision === "accepted" ? "hired" : "rejected";
+  response.hireAcceptedAt = new Date();
+  await response.save();
+
+  // 5️⃣ Update user profile type for lawyer only
+  const userEmail = (userProfile.user as any)?.email;
+  if ((userProfile.user as any)?.role === "lawyer") {
+    const hireCount = await LeadResponse.countDocuments({
+      responseBy: userProfile._id,
+      status: "hired",
+    });
+
+    let newProfileType: 'premium' | 'expert' | undefined;
+    if (hireCount >= 10) newProfileType = USER_PROFILE.PREMIUM;
+    else if (hireCount >= 5) newProfileType = USER_PROFILE.EXPERT;
+
+    if (newProfileType && userProfile.profileType !== newProfileType) {
+      userProfile.profileType = newProfileType;
+      await userProfile.save();
+
+      const roleLabel = newProfileType === "premium" ? "Premium Lawyer" : "Expert Lawyer";
+      await sendEmail({
+        to: userEmail,
+        subject: `🎉 Congrats! Your profile has been upgraded to ${roleLabel}.`,
+        data: {
+          name: userProfile.name,
+          role: roleLabel,
+          dashboardUrl: `${config.client_url}/lawyer/dashboard`,
+          appName: "TheLawApp",
+        },
+        emailTemplate: "lawyerPromotion",
+      });
+    }
+  }
+
+  console.log('chek  hire status ==>',)
+  //  ---------------  TYPE CHECKER -----------------------
+  interface PopulatedLeadResponse {
+    _id: string;
+    leadId: {
+      _id: string;
+      userProfileId: IUserProfile & { user: IUser };
+    };
+    responseBy: IUserProfile & { user: IUser };
+    hireDecision?: "accepted" | "rejected" | null;
+    hireMessage?: string | null;
+    status: ILeadResponse['status'];
+    isHireRequested: boolean;
+  }
+
+  //  ---------------  TYPE CHECK WITH LEAD USER-----------------------
+  const leadUser = await LeadResponse.findById(responseId)
+    .populate<{
+      leadId: {
+        userProfileId: IUserProfile & { user: IUser };
+      };
+    }>({
+      path: "leadId",
+      populate: {
+        path: "userProfileId",
+        populate: {
+          path: "user",
+          model: "User",
+        },
+      },
+    })
+    .populate<{ responseBy: IUserProfile & { user: IUser } }>("responseBy")
+    .lean<PopulatedLeadResponse>();
+
+  console.log({ leadUser })
+
+  const possibleToUser = leadUser?.leadId?.userProfileId?.user?._id?.toString();
+  const leadId = leadUser?.leadId?._id;
+  const responseByUser = leadUser?.responseBy?.user?.toString();
+
+  let currentUserId: string | null = null;
+  let otherUserId: string | null = null;
+
+  if (userId === possibleToUser) {
+    currentUserId = userId;
+    otherUserId = responseByUser ?? null;
+  } else {
+    currentUserId = userId;
+    otherUserId = possibleToUser ?? null;
+  }
+
+  console.log('check   possible user =========>', {
+    currentUserId,
+    otherUserId,
+
+
+  })
+
+  console.log('check   possible user =========>', {
+    possibleToUser,
+    leadId,
+    responseByUser
+
+  })
+
+
+
+  if (!currentUserId || !otherUserId) return { success: true, message: `Hire request ${hireDecision}`, response };
+
+  const activity = await logActivity({
+    createdBy: currentUserId,
+    activityNote: `Response status updated to "${response.status}"`,
+    activityType: 'hired',
+    module: "response",
+    objectId: responseId,
+    extraField: { leadId, affectedUser: otherUserId },
+  });
+
+  const notification1 = await createNotification({
+    userId: currentUserId,
+    toUser: otherUserId,
+    title: `Response Status Changed`,
+    message: `The status of your response has been updated to "${hireDecision}".`,
+    module: "response",
+    type: 'hired',
+    link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+  });
+
+  const notification2 = await createNotification({
+    userId: otherUserId,
+    toUser: currentUserId,
+    title: `Response Status Changed`,
+    message: `The response status has been successfully updated to "${hireDecision}".`,
+    module: "response",
+    type: 'hired',
+    link: `/client/dashboard/my-cases/${leadId}`,
+  });
+
+
+
+   console.log('check   possible user =========>', {
+    currentUserId,
+    otherUserId,
+
+
+  })
+
+
+  console.log({ activity, notification1, notification2 })
+
+  // 7️⃣ Emit socket notifications
+  io.to(`user:${currentUserId}`).emit("notification", {
+    userId: currentUserId,
+    toUser: otherUserId,
+    title: `Response Status Changed`,
+    message: `The status of your response has been updated to "${hireDecision}".`,
+    module: "response",
+    type: 'hired',
+    link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+  });
+
+  io.to(`user:${otherUserId}`).emit("notification", {
+    userId: otherUserId,
+    toUser: currentUserId,
+    title: `Response Status Changed`,
+    message: `The response status has been successfully updated to "${hireDecision}".`,
+    module: "response",
+    type: 'hired',
+    link: `/client/dashboard/my-cases/${leadId}`,
+  });
+
+  return { success: true, message: `Hire request ${hireDecision}`, response };
+};
+
+
+
+
+
+
+
+
+
 export const responseService = {
   CreateResponseIntoDB,
   getAllResponseFromDB,
@@ -945,5 +1336,7 @@ export const responseService = {
   updateResponseStatus,
   deleteResponseFromDB,
   getMyAllResponseFromDB,
-  getAllResponseLeadWiseFromDB
+  getAllResponseLeadWiseFromDB,
+  sendHireRequest,
+  changeHireStatus
 };
