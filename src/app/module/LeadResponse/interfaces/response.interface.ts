@@ -51,9 +51,6 @@ export interface ILeadResponse {
 
 
 
-
-
-
 export interface ResponseModel extends Model<ILeadResponse> {
   // eslint-disable-next-line no-unused-vars
   isResponseExists(id: string): Promise<ILeadResponse>;

@@ -23,54 +23,12 @@ import { LeadStatus, PriorityOption } from '../constant/lead.constant';
 
 
 
-//  new logic -1
-// export interface ILead {
-//   _id?: Types.ObjectId;
-
-//   // Lead owner (client)
-//   userProfileId: Types.ObjectId; // Ref -> UserProfile
-
-//   // Basic lead info
-//   countryId: Types.ObjectId;     // Ref -> Country
-//   serviceId: Types.ObjectId;     // Ref -> Service
-//   locationId: Types.ObjectId;    // Ref -> ZipCode
-//   additionalDetails?: string;
-//   budgetAmount?: number;
-//   credit?: number;
-
-//   // Lead lifecycle status
-//   status: "approved" | "hire_requested" | "hired" | "closed" | "cancelled";
-
-//   // Priority info
-//   leadPriority: PriorityOption;
-
-//   // Responders list (lawyers who responded)
-//   responders: Types.ObjectId[];
-
-//   // Hiring info
-//   isHired: boolean;
-//   hiredLawyerId?: Types.ObjectId | null; // Which lawyer was hired
-//   hiredBy?: Types.ObjectId | null;       // Who initiated the hire (client or lawyer)
-//   hiredAt?: Date | null;
-
-//   // Lead closure info
-//   isClosed: boolean;
-//   closedBy?: Types.ObjectId | null;  // Who closed the lead
-//   leadClosedReason?: string | null;
-//   closedAt?: Date | null;
-
-//   // Soft delete
-//   deletedAt?: Date | null;
-//   leadAnswers?: ILeadServiceAnswer[];
-
-// }
-
 
 
 /* 
 --------------------------------------------------
 
- Lead schema - new logic -2
+ Lead schema - new logic 
 
 -----------------------------------------------------
 
@@ -131,7 +89,6 @@ export interface ILead {
   deletedAt?: Date | null;
 
 }
-
 
 
 
