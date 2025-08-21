@@ -1239,7 +1239,7 @@ export const changeHireStatus = async (
   await logActivity({
     createdBy: currentUserId,
     activityNote: `Response status updated to "${response.status}"`,
-    activityType: response.status,
+    activityType: 'hired',
     module: "response",
     objectId: responseId,
     extraField: { leadId, affectedUser: otherUserId },
@@ -1249,9 +1249,9 @@ export const changeHireStatus = async (
     userId: currentUserId,
     toUser: otherUserId,
     title: `Response Status Changed`,
-    message: `The status of your response has been updated to "${response.status}".`,
+    message: `The status of your response has been updated to "${hireDecision}".`,
     module: "response",
-    type: response.status,
+    type: hireDecision,
     link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
   });
 
@@ -1259,9 +1259,9 @@ export const changeHireStatus = async (
     userId: otherUserId,
     toUser: currentUserId,
     title: `Response Status Changed`,
-    message: `The response status has been successfully updated to "${response.status}".`,
+    message: `The response status has been successfully updated to "${hireDecision}".`,
     module: "response",
-    type: response.status,
+    type: 'hired',
     link: `/client/dashboard/my-cases/${leadId}`,
   });
 
@@ -1270,9 +1270,9 @@ export const changeHireStatus = async (
     userId: currentUserId,
     toUser: otherUserId,
     title: `Response Status Changed`,
-    message: `The status of your response has been updated to "${response.status}".`,
+    message: `The status of your response has been updated to "${hireDecision}".`,
     module: "response",
-    type: response.status,
+    type: 'hired',
     link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
   });
 
@@ -1280,9 +1280,9 @@ export const changeHireStatus = async (
     userId: otherUserId,
     toUser: currentUserId,
     title: `Response Status Changed`,
-    message: `The response status has been successfully updated to "${response.status}".`,
+    message: `The response status has been successfully updated to "${hireDecision}".`,
     module: "response",
-    type: response.status,
+    type: 'hired',
     link: `/client/dashboard/my-cases/${leadId}`,
   });
 
