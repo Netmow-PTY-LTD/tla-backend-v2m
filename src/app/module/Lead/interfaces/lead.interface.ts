@@ -67,7 +67,14 @@ import { LeadStatus, PriorityOption } from '../constant/lead.constant';
 
 
 
+/* 
+--------------------------------------------------
 
+ Lead schema - new logic -2
+
+-----------------------------------------------------
+
+*/
 
 
 export interface ILead {
@@ -124,8 +131,6 @@ export interface ILead {
   deletedAt?: Date | null;
 
 }
-
-
 
 
 

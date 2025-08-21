@@ -188,6 +188,15 @@ import { LEAD_STATUS_ENUM, PRIORITY_OPTIONS } from '../constant/lead.constant';
 // );
 
 
+/* 
+--------------------------------------------------
+
+ Lead schema - new logic -2
+
+-----------------------------------------------------
+
+*/
+
 const leadSchema = new Schema<ILead>(
   {
     userProfileId: {

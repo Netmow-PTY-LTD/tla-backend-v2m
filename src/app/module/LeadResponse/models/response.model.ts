@@ -38,6 +38,8 @@ import { ILeadResponse } from '../interfaces/response.interface';
 // );
 
 
+//  new logic -1
+
 const responseSchema = new Schema<ILeadResponse>(
   {
     responseBy: {
@@ -74,6 +76,13 @@ const responseSchema = new Schema<ILeadResponse>(
       type: Schema.Types.ObjectId,
       ref: 'UserProfile',
       default: null,
+    },
+
+     // ✅ NEW: hire message
+     hireMessage: {
+      type: String,
+      default: null,
+      trim: true,
     },
 
     // ✅ Status flow

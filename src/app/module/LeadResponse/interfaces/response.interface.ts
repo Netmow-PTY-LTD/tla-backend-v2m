@@ -16,6 +16,9 @@ import { ILeadServiceAnswer } from '../../Lead/interfaces/leadServiceAnswer.inte
 
 
 
+
+//  new logic -1
+
 export interface ILeadResponse {
   _id?: Types.ObjectId;
 
@@ -34,6 +37,7 @@ export interface ILeadResponse {
 
   // Status of this specific response
   status: "pending" | "hire_requested" | "hired" | "rejected" | "cancelled";
+  hireMessage: string;
 
   // Soft delete
   deletedAt?: Date | null;
