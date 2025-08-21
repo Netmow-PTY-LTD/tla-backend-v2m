@@ -34,10 +34,11 @@ export interface ILeadResponse {
   hireRequestedBy?: Types.ObjectId | null; // Ref -> UserProfile (client or lawyer who initiated request)
   hireAcceptedBy?: Types.ObjectId | null;  // Ref -> UserProfile (who accepted the hire)
   hireDecision?: "accepted" | "rejected" | null;
-
+  isHireRequestedAt: Date | null;
+  hireAcceptedAt: Date | null;
   // Status of this specific response
   status: "pending" | "hire_requested" | "hired" | "rejected" | "cancelled";
-  hireMessage: string|null;
+  hireMessage: string | null;
 
   // Soft delete
   deletedAt?: Date | null;

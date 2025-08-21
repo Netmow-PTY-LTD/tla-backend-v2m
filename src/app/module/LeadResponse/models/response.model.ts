@@ -3,7 +3,7 @@ import { ILeadResponse } from '../interfaces/response.interface';
 
 // const responseSchema = new Schema<ILeadResponse>(
 //   {
-   
+
 //     responseBy: {
 //       type: Schema.Types.ObjectId,
 //       ref: 'UserProfile',
@@ -70,6 +70,14 @@ const responseSchema = new Schema<ILeadResponse>(
       type: Boolean,
       default: false,
     },
+    isHireRequestedAt: {
+      type: Date,
+      default: null,
+    },
+    hireAcceptedAt: {
+      type: Date,
+      default: null,
+    },
 
     // ✅ NEW: Track who accepted the hire
     hireAcceptedBy: {
@@ -78,8 +86,8 @@ const responseSchema = new Schema<ILeadResponse>(
       default: null,
     },
 
-     // ✅ NEW: hire message
-     hireMessage: {
+    // ✅ NEW: hire message
+    hireMessage: {
       type: String,
       default: null,
       trim: true,

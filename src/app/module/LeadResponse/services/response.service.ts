@@ -965,6 +965,8 @@ const sendHireRequest = async (
   response.hireRequestedBy = new Types.ObjectId(userProfile?._id);
   response.status = "hire_requested";
   response.hireMessage = hireMessage || null;
+  response.isHireRequestedAt = new Date();
+
 
   await response.save();
 
@@ -1093,6 +1095,7 @@ export const changeHireStatus = async (
   response.hireAcceptedBy =
     hireDecision === "accepted" ? new Types.ObjectId(userProfile._id) : null;
   response.status = hireDecision === "accepted" ? "hired" : "rejected";
+  response.hireAcceptedAt = new Date();
   await response.save();
 
   // 5️⃣ Update user profile type for lawyer only
@@ -1176,8 +1179,7 @@ export const changeHireStatus = async (
     otherUserId = possibleToUser ?? null;
   }
 
-  if (!currentUserId || !otherUserId)
-    return { success: true, message: `Hire request ${hireDecision}`, response };
+  if (!currentUserId || !otherUserId) return { success: true, message: `Hire request ${hireDecision}`, response };
 
   await logActivity({
     createdBy: currentUserId,

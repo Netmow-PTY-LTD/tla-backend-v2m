@@ -43,11 +43,11 @@ router.patch(
 
 // Client or lawyer sends hire request
 router.patch("/:responseId/request-hire", auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  responseController.updateResponseStatus,
+  responseController.requestHire,
 );
 
 // Lawyer accepts or rejects hire request
 router.patch("/:responseId/hire-status", auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  responseController.updateResponseStatus,);
+  responseController.updateHireStatus,);
 
 export const responseRouter = router;
