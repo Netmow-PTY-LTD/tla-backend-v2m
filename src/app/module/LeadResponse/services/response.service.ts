@@ -943,6 +943,35 @@ const deleteResponseFromDB = async (id: string) => {
 
 //  --------------------  send hire request ----------------------------
 
+// const sendHireRequest = async (
+//   responseId: string,
+//   userId: string,
+//   hireMessage?: string
+// ) => {
+//   const response = await LeadResponse.findById(responseId);
+//   if (!response) {
+//     return { success: false, message: "Response not found" };
+//   }
+
+//   if (response.isHireRequested) {
+//     return { success: false, message: "Hire request already sent" };
+//   }
+//   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+
+//   if (!userProfile) {
+//     return { success: false, message: "User profile not found!" };
+//   }
+//   response.isHireRequested = true;
+//   response.hireRequestedBy = new Types.ObjectId(userProfile?._id);
+//   response.status = "hire_requested";
+//   response.hireMessage = hireMessage || null;
+//   response.isHireRequestedAt = new Date();
+
+
+//   await response.save();
+
+//   return { success: true, message: "Hire request sent successfully", response };
+// };
 const sendHireRequest = async (
   responseId: string,
   userId: string,
@@ -969,6 +998,32 @@ const sendHireRequest = async (
 
 
   await response.save();
+
+  // 5️⃣ Log activity
+  await logActivity({
+    createdBy: userProfile._id,
+    activityNote: `Sent a hire request to the lawyer${hireMessage ? ` with message: "${hireMessage}"` : ""}`,
+    activityType: "hire_request",
+    module: "response",
+    objectId: responseId,
+    extraField: {
+      hireMessage: hireMessage || null,
+      responseId,
+    },
+  });
+
+  // 6️⃣ Create notification
+  await createNotification({
+    userId: userProfile._id,
+    toUser: response.responseBy, // send notification to the lawyer
+    title: `New Hire Request`,
+    message: hireMessage || `A client has requested to hire you.`,
+    module: "response",
+    type: "hire_request",
+    link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+  });
+
+
 
   return { success: true, message: "Hire request sent successfully", response };
 };
