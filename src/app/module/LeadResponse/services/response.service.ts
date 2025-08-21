@@ -16,6 +16,7 @@ import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/interfaces/auth.interface';
 import { logActivity } from '../../Activity/utils/logActivityLog';
 import { getIO } from '../../../sockets';
+import Lead from '../../Lead/models/lead.model';
 
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {
@@ -511,7 +512,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     typeof responseDoc.leadId !== 'object' ||
     !responseDoc.leadId._id
   ) {
-    throw new Error(`Lead ID is missing or not populated in response for ID: ${responseId}`);
+    throw new Error(`Case ID is missing or not populated in response for ID: ${responseId}`);
   }
 
   const leadObjectId = new mongoose.Types.ObjectId(String(responseDoc.leadId._id));
@@ -711,7 +712,7 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
       ],
     });
 
-  
+
 
   return responses;
 
@@ -938,6 +939,106 @@ const deleteResponseFromDB = async (id: string) => {
 
 
 
+
+//  --------------------  send hire request ----------------------------
+
+const sendHireRequest = async (
+  responseId: string,
+  userId: string,
+  hireMessage?: string
+) => {
+  const response = await LeadResponse.findById(responseId);
+  if (!response) {
+    return { success: false, message: "Response not found" };
+  }
+
+  if (response.isHireRequested) {
+    return { success: false, message: "Hire request already sent" };
+  }
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+
+  if (!userProfile) {
+    return { success: false, message: "User profile not found!" };
+  }
+  response.isHireRequested = true;
+  response.hireRequestedBy = new Types.ObjectId(userProfile?._id);
+  response.status = "hire_requested";
+  response.hireMessage = hireMessage || null;
+
+  await response.save();
+
+  return { success: true, message: "Hire request sent successfully", response };
+};
+
+
+//  --------------------  change hire status ----------------------------
+
+const changeHireStatus = async (
+  responseId: string,
+  userId: string,
+  hireDecision: "accepted" | "rejected"
+) => {
+  const response = await LeadResponse.findById(responseId);
+  if (!response) {
+    return { success: false, message: "Response not found" };
+  }
+
+  if (!response.isHireRequested) {
+    return { success: false, message: "No hire request to update" };
+  }
+
+  if (response.hireDecision) {
+    return { success: false, message: "Hire decision already made" };
+  }
+
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+
+  if (!userProfile) {
+    return { success: false, message: "User profile not found!" };
+  }
+
+
+
+  // If hire accepted, check if the lead is already hired
+  if (hireDecision === "accepted") {
+    const lead = await Lead.findById(response.leadId);
+    if (!lead) {
+      return { success: false, message: "Associated case not found" };
+    }
+
+    if (lead.isHired) {
+      return { success: false, message: "Case is already hired" };
+    }
+
+    // Update lead hire info
+    lead.isHired = true;
+    lead.hireStatus = "hired"; // optional if you use this field
+    lead.hiredLawyerId = response.responseBy;
+    lead.hiredBy = new Types.ObjectId(userProfile._id); // Who accepted the hire
+    lead.hiredAt = new Date();
+    await lead.save();
+  }
+
+
+
+  response.hireDecision = hireDecision;
+  response.hireAcceptedBy =
+    hireDecision === "accepted" ? new Types.ObjectId(userProfile?._id) : null;
+  response.status = hireDecision === "accepted" ? "hired" : "rejected";
+
+  await response.save();
+
+
+
+
+  return { success: true, message: `Hire request ${hireDecision}`, response };
+};
+
+
+
+
+
+
 export const responseService = {
   CreateResponseIntoDB,
   getAllResponseFromDB,
@@ -945,5 +1046,7 @@ export const responseService = {
   updateResponseStatus,
   deleteResponseFromDB,
   getMyAllResponseFromDB,
-  getAllResponseLeadWiseFromDB
+  getAllResponseLeadWiseFromDB,
+  sendHireRequest,
+  changeHireStatus
 };

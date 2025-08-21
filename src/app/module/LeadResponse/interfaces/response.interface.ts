@@ -37,7 +37,7 @@ export interface ILeadResponse {
 
   // Status of this specific response
   status: "pending" | "hire_requested" | "hired" | "rejected" | "cancelled";
-  hireMessage: string;
+  hireMessage: string|null;
 
   // Soft delete
   deletedAt?: Date | null;
