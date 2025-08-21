@@ -10,35 +10,64 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getAllZipCodeFromDB = async (query: Record<string, any>) => {
-  //  maksud vai logic
-  // const { countryId } = query;
-  // if (!countryId) {
-  //   throw new AppError(
-  //     HTTP_STATUS.BAD_REQUEST,
-  //     'Query parameter "countryId" is required',
-  //   );
-  // }
-  // // Validate ObjectId format before querying
-  // validateObjectId(countryId, 'Country');
-  // const countries = await ZipCode.find({
-  //   deletedAt: null,
-  //   countryId: countryId,
-  // }).populate('countryId');
-  // return countries;
-  //  -----  alternative logic ---
-  const { countryId } = query;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filter: Record<string, any> = {
-    deletedAt: null,
-  };
+// const getAllZipCodeFromDB = async (query: Record<string, any>) => {
+
+//   const { countryId } = query;
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   const filter: Record<string, any> = {
+//     deletedAt: null,
+//   };
+//   if (countryId) {
+//     validateObjectId(countryId, 'Country');
+//     filter.countryId = countryId;
+//   }
+//   const zipCodes = await ZipCode.find(filter).populate('countryId');
+//   return zipCodes;
+// };
+
+
+const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string }) => {
+  const { countryId, search } = query;
+
+  const filter: Record<string, any> = { deletedAt: null };
+
   if (countryId) {
-    validateObjectId(countryId, 'Country');
+    validateObjectId(countryId, "Country");
     filter.countryId = countryId;
   }
-  const zipCodes = await ZipCode.find(filter).populate('countryId');
+
+  let zipCodesQuery = ZipCode.find(filter).populate("countryId");
+
+  if (search && search.trim()) {
+    const trimmedSearch = search.trim();
+
+    // First try exact match
+    const exactMatch = await ZipCode.find({
+      ...filter,
+      zipcode: trimmedSearch,
+    }).populate("countryId");
+
+    if (exactMatch.length > 0) {
+      return exactMatch;
+    }
+
+    // Partial match with limit if many results
+    zipCodesQuery = ZipCode.find({
+      ...filter,
+      zipcode: { $regex: trimmedSearch, $options: "i" },
+    })
+      .limit(10) // limit results for huge data
+      .populate("countryId");
+  }
+
+  const zipCodes = await zipCodesQuery.exec();
   return zipCodes;
 };
+
+
+
+
+
 
 const getSingleZipCodeFromDB = async (id: string) => {
   validateObjectId(id, 'ZipCode');
