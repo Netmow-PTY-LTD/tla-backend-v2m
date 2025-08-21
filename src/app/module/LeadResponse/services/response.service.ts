@@ -1130,7 +1130,7 @@ export const changeHireStatus = async (
     return { success: false, message: "Hire decision already made" };
 
 
-
+  console.log('chek  hire status ==>',)
   // 3️⃣ If hire accepted, update Lead info
   if (hireDecision === "accepted") {
     const lead = await Lead.findById(response.leadId);
@@ -1144,6 +1144,9 @@ export const changeHireStatus = async (
     lead.hiredAt = new Date();
     await lead.save();
   }
+
+  console.log('chek  hire status ==>',)
+
 
   // 4️⃣ Update response
   response.hireDecision = hireDecision;
@@ -1184,20 +1187,7 @@ export const changeHireStatus = async (
     }
   }
 
-  // 6️⃣ Log activity and create notifications
-  // const leadUser = await LeadResponse.findById(responseId)
-  //   .populate([
-  //     {
-  //       path: "leadId",
-  //       populate: {
-  //         path: "userProfileId",
-  //         populate: { path: "user", model: "User", select: "email role" },
-  //       },
-  //     },
-  //     { path: "responseBy", model: "UserProfile" },
-  //   ])
-  //   .lean();
-
+  console.log('chek  hire status ==>',)
   //  ---------------  TYPE CHECKER -----------------------
   interface PopulatedLeadResponse {
     _id: string;
@@ -1214,10 +1204,24 @@ export const changeHireStatus = async (
 
   //  ---------------  TYPE CHECK WITH LEAD USER-----------------------
   const leadUser = await LeadResponse.findById(responseId)
-    .populate<{ leadId: { userProfileId: IUserProfile & { user: IUser } } }>("leadId")
+    .populate<{
+      leadId: {
+        userProfileId: IUserProfile & { user: IUser };
+      };
+    }>({
+      path: "leadId",
+      populate: {
+        path: "userProfileId",
+        populate: {
+          path: "user",
+          model: "User",
+        },
+      },
+    })
     .populate<{ responseBy: IUserProfile & { user: IUser } }>("responseBy")
     .lean<PopulatedLeadResponse>();
 
+  console.log({ leadUser })
 
   const possibleToUser = leadUser?.leadId?.userProfileId?.user?._id?.toString();
   const leadId = leadUser?.leadId?._id;
@@ -1234,9 +1238,25 @@ export const changeHireStatus = async (
     otherUserId = possibleToUser ?? null;
   }
 
+  console.log('check   possible user =========>', {
+    currentUserId,
+    otherUserId,
+
+
+  })
+
+  console.log('check   possible user =========>', {
+    possibleToUser,
+    leadId,
+    responseByUser
+
+  })
+
+
+
   if (!currentUserId || !otherUserId) return { success: true, message: `Hire request ${hireDecision}`, response };
 
-  await logActivity({
+  const activity = await logActivity({
     createdBy: currentUserId,
     activityNote: `Response status updated to "${response.status}"`,
     activityType: 'hired',
@@ -1245,17 +1265,17 @@ export const changeHireStatus = async (
     extraField: { leadId, affectedUser: otherUserId },
   });
 
-  await createNotification({
+  const notification1 = await createNotification({
     userId: currentUserId,
     toUser: otherUserId,
     title: `Response Status Changed`,
     message: `The status of your response has been updated to "${hireDecision}".`,
     module: "response",
-    type: hireDecision,
+    type: 'hired',
     link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
   });
 
-  await createNotification({
+  const notification2 = await createNotification({
     userId: otherUserId,
     toUser: currentUserId,
     title: `Response Status Changed`,
@@ -1264,6 +1284,18 @@ export const changeHireStatus = async (
     type: 'hired',
     link: `/client/dashboard/my-cases/${leadId}`,
   });
+
+
+
+   console.log('check   possible user =========>', {
+    currentUserId,
+    otherUserId,
+
+
+  })
+
+
+  console.log({ activity, notification1, notification2 })
 
   // 7️⃣ Emit socket notifications
   io.to(`user:${currentUserId}`).emit("notification", {
