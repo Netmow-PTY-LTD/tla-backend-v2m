@@ -164,6 +164,11 @@ const leadSchema = new Schema<ILead>(
       ref: 'UserProfile', // Lawyer who was hired
       default: null,
     },
+    hiredResponseId: {
+      type: Schema.Types.ObjectId,
+      ref: 'UserProfile', // Lawyer who was hired
+      default: null,
+    },
     hiredBy: {
       type: Schema.Types.ObjectId,
       ref: 'UserProfile', // Who initiated the hire (client/lawyer)

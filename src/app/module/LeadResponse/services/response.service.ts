@@ -1166,10 +1166,10 @@ export const changeHireStatus = async (
     const lead = await Lead.findById(response.leadId);
     if (!lead) return { success: false, message: "Associated case not found" };
     if (lead.isHired) return { success: false, message: "Case is already hired" };
-
     lead.isHired = true;
     lead.hireStatus = "hired";
     lead.hiredLawyerId = response.responseBy;
+    lead.hiredResponseId = new Types.ObjectId(responseId);
     lead.hiredBy = new Types.ObjectId(userProfile._id);
     lead.hiredAt = new Date();
     await lead.save();

@@ -71,6 +71,7 @@ export interface ILead {
   hireStatus: "not_requested" | "requested" | "hired" | "rejected";
   isHired: boolean;
   hiredLawyerId?: Types.ObjectId | null; // Lawyer who was hired
+  hiredResponseId?: Types.ObjectId | null; // Response who was hired
   hiredBy?: Types.ObjectId | null;       // Who initiated the hire
   hiredAt?: Date | null;
 
