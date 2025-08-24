@@ -199,6 +199,11 @@ const leadSchema = new Schema<ILead>(
       type: Date,
       default: null,
     },
+     lawyerRating: {
+      type: Schema.Types.ObjectId,
+      ref: 'Rating',
+      default:null
+    },
 
     deletedAt: {
       type: Date,

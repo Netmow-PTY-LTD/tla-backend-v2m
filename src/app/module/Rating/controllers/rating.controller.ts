@@ -5,7 +5,7 @@ import { ratingService } from "../services/rating.service";
 
 
 
-const createOrUpdateRating = catchAsync(async (req, res) => {
+const createRating = catchAsync(async (req, res) => {
   const clientId = req.user?.userId; // logged-in client
   if (!clientId) {
     return sendResponse(res, {
@@ -14,10 +14,10 @@ const createOrUpdateRating = catchAsync(async (req, res) => {
       message: "Unauthorized: Client not found",
       data: null,
     });
-    return;
+
   }
 
-  const { leadId, responseId, rating, feedback ,lawyerId } = req.body;
+  const { leadId, responseId, rating, feedback, lawyerId } = req.body;
 
   // Validate rating value
   if (!rating || rating < 1 || rating > 5) {
@@ -29,7 +29,7 @@ const createOrUpdateRating = catchAsync(async (req, res) => {
     });
   }
 
-  const newRating = await ratingService.createOrUpdateRating({
+  const newRating = await ratingService.createRating({
     leadId,
     responseId,
     clientId,
@@ -84,6 +84,6 @@ const getRatingsForLawyer = catchAsync(async (req, res) => {
 
 
 export const ratingController = {
-  getRatingsForLawyer ,
-  createOrUpdateRating
+  getRatingsForLawyer,
+  createRating
 };

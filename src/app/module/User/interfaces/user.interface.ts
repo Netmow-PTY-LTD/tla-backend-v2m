@@ -31,7 +31,7 @@ export interface IUserProfile {
   bio?: string;
   phone: string;
   address?: string;
-  languages?:string[];
+  languages?: string[];
   // new field
   businessName?: string;
   credits: number;
@@ -39,5 +39,8 @@ export interface IUserProfile {
   paymentMethods: Types.ObjectId[];
   autoTopUp?: boolean;
   serviceIds?: Types.ObjectId[];
+  //  rating
+  totalRatings?: number,
+  avgRating?: number
   deletedAt?: Date | null;
 }
