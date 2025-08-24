@@ -204,7 +204,7 @@ const leadSchema = new Schema<ILead>(
       type: Date,
       default: null,
     },
-     lawyerRating: {
+     hiredLawyerRating: {
       type: Schema.Types.ObjectId,
       ref: 'Rating',
       default:null
