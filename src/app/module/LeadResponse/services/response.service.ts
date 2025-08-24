@@ -927,7 +927,6 @@ const updateResponseStatus = async (
 
 
 
-
 const deleteResponseFromDB = async (id: string) => {
 
   validateObjectId(id, 'Response');
@@ -1136,7 +1135,7 @@ export const changeHireStatus = async (
     return { success: false, message: "Hire decision already made" };
 
 
-  console.log('chek  hire status ==>',)
+ 
   // 3️⃣ If hire accepted, update Lead info
   if (hireDecision === "accepted") {
     const lead = await Lead.findById(response.leadId);
@@ -1151,7 +1150,7 @@ export const changeHireStatus = async (
     await lead.save();
   }
 
-  console.log('chek  hire status ==>',)
+ 
 
 
   // 4️⃣ Update response
@@ -1193,7 +1192,7 @@ export const changeHireStatus = async (
     }
   }
 
-  console.log('chek  hire status ==>',)
+  
   //  ---------------  TYPE CHECKER -----------------------
   interface PopulatedLeadResponse {
     _id: string;
@@ -1227,8 +1226,7 @@ export const changeHireStatus = async (
     .populate<{ responseBy: IUserProfile & { user: IUser } }>("responseBy")
     .lean<PopulatedLeadResponse>();
 
-  console.log({ leadUser })
-
+ 
   const possibleToUser = leadUser?.leadId?.userProfileId?.user?._id?.toString();
   const leadId = leadUser?.leadId?._id;
   const responseByUser = leadUser?.responseBy?.user?.toString();
