@@ -1,28 +1,165 @@
 
 import { Types } from "mongoose";
 import { Rating } from "../models/rating.model";
+import UserProfile from "../../User/models/user.model";
+import LeadResponse from "../../LeadResponse/models/response.model";
+import Lead from "../../Lead/models/lead.model";
 
-interface CreateOrUpdateRatingInput {
-  leadId: string | Types.ObjectId;
-  responseId: string | Types.ObjectId;
-  clientId: string | Types.ObjectId;
-  lawyerId: string | Types.ObjectId;
+
+
+interface CreateRatingInput {
+  leadId: string;
+  responseId: string;
+  clientId: string;
+  lawyerId: string;
   rating: number;
   feedback?: string;
 }
 
+// export const createRating = async (input: CreateRatingInput) => {
+//   const { leadId, responseId, clientId, lawyerId, rating, feedback } = input;
+//   // ✅ 1. Validate lawyer profile using lawyer's userId
+//   const lawyerProfile = await UserProfile.findOne({ user: lawyerId });
+//   if (!lawyerProfile) {
+//     throw new Error("Lawyer profile not found.");
+//   }
 
-export const createOrUpdateRating = async (input: CreateOrUpdateRatingInput) => {
-  const { leadId, responseId, clientId,lawyerId, rating, feedback } = input;
+//   // ✅ 2. Validate client profile using client's userId
+//   const clientProfile = await UserProfile.findOne({ user: clientId });
+//   if (!clientProfile) {
+//     throw new Error("Client profile not found.");
+//   }
 
-  // Upsert: If client already rated this response, update it
-  const updatedRating = await Rating.findOneAndUpdate(
-    { clientId, responseId }, // query
-    { leadId, rating, feedback, lawyerId}, // update fields
-    { new: true, upsert: true, setDefaultsOnInsert: true } // create if not exists
-  );
+//   // ✅ 3. Check if this client already rated this response
+//   const existingRating = await Rating.findOne({
+//     clientId: clientProfile._id, // ✅ use client profile ID
+//     responseId,
+//   });
 
-  return updatedRating;
+//   if (existingRating) {
+//     throw new Error("You have already rated this response.");
+//   }
+
+//   // ✅ 4. Create a new rating (store profile IDs, not user IDs)
+//   const newRating = await Rating.create({
+//     leadId,
+//     responseId,
+//     clientId: clientProfile._id,   // ✅ save clientProfile._id
+//     lawyerId: lawyerProfile._id,   // ✅ save lawyerProfile._id
+//     rating,
+//     feedback,
+//   });
+
+//   // ✅ 5. Recalculate average rating for the lawyer profile
+//   const stats = await Rating.aggregate([
+//     {
+//       $match: {
+//         lawyerId: new Types.ObjectId(lawyerProfile._id), // ✅ match by lawyerProfile._id
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: "$lawyerId",
+//         avgRating: { $avg: "$rating" },
+//         totalRatings: { $sum: 1 },
+//       },
+//     },
+//   ]);
+
+//   // ✅ 6. Update lawyer profile with new rating stats
+//   if (stats.length > 0) {
+//     await UserProfile.findByIdAndUpdate(lawyerProfile._id, {
+//       avgRating: stats[0].avgRating,
+//       totalRatings: stats[0].totalRatings,
+//     });
+//   } else {
+//     await UserProfile.findByIdAndUpdate(lawyerProfile._id, {
+//       avgRating: 0,
+//       totalRatings: 0,
+//     });
+//   }
+
+//   return newRating;
+// };
+
+
+
+
+const createRating = async (input: CreateRatingInput) => {
+  const { leadId, responseId, clientId, lawyerId, rating, feedback } = input;
+
+  // ✅ 1. Validate lawyer profile using lawyer's userId
+  const lawyerProfile = await UserProfile.findOne({ user: lawyerId });
+  if (!lawyerProfile) {
+    throw new Error("Lawyer profile not found.");
+  }
+
+  // ✅ 2. Validate client profile using client's userId
+  const clientProfile = await UserProfile.findOne({ user: clientId });
+  if (!clientProfile) {
+    throw new Error("Client profile not found.");
+  }
+
+  // ✅ 3. Check if this client already rated this response
+  const existingRating = await Rating.findOne({
+    clientId: clientProfile._id,
+    responseId,
+  });
+
+  if (existingRating) {
+    throw new Error("You have already rated this response.");
+  }
+
+  // ✅ 4. Create a new rating (store profile IDs, not user IDs)
+  const newRating = await Rating.create({
+    leadId,
+    responseId,
+    clientId: clientProfile._id,
+    lawyerId: lawyerProfile._id,
+    rating,
+    feedback,
+  });
+
+  // ✅ 5. Attach rating reference to the LeadResponse document
+  await LeadResponse.findByIdAndUpdate(responseId, {
+    $addToSet: { clientRating: newRating._id },
+  });
+
+  // ✅ 6. Attach rating reference to the Lead document
+  await Lead.findByIdAndUpdate(leadId, {
+    $addToSet: { lawyerRating: newRating._id },
+  });
+
+  // ✅ 7. Recalculate average rating for the lawyer profile
+  const stats = await Rating.aggregate([
+    {
+      $match: {
+        lawyerId: new Types.ObjectId(lawyerProfile._id),
+      },
+    },
+    {
+      $group: {
+        _id: "$lawyerId",
+        avgRating: { $avg: "$rating" },
+        totalRatings: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // ✅ 8. Update lawyer profile with new rating stats
+  if (stats.length > 0) {
+    await UserProfile.findByIdAndUpdate(lawyerProfile._id, {
+      avgRating: stats[0].avgRating,
+      totalRatings: stats[0].totalRatings,
+    });
+  } else {
+    await UserProfile.findByIdAndUpdate(lawyerProfile._id, {
+      avgRating: 0,
+      totalRatings: 0,
+    });
+  }
+
+  return newRating;
 };
 
 
@@ -43,11 +180,11 @@ export const getRatingsForLawyer = async (lawyerId: string | Types.ObjectId, que
     })
     .populate({
       path: "leadId",
-     
+
     })
     .populate({
       path: "responseId",
-     
+
     })
     .sort({ createdAt: -1 });
 
@@ -58,6 +195,6 @@ export const getRatingsForLawyer = async (lawyerId: string | Types.ObjectId, que
 
 
 export const ratingService = {
-  createOrUpdateRating,
+  createRating,
   getRatingsForLawyer,
 };

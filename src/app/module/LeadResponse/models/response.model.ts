@@ -107,6 +107,11 @@ const responseSchema = new Schema<ILeadResponse>(
       enum: ['accepted', 'rejected', null],
       default: null,
     },
+    clientRating: {
+      type: Schema.Types.ObjectId,
+      ref: 'Rating',
+      default:null
+    },
 
     deletedAt: {
       type: Date,

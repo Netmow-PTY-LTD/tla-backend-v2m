@@ -40,13 +40,13 @@ const userProfileSchema = new Schema<IUserProfile>(
     gender: {
       type: String,
       enum: {
-        values: ['male', 'female', 'other',''],
+        values: ['male', 'female', 'other', ''],
         message: 'Gender must be either male, female, or other',
       },
       trim: true,
       default: ''
     },
-    languages:[{type:String}],
+    languages: [{ type: String }],
     profileType: {
       type: String,
       enum: Object.values(USER_PROFILE),
@@ -98,6 +98,23 @@ const userProfileSchema = new Schema<IUserProfile>(
         ref: 'Service',
       },
     ],
+
+    //  rating related
+
+    avgRating: {
+      type: Number,
+      default: 0,
+    },
+    totalRatings: {
+      type: Number,
+      default: 0,
+    },
+
+
+
+
+
+
     deletedAt: {
       type: Date,
       default: null,
