@@ -982,7 +982,10 @@ const sendHireRequest = async (
   userId: string,
   hireMessage?: string
 ) => {
-  const response = await LeadResponse.findById(responseId);
+  const io = getIO();
+  const response = await LeadResponse.findById(responseId).populate<{
+    responseBy: IUserProfile;
+  }>("responseBy");;
   if (!response) {
     return { success: false, message: "Response not found" };
   }
@@ -1017,16 +1020,38 @@ const sendHireRequest = async (
     },
   });
 
+
+  const lawyerUserId =
+    typeof response.responseBy.user === "object"
+      ? (response.responseBy.user as IUser)?._id
+      : response.responseBy.user;
+
+  // ✅ Ensure we never pass undefined
+  if (!lawyerUserId) {
+    throw new Error("Lawyer userId not found for notification!");
+  }
+
   // 6️⃣ Create notification
   await createNotification({
-    userId: userProfile._id,
-    toUser: response.responseBy, // send notification to the lawyer
+    userId: lawyerUserId,
+    toUser: userProfile._id, // send notification to the lawyer
     title: `New Hire Request`,
     message: hireMessage || `A client has requested to hire you.`,
     module: "response",
     type: "hire_request",
     link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
   });
+
+  io.to(`user:${response?.responseBy.user}`).emit("notification", {
+    userId: (response?.responseBy as IUserProfile).user,
+    toUser: userProfile._id, // send notification to the lawyer
+    title: `New Hire Request`,
+    message: hireMessage || `A client has requested to hire you.`,
+    module: "response",
+    type: "hire_request",
+    link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+  });
+
 
 
 
@@ -1135,7 +1160,7 @@ export const changeHireStatus = async (
     return { success: false, message: "Hire decision already made" };
 
 
- 
+
   // 3️⃣ If hire accepted, update Lead info
   if (hireDecision === "accepted") {
     const lead = await Lead.findById(response.leadId);
@@ -1150,7 +1175,7 @@ export const changeHireStatus = async (
     await lead.save();
   }
 
- 
+
 
 
   // 4️⃣ Update response
@@ -1192,7 +1217,7 @@ export const changeHireStatus = async (
     }
   }
 
-  
+
   //  ---------------  TYPE CHECKER -----------------------
   interface PopulatedLeadResponse {
     _id: string;
@@ -1226,7 +1251,7 @@ export const changeHireStatus = async (
     .populate<{ responseBy: IUserProfile & { user: IUser } }>("responseBy")
     .lean<PopulatedLeadResponse>();
 
- 
+
   const possibleToUser = leadUser?.leadId?.userProfileId?.user?._id?.toString();
   const leadId = leadUser?.leadId?._id;
   const responseByUser = leadUser?.responseBy?.user?.toString();
