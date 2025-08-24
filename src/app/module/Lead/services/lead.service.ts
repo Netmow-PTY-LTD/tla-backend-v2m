@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
 
 import { ILead } from '../interfaces/lead.interface';
@@ -96,7 +96,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           additionalDetails,
           budgetAmount,
           // locationId: locationId ? locationId : zipCode?._id,
-          locationId:zipCode?._id,
+          locationId: zipCode?._id,
           credit: creditInfo?.baseCredit,
           leadPriority
         },
@@ -954,6 +954,52 @@ const deleteLeadFromDB = async (id: string) => {
   return result;
 };
 
+//  lead closed
+
+
+export const leadClosedIntoDB = async (
+  userId: string,
+  leadId: string,
+  reason?: string
+) => {
+  // Validate leadId
+  validateObjectId(leadId, "Lead");
+
+  // Fetch the lead
+  const lead = await Lead.findById(leadId);
+  if (!lead) {
+   
+    return { success: false, message: "Lead not found" };
+  }
+
+  // Fetch user profile of the requester
+  const userProfile = await UserProfile.findOne({ user: userId }).select("_id");
+  if (!userProfile) {
+    return { success: false, message: "User profile not found" };
+  }
+
+  // Check if already closed
+  if (lead.isClosed) {
+    return { success: false, message: "Lead is already closed" };
+  }
+
+  // Update closure fields
+  lead.isClosed = true;
+  lead.closeStatus = "closed";
+  lead.status = "closed"; // Overall lead status
+  lead.closedBy = new Types.ObjectId(userProfile._id);
+  lead.closedAt = new Date();
+  lead.leadClosedReason = reason || null;
+  await lead.save();
+  return {
+    success: true,
+    message: "Lead closed successfully",
+    lead,
+  };
+};
+
+
+
 export const leadService = {
   CreateLeadIntoDB,
   getAllLeadFromDB,
@@ -961,5 +1007,6 @@ export const leadService = {
   updateLeadIntoDB,
   deleteLeadFromDB,
   getMyAllLeadFromDB,
-  getAllLeadForAdminDashboardFromDB
+  getAllLeadForAdminDashboardFromDB,
+  leadClosedIntoDB
 };

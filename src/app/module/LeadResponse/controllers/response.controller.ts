@@ -74,7 +74,7 @@ const updateResponseStatus = catchAsync(async (req, res) => {
     userId
   );
 
- 
+
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
@@ -201,8 +201,8 @@ const getMyAllResponse = catchAsync(async (req, res) => {
   const result = await responseService.getMyAllResponseFromDB(userId, filters, options);
   const queryTime = timer.endQueryTimer();
   const data = result.data || []; // ensure it's never null
-  const pagination = result.pagination || {}; 
-  const counts = result.responseCount || {}; 
+  const pagination = result.pagination || {};
+  const counts = result.responseCount || {};
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: data.length > 0,
@@ -218,6 +218,62 @@ const getMyAllResponse = catchAsync(async (req, res) => {
 
 
 
+//  ----------------------------------    hired request --------------------------
+
+
+
+const requestHire = catchAsync(async (req, res) => {
+  const { responseId } = req.params;
+  const userId = req.user.userId;
+  const { hireMessage } = req.body;
+
+  const result = await responseService.sendHireRequest(
+    responseId,
+    userId,
+    hireMessage
+  );
+
+  const statusCode = result.success ? 200 : 400;
+  return sendResponse(res, {
+    statusCode,
+    success: result.success,
+    message: result.message,
+    data: result.response || null,
+  });
+});
+
+
+export const updateHireStatus = catchAsync(async (req, res) => {
+  const { responseId } = req.params;
+  const userId = req.user.userId;
+  const { hireDecision } = req.body;
+
+  if (!["accepted", "rejected"].includes(hireDecision)) {
+    return sendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: "Invalid hire decision",
+      data: null,
+    });
+  }
+
+  const result = await responseService.changeHireStatus(
+    responseId,
+    userId,
+    hireDecision as "accepted" | "rejected"
+  );
+
+  const statusCode = result.success ? 200 : 400;
+  return sendResponse(res, {
+    statusCode,
+    success: result.success,
+    message: result.message,
+    data: result.response || null,
+  });
+});
+
+
+
 
 export const responseController = {
   createResponse,
@@ -226,5 +282,8 @@ export const responseController = {
   updateResponseStatus,
   getAllResponse,
   getMyAllResponse,
-  getAllResponseLeadWise
+  getAllResponseLeadWise,
+  requestHire,
+  updateHireStatus
+
 };

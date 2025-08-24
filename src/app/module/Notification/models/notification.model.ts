@@ -39,6 +39,7 @@ const notificationSchema = new mongoose.Schema({
       'admin_alert',
       'sms_received',
       'sms_pending',
+      'hire_request',
     ],
     required: true,
   }, // Custom types

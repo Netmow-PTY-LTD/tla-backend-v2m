@@ -12,7 +12,7 @@ router.post(
 );
 router.get('/list', responseController.getAllResponse);
 // lead wise response
-router.get('/lead-wise/:leadId', auth(USER_ROLE.ADMIN, USER_ROLE.USER),responseController.getAllResponseLeadWise);
+router.get('/lead-wise/:leadId', auth(USER_ROLE.ADMIN, USER_ROLE.USER), responseController.getAllResponseLeadWise);
 router.get(
   '/my',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
@@ -36,5 +36,18 @@ router.patch(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   responseController.updateResponseStatus,
 );
+
+
+// hired request and hired status update
+
+
+// Client or lawyer sends hire request
+router.patch("/:responseId/request-hire", auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  responseController.requestHire,
+);
+
+// Lawyer accepts or rejects hire request
+router.patch("/:responseId/hire-status", auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  responseController.updateHireStatus,);
 
 export const responseRouter = router;

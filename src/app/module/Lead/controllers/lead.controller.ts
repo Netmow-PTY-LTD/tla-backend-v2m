@@ -126,12 +126,12 @@ const getAllLead = catchAsync(async (req, res) => {
       : {};
   } catch (error) {
     return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Invalid searchKeyword JSON format',
-    data: null,
-  });
- 
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      message: 'Invalid searchKeyword JSON format',
+      data: null,
+    });
+
   }
 
   const filters = {
@@ -157,7 +157,7 @@ const getAllLead = catchAsync(async (req, res) => {
     sortOrder: parsedKeyword.sort === 'asc' ? 'asc' : 'desc',
   };
 
- 
+
   // Fetch filtered results
   const result = await leadService.getAllLeadFromDB(userId, filters, options);
   const queryTime = timer.endQueryTimer();
@@ -165,7 +165,7 @@ const getAllLead = catchAsync(async (req, res) => {
   const data = result.data || [];
   const pagination = result.pagination || {};
   const leadCount = result.leadCount || {};
-  
+
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: data.length > 0,
@@ -174,9 +174,9 @@ const getAllLead = catchAsync(async (req, res) => {
       : 'Lead not found.',
     queryTime,
     pagination,
-    counts:leadCount,
+    counts: leadCount,
     data,
-   
+
   });
 
 
@@ -266,6 +266,37 @@ const getAllLeadForAdmin = catchAsync(async (req, res) => {
 
 
 
+const closeLead = catchAsync(async (req, res) => {
+  const { leadId } = req.params;
+  const userId = req.user.userId; // Logged-in user
+  const { reason } = req.body;
+
+  // Call service
+  const result = await leadService.leadClosedIntoDB(userId, leadId, reason);
+
+  // Handle service response
+  if (!result.success) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: result.message,
+      data: null,
+    });
+  }
+
+  // Success response
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: result.message, // "Lead closed successfully"
+    data: result.lead,
+  });
+});
+
+
+
+
+
 export const leadController = {
   createLead,
   getSingleLead,
@@ -273,5 +304,6 @@ export const leadController = {
   updateSingleLead,
   getAllLead,
   getMyAllLead,
-  getAllLeadForAdmin
+  getAllLeadForAdmin,
+  closeLead
 };
