@@ -17,6 +17,7 @@ import { activityLogRouter } from '../module/Activity/routes/logActivity.route';
 import { contactRouter } from '../module/Contact/routes/contact.route';
 import { settingsRouter } from '../module/Settings/routes/settings.route';
 import { categoryRouter } from '../module/Category/routes/category.route';
+import { ratingRouter } from '../module/Rating/routes/rating.routes';
 
 const router = Router();
 
@@ -86,6 +87,10 @@ const moduleRoutes = [
     path: '/activity-log',
     route: activityLogRouter,
   },
+  // {
+  //   path: '/rating',
+  //   route: ratingRouter,
+  // },
   {
     path: '/',
     route: viewRouter,
