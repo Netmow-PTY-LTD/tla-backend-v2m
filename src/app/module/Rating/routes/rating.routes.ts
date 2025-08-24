@@ -7,12 +7,12 @@ const router = Router();
 
 
 
-// router.patch(
-//     '/',
-//     auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-//     ratingController.getRatingsForLawyer
+router.patch(
+    '/',
+    auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+    ratingController.createRating
 
-// );
+);
 
 
 

@@ -87,10 +87,10 @@ const moduleRoutes = [
     path: '/activity-log',
     route: activityLogRouter,
   },
-  // {
-  //   path: '/rating',
-  //   route: ratingRouter,
-  // },
+  {
+    path: '/rating',
+    route: ratingRouter,
+  },
   {
     path: '/',
     route: viewRouter,

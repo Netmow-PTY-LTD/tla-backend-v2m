@@ -82,7 +82,8 @@ export interface ILead {
   closedBy?: Types.ObjectId | null;      // Who closed the lead
   leadClosedReason?: string | null;
   closedAt?: Date | null;
-
+  
+  lawyerRating?: Types.ObjectId | null;      // Who closed the lead
   /** -------------------------------
    *  SOFT DELETE & TIMESTAMPS
    * ------------------------------- **/
