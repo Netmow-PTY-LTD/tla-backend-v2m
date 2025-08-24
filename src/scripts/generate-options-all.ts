@@ -164,131 +164,131 @@ main().catch((e) => {
 
 
 
-// ---- Small helpers ----
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-")
-    .slice(0, 80);
-}
+// // ---- Small helpers ----
+// function slugify(input: string): string {
+//   return input
+//     .toLowerCase()
+//     .normalize("NFKD")
+//     .replace(/[\u0300-\u036f]/g, "")
+//     .replace(/[^a-z0-9]+/g, "-")
+//     .replace(/^-+|-+$/g, "")
+//     .replace(/-{2,}/g, "-")
+//     .slice(0, 80);
+// }
 
-function randomNameSeed(q: QuestionLean): string {
-  // Use question text/slug if available, fallback to random words
-  const base =
-    (q.slug ?? q.question ?? "").toString().trim() ||
-    `${faker.word.adjective()} ${faker.word.noun()}`;
-  const flavor = faker.helpers.arrayElement([
-    "Choice",
-    "Selection",
-    "Variant",
-    "Option",
-    "Answer",
-    "Pick",
-  ]);
-  // Add a short hash fragment from IDs to keep names diversified across country/service/question
-  const short = `${q.countryId.toString().slice(-3)}${q.serviceId
-    .toString()
-    .slice(-3)}${q._id.toString().slice(-3)}`;
-  return `${base} ${flavor} ${short}`;
-}
+// function randomNameSeed(q: QuestionLean): string {
+//   // Use question text/slug if available, fallback to random words
+//   const base =
+//     (q.slug ?? q.question ?? "").toString().trim() ||
+//     `${faker.word.adjective()} ${faker.word.noun()}`;
+//   const flavor = faker.helpers.arrayElement([
+//     "Choice",
+//     "Selection",
+//     "Variant",
+//     "Option",
+//     "Answer",
+//     "Pick",
+//   ]);
+//   // Add a short hash fragment from IDs to keep names diversified across country/service/question
+//   const short = `${q.countryId.toString().slice(-3)}${q.serviceId
+//     .toString()
+//     .slice(-3)}${q._id.toString().slice(-3)}`;
+//   return `${base} ${flavor} ${short}`;
+// }
 
-function generateNameAndSlug(q: QuestionLean): { name: string; slug: string } {
-  const name = randomNameSeed(q);
-  const slugBase = slugify(name);
-  // add a tiny random tail to reduce rare slug collisions
-  const tail = faker.string.alphanumeric(4).toLowerCase();
-  return { name, slug: `${slugBase}-${tail}` };
-}
+// function generateNameAndSlug(q: QuestionLean): { name: string; slug: string } {
+//   const name = randomNameSeed(q);
+//   const slugBase = slugify(name);
+//   // add a tiny random tail to reduce rare slug collisions
+//   const tail = faker.string.alphanumeric(4).toLowerCase();
+//   return { name, slug: `${slugBase}-${tail}` };
+// }
 
-// ---- Core generator ----
-async function generateOptionsEqualToQuestions_(
-  QuestionModel: Model<any>,
-  OptionModel: Model<any>
-): Promise<{ created: number; skippedExisting: number; questions: number }> {
-  const questions = await QuestionModel.find(
-    { deletedAt: null },
-    { _id: 1, countryId: 1, serviceId: 1, question: 1, slug: 1 }
-  ).lean<QuestionLean[]>();
+// // ---- Core generator ----
+// async function generateOptionsEqualToQuestions_(
+//   QuestionModel: Model<any>,
+//   OptionModel: Model<any>
+// ): Promise<{ created: number; skippedExisting: number; questions: number }> {
+//   const questions = await QuestionModel.find(
+//     { deletedAt: null },
+//     { _id: 1, countryId: 1, serviceId: 1, question: 1, slug: 1 }
+//   ).lean<QuestionLean[]>();
 
-  if (!questions.length) throw new Error("No Questions found (deletedAt:null).");
+//   if (!questions.length) throw new Error("No Questions found (deletedAt:null).");
 
-  // Load existing (questionId, slug) to prevent duplicates
-  const existing = await OptionModel.find(
-    { deletedAt: null },
-    { questionId: 1, slug: 1 }
-  ).lean<OptionLean[]>();
+//   // Load existing (questionId, slug) to prevent duplicates
+//   const existing = await OptionModel.find(
+//     { deletedAt: null },
+//     { questionId: 1, slug: 1 }
+//   ).lean<OptionLean[]>();
 
-  const existingKeys = new Set(
-    existing.map((o) => `${o.questionId.toString()}|${o.slug}`)
-  );
+//   const existingKeys = new Set(
+//     existing.map((o) => `${o.questionId.toString()}|${o.slug}`)
+//   );
 
-  const docs: any[] = [];
-  let skippedExisting = 0;
+//   const docs: any[] = [];
+//   let skippedExisting = 0;
 
-  for (const q of questions) {
-    // Try up to a few times to avoid rare slug collisions
-    let createdForThisQ = false;
-    for (let attempt = 0; attempt < 5 && !createdForThisQ; attempt++) {
-      const { name, slug } = generateNameAndSlug(q);
-      const key = `${q._id.toString()}|${slug}`;
+//   for (const q of questions) {
+//     // Try up to a few times to avoid rare slug collisions
+//     let createdForThisQ = false;
+//     for (let attempt = 0; attempt < 5 && !createdForThisQ; attempt++) {
+//       const { name, slug } = generateNameAndSlug(q);
+//       const key = `${q._id.toString()}|${slug}`;
 
-      if (existingKeys.has(key)) continue;
+//       if (existingKeys.has(key)) continue;
 
-      docs.push({
-        name,
-        slug,
-        countryId: q.countryId,
-        serviceId: q.serviceId,
-        questionId: q._id,
-        order: 0,
-        selected_options: [],
-        deletedAt: null,
-      });
+//       docs.push({
+//         name,
+//         slug,
+//         countryId: q.countryId,
+//         serviceId: q.serviceId,
+//         questionId: q._id,
+//         order: 0,
+//         selected_options: [],
+//         deletedAt: null,
+//       });
 
-      existingKeys.add(key);
-      createdForThisQ = true;
-    }
-    if (!createdForThisQ) skippedExisting++;
-  }
+//       existingKeys.add(key);
+//       createdForThisQ = true;
+//     }
+//     if (!createdForThisQ) skippedExisting++;
+//   }
 
-  let created = 0;
-  if (docs.length) {
-    const inserted = await OptionModel.insertMany(docs, { ordered: false });
-    created = inserted.length;
-  }
+//   let created = 0;
+//   if (docs.length) {
+//     const inserted = await OptionModel.insertMany(docs, { ordered: false });
+//     created = inserted.length;
+//   }
 
-  return { created, skippedExisting, questions: questions.length };
-}
+//   return { created, skippedExisting, questions: questions.length };
+// }
 
-// ---- Main entry ----
-async function main_(): Promise<void> {
-  const MONGODB_URI =
-    process.env.MONGODB_URI ||
-    "mongodb://127.0.0.1:27017/tla"; // fallback if you prefer local dev
+// // ---- Main entry ----
+// async function main_(): Promise<void> {
+//   const MONGODB_URI =
+//     process.env.MONGODB_URI ||
+//     "mongodb://127.0.0.1:27017/tla"; // fallback if you prefer local dev
 
-  console.log("🔗 Connecting to MongoDB…");
-  await mongoose.connect(MONGODB_URI);
-  console.log("✅ Connected.");
+//   console.log("🔗 Connecting to MongoDB…");
+//   await mongoose.connect(MONGODB_URI);
+//   console.log("✅ Connected.");
 
-  try {
-    const result = await generateOptionsEqualToQuestions(
-      ServiceWiseQuestion,
-      Option
-    );
-    console.log("🎉 Done:", result);
-  } catch (err: any) {
-    console.error("❌ Error:", err?.message || err);
-    process.exitCode = 1;
-  } finally {
-    await mongoose.disconnect();
-  }
-}
+//   try {
+//     const result = await generateOptionsEqualToQuestions(
+//       ServiceWiseQuestion,
+//       Option
+//     );
+//     console.log("🎉 Done:", result);
+//   } catch (err: any) {
+//     console.error("❌ Error:", err?.message || err);
+//     process.exitCode = 1;
+//   } finally {
+//     await mongoose.disconnect();
+//   }
+// }
 
-main().catch((e) => {
-  console.error("❌ Fatal:", e?.message || e);
-  process.exit(1);
-});
+// main().catch((e) => {
+//   console.error("❌ Fatal:", e?.message || e);
+//   process.exit(1);
+// });
