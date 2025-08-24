@@ -10,6 +10,7 @@ import config from './app/config';
 import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
 import { userSocketsMap } from './app/sockets';
+import ServiceWiseQuestion from './app/module/Question/models/ServiceWiseQuestion.model';
 
 
 // Create Express app
@@ -63,6 +64,38 @@ app.get('/online-users', async (_req: Request, res: Response) => {
 
   
 });
+
+
+// ----------------------------------    for data insert   api ---------------------------------------------
+
+
+// GET /seed?countryId=xxx&serviceId=yyy
+// app.get('/seed', async (req: Request, res: Response) => {
+//   try {
+//     const countryId = req.query.countryId as string | undefined;
+//     const serviceId = req.query.serviceId as string | undefined;
+
+//     // Build filter object dynamically
+//     const filter: Record<string, string> = {};
+//     if (countryId) filter.countryId = countryId;
+//     if (serviceId) filter.serviceId = serviceId;
+
+//     // Find questions based on filter
+//     const questions = await ServiceWiseQuestion.find(filter);
+
+//     if (!questions.length) {
+//       return res.status(404).json({ message: 'No questions found' });
+//     }
+
+//     res.status(200).json({ success: true, data: questions });
+//   } catch (error) {
+//     console.error('Error fetching questions:', error);
+//     res.status(500).json({ success: false, message: 'Server Error' });
+//   }
+// });
+
+
+
 
 app.get('/', (_req: Request, res: Response) => {
   res.send('Welcome to TLA Backend 1.0');
