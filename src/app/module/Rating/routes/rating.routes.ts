@@ -7,12 +7,7 @@ const router = Router();
 
 
 
-router.patch(
-    '/',
-    auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-    ratingController.createRating
-
-);
+router.post( '/',auth(USER_ROLE.ADMIN, USER_ROLE.USER),  ratingController.createRating);
 
 
 

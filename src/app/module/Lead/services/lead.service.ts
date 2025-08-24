@@ -719,7 +719,7 @@ const getMyAllLeadFromDB = async (
       .populate({
         path: 'responders',
         select: 'profilePicture name user'
-      })
+      }) .populate('hiredLawyerRating')
       .lean(),
     query,
   )

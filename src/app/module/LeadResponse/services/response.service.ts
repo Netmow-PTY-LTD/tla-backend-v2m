@@ -498,7 +498,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
           populate: { path: 'user' },
         }
       ],
-    })
+    }).populate('clientRating')
     .lean(); // Convert to plain JS object
 
   if (!responseDoc) return null;
@@ -948,35 +948,7 @@ const deleteResponseFromDB = async (id: string) => {
 
 //  --------------------  send hire request ----------------------------
 
-// const sendHireRequest = async (
-//   responseId: string,
-//   userId: string,
-//   hireMessage?: string
-// ) => {
-//   const response = await LeadResponse.findById(responseId);
-//   if (!response) {
-//     return { success: false, message: "Response not found" };
-//   }
 
-//   if (response.isHireRequested) {
-//     return { success: false, message: "Hire request already sent" };
-//   }
-//   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
-
-//   if (!userProfile) {
-//     return { success: false, message: "User profile not found!" };
-//   }
-//   response.isHireRequested = true;
-//   response.hireRequestedBy = new Types.ObjectId(userProfile?._id);
-//   response.status = "hire_requested";
-//   response.hireMessage = hireMessage || null;
-//   response.isHireRequestedAt = new Date();
-
-
-//   await response.save();
-
-//   return { success: true, message: "Hire request sent successfully", response };
-// };
 const sendHireRequest = async (
   responseId: string,
   userId: string,
@@ -1061,79 +1033,7 @@ const sendHireRequest = async (
 
 //  --------------------  change hire status ----------------------------
 
-// const changeHireStatus = async (
-//   responseId: string,
-//   userId: string,
-//   hireDecision: "accepted" | "rejected"
-// ) => {
-//   const response = await LeadResponse.findById(responseId);
-//   if (!response) {
-//     return { success: false, message: "Response not found" };
-//   }
 
-//   if (!response.isHireRequested) {
-//     return { success: false, message: "No hire request to update" };
-//   }
-
-//   if (response.hireDecision) {
-//     return { success: false, message: "Hire decision already made" };
-//   }
-
-//   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
-
-//   if (!userProfile) {
-//     return { success: false, message: "User profile not found!" };
-//   }
-
-//     // 🚫 Prevent the requester from changing their own hire request
-//   if (response.hireRequestedBy?.toString() === userProfile?._id.toString())
-//     return { success: false, message: "You cannot change your own hire request" };
-
-
-
-//   // If hire accepted, check if the lead is already hired
-//   if (hireDecision === "accepted") {
-//     const lead = await Lead.findById(response.leadId);
-//     if (!lead) {
-//       return { success: false, message: "Associated case not found" };
-//     }
-
-//     if (lead.isHired) {
-//       return { success: false, message: "Case is already hired" };
-//     }
-
-//     // Update lead hire info
-//     lead.isHired = true;
-//     lead.hireStatus = "hired"; // optional if you use this field
-//     lead.hiredLawyerId = response.responseBy;
-//     lead.hiredBy = new Types.ObjectId(userProfile._id); // Who accepted the hire
-//     lead.hiredAt = new Date();
-//     await lead.save();
-//   }
-
-
-
-//   response.hireDecision = hireDecision;
-//   response.hireAcceptedBy =
-//     hireDecision === "accepted" ? new Types.ObjectId(userProfile?._id) : null;
-//   response.status = hireDecision === "accepted" ? "hired" : "rejected";
-
-//   await response.save();
-
-
-
-
-//   return { success: true, message: `Hire request ${hireDecision}`, response };
-// };
-
-
-
-
-
-
-
-
-//  new logic  of change hire 
 export const changeHireStatus = async (
   responseId: string,
   userId: string,
@@ -1166,10 +1066,10 @@ export const changeHireStatus = async (
     const lead = await Lead.findById(response.leadId);
     if (!lead) return { success: false, message: "Associated case not found" };
     if (lead.isHired) return { success: false, message: "Case is already hired" };
-
     lead.isHired = true;
     lead.hireStatus = "hired";
     lead.hiredLawyerId = response.responseBy;
+    lead.hiredResponseId = new Types.ObjectId(responseId);
     lead.hiredBy = new Types.ObjectId(userProfile._id);
     lead.hiredAt = new Date();
     await lead.save();
