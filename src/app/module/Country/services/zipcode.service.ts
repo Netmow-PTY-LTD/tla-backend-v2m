@@ -1,5 +1,6 @@
 // import { HTTP_STATUS } from '../../../../constant/httpStatus';
 // import { AppError } from '../../../../errors/error';
+import mongoose from 'mongoose';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import { IZipCode } from '../interfaces/zipcode.interface';
 import ZipCode from '../models/zipcode.model';
@@ -26,45 +27,109 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 // };
 
 
+// const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string }) => {
+//   const { countryId, search } = query;
+
+//   const filter: Record<string, any> = { deletedAt: null };
+
+//   if (countryId) {
+//     validateObjectId(countryId, "Country");
+//     filter.countryId = countryId;
+//   }
+
+//   let zipCodesQuery = ZipCode.find(filter).populate("countryId");
+
+//   if (search && search.trim()) {
+//     const trimmedSearch = search.trim();
+
+//     // First try exact match
+//     const exactMatch = await ZipCode.find({
+//       ...filter,
+//       // zipcode: trimmedSearch,
+//       zipcode: { $regex: `^${trimmedSearch}$`, $options: "i" },
+//     }).populate("countryId");
+
+//     if (exactMatch.length > 0) {
+//       return exactMatch;
+//     }
+
+//     console.log('exactMatch', exactMatch)
+//     // Partial match with limit if many results
+//     zipCodesQuery = ZipCode.find({
+//       ...filter,
+//       zipcode: { $regex: trimmedSearch, $options: "i" },
+//     })
+//       .limit(10) // limit results for huge data
+//       .populate("countryId");
+//   }
+
+//   const zipCodes = await zipCodesQuery.exec();
+//   return zipCodes;
+// };
+
+function escapeRegex(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Build "wagait Bea" -> /wagait.*bea/i  (ordered, partial, whitespace tolerant)
+function buildSearchRegex(input: string): RegExp {
+  const terms = input.trim().split(/\s+/).map(escapeRegex);
+  const pattern = terms.join(".*"); // ordered AND
+  return new RegExp(pattern, "i");
+}
+
 const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string }) => {
   const { countryId, search } = query;
 
   const filter: Record<string, any> = { deletedAt: null };
 
+  // --- Country filter (support both string and ObjectId stored in DB) ---
   if (countryId) {
-    validateObjectId(countryId, "Country");
-    filter.countryId = countryId;
+    const maybeObjectId = mongoose.isValidObjectId(countryId)
+      ? new mongoose.Types.ObjectId(countryId)
+      : null;
+
+    filter.$or = [
+      { countryId: countryId },         // string stored
+      ...(maybeObjectId ? [{ countryId: maybeObjectId }] : []), // ObjectId stored
+    ];
   }
 
+  // Base query
   let zipCodesQuery = ZipCode.find(filter).populate("countryId");
 
   if (search && search.trim()) {
     const trimmedSearch = search.trim();
 
-    // First try exact match
-    const exactMatch = await ZipCode.find({
+    // Exact match first (postalCode exact, zipcode exact ignoring case)
+    const exactPostalOrZip = await ZipCode.find({
       ...filter,
-      // zipcode: trimmedSearch,
-      zipcode: { $regex: `^${trimmedSearch}$`, $options: "i" },
+      $or: [
+        { postalCode: trimmedSearch },                       // exact postalCode
+        { zipcode: new RegExp(`^${escapeRegex(trimmedSearch)}$`, "i") }, // exact zipcode
+      ],
     }).populate("countryId");
 
-    if (exactMatch.length > 0) {
-      return exactMatch;
-    }
+    if (exactPostalOrZip.length > 0) return exactPostalOrZip;
 
-    console.log('exactMatch', exactMatch)
-    // Partial match with limit if many results
+    // Partial match: ordered multi-term for zipcode, partial postalCode
+    const rx = buildSearchRegex(trimmedSearch);
     zipCodesQuery = ZipCode.find({
       ...filter,
-      zipcode: { $regex: trimmedSearch, $options: "i" },
+      $or: [
+        { zipcode: rx },                                  // ordered multi-term partial
+        { postalCode: new RegExp(escapeRegex(trimmedSearch), "i") }, // partial postalCode
+      ],
     })
-      .limit(10) // limit results for huge data
+      .limit(10)
       .populate("countryId");
   }
 
-  const zipCodes = await zipCodesQuery.exec();
-  return zipCodes;
+  return await zipCodesQuery.exec();
 };
+
+
+
 
 
 
