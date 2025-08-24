@@ -44,13 +44,15 @@ const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string 
     // First try exact match
     const exactMatch = await ZipCode.find({
       ...filter,
-      zipcode: trimmedSearch,
+      // zipcode: trimmedSearch,
+      zipcode: { $regex: `^${trimmedSearch}$`, $options: "i" },
     }).populate("countryId");
 
     if (exactMatch.length > 0) {
       return exactMatch;
     }
 
+    console.log('exactMatch', exactMatch)
     // Partial match with limit if many results
     zipCodesQuery = ZipCode.find({
       ...filter,
@@ -63,7 +65,6 @@ const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string 
   const zipCodes = await zipCodesQuery.exec();
   return zipCodes;
 };
-
 
 
 
