@@ -488,10 +488,16 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     })
     .populate({
       path: 'leadId',
-      populate: {
-        path: 'userProfileId',
-        populate: { path: 'user' },
-      },
+      populate: [
+        {
+          path: 'userProfileId',
+          populate: { path: 'user' },
+        },
+        {
+          path: 'hiredBy',
+          populate: { path: 'user' },
+        }
+      ],
     })
     .lean(); // Convert to plain JS object
 
@@ -1238,19 +1244,7 @@ export const changeHireStatus = async (
     otherUserId = possibleToUser ?? null;
   }
 
-  console.log('check   possible user =========>', {
-    currentUserId,
-    otherUserId,
 
-
-  })
-
-  console.log('check   possible user =========>', {
-    possibleToUser,
-    leadId,
-    responseByUser
-
-  })
 
 
 
@@ -1287,15 +1281,7 @@ export const changeHireStatus = async (
 
 
 
-   console.log('check   possible user =========>', {
-    currentUserId,
-    otherUserId,
 
-
-  })
-
-
-  console.log({ activity, notification1, notification2 })
 
   // 7️⃣ Emit socket notifications
   io.to(`user:${currentUserId}`).emit("notification", {
