@@ -71,6 +71,7 @@ export interface ILead {
   hireStatus: "not_requested" | "requested" | "hired" | "rejected";
   isHired: boolean;
   hiredLawyerId?: Types.ObjectId | null; // Lawyer who was hired
+  hiredResponseId?: Types.ObjectId | null; // Response who was hired
   hiredBy?: Types.ObjectId | null;       // Who initiated the hire
   hiredAt?: Date | null;
 
@@ -83,7 +84,7 @@ export interface ILead {
   leadClosedReason?: string | null;
   closedAt?: Date | null;
   
-  lawyerRating?: Types.ObjectId | null;      // Who closed the lead
+  hiredLawyerRating?: Types.ObjectId | null;      // Who closed the lead
   /** -------------------------------
    *  SOFT DELETE & TIMESTAMPS
    * ------------------------------- **/

@@ -10,7 +10,8 @@
     "lint:fix": "npx eslint . --fix",
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
     "prettier:fix": "npx prettier --write src/",
-    "seed:leads": "ts-node src/scripts/bulkInsertLeads.ts"
+    "seed:leads": "ts-node src/scripts/bulkInsertLeads.ts",
+     "seed:options": "tsx src/scripts/generate-options-all.ts"
   },
   "author": "Rabby Hasan",
   "license": "MIT",

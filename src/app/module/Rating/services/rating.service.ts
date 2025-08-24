@@ -54,12 +54,12 @@ const createRating = async (input: CreateRatingInput) => {
 
   // ✅ 5. Attach rating reference to the LeadResponse document
   await LeadResponse.findByIdAndUpdate(responseId, {
-    $addToSet: { clientRating: newRating._id },
+    $set: { clientRating: newRating._id },
   });
 
   // ✅ 6. Attach rating reference to the Lead document
   await Lead.findByIdAndUpdate(leadId, {
-    $addToSet: { lawyerRating: newRating._id },
+    $set: { hiredLawyerRating: newRating._id },
   });
 
   // ✅ 7. Recalculate average rating for the lawyer profile
