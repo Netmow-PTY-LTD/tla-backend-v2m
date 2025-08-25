@@ -16,6 +16,7 @@ const zipCodeSchema = new mongoose.Schema(
     },
     countryId: {
       type: Schema.Types.ObjectId,
+      ref: 'Country',
       required: true,
       trim: true,
     },
