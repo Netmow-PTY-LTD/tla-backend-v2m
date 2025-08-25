@@ -495,28 +495,28 @@ const getChatHistoryFromDB = async (responseId: string) => {
   //   .sort({ createdAt: 1 }); // oldest messages first
 
   const messages = await ResponseWiseChatMessage.find({ responseId })
-  .populate({
-    path: 'from',
-    populate: {
-      path: 'profile',
-      select: 'name profilePicture',
-    },
-  })
-  .populate({
-    path: 'responseId',
-    select: 'responseBy leadId', // pick the fields you need
-    populate: [
-      {
-        path: 'responseBy',
-        select: 'user', // only the user field
+    .populate({
+      path: 'from',
+      populate: {
+        path: 'profile',
+        select: 'name profilePicture',
       },
-      {
-        path: 'leadId',
-        select: 'userProfileId', // only the lead's owner
-      },
-    ],
-  })
-  .sort({ createdAt: 1 }); // oldest messages first
+    })
+    .populate({
+      path: 'responseId',
+      select: 'responseBy leadId', // pick the fields you need
+      populate: [
+        {
+          path: 'responseBy',
+          select: 'user', // only the user field
+        },
+        {
+          path: 'leadId',
+          select: 'userProfileId', // only the lead's owner
+        },
+      ],
+    })
+    .sort({ createdAt: 1 }); // oldest messages first
 
 
 
@@ -537,19 +537,25 @@ const getLawyerSuggestionsFromDB = async (
     limit?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    minRating?: number; // minimum rating filter
   } = {}
 ) => {
-  const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'asc' } = options;
+  const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'asc', minRating } = options;
+
 
   const skip = (page - 1) * limit;
   const sortOption: Record<string, 1 | -1> = {};
   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
+  console.log('test minRating ==>', minRating)
 
 
   // First, get current user's profileId (needed for lookup)
   const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1, country: 1 });
   const currentProfileId = currentUserProfile?._id;
+
+
+
   const pipeline = [
     // 1. Match users excluding the current one
     {
@@ -571,14 +577,56 @@ const getLawyerSuggestionsFromDB = async (
 
     { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
 
-    // 4. Filter only profiles that have serviceId
+
+    // normalize avgRating (0 if missing)
+    { $addFields: { "profile.avgRating": { $ifNull: ["$profile.avgRating", 0] } } },
+
+
+
+    //  rating filter  related logic
 
     {
       $match: {
-        'profile.country': new mongoose.Types.ObjectId(currentUserProfile?.country),
-        'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
-      }
+        "profile.country": new mongoose.Types.ObjectId(
+          currentUserProfile?.country
+        ),
+        "profile.serviceIds": new mongoose.Types.ObjectId(serviceId),
+        // ...(minRating !== undefined && {
+        //   $or: [
+        //     { "profile.avgRating": { $gte: minRating } }, // ratings >= minRating
+        //     { "profile.avgRating": 0 }                    // include profiles with 0 rating
+        //   ]
+        // }),
+
+        //  there is issues after minRating show rating 1-5 data other wise not show  ----- problem
+        ...(minRating !== undefined && {
+          $or: [
+            { "profile.avgRating": { $gte: minRating } },
+            { "profile.avgRating": 0 },
+            { "profile.avgRating": { $exists: false } }, // ✅ Add this line
+            { "profile.avgRating": null } // ✅ Add this line for null values
+          ]
+        }),
+
+
+
+
+      },
     },
+
+
+
+
+
+
+    // // 4. Filter only profiles that have serviceId
+
+    // {
+    //   $match: {
+    //     'profile.country': new mongoose.Types.ObjectId(currentUserProfile?.country),
+    //     'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
+    //   }
+    // },
 
 
     // 🔹 Lookup responses for this specific lead
@@ -623,6 +671,10 @@ const getLawyerSuggestionsFromDB = async (
     },
 
 
+
+
+
+
     //  Lookup into LeadContactRequest to see if request exists
     {
       $lookup: {
@@ -655,11 +707,11 @@ const getLawyerSuggestionsFromDB = async (
 
 
 
-   // 8. 🔹 NEW: Lookup into ProfileVisitor to check if current user visited this lawyer
+    // 8. 🔹 NEW: Lookup into ProfileVisitor to check if current user visited this lawyer
     {
       $lookup: {
         from: "profilevisitors",
-        let: { targetProfileId: "$_id"  },
+        let: { targetProfileId: "$_id" },
         pipeline: [
           {
             $match: {
@@ -975,7 +1027,7 @@ const countryWiseServiceWiseLeadFromDB = async ({ countryId, serviceId }: any) =
     { $unwind: { path: '$service', preserveNullAndEmptyArrays: true } },
     {
       $group: {
-        _id: { country: '$country.name', serviceId:'$service._id', service: '$service.name' },
+        _id: { country: '$country.name', serviceId: '$service._id', service: '$service.name' },
         totalLeads: { $sum: 1 },
       },
     },
