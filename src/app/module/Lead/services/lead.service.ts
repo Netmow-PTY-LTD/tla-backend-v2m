@@ -236,7 +236,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.error('Error creating lead with transaction:', error);
+    console.error('Error creating case with transaction:', error);
     throw error;
   }
 };
@@ -747,7 +747,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     return sendNotFoundResponse('user not found!');
   }
 
-  validateObjectId(leadId, 'Lead');
+  validateObjectId(leadId, 'Case');
   const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
     .populate({
       path: 'userProfileId',
@@ -929,7 +929,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
 
 
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
-  validateObjectId(id, 'Lead');
+  validateObjectId(id, 'Case');
   const result = await Lead.findOneAndUpdate(
     { _id: id, deletedAt: null },
     payload,
@@ -941,7 +941,7 @@ const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
 };
 
 const deleteLeadFromDB = async (id: string) => {
-  validateObjectId(id, 'Lead');
+  validateObjectId(id, 'Case');
   const deletedAt = new Date().toISOString();
 
   const result = await Lead.findByIdAndUpdate(
@@ -963,13 +963,13 @@ export const leadClosedIntoDB = async (
   reason?: string
 ) => {
   // Validate leadId
-  validateObjectId(leadId, "Lead");
+  validateObjectId(leadId, "Case");
 
   // Fetch the lead
   const lead = await Lead.findById(leadId);
   if (!lead) {
    
-    return { success: false, message: "Lead not found" };
+    return { success: false, message: "Case not found" };
   }
 
   // Fetch user profile of the requester
@@ -980,7 +980,7 @@ export const leadClosedIntoDB = async (
 
   // Check if already closed
   if (lead.isClosed) {
-    return { success: false, message: "Lead is already closed" };
+    return { success: false, message: "Case is already closed" };
   }
 
   // Update closure fields
@@ -993,7 +993,7 @@ export const leadClosedIntoDB = async (
   await lead.save();
   return {
     success: true,
-    message: "Lead closed successfully",
+    message: "Case closed successfully",
     lead,
   };
 };
