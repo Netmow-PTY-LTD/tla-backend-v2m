@@ -37,8 +37,9 @@ const getAllCategoryFromDB = async () => {
 };
 
 
-const getAllCategoryPublicFromDB = async () => {
-  const countryId = new mongoose.Types.ObjectId('682ecd01e6b730f229c8d3d3');
+const getAllCategoryPublicFromDB = async (countryQueryId:string) => {
+  // const countryId = new mongoose.Types.ObjectId('682ecd01e6b730f229c8d3d3');
+  const countryId = new mongoose.Types.ObjectId(countryQueryId);
 
   const categories = await Category.aggregate([
     { $match: { deletedAt: null } },

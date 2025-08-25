@@ -653,13 +653,53 @@ const getLawyerSuggestionsFromDB = async (
       }
     },
 
-    // Hide requestInfo field from output
+
+
+   // 8. 🔹 NEW: Lookup into ProfileVisitor to check if current user visited this lawyer
+    {
+      $lookup: {
+        from: "profilevisitors",
+        let: { targetProfileId: "$_id"  },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$visitorId", new mongoose.Types.ObjectId(userId)] },
+                  { $eq: ["$targetId", "$$targetProfileId"] },
+                ],
+              },
+            },
+          },
+          { $limit: 1 }, // Only need one visit record
+        ],
+        as: "profileVisitInfo",
+      },
+    },
+    // Add isProfileVisited: true/false + attach visit data
+    {
+      $addFields: {
+        isProfileVisited: { $gt: [{ $size: "$profileVisitInfo" }, 0] },
+        profileVisit: { $arrayElemAt: ["$profileVisitInfo", 0] },
+      },
+    },
+
+    // Hide unwanted fields
     {
       $project: {
         requestInfo: 0,
-        leadResponseForThisLead: 0
-      }
+        leadResponseForThisLead: 0,
+        profileVisitInfo: 0,
+      },
     },
+
+    // Hide requestInfo field from output
+    // {
+    //   $project: {
+    //     requestInfo: 0,
+    //     leadResponseForThisLead: 0
+    //   }
+    // },
 
 
     // 6. Sorting
