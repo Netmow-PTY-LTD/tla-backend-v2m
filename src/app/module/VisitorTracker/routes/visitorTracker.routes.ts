@@ -7,8 +7,8 @@ import { visitorTrackerController } from '../controllers/visitorTracker.controll
 
 const router = Router();
 
-router.post("/visit", visitorTrackerController.trackVisit);
-router.get("/recent", visitorTrackerController.getRecentVisitors);
+router.post("/visit", auth(USER_ROLE.ADMIN,USER_ROLE.USER), visitorTrackerController.trackVisit);
+router.get("/recent", auth(USER_ROLE.ADMIN,USER_ROLE.USER), visitorTrackerController.getRecentVisitors);
 
 export default router;
 

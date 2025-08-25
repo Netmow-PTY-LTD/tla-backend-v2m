@@ -1,4 +1,4 @@
-// modules/visitorTracker/visitorTracker.model.ts
+
 import mongoose, { Schema, Document } from "mongoose";
 import { IVisitor } from "../interfaces/visitorTracker.interface";
 
@@ -27,3 +27,8 @@ export const VisitorTracker = mongoose.model<IVisitor>(
   "VisitorTracker",
   visitorTrackerSchema
 );
+
+
+
+
+

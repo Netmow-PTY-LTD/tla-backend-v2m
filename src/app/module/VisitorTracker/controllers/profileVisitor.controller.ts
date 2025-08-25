@@ -1,14 +1,13 @@
-
+// modules/profileVisitor/profileVisitor.controller.ts
 import { Request, Response } from "express";
-
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { HTTP_STATUS } from "../../../constant/httpStatus";
-import { visitorTrackerService } from "../services/visitorTracker.service";
+import { trackVisit, getRecentVisitors } from "../services/profileVisitor.service";
 
-const trackVisit = catchAsync(async (req: Request, res: Response) => {
-  const {targetId, sessionId, deviceInfo } = req.body;
-  const  visitorId=req.user.userId
+const trackProfileVisit = catchAsync(async (req: Request, res: Response) => {
+  const visitorId = req.user.userId;
+  const { targetId } = req.body;
 
   if (!visitorId || !targetId) {
     return sendResponse(res, {
@@ -19,21 +18,17 @@ const trackVisit = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const visit = await visitorTrackerService.trackVisit(visitorId,{
-    targetId,
-    sessionId,
-    deviceInfo,
-  });
+  const visit = await trackVisit(visitorId, targetId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
-    message: "Visit tracked successfully",
+    message: "Profile visit tracked successfully",
     data: visit,
   });
 });
 
-const getRecentVisitors = catchAsync(async (req: Request, res: Response) => {
+const getProfileRecentVisitors = catchAsync(async (req: Request, res: Response) => {
   const targetId = req.query.targetId as string;
 
   if (!targetId) {
@@ -45,7 +40,7 @@ const getRecentVisitors = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const visitors = await visitorTrackerService.getRecentVisitors(targetId);
+  const visitors = await getRecentVisitors(targetId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -55,7 +50,7 @@ const getRecentVisitors = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const visitorTrackerController = {
-  trackVisit,
-  getRecentVisitors,
+export const profileVisitorController = {
+  trackProfileVisit,
+  getProfileRecentVisitors,
 };
