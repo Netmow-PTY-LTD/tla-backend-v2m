@@ -11,7 +11,7 @@ const createLead = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
-    message: 'Lead Create successfully',
+    message: 'Case Create successfully',
     data: result,
   });
 });
@@ -27,7 +27,7 @@ const getSingleLead = catchAsync(async (req, res) => {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Lead  not found.',
+      message: 'Case  not found.',
       queryTime,
       data: null,
     });
@@ -36,7 +36,7 @@ const getSingleLead = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Lead is retrieved successfully',
+    message: 'Case is retrieved successfully',
     queryTime,
     data: result,
   });
@@ -50,7 +50,7 @@ const deleteSingleLead = catchAsync(async (req, res) => {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Lead  not found or already deleted.',
+      message: 'Case  not found or already deleted.',
       data: null,
     });
   }
@@ -58,7 +58,7 @@ const deleteSingleLead = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Lead delete successfully',
+    message: 'Case delete successfully',
     data: result,
   });
 });
@@ -72,7 +72,7 @@ const updateSingleLead = catchAsync(async (req, res) => {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Lead  not found for update.',
+      message: 'Case  not found for update.',
       data: null,
     });
   }
@@ -80,7 +80,7 @@ const updateSingleLead = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Lead update successfully',
+    message: 'Case update successfully',
     data: result,
   });
 });
@@ -96,7 +96,7 @@ const updateSingleLead = catchAsync(async (req, res) => {
 //     return sendResponse(res, {
 //       statusCode: HTTP_STATUS.OK,
 //       success: false,
-//       message: 'Lead  not found.',
+//       message: 'Case  not found.',
 //       queryTime,
 //       data: [],
 //     });
@@ -106,7 +106,7 @@ const updateSingleLead = catchAsync(async (req, res) => {
 //   sendResponse(res, {
 //     statusCode: HTTP_STATUS.OK,
 //     success: true,
-//     message: 'All Lead is retrieved successfully',
+//     message: 'All Case is retrieved successfully',
 //     queryTime,
 //     pagination: result?.meta,
 //     data: result?.data,
@@ -170,8 +170,8 @@ const getAllLead = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: data.length > 0,
     message: data.length > 0
-      ? 'All Lead is retrieved successfully'
-      : 'Lead not found.',
+      ? 'All Case is retrieved successfully'
+      : 'Case not found.',
     queryTime,
     pagination,
     counts: leadCount,
@@ -219,7 +219,7 @@ const getMyAllLead = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'My All Lead is retrieved successfully',
+    message: 'My All Case is retrieved successfully',
     queryTime,
     pagination: result?.meta,
     data: result?.data,
@@ -246,7 +246,7 @@ const getAllLeadForAdmin = catchAsync(async (req, res) => {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Lead  not found.',
+      message: 'Case  not found.',
       queryTime,
       data: [],
     });
@@ -255,7 +255,7 @@ const getAllLeadForAdmin = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'All Lead is retrieved successfully',
+    message: 'All Case is retrieved successfully',
     queryTime,
     pagination: result?.meta,
     data: result?.data,
@@ -288,7 +288,7 @@ const closeLead = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: result.message, // "Lead closed successfully"
+    message: result.message, // "Case closed successfully"
     data: result.lead,
   });
 });
