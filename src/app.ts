@@ -11,6 +11,9 @@ import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
 import { userSocketsMap } from './app/sockets';
 import ServiceWiseQuestion from './app/module/Question/models/ServiceWiseQuestion.model';
+import Option from './app/module/Option/models/option.model';
+import mongoose from 'mongoose';
+import catchAsync from './app/utils/catchAsync';
 
 
 // Create Express app
@@ -37,6 +40,78 @@ app.use(
     credentials: true,
   })
 );
+
+
+//  just for test --
+
+app.get(
+  "/country-wise-question-option",
+  catchAsync(async (req, res) => {
+    const countryId = req.query.countryId as string | undefined;
+
+    if (!countryId) {
+      res.status(400).json({
+        success: false,
+        message: "countryId is required",
+      });
+      return;
+    }
+
+    const matchStage: Record<string, any> = {
+      countryId: new mongoose.Types.ObjectId(countryId),
+    };
+
+    const questions = await ServiceWiseQuestion.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: "options",
+          localField: "_id",
+          foreignField: "questionId",
+          as: "options",
+          pipeline: [
+            { $match: { deletedAt: null } },
+            { $sort: { order: 1 } },
+            { $project: { _id: 1, name: 1, slug: 1, order: 1 } },
+          ],
+        },
+      },
+      { $sort: { order: 1 } },
+      {
+        $project: {
+          _id: 1,
+          question: 1,
+          slug: 1,
+          questionType: 1,
+          order: 1,
+          options: 1,
+        },
+      },
+    ]);
+
+    if (!questions.length) {
+      res.status(404).json({
+        success: false,
+        message: "No questions found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: questions,
+    });
+  })
+);
+
+
+
+
+
+
+
+
+
 
 // Routes
 app.use('/api/v1', router);
@@ -68,31 +143,6 @@ app.get('/online-users', async (_req: Request, res: Response) => {
 
 // ----------------------------------    for data insert   api ---------------------------------------------
 
-
-// GET /seed?countryId=xxx&serviceId=yyy
-// app.get('/seed', async (req: Request, res: Response) => {
-//   try {
-//     const countryId = req.query.countryId as string | undefined;
-//     const serviceId = req.query.serviceId as string | undefined;
-
-//     // Build filter object dynamically
-//     const filter: Record<string, string> = {};
-//     if (countryId) filter.countryId = countryId;
-//     if (serviceId) filter.serviceId = serviceId;
-
-//     // Find questions based on filter
-//     const questions = await ServiceWiseQuestion.find(filter);
-
-//     if (!questions.length) {
-//       return res.status(404).json({ message: 'No questions found' });
-//     }
-
-//     res.status(200).json({ success: true, data: questions });
-//   } catch (error) {
-//     console.error('Error fetching questions:', error);
-//     res.status(500).json({ success: false, message: 'Server Error' });
-//   }
-// });
 
 
 
