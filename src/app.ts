@@ -76,6 +76,21 @@ app.get(
           ],
         },
       },
+
+      {
+        $lookup: {
+          from: "services",
+          localField: "serviceId",
+          foreignField: "_id",
+          as: "service",
+          pipeline: [
+            { $project: { _id: 1, name: 1 } }
+          ]
+        },
+      },
+      { $unwind: "$service" }, // Unwind to get service as an object instead of array
+
+
       { $sort: { order: 1 } },
       {
         $project: {
@@ -84,7 +99,10 @@ app.get(
           slug: 1,
           questionType: 1,
           order: 1,
-          options: 1,
+          serviceId: 1,
+          serviceName: "$service.name",
+          // options: 1,
+          
         },
       },
     ]);
@@ -127,8 +145,8 @@ app.get('/server-info', (req: Request, res: Response) => {
 
 app.get('/online-users', async (_req: Request, res: Response) => {
   const onlineUserIds = Array.from(userSocketsMap.keys());
-  
-   res.status(200).json({
+
+  res.status(200).json({
     success: true,
     message: 'Online users fetched successfully.',
     data: {
@@ -137,7 +155,7 @@ app.get('/online-users', async (_req: Request, res: Response) => {
     },
   });
 
-  
+
 });
 
 
