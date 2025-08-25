@@ -101,7 +101,7 @@ app.get(
           order: 1,
           serviceId: 1,
           serviceName: "$service.name",
-          // options: 1,
+          options: 1,
           
         },
       },
