@@ -578,45 +578,25 @@ const getLawyerSuggestionsFromDB = async (
     { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
 
 
-    // normalize avgRating (0 if missing)
-    { $addFields: { "profile.avgRating": { $ifNull: ["$profile.avgRating", 0] } } },
 
-
-
-    //  rating filter  related logic
-
+    { $addFields: { 'profile.avgRating': { $ifNull: ['$profile.avgRating', 0] } } },
     {
       $match: {
-        "profile.country": new mongoose.Types.ObjectId(
-          currentUserProfile?.country
-        ),
-        "profile.serviceIds": new mongoose.Types.ObjectId(serviceId),
-        // ...(minRating !== undefined && {
-        //   $or: [
-        //     { "profile.avgRating": { $gte: minRating } }, // ratings >= minRating
-        //     { "profile.avgRating": 0 }                    // include profiles with 0 rating
-        //   ]
-        // }),
-
-        //  there is issues after minRating show rating 1-5 data other wise not show  ----- problem
-        ...(minRating !== undefined && {
-          $or: [
-            { "profile.avgRating": { $gte: minRating } },
-            { "profile.avgRating": 0 },
-            { "profile.avgRating": { $exists: false } }, // ✅ Add this line
-            { "profile.avgRating": null } // ✅ Add this line for null values
+        $expr: {
+          $and: [
+            { $eq: ['$profile.country', new mongoose.Types.ObjectId(currentUserProfile?.country)] },
+            { $in: [new mongoose.Types.ObjectId(serviceId), { $ifNull: ['$profile.serviceIds', []] }] },
+            {
+              $cond: [
+                { $ifNull: [minRating, false] }, // if minRating provided
+                { $gte: ['$profile.avgRating', minRating] }, // only avgRating >= minRating
+                true // if no minRating, include all avgRating 0–5
+              ]
+            }
           ]
-        }),
-
-
-
-
-      },
+        }
+      }
     },
-
-
-
-
 
 
     // // 4. Filter only profiles that have serviceId
