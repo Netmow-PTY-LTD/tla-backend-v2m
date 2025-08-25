@@ -3,7 +3,8 @@ import { Request, Response } from "express";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { HTTP_STATUS } from "../../../constant/httpStatus";
-import { trackVisit, getRecentVisitors } from "../services/profileVisitor.service";
+import { profileVistorService } from "../services/profileVisitor.service";
+
 
 const trackProfileVisit = catchAsync(async (req: Request, res: Response) => {
   const visitorId = req.user.userId;
@@ -18,7 +19,7 @@ const trackProfileVisit = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const visit = await trackVisit(visitorId, targetId);
+  const visit = await profileVistorService.trackVisit(visitorId, targetId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
@@ -40,7 +41,7 @@ const getProfileRecentVisitors = catchAsync(async (req: Request, res: Response) 
     });
   }
 
-  const visitors = await getRecentVisitors(targetId);
+  const visitors = await profileVistorService.getRecentVisitors(targetId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
