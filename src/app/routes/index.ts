@@ -18,6 +18,7 @@ import { contactRouter } from '../module/Contact/routes/contact.route';
 import { settingsRouter } from '../module/Settings/routes/settings.route';
 import { categoryRouter } from '../module/Category/routes/category.route';
 import { ratingRouter } from '../module/Rating/routes/rating.routes';
+import { profileVisitorRouter } from '../module/VisitorTracker/routes/profileVisitor.routes';
 
 const router = Router();
 
@@ -90,6 +91,10 @@ const moduleRoutes = [
   {
     path: '/rating',
     route: ratingRouter,
+  },
+  {
+    path: '/visitor-tracker',
+    route: profileVisitorRouter,
   },
   {
     path: '/',

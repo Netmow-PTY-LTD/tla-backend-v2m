@@ -325,6 +325,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     (user?.profile?.serviceIds as { name: string }[] | undefined) || [];
 
   return {
+    userId:rawUser?._id,
     email: user.email,
     name,
     slug: slugResult,
