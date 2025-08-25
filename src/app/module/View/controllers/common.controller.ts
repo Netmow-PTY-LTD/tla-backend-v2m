@@ -115,13 +115,14 @@ const getLawyerSuggestions = catchAsync(async (req, res) => {
   const limit = parseInt(req.query.limit as string) || 10;
   const sortBy = (req.query.sortBy as string) || 'createdAt';
   const sortOrder = (req.query.sortOrder as string) === 'desc' ? 'desc' : 'asc';
-
+  const  minRating = parseInt(req.query.minRating as string) ;
 
   const result = await commonService.getLawyerSuggestionsFromDB(userId, serviceId, leadId,{
     page,
     limit,
     sortBy,
     sortOrder,
+    minRating
   });
 
 
