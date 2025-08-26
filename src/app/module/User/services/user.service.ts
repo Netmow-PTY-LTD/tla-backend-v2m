@@ -20,19 +20,128 @@ import mongoose, { Document } from 'mongoose';
 import Experience from '../models/experience.model';
 import Faq from '../models/faq.model';
 import Agreement from '../models/agreement.model';
+import QueryBuilder from '../../../builder/QueryBuilder';
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.
  * @returns  Returns an array of users, each with populated profile data.
  */
-const getAllUserIntoDB = async () => {
-  // Fetch all users from the database and populate the 'profile' field for each user
-  const result = await User.find({}).populate({
-    path:'profile',
-    populate:'serviceIds'
-  }).sort('-createdAt');
-  return result;
+
+
+const  getAllUserIntoDB = async (query: Record<string, any>) => {
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const searchTerm = query.searchTerm || '';
+  const sortBy = query.sortBy || 'createdAt';
+  const sortOrder = query.sortOrder === 'asc' ? 1 : -1;
+
+  // Build filters dynamically
+  const filters: any = {};
+  if (query.role) filters.role = query.role;
+  if (query.regUserType) filters.regUserType = query.regUserType;
+  if (query.accountStatus) filters.accountStatus = query.accountStatus;
+  if (query.isVerifiedAccount !== undefined) filters.isVerifiedAccount = query.isVerifiedAccount;
+  if (query.isPhoneVerified !== undefined) filters.isPhoneVerified = query.isPhoneVerified;
+
+  // Aggregation pipeline
+  const pipeline: any[] = [
+    { $match: filters },
+
+    // Lookup profile
+    {
+      $lookup: {
+        from: 'userprofiles',
+        localField: 'profile',
+        foreignField: '_id',
+        as: 'profile',
+      },
+    },
+    { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
+
+    // Lookup nested serviceIds inside profile
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'profile.serviceIds',
+        foreignField: '_id',
+        as: 'profile.serviceIds',
+      },
+    },
+
+    // Search on email and profile.name
+    {
+      $match: {
+        $or: [
+          { email: { $regex: searchTerm, $options: 'i' } },
+          { 'profile.name': { $regex: searchTerm, $options: 'i' } },
+          { 'profile.phone': { $regex: searchTerm, $options: 'i' } },
+          { 'profile.address': { $regex: searchTerm, $options: 'i' } },
+        ],
+      },
+    },
+
+    // Sorting
+    { $sort: { [sortBy]: sortOrder } },
+
+    // Pagination
+    { $skip: skip },
+    { $limit: limit },
+  ];
+
+  // Execute aggregation
+  const users = await User.aggregate(pipeline);
+
+  // Total count for pagination
+  const countPipeline = [
+    { $match: filters },
+    {
+      $lookup: {
+        from: 'userprofiles',
+        localField: 'profile',
+        foreignField: '_id',
+        as: 'profile',
+      },
+    },
+    { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
+    {
+      $match: {
+        $or: [
+          { email: { $regex: searchTerm, $options: 'i' } },
+          { 'profile.name': { $regex: searchTerm, $options: 'i' } },
+          { 'profile.phone': { $regex: searchTerm, $options: 'i' } },
+          { 'profile.address': { $regex: searchTerm, $options: 'i' } },
+        ],
+      },
+    },
+    { $count: 'total' },
+  ];
+
+  const totalResult = await User.aggregate(countPipeline);
+  const total = totalResult[0]?.total || 0;
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    users,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage,
+    },
+  };
 };
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * @desc   Updates the profile of a user in the database.
