@@ -874,29 +874,25 @@ export const leadClosedIntoDB = async (
 
 
 
-const repostLead = async (leadId: string, clientUserId: string) => {
+const repostLead = async (clientUserId: string , leadId: string,) => {
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
-
     // 1️⃣ Fetch original lead and user profile
     const originalLead = await Lead.findById(leadId)
       .populate('userProfileId')
       .session(session);
 
     if (!originalLead) {
-      await session.abortTransaction();
-      session.endSession();
-      throw new Error('Original lead not found');
+   
+      throw new Error('Original case not found');
     }
 
     // 2️⃣ Guard: only the client who created the lead can repost
     const leadOwnerId = (originalLead.userProfileId as any).user?.toString?.();
     if (leadOwnerId !== clientUserId) {
-      await session.abortTransaction();
-      session.endSession();
-      throw new Error('Unauthorized: Only the lead owner can repost this lead');
+      throw new Error('Unauthorized: Only the case owner can repost this lead');
     }
 
     // 3️⃣ Duplicate Lead
