@@ -719,7 +719,7 @@ const getLawyerSuggestionsFromDB = async (
     // Hide unwanted fields
     {
       $project: {
-        requestInfo: 0,
+        // requestInfo: 0,  // it will comment out in future
         leadResponseForThisLead: 0,
         profileVisitInfo: 0,
       },

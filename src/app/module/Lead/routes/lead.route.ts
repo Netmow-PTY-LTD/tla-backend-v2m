@@ -10,8 +10,16 @@ router.post(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadController.createLead,
 );
-router.get('/list',auth(USER_ROLE.ADMIN, USER_ROLE.USER), leadController.getAllLead);
-router.get('/list/admin',auth(USER_ROLE.ADMIN), leadController.getAllLeadForAdmin);
+
+router.post(
+  '/repost',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  leadController.repostedLead,
+);
+
+
+router.get('/list', auth(USER_ROLE.ADMIN, USER_ROLE.USER), leadController.getAllLead);
+router.get('/list/admin', auth(USER_ROLE.ADMIN), leadController.getAllLeadForAdmin);
 
 router.get(
   '/my',
@@ -32,7 +40,6 @@ router.delete(
 router.patch(
   '/edit/:leadId',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-
   leadController.updateSingleLead,
 );
 
@@ -41,5 +48,8 @@ router.patch(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadController.closeLead,
 );
+
+
+
 
 export const leadRouter = router;

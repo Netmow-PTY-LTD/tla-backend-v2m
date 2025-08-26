@@ -1,6 +1,6 @@
 import config from '../../../config';
 import { AppError } from '../../../errors/error';
-import { ILoginUser } from '../interfaces/auth.interface';
+import { ILoginUser, IUser } from '../interfaces/auth.interface';
 import User from '../models/auth.model';
 import { createToken, verifyToken } from '../utils/auth.utils';
 import { USER_STATUS } from '../constant/auth.constant';
@@ -14,6 +14,7 @@ import UserProfile from '../../User/models/user.model';
 import { sendEmail } from '../../../emails/email.service';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import { generateOtp } from '../utils/otp.utils';
+import { IUserProfile } from '../../User/interfaces/user.interface';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -454,20 +455,30 @@ export const changeAccountStatus = async (
   if (!Object.values(USER_STATUS).includes(accountStatus)) {
     throw new Error('Invalid account status value');
   }
-
   const updatedUser = await User.findOneAndUpdate(
     { _id: userId, deletedAt: null },
     { accountStatus },
     { new: true },
-  );
+  ).populate<{ profile: IUserProfile }>({ path: 'profile', select: "name" });
 
   if (!updatedUser) {
     throw new Error('User not found or deleted');
   }
 
+  if (accountStatus === "approved") {
+    await sendEmail({
+      to: updatedUser.email,
+      subject: "Your account is approved as lawyer by Admin",
+      data: {
+        name: updatedUser.profile?.name ?? "User",
+
+      },
+      emailTemplate:'lawyer_approved',
+    });
+
+  }
   return updatedUser;
 };
-
 
 
 
@@ -501,10 +512,10 @@ const sendOtp = async ({
 
 
   console.log({
-  email,
-  username: 'user',
-  expiresInMinutes: 3, // default to 3 minutes
-})
+    email,
+    username: 'user',
+    expiresInMinutes: 3, // default to 3 minutes
+  })
 
   await sendEmail({
     to: email,
