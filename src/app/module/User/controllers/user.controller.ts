@@ -82,7 +82,7 @@ const updateProfile = catchAsync(async (req, res) => {
   }
 
 
-  if (fileMap['agreementfiles']||fileMap['agreementfiles']===undefined) {
+  if (fileMap['agreementfiles'] || fileMap['agreementfiles'] === undefined) {
 
     agreementResult =
       await agreementService.updateProfileAgreementIntoDB(
@@ -233,18 +233,48 @@ const getUserProfileInfo = catchAsync(async (req, res) => {
  * @returns {Promise<void>} Sends the response with status, success message, and the list of all user profiles.
  * @throws {AppError} Throws an error if fetching user profiles fails.
  */
+
+
 const getAllUserProfile = catchAsync(async (req, res) => {
   const timer = startQueryTimer();
-  // Call the service function to retrieve all user profiles from the database
-  const result = await UserProfileService.getAllUserIntoDB();
+
+
+  const queryOptions = {
+    page: Number(req.query.page) || 1,
+    limit: Number(req.query.limit) || 10,
+    searchTerm: req.query.search as string | undefined,      // search text
+    role: req.query.role as string | undefined,            // user role filter
+    regUserType: req.query.regUserType as string | undefined, // registered user type
+    accountStatus: req.query.accountStatus as string | undefined, // approved, pending, rejected
+    // ✅ handle boolean parsing
+    isVerifiedAccount: req.query.isVerifiedAccount === "true"
+      ? true
+      : req.query.isVerifiedAccount === "false"
+        ? false
+        : undefined,
+
+    isPhoneVerified: req.query.isPhoneVerified === "true"
+      ? true
+      : req.query.isPhoneVerified === "false"
+        ? false
+        : undefined,
+
+    // ✅ sorting support
+    sortBy: (req.query.sortBy as string) || "createdAt",
+    sortOrder: req.query.sortOrder === "asc" ? "asc" : "desc",
+  };
+
+
+  const result = await UserProfileService.getAllUserIntoDB(queryOptions);
   const queryTime = timer.endQueryTimer();
-  // Send a successful response back to the client with the list of all user profiles
+
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: ' Get all Users Successfully',
     queryTime,
-    data: result,
+    pagination: result.meta,
+    data: result.users,
   });
 });
 
