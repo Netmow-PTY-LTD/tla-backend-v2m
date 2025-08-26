@@ -10,6 +10,14 @@ router.post(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   leadController.createLead,
 );
+
+router.post(
+  '/repost',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  leadController.repostedLead,
+);
+
+
 router.get('/list', auth(USER_ROLE.ADMIN, USER_ROLE.USER), leadController.getAllLead);
 router.get('/list/admin', auth(USER_ROLE.ADMIN), leadController.getAllLeadForAdmin);
 
@@ -41,11 +49,7 @@ router.patch(
   leadController.closeLead,
 );
 
-router.post(
-  '/repost',
-  auth(USER_ROLE.USER),
-  leadController.repostedLead,
-);
+
 
 
 export const leadRouter = router;

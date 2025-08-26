@@ -874,7 +874,7 @@ export const leadClosedIntoDB = async (
 
 
 
-const repostLead = async (clientUserId: string , leadId: string,) => {
+const repostLead = async (clientUserId: string, leadId: string,) => {
   const session = await mongoose.startSession();
 
   try {
@@ -885,7 +885,7 @@ const repostLead = async (clientUserId: string , leadId: string,) => {
       .session(session);
 
     if (!originalLead) {
-   
+
       throw new Error('Original case not found');
     }
 
@@ -920,9 +920,19 @@ const repostLead = async (clientUserId: string , leadId: string,) => {
       hiredLawyerRating: null,
       responders: [],
       repostedFrom: originalLead._id,
+
     };
 
     const [newLead] = await Lead.create([newLeadData], { session });
+
+    // ✅ 4️⃣ Mark original lead as requested
+    await Lead.findByIdAndUpdate(
+      leadId,
+      { $set: { isRequested: true } },
+      { session }
+    );
+
+
 
     // 4️⃣ Duplicate LeadServiceAnswers
     const leadAnswers = await LeadServiceAnswer.find({ leadId }).session(session);

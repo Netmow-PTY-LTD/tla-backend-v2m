@@ -133,6 +133,10 @@ const leadSchema = new Schema<ILead>(
       ref: 'Lead',
       default:null
     },
+      isReposted: {
+      type: Boolean,
+      default:false
+    },
 
 
     deletedAt: {
