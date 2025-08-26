@@ -881,7 +881,10 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
     session.startTransaction();
     // 1️⃣ Fetch original lead and user profile
     const originalLead = await Lead.findById(leadId)
-      .populate('userProfileId')
+      .populate({
+        path:'userProfileId',
+        populate:'user'
+      })
       .session(session);
 
     if (!originalLead) {
@@ -890,7 +893,7 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
     }
 
     // 2️⃣ Guard: only the client who created the lead can repost
-    const leadOwnerId = (originalLead.userProfileId as any).user?.toString?.();
+    const leadOwnerId = (originalLead.userProfileId as any).user?._id?.toString?.();
     if (leadOwnerId !== clientUserId) {
       throw new Error('Unauthorized: Only the case owner can repost this lead');
     }
@@ -982,31 +985,41 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
         .join('');
     }
 
-    // 5️⃣ Commit transaction
-    await session.commitTransaction();
-    session.endSession();
-
     // 6️⃣ Send email to client about reposted lead
     const service = await Service.findById(newLead.serviceId).select('name');
     const userProfile = originalLead.userProfileId as any;
 
-    const emailData = {
-      name: userProfile?.name,
-      caseType: service?.name || 'Not specified',
-      leadAnswer: formattedAnswers || 'No selection',
-      preferredContactTime: newLead.leadPriority || 'not sure',
-      additionalDetails: newLead.additionalDetails || '',
-      dashboardUrl: `${config.client_url}/client/dashboard/my-cases`,
-      appName: 'The Law App',
-      email: 'support@yourdomain.com',
-    };
 
-    await sendEmail({
-      to: (userProfile.user as IUser)?.email,
-      subject: "You've successfully reposted your legal request",
-      data: emailData,
-      emailTemplate: 'welcome_Lead_submission',
-    });
+    // 5️⃣ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    if (userProfile?.user?.email) {
+
+
+
+      const emailData = {
+        name: userProfile?.name,
+        caseType: service?.name || 'Not specified',
+        leadAnswer: formattedAnswers || 'No selection',
+        preferredContactTime: newLead.leadPriority || 'not sure',
+        additionalDetails: newLead.additionalDetails || '',
+        dashboardUrl: `${config.client_url}/client/dashboard/my-cases`,
+        appName: 'The Law App',
+        email: 'support@yourdomain.com',
+      };
+
+      await sendEmail({
+        to: (userProfile.user as IUser)?.email,
+        subject: "You've successfully reposted your legal request",
+        data: emailData,
+        emailTemplate: 'welcome_Lead_submission',
+      });
+
+
+
+
+    }
 
     return newLead;
 
