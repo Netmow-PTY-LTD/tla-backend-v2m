@@ -244,6 +244,9 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
 
 
+
+
+
 // ------------------ Get all Lead for admin dahsobard ------------------
 
 const getAllLeadForAdminDashboardFromDB = async (
@@ -300,214 +303,6 @@ const getAllLeadForAdminDashboardFromDB = async (
 
 //  --------------  Get all lead for lawyer dashboard ----------
 
-
-// const getAllLeadFromDB = async (
-//   userId: string,
-//   query: Record<string, unknown>,
-// ) => {
-//   const user = await UserProfile.findOne({ user: userId }).select(
-//     '_id serviceIds',
-//   );
-//   if (!user) return null;
-
-
-//   const conditionalExcludeFields = [
-//     'credits',
-//     'keyword',
-//     'leadSubmission',
-//     'location',
-//     'services',
-//     'spotlight',
-//     'view',
-//     'sort',
-//   ];
-
-//   let parsedKeyword: any = {};
-//   try {
-//     if (typeof query.searchKeyword === 'string') {
-//       parsedKeyword = JSON.parse(query.searchKeyword);
-//     }
-//   } catch (err) {
-//     console.error('Invalid JSON in searchKeyword:', err);
-//   }
-
-//   //  --------------- dont remove it , it will use next time -------------------------
-//   const isKeywordEmpty =
-//     !parsedKeyword || typeof parsedKeyword !== 'object' || !Object.keys(parsedKeyword).length;
-
-//   const filteredQuery = Object.fromEntries(
-//     Object.entries(query).filter(([key]) => {
-//       if (key === 'searchKeyword') return false;
-//       return !conditionalExcludeFields.includes(key) || !(key in parsedKeyword);
-//     }),
-//   );
-
-//   if (parsedKeyword?.sort) {
-//     filteredQuery.sort = parsedKeyword.sort;
-//   }
-
-//   let services: any[] = [];
-
-//   if (
-//     Array.isArray(parsedKeyword?.services) &&
-//     parsedKeyword.services.length > 0
-//   ) {
-//     services = parsedKeyword.services;
-//   } else if (Array.isArray(user.serviceIds) && user.serviceIds.length > 0) {
-//     services = user.serviceIds;
-//   }
-
-//   const userObjectId = new mongoose.Types.ObjectId(user._id.toString());
-
-//   const baseFilter: any = {
-//     deletedAt: null,
-//     serviceId: { $in: services.length ? services : user.serviceIds },
-//     status: "approved",
-//     userProfileId: { $ne: userObjectId },
-//     responders: { $ne: userObjectId }, // exclude leads where 
-
-//   };
-
-
-//   // ---------------- CREDIT RANGE FILTER -----------------
-
-//   if (Array.isArray(parsedKeyword?.credits) && parsedKeyword.credits.length > 0) {
-//     const creditFilter = buildCreditFilter(parsedKeyword.credits);
-//     Object.assign(baseFilter, creditFilter);
-//   }
-
-
-//   // ---------------- LEAD SUBMISSION FILTER -----------------
-
-//   if (parsedKeyword?.['leadSubmission']) {
-//     const now = new Date();
-//     const submissionRanges: Record<string, number> = {
-//       last_1_hour: 1,
-//       last_24_hours: 24,
-//       last_48_hours: 48,
-//       last_3_days: 72,
-//       last_7_days: 168,
-//       last_14_days: 336,
-//     };
-
-//     const hours = submissionRanges[parsedKeyword['leadSubmission']];
-//     if (hours) {
-//       baseFilter.createdAt = { $gte: new Date(now.getTime() - hours * 60 * 60 * 1000) };
-//     }
-//   }
-
-//   const leadQuery = new QueryBuilder(
-//     Lead.find({
-//     ...baseFilter,
-//     responders: { $ne: userObjectId }, // Exclude leads where current user has already responded
-//   })
-//       // .populate('userProfileId')
-//       .populate({
-//         path: 'userProfileId',
-//         populate: 'user'
-//       })
-//       .populate('serviceId')
-//       .populate('responders')
-//       .lean(),
-//     filteredQuery,
-//   )
-//     .filter()
-//     .sort()
-//     .paginate()
-//     .fields();
-
-//   let meta = await leadQuery.countTotal();
-//   let data = await leadQuery.modelQuery;
-
-
-//   if (parsedKeyword?.keyword?.trim()) {
-//     const keyword = parsedKeyword.keyword.trim().toLowerCase();
-//     data = data?.filter((lead) => {
-//       const profile = lead?.userProfileId as unknown as IUserProfile;
-//       return profile?.name?.toLowerCase().includes(keyword);
-//     });
-
-//     // Recalculate pagination meta based on filtered data
-//     const page = Number(leadQuery?.query?.page) || 1;
-//     const limit = Number(leadQuery?.query?.limit) || 10;
-//     const total = data.length;
-//     const totalPage = Math.ceil(total / limit);
-
-//     meta = {
-//       page,
-//       limit,
-//       total,
-//       totalPage,
-//     };
-
-//     // Paginate filtered data manually
-//     const startIndex = (page - 1) * limit;
-//     const endIndex = startIndex + limit;
-//     data = data.slice(startIndex, endIndex);
-
-//   }
-
-
-//   const result = await Promise.all(
-//     data.map(async (lead) => {
-//       // const existingResponse = await LeadResponse.exists({
-//       //   leadId: lead._id,
-//       //   responseBy: user._id,
-//       // });
-
-//       return {
-//         ...lead,
-//         credit: customCreditLogic(lead?.credit as number),
-//         // isContact: !!existingResponse,
-//       };
-//     }),
-//   );
-
-//   // const result = (
-//   //   await Promise.all(
-//   //     data.map(async (lead) => {
-//   //       const existingResponse = await LeadResponse.exists({
-//   //         leadId: lead._id,
-//   //         responseBy: user._id,
-//   //       });
-
-//   //       if (existingResponse) return null; // ❌ Exclude this lead
-
-//   //       return {
-//   //         ...lead,
-//   //         credit: customCreditLogic(lead?.credit as number),
-//   //         isContact: false,
-//   //       };
-//   //     }),
-//   //   )
-//   // ).filter(Boolean); // ✅ Remove all `null` entries
-
-
-//   // // Recalculate pagination meta based on filtered data
-//   // const page = Number(leadQuery?.query?.page) || 1;
-//   // const limit = Number(leadQuery?.query?.limit) || 10;
-//   // const total = result.length;
-//   // const totalPage = Math.ceil(total / limit);
-
-//   // meta = {
-//   //   page,
-//   //   limit,
-//   //   total,
-//   //   totalPage,
-//   // };
-
-//   // // Paginate filtered data manually
-//   // const startIndex = (page - 1) * limit;
-//   // const endIndex = startIndex + limit;
-//   // const paginatedResult = result.slice(startIndex, endIndex);
-
-
-//   return {
-//     meta,
-//     // data: paginatedResult,
-//     data: result,
-//   };
-// };
 
 
 type TMeta = {
@@ -719,7 +514,7 @@ const getMyAllLeadFromDB = async (
       .populate({
         path: 'responders',
         select: 'profilePicture name user'
-      }) .populate('hiredLawyerRating')
+      }).populate('hiredLawyerRating')
       .lean(),
     query,
   )
@@ -968,7 +763,7 @@ export const leadClosedIntoDB = async (
   // Fetch the lead
   const lead = await Lead.findById(leadId);
   if (!lead) {
-   
+
     return { success: false, message: "Case not found" };
   }
 
@@ -1000,6 +795,242 @@ export const leadClosedIntoDB = async (
 
 
 
+
+//  repost data ---
+
+// const repostLead = async (leadId: string) => {
+//   const session = await mongoose.startSession();
+
+//   try {
+//     session.startTransaction();
+
+//     // 1️⃣ Fetch original lead
+//     const originalLead = await Lead.findById(leadId).session(session);
+//     if (!originalLead) {
+//       await session.abortTransaction();
+//       session.endSession();
+//       throw new Error('Original lead not found');
+//     }
+
+//     // 2️⃣ Duplicate Lead
+//     const newLeadData = {
+//       userProfileId: originalLead.userProfileId,
+//       countryId: originalLead.countryId,
+//       serviceId: originalLead.serviceId,
+//       additionalDetails: originalLead.additionalDetails,
+//       budgetAmount: originalLead.budgetAmount,
+//       locationId: originalLead.locationId,
+//       credit: originalLead.credit,
+//       leadPriority: originalLead.leadPriority,
+//       // reset statuses
+//       status: 'approved',
+//       hireStatus: 'not_requested',
+//       isHired: false,
+//       hiredLawyerId: null,
+//       hiredResponseId: null,
+//       hiredBy: null,
+//       hiredAt: null,
+//       closeStatus: 'open',
+//       isClosed: false,
+//       closedBy: null,
+//       leadClosedReason: null,
+//       closedAt: null,
+//       hiredLawyerRating: null,
+//       responders: [],
+//       repostedFrom: originalLead._id,
+//     };
+
+//     const [newLead] = await Lead.create([newLeadData], { session });
+
+//     // 3️⃣ Duplicate LeadServiceAnswers
+//     const leadAnswers = await LeadServiceAnswer.find({ leadId }).session(session);
+//     if (leadAnswers.length > 0) {
+//       const newAnswers = leadAnswers.map((ans) => ({
+//         leadId: newLead._id,
+//         serviceId: ans.serviceId,
+//         questionId: ans.questionId,
+//         optionId: ans.optionId,
+//         isSelected: ans.isSelected,
+//         idExtraData: ans.idExtraData || '',
+//       }));
+
+//       await LeadServiceAnswer.insertMany(newAnswers, { session });
+//     }
+
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     return newLead;
+
+//   } catch (err) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     console.error('Error reposting case:', err);
+//     throw err;
+//   }
+// };
+
+
+
+
+
+const repostLead = async (leadId: string, clientUserId: string) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    // 1️⃣ Fetch original lead and user profile
+    const originalLead = await Lead.findById(leadId)
+      .populate('userProfileId')
+      .session(session);
+
+    if (!originalLead) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new Error('Original lead not found');
+    }
+
+    // 2️⃣ Guard: only the client who created the lead can repost
+    const leadOwnerId = (originalLead.userProfileId as any).user?.toString?.();
+    if (leadOwnerId !== clientUserId) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new Error('Unauthorized: Only the lead owner can repost this lead');
+    }
+
+    // 3️⃣ Duplicate Lead
+    const newLeadData = {
+      userProfileId: originalLead.userProfileId,
+      countryId: originalLead.countryId,
+      serviceId: originalLead.serviceId,
+      additionalDetails: originalLead.additionalDetails,
+      budgetAmount: originalLead.budgetAmount,
+      locationId: originalLead.locationId,
+      credit: originalLead.credit,
+      leadPriority: originalLead.leadPriority,
+      status: 'approved',
+      hireStatus: 'not_requested',
+      isHired: false,
+      hiredLawyerId: null,
+      hiredResponseId: null,
+      hiredBy: null,
+      hiredAt: null,
+      closeStatus: 'open',
+      isClosed: false,
+      closedBy: null,
+      leadClosedReason: null,
+      closedAt: null,
+      hiredLawyerRating: null,
+      responders: [],
+      repostedFrom: originalLead._id,
+    };
+
+    const [newLead] = await Lead.create([newLeadData], { session });
+
+    // 4️⃣ Duplicate LeadServiceAnswers
+    const leadAnswers = await LeadServiceAnswer.find({ leadId }).session(session);
+    let formattedAnswers = '';
+
+    if (leadAnswers.length > 0) {
+      const newAnswers = leadAnswers.map((ans) => ({
+        leadId: newLead._id,
+        serviceId: ans.serviceId,
+        questionId: ans.questionId,
+        optionId: ans.optionId,
+        isSelected: ans.isSelected,
+        idExtraData: ans.idExtraData || '',
+      }));
+
+      await LeadServiceAnswer.insertMany(newAnswers, { session });
+
+      // Prepare formatted answers for email
+      const questionIds = [...new Set(leadAnswers.map(a => a.questionId.toString()))];
+      const optionIds = [...new Set(leadAnswers.map(a => a.optionId.toString()))];
+
+      const questionDocs = await ServiceWiseQuestion.find({ _id: { $in: questionIds } })
+        .select('question')
+        .session(session)
+        .lean();
+
+      const optionDocs = await Option.find({ _id: { $in: optionIds } })
+        .select('name')
+        .session(session)
+        .lean();
+
+      const questionMap = new Map(questionDocs.map(q => [q._id.toString(), q.question]));
+      const optionMap = new Map(optionDocs.map(opt => [opt._id.toString(), opt.name]));
+
+      formattedAnswers = leadAnswers
+        .filter(ans => ans.isSelected)
+        .map(ans => {
+          const questionText = questionMap.get(ans.questionId.toString()) || 'Unknown Question';
+          const optionText = optionMap.get(ans.optionId.toString()) || 'Unknown Option';
+          return `
+            <p style="margin-bottom: 8px;">
+              <strong>${questionText}</strong><br/>
+              <span>${optionText}</span>
+            </p>
+          `;
+        })
+        .join('');
+    }
+
+    // 5️⃣ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // 6️⃣ Send email to client about reposted lead
+    const service = await Service.findById(newLead.serviceId).select('name');
+    const userProfile = originalLead.userProfileId as any;
+
+    const emailData = {
+      name: userProfile?.name,
+      caseType: service?.name || 'Not specified',
+      leadAnswer: formattedAnswers || 'No selection',
+      preferredContactTime: newLead.leadPriority || 'not sure',
+      additionalDetails: newLead.additionalDetails || '',
+      dashboardUrl: `${config.client_url}/client/dashboard/my-cases`,
+      appName: 'The Law App',
+      email: 'support@yourdomain.com',
+    };
+
+    await sendEmail({
+      to: (userProfile.user as IUser)?.email,
+      subject: "You've successfully reposted your legal request",
+      data: emailData,
+      emailTemplate: 'welcome_Lead_submission',
+    });
+
+    return newLead;
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Error reposting case:', err);
+    throw err;
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const leadService = {
   CreateLeadIntoDB,
   getAllLeadFromDB,
@@ -1008,5 +1039,6 @@ export const leadService = {
   deleteLeadFromDB,
   getMyAllLeadFromDB,
   getAllLeadForAdminDashboardFromDB,
-  leadClosedIntoDB
+  leadClosedIntoDB,
+  repostLead
 };

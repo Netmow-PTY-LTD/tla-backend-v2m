@@ -2,87 +2,6 @@ import mongoose, { Schema } from 'mongoose';
 import { ILead } from '../interfaces/lead.interface';
 import { LEAD_STATUS_ENUM, PRIORITY_OPTIONS } from '../constant/lead.constant';
 
-// const leadSchema = new Schema<ILead>(
-//   {
-//     userProfileId: {
-//       type: Schema.Types.ObjectId,
-//       ref: 'UserProfile',
-//       required: true,
-//     },
-//     countryId: {
-//       type: Schema.Types.ObjectId,
-//       ref: 'Country',
-//       required: true,
-//     },
-//     serviceId: {
-//       type: Schema.Types.ObjectId,
-//       ref: 'Service',
-//       required: true,
-//     },
-
-//     additionalDetails: {
-//       type: String,
-//       default: '',
-//     },
-//     locationId: {
-//       type: Schema.Types.ObjectId,
-//       ref: 'ZipCode',
-//       required: true,
-//     },
-//     budgetAmount: {
-//       type: Number,
-//       default: 0,
-//     },
-//     credit: {
-//       type: Number,
-//       default: 0,
-//     },
-//     status: {
-//       type: String,
-//       enum: LEAD_STATUS_ENUM,
-//       default: 'approved',
-//     },
-//     leadPriority: {
-//       type: String,
-//       enum: PRIORITY_OPTIONS,
-//       default: 'not_sure',
-//     },
-//     responders: {
-//       type: [Schema.Types.ObjectId],
-//       ref: 'UserProfile',
-//       default: [],
-//     },
-//     leadClosedReason: {
-//       type: String,
-//       default: null
-//     },
-//     isHired:{
-//         type:Boolean,
-//         default:false
-//     },
-//     deletedAt: {
-//       type: Date,
-//       default: null,
-//     },
-//   },
-//   {
-//     timestamps: true,
-//     versionKey: false,
-//   },
-// );
-
-
-
-
-
-/* 
---------------------------------------------------
-
- Lead schema - new logic -2
-
------------------------------------------------------
-
-*/
 
 const leadSchema = new Schema<ILead>(
   {
@@ -209,6 +128,12 @@ const leadSchema = new Schema<ILead>(
       ref: 'Rating',
       default:null
     },
+     repostedFrom: {
+      type: Schema.Types.ObjectId,
+      ref: 'Lead',
+      default:null
+    },
+
 
     deletedAt: {
       type: Date,
