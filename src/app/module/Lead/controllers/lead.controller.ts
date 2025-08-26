@@ -297,6 +297,24 @@ const closeLead = catchAsync(async (req, res) => {
 
 
 
+//  success
+
+const repostedLead = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const leadId = req.body?.leadId;
+  const result = await leadService.repostLead(userId, leadId);
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: 'Case repost successfully',
+    data: result,
+  });
+});
+
+
+
+
+
 export const leadController = {
   createLead,
   getSingleLead,
@@ -305,5 +323,6 @@ export const leadController = {
   getAllLead,
   getMyAllLead,
   getAllLeadForAdmin,
-  closeLead
+  closeLead,
+  repostedLead
 };

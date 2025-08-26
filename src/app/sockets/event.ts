@@ -1,6 +1,7 @@
 
 import { Server, Socket } from 'socket.io';
 import { ResponseWiseChatMessage } from '../module/View/models/chatMessage.model';
+import { createNotification } from '../module/Notification/utils/createNotification';
 
 
 export const registerNotificationEvents = (socket: Socket, io: Server) => {
@@ -143,7 +144,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
         message,
       });
 
-   
+
       // Populate after creation
       // savedMessage = await savedMessage.populate({
       //   path: 'from',
@@ -175,13 +176,48 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       ]);
 
 
-      
+
       const roomName = `response:${responseId}`;
       io.to(roomName).emit("message", savedMessage);
 
       // Emit to global-room for toaster
       io.to('global-room').emit(`toast:${to}`, savedMessage);
       console.log('toast:${to }', `toast:${to}`)
+
+
+
+      //   notifcation create  -----------------
+
+
+      // 4. Create notification for the lawyer
+      await createNotification({
+        userId: to,
+        toUser: from,
+        title: "You have received a new message",
+        message: message,
+        module: 'response',
+        type: 'create',
+        link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+
+      })
+
+      // 📡 --------------- Emit socket notifications -----------------------------------------
+      io.to(`user:${to}`).emit('notification', {
+        userId: to,
+        toUser: from,
+        title: "You have received a new message",
+        message: message,
+        module: 'response',
+        type: 'create',
+        link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+
+      });
+
+
+
+
+
+
 
     } catch (err) {
       console.error("❌ Failed to save message", err);
@@ -216,6 +252,6 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
 
 
 
-    
+
   });
 };

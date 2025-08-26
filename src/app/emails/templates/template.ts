@@ -691,7 +691,7 @@ ${footerDesign}
 //   paracticeArea: string;
 //   dashboardUrl?: string;
 // }) => {
-//   const { name, paracticeArea, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+//   const { name, paracticeArea, dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard` } = data;
 //   const appName = 'TheLawApp';
 //   return `
 // <!DOCTYPE html>
@@ -818,7 +818,7 @@ export const welcomeLawyerEmail = (data: {
   paracticeArea: string;
   dashboardUrl?: string;
 }) => {
-  const { name, paracticeArea, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+  const { name, paracticeArea, dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard` } = data;
   const appName = 'TheLawApp';
   return `
 ${headerDesign}
@@ -890,7 +890,7 @@ ${headerDesign}
 //   defaultPassword: string;
 //   dashboardUrl?: string;
 // }) => {
-//   const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+//   const { name, email, defaultPassword, dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard` } = data;
 //   const appName = 'TheLawApp';
 //   return `
 // <!DOCTYPE html>
@@ -1014,7 +1014,7 @@ export const welcomeClientEmail = (data: {
   defaultPassword: string;
   dashboardUrl?: string;
 }) => {
-  const { name, email, defaultPassword, dashboardUrl = "https://app.thelawapp.com/dashboard" } = data;
+  const { name, email, defaultPassword, dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard` } = data;
   // const appName = 'TheLawApp';
   return `
 ${headerDesign}
@@ -1817,6 +1817,55 @@ ${headerDesign}
      ${footerDesign}
   `;
 };
+
+
+
+export const lawyerApprval = (data: {
+  name: string;
+  dashboardUrl: string
+}) => {
+  const { name, dashboardUrl = `${process.env.CLIENT_SITE_URL}/lawyer/dashboard` } = data;
+
+  return `
+${headerDesign}
+       <!-- Greeting -->
+<tr>
+  <td style="font-size: 20px; font-weight: bold; padding: 10px 20px;">
+    Hi ${name},
+  </td>
+</tr>
+
+<!-- Approval Message -->
+<tr>
+  <td style="font-size: 16px; padding: 0 20px; line-height: 1.6; color: #333;">
+    Congratulations! 🎉  
+    Your profile has been successfully <strong>approved</strong> on <strong>TheLawApp</strong>.  
+    You can now log in to your dashboard and start exploring opportunities.
+  </td>
+</tr>
+
+<!-- CTA Button -->
+<tr>
+  <td align="center" style="padding: 25px 20px;">
+    <a href="${dashboardUrl}"
+      style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+      Go to Dashboard
+    </a>
+  </td>
+</tr>
+
+<!-- Signoff -->
+<tr>
+  <td style="padding-top: 20px; font-size: 16px; padding: 0 20px;">
+    Best Regards, <br />
+    <strong style="color: #f68c1f;">TheLawApp Team</strong>
+  </td>
+</tr>
+      ${footerDesign}
+`
+
+};
+
 
 
 

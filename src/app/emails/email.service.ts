@@ -2,7 +2,7 @@
 
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/utils/settingsConfig";
-import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
+import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 
 interface SendEmailParams {
@@ -67,6 +67,11 @@ export const sendEmail = async ({
 
   if (emailTemplate == "lawyerPromotion") {
     html = congratulationsLawyerPromotion(data)
+
+  }
+
+  if (emailTemplate == "lawyer_approved") {
+    html = lawyerApprval(data)
 
   }
 
