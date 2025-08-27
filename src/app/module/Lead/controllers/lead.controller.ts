@@ -235,6 +235,33 @@ const getMyAllLead = catchAsync(async (req, res) => {
 
 
 //  -------------- For admin Dashboard  ---------------
+// const getAllLeadForAdmin = catchAsync(async (req, res) => {
+//   const userId = req.user.userId;
+//   const timer = startQueryTimer();
+//   const query = req.query
+//   const result = await leadService.getAllLeadForAdminDashboardFromDB(userId, query);
+//   const queryTime = timer.endQueryTimer();
+//   if (!result?.data.length) {
+
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.OK,
+//       success: false,
+//       message: 'Case  not found.',
+//       queryTime,
+//       data: [],
+//     });
+//   }
+
+//   sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: 'All Case is retrieved successfully',
+//     queryTime,
+//     pagination: result?.meta,
+//     data: result?.data,
+//   });
+// });
+
 const getAllLeadForAdmin = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const timer = startQueryTimer();

@@ -186,17 +186,109 @@ const getTransactionHistory = async (userId: string) => {
   return transactionHistory;
 };
 
-const getAllTransactionHistory = async () => {
-  const transactionHistory = await Transaction.find({})
-    .sort({ createdAt: -1 })
-    .populate({
-      path: 'userId',
-      populate: {
-        path: 'profile'
-      }
-    })
-    .populate('creditPackageId');
-  return transactionHistory
+// const getAllTransactionHistory = async () => {
+//   const transactionHistory = await Transaction.find({})
+//     .sort({ createdAt: -1 })
+//     .populate({
+//       path: 'userId',
+//       populate: {
+//         path: 'profile'
+//       }
+//     })
+//     .populate('creditPackageId');
+//   return transactionHistory
+// };
+
+
+const getAllTransactionHistory = async (query: Record<string, any>) => {
+  const page = Math.max(1, parseInt(query.page as string, 10) || 1);
+  const limit = Math.max(1, parseInt(query.limit as string, 10) || 10);
+  const sortBy = query.sortBy || 'createdAt';
+  const sortOrder = query.sortOrder === 'asc' ? 1 : -1;
+  const search = query.search;
+  const filters = query.filters || {};
+
+  const matchStage: Record<string, any> = { ...filters };
+
+  const pipeline: any[] = [
+    { $match: matchStage },
+
+    // Populate userId and nested profile
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+    {
+      $lookup: {
+        from: 'userprofiles',
+        localField: 'user.profile',
+        foreignField: '_id',
+        as: 'user.profile',
+      },
+    },
+    { $unwind: { path: '$user.profile', preserveNullAndEmptyArrays: true } },
+
+    // Populate creditPackageId
+    {
+      $lookup: {
+        from: 'creditpackages',
+        localField: 'creditPackageId',
+        foreignField: '_id',
+        as: 'creditPackage',
+      },
+    },
+    { $unwind: { path: '$creditPackage', preserveNullAndEmptyArrays: true } },
+  ];
+
+  // Apply nested search
+  if (search) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { 'user.email': { $regex: search, $options: 'i' } },
+          { 'user.profile.address': { $regex: search, $options: 'i' } },
+          { 'user.profile.phone': { $regex: search, $options: 'i' } },
+          { 'user.profile.name': { $regex: search, $options: 'i' } },
+          { transactionId: { $regex: search, $options: 'i' } },
+          { invoiceId: { $regex: search, $options: 'i' } },
+          { couponCode: { $regex: search, $options: 'i' } },
+        ],
+      },
+    });
+  }
+
+  // Use $facet to get both total count and paginated data
+  pipeline.push({
+    $facet: {
+      metadata: [{ $count: 'total' }],
+      data: [
+        { $sort: { [sortBy]: sortOrder } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+      ],
+    },
+  });
+
+  const result = await Transaction.aggregate(pipeline);
+
+  const total = result[0]?.metadata[0]?.total || 0;
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage,
+    },
+    data: result[0]?.data || [],
+  };
 };
 
 
