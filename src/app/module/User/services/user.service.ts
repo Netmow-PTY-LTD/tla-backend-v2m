@@ -28,7 +28,7 @@ import QueryBuilder from '../../../builder/QueryBuilder';
  */
 
 
-const  getAllUserIntoDB = async (query: Record<string, any>) => {
+const getAllUserIntoDB = async (query: Record<string, any>) => {
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
@@ -416,10 +416,40 @@ export const softDeleteUserIntoDB = async (id: string) => {
   }
 };
 
+
+
+export const updateDefaultProfileIntoDB = async (
+  userId: string,
+  file: Express.Multer.File
+) => {
+  if (!file?.buffer) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Invalid file');
+  }
+
+  // Upload file to Spaces
+  let uploadedUrl: string;
+  try {
+    uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
+  } catch (err) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'File upload failed');
+  }
+
+  // Update profilePicture in user profile
+  const updatedProfile = await UserProfile.findOneAndUpdate(
+    { user: userId },
+    { profilePicture: uploadedUrl },
+    { new: true, runValidators: true }
+  );
+
+  return updatedProfile;
+};
+
+
 export const UserProfileService = {
   updateProfileIntoDB,
   getSingleUserProfileDataIntoDB,
   getUserProfileInfoIntoDB,
   getAllUserIntoDB,
   softDeleteUserIntoDB,
+  updateDefaultProfileIntoDB
 };
