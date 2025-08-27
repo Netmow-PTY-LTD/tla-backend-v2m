@@ -882,8 +882,8 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
     // 1️⃣ Fetch original lead and user profile
     const originalLead = await Lead.findById(leadId)
       .populate({
-        path:'userProfileId',
-        populate:'user'
+        path: 'userProfileId',
+        populate: 'user'
       })
       .session(session);
 
@@ -931,8 +931,8 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
     // ✅ 4️⃣ Mark original lead as requested
     await Lead.findByIdAndUpdate(
       leadId,
-      { $set: { isRequested: true } },
-      { session }
+      { $set: { isReposted: true } }, // <-- FIXED HERE ✅
+      { session, new: true }
     );
 
 
