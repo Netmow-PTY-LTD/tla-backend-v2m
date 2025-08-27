@@ -78,11 +78,33 @@ const updateSingleZipCode = catchAsync(async (req, res) => {
   });
 });
 
+// const getAllZipCode = catchAsync(async (req, res) => {
+//   const query = req.query;
+//   const result = await zipCodeService.getAllZipCodeFromDB(query);
+
+//   if (!result.length) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.OK,
+//       success: false,
+//       message: 'ZipCode  not found.',
+//       data: [],
+//     });
+//   }
+
+//   sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: 'All ZipCode is retrieved successfully',
+//     data: result,
+//   });
+// });
+
+
 const getAllZipCode = catchAsync(async (req, res) => {
   const query = req.query;
   const result = await zipCodeService.getAllZipCodeFromDB(query);
 
-  if (!result.length) {
+  if (!result.data?.length) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
@@ -95,7 +117,8 @@ const getAllZipCode = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'All ZipCode is retrieved successfully',
-    data: result,
+    pagination:result.meta,
+    data: result.data,
   });
 });
 
