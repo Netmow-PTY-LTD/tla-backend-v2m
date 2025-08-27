@@ -113,13 +113,23 @@ const getTransactionHistory = catchAsync(async (req, res) => {
   });
 });
 
+// const getAllTransactionHistory = catchAsync(async (req, res) => {
+//   const result = await CreditPaymentService.getAllTransactionHistory();
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: 'Transaction history fetched',
+//     data: result,
+//   });
+// });
 const getAllTransactionHistory = catchAsync(async (req, res) => {
-  const result = await CreditPaymentService.getAllTransactionHistory();
+  const result = await CreditPaymentService.getAllTransactionHistory(req.query);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Transaction history fetched',
-    data: result,
+    pagination:result.meta,
+    data: result.data,
   });
 });
 
