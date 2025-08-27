@@ -442,6 +442,191 @@ const getAllLeadForAdminDashboardFromDB = async (
 
 
 
+const getAllClientWiseLeadFromDB = async (
+  clientId: string,
+  query: Record<string, any>
+) => {
+  // Find the client's profile to get its _id and serviceIds
+  const clientProfile = await UserProfile.findOne({ user: clientId }).select(
+    "_id serviceIds"
+  );
+
+  // If no profile found, return empty data
+  if (!clientProfile) {
+    return {
+      meta: { total: 0, page: 1, limit: 10, totalPage: 0 },
+      data: [],
+    };
+  }
+
+  const { sortBy, sortOrder = "desc", search, filters } = query;
+
+  const page = Math.max(1, parseInt(query.page as string, 10) || 1);
+  const limit = Math.max(1, parseInt(query.limit as string, 10) || 10);
+  const skip = (page - 1) * limit;
+
+  // Match only leads where userProfileId belongs to this client's profile
+  const matchStage: Record<string, any> = {
+    userProfileId: clientProfile._id,
+  };
+
+  // Add dynamic filters if provided
+  if (filters) {
+    Object.keys(filters).forEach((key) => {
+      matchStage[key] = filters[key];
+    });
+  }
+
+  // Numeric search handling
+  const numericSearch = !isNaN(Number(search)) ? Number(search) : null;
+
+  // Build aggregation pipeline
+  const pipeline: any[] = [
+    { $match: matchStage },
+
+    // Lookup userProfile
+    {
+      $lookup: {
+        from: "userprofiles",
+        localField: "userProfileId",
+        foreignField: "_id",
+        as: "userProfileId",
+      },
+    },
+    { $unwind: { path: "$userProfileId", preserveNullAndEmptyArrays: true } },
+
+    // Lookup user inside userProfile
+    {
+      $lookup: {
+        from: "users",
+        localField: "userProfileId.user",
+        foreignField: "_id",
+        as: "userProfileId.user",
+      },
+    },
+    { $unwind: { path: "$userProfileId.user", preserveNullAndEmptyArrays: true } },
+
+    // Lookup service
+    {
+      $lookup: {
+        from: "services",
+        localField: "serviceId",
+        foreignField: "_id",
+        as: "serviceId",
+      },
+    },
+    { $unwind: { path: "$serviceId", preserveNullAndEmptyArrays: true } },
+
+    // Lookup country
+    {
+      $lookup: {
+        from: "countries",
+        localField: "countryId",
+        foreignField: "_id",
+        as: "countryId",
+      },
+    },
+    { $unwind: { path: "$countryId", preserveNullAndEmptyArrays: true } },
+
+    // Lookup location (ZipCode)
+    {
+      $lookup: {
+        from: "zipcodes",
+        localField: "locationId",
+        foreignField: "_id",
+        as: "locationId",
+      },
+    },
+    { $unwind: { path: "$locationId", preserveNullAndEmptyArrays: true } },
+
+    // Lookup lead responses for isContact flag
+    {
+      $lookup: {
+        from: "leadresponses",
+        let: { leadId: "$_id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$leadId", "$$leadId"] } } },
+          { $limit: 1 },
+        ],
+        as: "responses",
+      },
+    },
+    {
+      $addFields: {
+        isContact: { $gt: [{ $size: "$responses" }, 0] },
+        credit: { $ifNull: ["$credit", 0] },
+      },
+    },
+
+    // Search filter
+    ...(search
+      ? [
+          {
+            $match: {
+              $or: [
+                { additionalDetails: { $regex: search, $options: "i" } },
+                { status: { $regex: search, $options: "i" } },
+                { leadPriority: { $regex: search, $options: "i" } },
+                { hireStatus: { $regex: search, $options: "i" } },
+                { closeStatus: { $regex: search, $options: "i" } },
+                { "serviceId.name": { $regex: search, $options: "i" } },
+                { "countryId.name": { $regex: search, $options: "i" } },
+                { "locationId.zipCode": { $regex: search, $options: "i" } },
+                { "locationId.city": { $regex: search, $options: "i" } },
+                ...(numericSearch !== null ? [{ budgetAmount: numericSearch }] : []),
+              ],
+            },
+          },
+        ]
+      : []),
+
+    // Facet for data & total count in one query
+    {
+      $facet: {
+        data: [
+          { $sort: sortBy ? { [sortBy]: sortOrder === "asc" ? 1 : -1 } : { createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+          {
+            $addFields: {
+              credit: { $ifNull: ["$credit", 0] },
+            },
+          },
+        ],
+        meta: [{ $count: "total" }],
+      },
+    },
+    {
+      $addFields: {
+        meta: {
+          $arrayElemAt: ["$meta", 0],
+        },
+      },
+    },
+    {
+      $addFields: {
+        "meta.page": page,
+        "meta.limit": limit,
+        "meta.totalPage": {
+          $ceil: { $divide: ["$meta.total", limit] },
+        },
+      },
+    },
+  ];
+
+  // Execute single aggregation
+  const result = await Lead.aggregate(pipeline);
+
+  return {
+    meta: result[0]?.meta || { total: 0, page, limit, totalPage: 0 },
+    data: result[0]?.data.map((lead: any) => ({
+      ...lead,
+      credit: customCreditLogic(lead.credit),
+    })) || [],
+  };
+};
+
+
 
 
 //  --------------  Get all lead for lawyer dashboard ----------
@@ -1202,5 +1387,6 @@ export const leadService = {
   getMyAllLeadFromDB,
   getAllLeadForAdminDashboardFromDB,
   leadClosedIntoDB,
-  repostLead
+  repostLead,
+  getAllClientWiseLeadFromDB
 };

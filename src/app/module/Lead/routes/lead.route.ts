@@ -20,6 +20,8 @@ router.post(
 
 router.get('/list', auth(USER_ROLE.ADMIN, USER_ROLE.USER), leadController.getAllLead);
 router.get('/list/admin', auth(USER_ROLE.ADMIN), leadController.getAllLeadForAdmin);
+router.get('/list/:clientId/client', auth(USER_ROLE.ADMIN), leadController.getAllClientWiseLead);
+
 
 router.get(
   '/my',
