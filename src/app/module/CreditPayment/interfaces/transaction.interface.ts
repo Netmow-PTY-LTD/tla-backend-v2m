@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 
 export interface ITransaction {
+  transactionId: string;
   userId: Types.ObjectId;
   type: 'purchase' | 'refund' | 'usage';
   creditPackageId?: Types.ObjectId;
