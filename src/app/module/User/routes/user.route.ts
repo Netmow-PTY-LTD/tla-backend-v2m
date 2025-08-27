@@ -66,4 +66,11 @@ router.patch(
 );
 
 
+router.patch(
+  '/update/default/:userId',
+  auth(USER_ROLE.ADMIN),
+  upload.single('file'), // single file
+ userProfileController.updateDefaultProfile
+);
+
 export const UserProfileRouter = router;
