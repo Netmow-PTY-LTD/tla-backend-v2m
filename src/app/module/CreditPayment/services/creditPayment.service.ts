@@ -219,20 +219,20 @@ const getAllTransactionHistory = async (query: Record<string, any>) => {
         from: 'users',
         localField: 'userId',
         foreignField: '_id',
-        as: 'user',
+        as: 'userId',
       },
     },
-    { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$userId', preserveNullAndEmptyArrays: true } },
 
     {
       $lookup: {
         from: 'userprofiles',
-        localField: 'user.profile',
+        localField: 'userId.profile',
         foreignField: '_id',
-        as: 'user.profile',
+        as: 'userId.profile',
       },
     },
-    { $unwind: { path: '$user.profile', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$userId.profile', preserveNullAndEmptyArrays: true } },
 
     // Populate creditPackageId
     {
@@ -240,10 +240,10 @@ const getAllTransactionHistory = async (query: Record<string, any>) => {
         from: 'creditpackages',
         localField: 'creditPackageId',
         foreignField: '_id',
-        as: 'creditPackage',
+        as: 'creditPackageId',
       },
     },
-    { $unwind: { path: '$creditPackage', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$creditPackageId', preserveNullAndEmptyArrays: true } },
   ];
 
   // Apply nested search
@@ -251,10 +251,11 @@ const getAllTransactionHistory = async (query: Record<string, any>) => {
     pipeline.push({
       $match: {
         $or: [
-          { 'user.email': { $regex: search, $options: 'i' } },
-          { 'user.profile.address': { $regex: search, $options: 'i' } },
-          { 'user.profile.phone': { $regex: search, $options: 'i' } },
-          { 'user.profile.name': { $regex: search, $options: 'i' } },
+          { 'userId.email': { $regex: search, $options: 'i' } },
+          { 'userId.profile.address': { $regex: search, $options: 'i' } },
+          { 'userId.profile.phone': { $regex: search, $options: 'i' } },
+          { 'userId.profile.name': { $regex: search, $options: 'i' } },
+          { 'creditPackageId.name': { $regex: search, $options: 'i' } },
           { transactionId: { $regex: search, $options: 'i' } },
           { invoiceId: { $regex: search, $options: 'i' } },
           { couponCode: { $regex: search, $options: 'i' } },
