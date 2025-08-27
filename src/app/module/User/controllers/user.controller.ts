@@ -27,7 +27,6 @@ const updateProfile = catchAsync(async (req, res) => {
   // const parsedData = JSON.parse(req.body.data);
   const parsedData = req.body.data ? JSON.parse(req.body.data) : {};
   const files = req.files as TUploadedFile[];
-
   const fileMap: Record<string, TUploadedFile[]> = {};
   files.forEach((file) => {
     if (!fileMap[file.fieldname]) {
@@ -302,10 +301,48 @@ const deleteSingleUserProfile = catchAsync(async (req, res) => {
   });
 });
 
+
+
+
+
+
+
+export const updateDefaultProfile = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  const file = req.file; // single file
+
+  if (!file) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'No file provided',
+      data:null
+    });
+  }
+
+  const updatedProfile = await UserProfileService.updateDefaultProfileIntoDB(
+    userId,
+    file
+  );
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Profile updated successfully',
+    data: updatedProfile,
+  });
+});
+
+
+
+
+
+
 export const userProfileController = {
   updateProfile,
   getSingleUserProfileData,
   getUserProfileInfo,
   getAllUserProfile,
   deleteSingleUserProfile,
+  updateDefaultProfile
 };
