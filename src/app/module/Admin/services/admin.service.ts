@@ -58,37 +58,35 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
         },
 
 
-        
-       {
+        {
             $lookup: {
                 from: "leadresponses",
-                let: { leadIds: "$leads._id" },
+                let: { leadIds: "$leads._id" }, // all leads of the client
                 pipeline: [
                     {
                         $match: {
-                            $expr: {
-                                $in: ["$leadId", "$$leadIds"] // ✅ No need to convert to ObjectId
-                            }
+                            $expr: { $in: ["$leadId", "$$leadIds"] } // match response to leads
                         }
                     },
                     {
                         $lookup: {
-                            from: "userprofiles", // or "users" if responseBy refers to users
-                            localField: "responseBy",
+                            from: "userprofiles",       // join with userprofiles to get lawyer details
+                            localField: "responseBy",   // this field exists in leadresponses
                             foreignField: "_id",
-                            as: "responseBy",
-                        },
+                            as: "responseBy"
+                        }
                     },
                     {
-                        $unwind: {
-                            path: "$responseBy",
-                            preserveNullAndEmptyArrays: true
-                        }
+                        $unwind: { path: "$responseBy", preserveNullAndEmptyArrays: true }
                     }
                 ],
-                as: "responses",
+                as: "responses"
             }
         },
+
+
+
+
         // Add computed fields
         {
             $addFields: {
