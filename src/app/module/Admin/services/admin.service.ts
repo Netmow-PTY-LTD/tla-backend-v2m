@@ -22,7 +22,7 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
     const limit = Math.max(Number(query.limit) || 10, 1); // Ensure limit is at least 1
     const skip = (page - 1) * limit;
     const search = query.search || "";
-    const sortBy = query.sortBy ||  "createdAt";;
+    const sortBy = query.sortBy || "totalLeads";
     const sortOrder = query.sortOrder === "desc" ? -1 : 1;
 
     // Aggregation pipeline
@@ -56,26 +56,36 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
                 as: "leads",
             },
         },
-        // Lookup responses for those leads
+
+
         {
             $lookup: {
                 from: "leadresponses",
-                let: { leadIds: "$leads._id" },
+                let: { leadIds: "$leads._id" }, // all leads of the client
                 pipeline: [
-                    { $match: { $expr: { $in: ["$leadId", "$$leadIds"] } } },
+                    {
+                        $match: {
+                            $expr: { $in: ["$leadId", "$$leadIds"] } // match response to leads
+                        }
+                    },
                     {
                         $lookup: {
-                            from: "users",
-                            localField: "responseBy",
+                            from: "userprofiles",       // join with userprofiles to get lawyer details
+                            localField: "responseBy",   // this field exists in leadresponses
                             foreignField: "_id",
-                            as: "responseBy",
-                        },
+                            as: "responseBy"
+                        }
                     },
-                    { $unwind: "$responseBy" },
+                    {
+                        $unwind: { path: "$responseBy", preserveNullAndEmptyArrays: true }
+                    }
                 ],
-                as: "responses",
-            },
+                as: "responses"
+            }
         },
+
+
+
         // Add computed fields
         {
             $addFields: {
@@ -121,14 +131,36 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
 
     const clientDashboards = await User.aggregate(pipeline);
 
-    // Optional: total count for pagination
-    const totalClients = await User.countDocuments({
-        regUserType: "client",
-        $or: [
-            { "profile.name": { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-        ],
-    });
+
+    const totalClientsPipeline = [
+        { $match: { regUserType: "client" } },
+        {
+            $lookup: {
+                from: "userprofiles",
+                localField: "profile",
+                foreignField: "_id",
+                as: "profile",
+            },
+        },
+        { $unwind: "$profile" },
+        {
+            $match: {
+                $or: [
+                    { "profile.name": { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                ],
+            },
+        },
+        { $count: "total" }
+    ];
+
+    const totalResult = await User.aggregate(totalClientsPipeline);
+    const totalClients = totalResult[0]?.total || 0;
+
+
+
+
+
 
     const totalPage = Math.ceil(totalClients / limit);
     const meta = {
@@ -146,6 +178,171 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
 
 
 
+
+
+
+
+export const getAllLawyerDashboard = async (query: DashboardQuery) => {
+    const page = Math.max(Number(query.page) || 1, 1);
+    const limit = Math.max(Number(query.limit) || 10, 1);
+    const skip = (page - 1) * limit;
+    const search = query.search || '';
+    const sortBy = query.sortBy || 'totalResponses';
+    const sortOrder = query.sortOrder === 'desc' ? -1 : 1;
+
+    const pipeline: any[] = [
+        { $match: { regUserType: 'lawyer' } },
+        {
+            $lookup: {
+                from: 'userprofiles',
+                localField: 'profile',
+                foreignField: '_id',
+                as: 'profile',
+            },
+        },
+        { $unwind: '$profile' },
+        {
+            $match: {
+                $or: [
+                    { 'profile.name': { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } },
+                ],
+            },
+        },
+        // Lookup lead responses by this lawyer
+        {
+            $lookup: {
+                from: 'leadresponses',
+                localField: 'profile._id',
+                foreignField: 'responseBy',
+                as: 'responses',
+            },
+        },
+        // Lookup leads where lawyer was hired
+        // Lookup hire requests by this lawyer
+        {
+            $lookup: {
+                from: 'leadresponses',
+                let: { lawyerId: '$profile._id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$responseBy', '$$lawyerId'] },
+                                    { $eq: ['$isHireRequested', true] },
+                                ],
+                            },
+                        },
+                    },
+                ],
+                as: 'hireRequests',
+            },
+        },
+        // Lookup leads where lawyer was hired
+        {
+            $lookup: {
+                from: 'leads',
+                localField: 'profile._id',
+                foreignField: 'hiredLawyerId',
+                as: 'hiredLeads',
+            },
+        },
+        // Lookup credit transactions
+        {
+            $lookup: {
+                from: 'credittransactions',
+                localField: 'profile._id',
+                foreignField: 'userProfileId',
+                as: 'credits',
+            },
+        },
+        {
+            $addFields: {
+                totalResponses: { $size: '$responses' },
+                totalHired: { $size: '$hiredLeads' },
+                totalHireRequests: { $size: '$hireRequests' },
+                totalCreditsPurchased: {
+                    $sum: {
+                        $map: {
+                            input: '$credits',
+                            as: 'c',
+                            in: { $cond: [{ $eq: ['$$c.type', 'purchase'] }, '$$c.credit', 0] },
+                        },
+                    },
+                },
+                totalCreditsUsed: {
+                    $sum: {
+                        $map: {
+                            input: '$credits',
+                            as: 'c',
+                            in: { $cond: [{ $eq: ['$$c.type', 'usage'] }, '$$c.credit', 0] },
+                        },
+                    },
+                },
+            },
+        },
+        {
+            $addFields: {
+                availableCredits: { $subtract: ['$totalCreditsPurchased', '$totalCreditsUsed'] },
+            },
+        },
+        {
+            $project: {
+                _id: 1,
+                email: 1,
+                name: '$profile.name',
+                profilePicture: '$profile.profilePicture',
+                totalResponses: 1,
+                responseList: '$responses',
+                totalHired: 1,
+                hiredLeads: 1,
+                totalHireRequests: 1,
+                hireRequestList: '$hireRequests',
+                totalCreditsPurchased: 1,
+                totalCreditsUsed: 1,
+                availableCredits: 1,
+            },
+        },
+        { $sort: { [sortBy]: sortOrder } },
+        { $skip: skip },
+        { $limit: limit },
+    ];
+
+    const lawyers = await User.aggregate(pipeline);
+
+    // Get total count
+    const totalPipeline = [
+        { $match: { regUserType: 'lawyer' } },
+        {
+            $lookup: {
+                from: 'userprofiles',
+                localField: 'profile',
+                foreignField: '_id',
+                as: 'profile',
+            },
+        },
+        { $unwind: '$profile' },
+        {
+            $match: {
+                $or: [
+                    { 'profile.name': { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } },
+                ],
+            },
+        },
+        { $count: 'total' },
+    ];
+
+    const totalResult = await User.aggregate(totalPipeline);
+    const totalLawyers = totalResult[0]?.total || 0;
+    const totalPage = Math.ceil(totalLawyers / limit);
+
+    return {
+        pagination: { total: totalLawyers, page, limit, totalPage },
+        data: lawyers,
+    };
+};
 
 
 
@@ -253,6 +450,7 @@ const getLawyerDashboard = async (lawyerId: string) => {
 
 export const adminService = {
     getAllClientsDashboard,
+    getAllLawyerDashboard,
     getClientDashboard,
     getLawyerDashboard,
 };
