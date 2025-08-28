@@ -21,15 +21,19 @@ const getAllClientsDashboard = catchAsync(async (req, res) => {
     data: result.data,
   });
   
+
 });
-
-
-
-
-
-
-
-
+const getAllLawyerDashboard = catchAsync(async (req, res) => {
+  const result = await adminService.getAllLawyerDashboard(req.query);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Lawyer dashboard fetched successfully",
+    pagination:result.pagination,
+    data: result.data,
+  });
+  
+});
 
 
 
@@ -119,5 +123,6 @@ export const adminController = {
   getAllClientsDashboard,
   getLawyerDashboard,
   getClientDashboard,
+  getAllLawyerDashboard
 
 };
