@@ -47,7 +47,36 @@ const createUserActivityLogs = catchAsync(async (req, res) => {
     });
 });
 
+
+
+
+export const getLawyerDetailsLog = catchAsync(async (req, res) => {
+  const { lawyerId } = req.params;
+
+  const result = await activityLogService.getLawyerDetailsLogFromDB(lawyerId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: "Lawyer details not found.",
+      data: [],
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Lawyer details retrieved successfully",
+    data: result,
+  });
+});
+
+
+
+
 export const activityLogController = {
     getUserActivityLogs,
-    createUserActivityLogs
+    createUserActivityLogs,
+    getLawyerDetailsLog
 }

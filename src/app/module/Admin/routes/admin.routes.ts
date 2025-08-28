@@ -1,0 +1,29 @@
+import { Router } from 'express';
+import auth from '../../../middlewares/auth';
+import { USER_ROLE } from '../../../constant';
+import { adminController } from '../controllers/admin.controller';
+
+
+const router = Router();
+
+
+
+
+
+
+router.get("/client/all", auth(USER_ROLE.ADMIN), adminController.getAllClientsDashboard);
+
+
+
+
+
+
+router.get("/client/:clientId", adminController.getClientDashboard);
+
+// Lawyer dashboard data
+router.get("/lawyer/:lawyerId", adminController.getLawyerDashboard);
+
+
+
+
+export const adminRouter = router;
