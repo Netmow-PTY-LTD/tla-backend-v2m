@@ -1,7 +1,13 @@
 
 
 import { getIO } from '../../../sockets';
+import User from '../../Auth/models/auth.model';
+import CreditTransaction from '../../CreditPayment/models/creditTransaction.model';
+import Transaction from '../../CreditPayment/models/transaction.model';
+import Lead from '../../Lead/models/lead.model';
+import LeadResponse from '../../LeadResponse/models/response.model';
 import { createNotification } from '../../Notification/utils/createNotification';
+import { ProfileVisitor } from '../../VisitorTracker/models/profileVisitor.model';
 import { ActivityLog } from '../models/activityLog.model';
 
 
@@ -168,8 +174,87 @@ const createUserActivityLogs = async (userId: string, payload: any) => {
 
 
 
+//   lawyer details api service logic 
+
+
+const getLawyerDetailsLogFromDB = async (lawyerId: string) => {
+  // 1️⃣ Fetch lawyer user with profile & payment methods populated
+  const lawyer = await User.findOne({ _id: lawyerId, regUserType: "lawyer" })
+    .populate({
+      path: "profile",
+      populate: [
+        { path: "country", select: "name" },
+        { path: "zipCode", select: "code" },
+        { path: "serviceIds", select: "name" },
+        {
+          path: "paymentMethods", // 🔹 Populate payment methods details
+          select: "methodName provider accountNumber status createdAt",
+        },
+      ],
+    });
+
+  if (!lawyer) {
+    return null;
+  }
+
+  const profileId = lawyer.profile?._id;
+
+  // 2️⃣ Fetch lead responses
+  const responses = await LeadResponse.find({ responseBy: profileId })
+    .populate("leadId")
+    .populate("serviceId")
+    .lean();
+
+  // 3️⃣ Fetch leads where lawyer got hired
+  const hiredLeads = await Lead.find({ hiredLawyerId: profileId })
+    .populate("serviceId")
+    .populate("userProfileId")
+    .lean();
+
+  // 4️⃣ Fetch credits transactions
+  const creditTransactions = await CreditTransaction.find({ userProfileId: profileId }).sort({ createdAt: -1 });
+
+  // 5️⃣ Fetch purchases & usage transactions
+  const transactions = await Transaction.find({ userId: lawyer._id }).sort({ createdAt: -1 });
+
+  // 6️⃣ Profile visitors
+  const profileVisitors = await ProfileVisitor.find({ targetId: profileId })
+    .populate("visitorId", "email role")
+    .sort({ visitedAt: -1 });
+
+  // ✅ Structured result for admin
+  return {
+    lawyer,
+    profile: lawyer.profile,
+    services: lawyer.profile?.serviceIds,
+    paymentMethods: lawyer.profile?.paymentMethods || [], // 🔹 Include payment methods here
+    credits: {
+      totalCredits: lawyer.profile?.credits || 0,
+      transactions: creditTransactions,
+    },
+    transactions,
+    responses,
+    hiredLeads,
+    profileVisitors,
+  };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const activityLogService = {
     getUserActivityLogs,
-    createUserActivityLogs
+    createUserActivityLogs,
+    getLawyerDetailsLogFromDB
 }
