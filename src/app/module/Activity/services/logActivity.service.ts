@@ -226,10 +226,10 @@ const getLawyerDetailsLogFromDB = async (lawyerId: string) => {
   return {
     lawyer,
     profile: lawyer.profile,
-    services: lawyer.profile?.serviceIds,
-    paymentMethods: lawyer.profile?.paymentMethods || [], // 🔹 Include payment methods here
+    // services: lawyer.profile?.serviceIds,
+    // paymentMethods: lawyer.profile?.paymentMethods || [], // 🔹 Include payment methods here
     credits: {
-      totalCredits: lawyer.profile?.credits || 0,
+      // totalCredits: lawyer.profile?.credits || 0,
       transactions: creditTransactions,
     },
     transactions,
