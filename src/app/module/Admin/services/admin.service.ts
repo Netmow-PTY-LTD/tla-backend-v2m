@@ -18,11 +18,11 @@ interface DashboardQuery {
 }
 
 const getAllClientsDashboard = async (query: DashboardQuery) => {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
+    const page = Math.max(Number(query.page) || 1, 1); // Ensure page is at least 1
+    const limit = Math.max(Number(query.limit) || 10, 1); // Ensure limit is at least 1
     const skip = (page - 1) * limit;
     const search = query.search || "";
-    const sortBy = query.sortBy || "totalLeads";
+    const sortBy = query.sortBy ||  "createdAt";;
     const sortOrder = query.sortOrder === "desc" ? -1 : 1;
 
     // Aggregation pipeline
@@ -143,12 +143,6 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
         data: clientDashboards,
     };
 };
-
-
-
-
-
-
 
 
 
