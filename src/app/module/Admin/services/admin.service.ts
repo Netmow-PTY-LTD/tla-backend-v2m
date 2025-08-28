@@ -22,7 +22,7 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
     const limit = Math.max(Number(query.limit) || 10, 1); // Ensure limit is at least 1
     const skip = (page - 1) * limit;
     const search = query.search || "";
-    const sortBy = query.sortBy ||  "createdAt";;
+    const sortBy = query.sortBy || "totalLeads";
     const sortOrder = query.sortOrder === "desc" ? -1 : 1;
 
     // Aggregation pipeline
@@ -56,25 +56,38 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
                 as: "leads",
             },
         },
-        // Lookup responses for those leads
-        {
+
+
+        
+       {
             $lookup: {
                 from: "leadresponses",
                 let: { leadIds: "$leads._id" },
                 pipeline: [
-                    { $match: { $expr: { $in: ["$leadId", "$$leadIds"] } } },
+                    {
+                        $match: {
+                            $expr: {
+                                $in: ["$leadId", "$$leadIds"] // ✅ No need to convert to ObjectId
+                            }
+                        }
+                    },
                     {
                         $lookup: {
-                            from: "users",
+                            from: "userprofiles", // or "users" if responseBy refers to users
                             localField: "responseBy",
                             foreignField: "_id",
                             as: "responseBy",
                         },
                     },
-                    { $unwind: "$responseBy" },
+                    {
+                        $unwind: {
+                            path: "$responseBy",
+                            preserveNullAndEmptyArrays: true
+                        }
+                    }
                 ],
                 as: "responses",
-            },
+            }
         },
         // Add computed fields
         {
@@ -121,14 +134,36 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
 
     const clientDashboards = await User.aggregate(pipeline);
 
-    // Optional: total count for pagination
-    const totalClients = await User.countDocuments({
-        regUserType: "client",
-        $or: [
-            { "profile.name": { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-        ],
-    });
+
+    const totalClientsPipeline = [
+        { $match: { regUserType: "client" } },
+        {
+            $lookup: {
+                from: "userprofiles",
+                localField: "profile",
+                foreignField: "_id",
+                as: "profile",
+            },
+        },
+        { $unwind: "$profile" },
+        {
+            $match: {
+                $or: [
+                    { "profile.name": { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                ],
+            },
+        },
+        { $count: "total" }
+    ];
+
+    const totalResult = await User.aggregate(totalClientsPipeline);
+    const totalClients = totalResult[0]?.total || 0;
+
+
+
+
+
 
     const totalPage = Math.ceil(totalClients / limit);
     const meta = {
