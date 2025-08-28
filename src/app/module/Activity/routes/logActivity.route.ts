@@ -9,6 +9,7 @@ const router = Router();
 
 router.get('/user', auth(USER_ROLE.ADMIN,USER_ROLE.USER), activityLogController.getUserActivityLogs);
 router.post('/', auth(USER_ROLE.ADMIN,USER_ROLE.USER), activityLogController.createUserActivityLogs);
+router.get('/lawyer-details/:lawyerId' , activityLogController.getLawyerDetailsLog);
 
 
 
