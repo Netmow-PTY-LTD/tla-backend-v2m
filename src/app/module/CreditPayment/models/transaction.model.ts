@@ -6,7 +6,7 @@ const transactionSchema = new Schema(
     transactionId: {
       type: String,
       unique: true,
-      required: true,
+      required: false,
     },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     type: {
@@ -33,19 +33,14 @@ const transactionSchema = new Schema(
   },
 );
 
-
-
 // Pre-save hook to generate transactionId automatically
 transactionSchema.pre('save', function (next) {
   if (!this.transactionId) {
-      const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
     this.transactionId = `TXN-${Date.now()}-${randomStr}`; // Example: TXN-1693145600000-ABC123
   }
   next();
 });
-
-
-
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
 export default Transaction;
