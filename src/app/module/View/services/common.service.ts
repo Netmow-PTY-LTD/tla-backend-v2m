@@ -537,7 +537,7 @@ const getLawyerSuggestionsFromDB = async (
     limit?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
-    minRating?: number; // minimum rating filter
+    minRating?: number | null; // minimum rating filter
   } = {}
 ) => {
   const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'asc', minRating } = options;
@@ -547,7 +547,7 @@ const getLawyerSuggestionsFromDB = async (
   const sortOption: Record<string, 1 | -1> = {};
   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-  console.log('test minRating ==>', minRating)
+
 
 
   // First, get current user's profileId (needed for lookup)
@@ -580,6 +580,26 @@ const getLawyerSuggestionsFromDB = async (
 
 
     { $addFields: { 'profile.avgRating': { $ifNull: ['$profile.avgRating', 0] } } },
+    // {
+    //   $match: {
+    //     $expr: {
+    //       $and: [
+    //         { $eq: ['$profile.country', new mongoose.Types.ObjectId(currentUserProfile?.country)] },
+    //         { $in: [new mongoose.Types.ObjectId(serviceId), { $ifNull: ['$profile.serviceIds', []] }] },
+    //         {
+    //           $cond: [
+    //             { $ifNull: [minRating, false] }, // if minRating provided
+    //             { $gte: ['$profile.avgRating', minRating] }, // only avgRating >= minRating
+    //             true // if no minRating, include all avgRating 0–5
+    //           ]
+    //         }
+    //       ]
+    //     }
+    //   }
+    // },
+
+
+
     {
       $match: {
         $expr: {
@@ -587,16 +607,22 @@ const getLawyerSuggestionsFromDB = async (
             { $eq: ['$profile.country', new mongoose.Types.ObjectId(currentUserProfile?.country)] },
             { $in: [new mongoose.Types.ObjectId(serviceId), { $ifNull: ['$profile.serviceIds', []] }] },
             {
-              $cond: [
-                { $ifNull: [minRating, false] }, // if minRating provided
-                { $gte: ['$profile.avgRating', minRating] }, // only avgRating >= minRating
-                true // if no minRating, include all avgRating 0–5
+              $or: [
+                { $eq: [minRating, null] }, // if minRating not provided, include all
+                {
+                  $and: [
+                    { $gte: ['$profile.avgRating', minRating] },
+                    { $lt: ['$profile.avgRating', { $add: [minRating, 1] }] }
+                  ]
+                }
               ]
             }
           ]
         }
       }
     },
+
+
 
 
     // // 4. Filter only profiles that have serviceId
