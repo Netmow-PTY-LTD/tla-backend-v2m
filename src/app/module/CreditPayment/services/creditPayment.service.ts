@@ -179,8 +179,8 @@ const getTransactionHistory = async (userId: string) => {
     .populate({
       path: 'userId',
       populate: {
-        path: 'profile'
-      }
+        path: 'profile',
+      },
     })
     .populate('creditPackageId');
   return transactionHistory;
@@ -198,7 +198,6 @@ const getTransactionHistory = async (userId: string) => {
 //     .populate('creditPackageId');
 //   return transactionHistory
 // };
-
 
 const getAllTransactionHistory = async (query: Record<string, any>) => {
   const page = Math.max(1, parseInt(query.page as string, 10) || 1);
@@ -292,7 +291,6 @@ const getAllTransactionHistory = async (query: Record<string, any>) => {
   };
 };
 
-
 const findNextCreditOffer = async (userId: string) => {
   // Get latest completed purchase
   const lastTransaction = await Transaction.findOne({
@@ -323,10 +321,11 @@ const findNextCreditOffer = async (userId: string) => {
   }
 
   // If no bigger package exists, return the biggest active package
-  const largestPackage = await CreditPackage.findOne({ isActive: true }).sort({ credit: -1 });
+  const largestPackage = await CreditPackage.findOne({ isActive: true }).sort({
+    credit: -1,
+  });
   return largestPackage || null;
 };
-
 
 export const CreditPaymentService = {
   getCreditPackages,
