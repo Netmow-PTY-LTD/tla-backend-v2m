@@ -6,7 +6,7 @@ const transactionSchema = new Schema(
     transactionId: {
       type: String,
       unique: true,
-      required: true,
+      required: false,
     },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     type: {
