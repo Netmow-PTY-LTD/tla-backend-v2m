@@ -312,6 +312,7 @@ const getAllLeadForAdminDashboardFromDB = async (
 
   const page = Math.max(1, parseInt(query.page as string, 10) || 1);
   const limit = Math.max(1, parseInt(query.limit as string, 10) || 10);
+  const skip = (page - 1) * limit;
 
   const matchStage: Record<string, any> = {};
 
@@ -413,16 +414,53 @@ const getAllLeadForAdminDashboardFromDB = async (
     pipeline.push({ $sort: sortStage });
   }
 
-  // Pagination
-  const skip = (page - 1) * limit;
-  pipeline.push({ $skip: skip }, { $limit: limit });
+  // // Pagination
+  // const skip = (page - 1) * limit;
+  // pipeline.push({ $skip: skip }, { $limit: limit });
 
-  // Execute aggregation
-  const data = await Lead.aggregate(pipeline);
+  // // Execute aggregation
+  // const data = await Lead.aggregate(pipeline);
 
-  // Total count
-  const totalMeta = await Lead.aggregate([{ $match: matchStage }, { $count: 'total' }]);
-  const total = totalMeta[0]?.total || 0;
+  // // Total count
+  // const totalMeta = await Lead.aggregate([{ $match: matchStage }, { $count: 'total' }]);
+  // const total = totalMeta[0]?.total || 0;
+  // const totalPage = Math.ceil(total / limit);
+
+  // const meta = {
+  //   total,
+  //   page,
+  //   limit,
+  //   totalPage,
+  // };
+
+  // const result = data.map((lead) => ({
+  //   ...lead,
+  //   credit: customCreditLogic(lead.credit),
+  // }));
+
+  // return { meta, data: result };
+
+
+
+  // Use $facet for pagination + total count in one query
+  const facetPipeline = [
+    ...pipeline,
+    {
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+        ],
+        totalCount: [
+          { $count: 'total' },
+        ],
+      },
+    },
+  ];
+
+  const [aggResult] = await Lead.aggregate(facetPipeline);
+  const data = aggResult.data || [];
+  const total = aggResult.totalCount[0]?.total || 0;
   const totalPage = Math.ceil(total / limit);
 
   const meta = {
@@ -432,13 +470,16 @@ const getAllLeadForAdminDashboardFromDB = async (
     totalPage,
   };
 
-  const result = data.map((lead) => ({
+  // Apply custom credit logic
+  const result = data.map((lead: { credit: number; }) => ({
     ...lead,
     credit: customCreditLogic(lead.credit),
   }));
 
   return { meta, data: result };
+
 };
+
 
 
 
@@ -561,23 +602,23 @@ const getAllClientWiseLeadFromDB = async (
     // Search filter
     ...(search
       ? [
-          {
-            $match: {
-              $or: [
-                { additionalDetails: { $regex: search, $options: "i" } },
-                { status: { $regex: search, $options: "i" } },
-                { leadPriority: { $regex: search, $options: "i" } },
-                { hireStatus: { $regex: search, $options: "i" } },
-                { closeStatus: { $regex: search, $options: "i" } },
-                { "serviceId.name": { $regex: search, $options: "i" } },
-                { "countryId.name": { $regex: search, $options: "i" } },
-                { "locationId.zipCode": { $regex: search, $options: "i" } },
-                { "locationId.city": { $regex: search, $options: "i" } },
-                ...(numericSearch !== null ? [{ budgetAmount: numericSearch }] : []),
-              ],
-            },
+        {
+          $match: {
+            $or: [
+              { additionalDetails: { $regex: search, $options: "i" } },
+              { status: { $regex: search, $options: "i" } },
+              { leadPriority: { $regex: search, $options: "i" } },
+              { hireStatus: { $regex: search, $options: "i" } },
+              { closeStatus: { $regex: search, $options: "i" } },
+              { "serviceId.name": { $regex: search, $options: "i" } },
+              { "countryId.name": { $regex: search, $options: "i" } },
+              { "locationId.zipCode": { $regex: search, $options: "i" } },
+              { "locationId.city": { $regex: search, $options: "i" } },
+              ...(numericSearch !== null ? [{ budgetAmount: numericSearch }] : []),
+            ],
           },
-        ]
+        },
+      ]
       : []),
 
     // Facet for data & total count in one query
