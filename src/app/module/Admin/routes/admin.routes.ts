@@ -13,7 +13,9 @@ const router = Router();
 
 router.get("/client/all", auth(USER_ROLE.ADMIN), adminController.getAllClientsDashboard);
 router.get("/lawyer/all", auth(USER_ROLE.ADMIN), adminController.getAllLawyerDashboard);
-router.get("/dashbord/chart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardChart);
+router.get("/dashboard/chart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardChart);
+router.get("/dashboard/stats", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardStats);
+// router.get("/dashbord/barhart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardChart);
 
 
 
