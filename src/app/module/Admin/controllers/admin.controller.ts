@@ -17,10 +17,10 @@ const getAllClientsDashboard = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Clients dashboard fetched successfully",
-    pagination:result.pagination,
+    pagination: result.pagination,
     data: result.data,
   });
-  
+
 
 });
 const getAllLawyerDashboard = catchAsync(async (req, res) => {
@@ -29,81 +29,102 @@ const getAllLawyerDashboard = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Lawyer dashboard fetched successfully",
-    pagination:result.pagination,
+    pagination: result.pagination,
     data: result.data,
   });
-  
+
 });
 
 
 
+const getAdminDashboardChart = catchAsync(async (req, res) => {
+
+  const { startDate, endDate } = req.query;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ✅ Client Dashboard Controller
-const getClientDashboard = catchAsync(async (req, res) => {
-  const { clientId } = req.params;
-
-  if (!clientId) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.BAD_REQUEST,
-      success: false,
-      message: "Client ID is required",
-      data: [],
-    });
-  }
-
-  const dashboard = await adminService.getClientDashboard(clientId);
+  const result = await adminService.getAdminDashboardChartFromDB(
+    startDate as string,
+    endDate as string
+  );
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: "Client dashboard fetched successfully",
-    data: dashboard,
+    message: "Admin dashboard chart retrived  successfully",
+    data: result,
   });
+
 });
 
-// ✅ Lawyer Dashboard Controller
-const getLawyerDashboard = catchAsync(async (req, res) => {
-  const { lawyerId } = req.params;
 
-  if (!lawyerId) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.BAD_REQUEST,
-      success: false,
-      message: "Lawyer ID is required",
-      data: [],
-    });
-  }
 
-  const dashboard = await adminService.getLawyerDashboard(lawyerId);
 
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: "Lawyer dashboard fetched successfully",
-    data: dashboard,
-  });
-});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // ✅ Client Dashboard Controller
+// const getClientDashboard = catchAsync(async (req, res) => {
+//   const { clientId } = req.params;
+
+//   if (!clientId) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.BAD_REQUEST,
+//       success: false,
+//       message: "Client ID is required",
+//       data: [],
+//     });
+//   }
+
+//   const dashboard = await adminService.getClientDashboard(clientId);
+
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: "Client dashboard fetched successfully",
+//     data: dashboard,
+//   });
+// });
+
+// // ✅ Lawyer Dashboard Controller
+// const getLawyerDashboard = catchAsync(async (req, res) => {
+//   const { lawyerId } = req.params;
+
+//   if (!lawyerId) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.BAD_REQUEST,
+//       success: false,
+//       message: "Lawyer ID is required",
+//       data: [],
+//     });
+//   }
+
+//   const dashboard = await adminService.getLawyerDashboard(lawyerId);
+
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: "Lawyer dashboard fetched successfully",
+//     data: dashboard,
+//   });
+// });
 
 
 
@@ -121,8 +142,9 @@ const getLawyerDashboard = catchAsync(async (req, res) => {
 
 export const adminController = {
   getAllClientsDashboard,
-  getLawyerDashboard,
-  getClientDashboard,
-  getAllLawyerDashboard
+  getAllLawyerDashboard,
+  getAdminDashboardChart
+  // getLawyerDashboard,
+  // getClientDashboard,
 
 };
