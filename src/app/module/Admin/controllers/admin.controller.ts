@@ -59,51 +59,51 @@ const getAllLawyerDashboard = catchAsync(async (req, res) => {
 
 
 
-// ✅ Client Dashboard Controller
-const getClientDashboard = catchAsync(async (req, res) => {
-  const { clientId } = req.params;
+// // ✅ Client Dashboard Controller
+// const getClientDashboard = catchAsync(async (req, res) => {
+//   const { clientId } = req.params;
 
-  if (!clientId) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.BAD_REQUEST,
-      success: false,
-      message: "Client ID is required",
-      data: [],
-    });
-  }
+//   if (!clientId) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.BAD_REQUEST,
+//       success: false,
+//       message: "Client ID is required",
+//       data: [],
+//     });
+//   }
 
-  const dashboard = await adminService.getClientDashboard(clientId);
+//   const dashboard = await adminService.getClientDashboard(clientId);
 
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: "Client dashboard fetched successfully",
-    data: dashboard,
-  });
-});
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: "Client dashboard fetched successfully",
+//     data: dashboard,
+//   });
+// });
 
-// ✅ Lawyer Dashboard Controller
-const getLawyerDashboard = catchAsync(async (req, res) => {
-  const { lawyerId } = req.params;
+// // ✅ Lawyer Dashboard Controller
+// const getLawyerDashboard = catchAsync(async (req, res) => {
+//   const { lawyerId } = req.params;
 
-  if (!lawyerId) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.BAD_REQUEST,
-      success: false,
-      message: "Lawyer ID is required",
-      data: [],
-    });
-  }
+//   if (!lawyerId) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.BAD_REQUEST,
+//       success: false,
+//       message: "Lawyer ID is required",
+//       data: [],
+//     });
+//   }
 
-  const dashboard = await adminService.getLawyerDashboard(lawyerId);
+//   const dashboard = await adminService.getLawyerDashboard(lawyerId);
 
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: "Lawyer dashboard fetched successfully",
-    data: dashboard,
-  });
-});
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: "Lawyer dashboard fetched successfully",
+//     data: dashboard,
+//   });
+// });
 
 
 
@@ -121,8 +121,8 @@ const getLawyerDashboard = catchAsync(async (req, res) => {
 
 export const adminController = {
   getAllClientsDashboard,
-  getLawyerDashboard,
-  getClientDashboard,
-  getAllLawyerDashboard
+  getAllLawyerDashboard,
+  // getLawyerDashboard,
+  // getClientDashboard,
 
 };

@@ -19,10 +19,10 @@ router.get("/lawyer/all", auth(USER_ROLE.ADMIN), adminController.getAllLawyerDas
 
 
 
-router.get("/client/:clientId", adminController.getClientDashboard);
+// router.get("/client/:clientId", adminController.getClientDashboard);
 
-// Lawyer dashboard data
-router.get("/lawyer/:lawyerId", adminController.getLawyerDashboard);
+// // Lawyer dashboard data
+// router.get("/lawyer/:lawyerId", adminController.getLawyerDashboard);
 
 
 

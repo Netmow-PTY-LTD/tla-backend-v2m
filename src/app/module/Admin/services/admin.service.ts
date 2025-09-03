@@ -6,9 +6,6 @@ import UserProfile from "../../User/models/user.model";
 
 
 
-
-
-
 interface DashboardQuery {
     page?: number;
     limit?: number;
@@ -175,10 +172,6 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
         data: clientDashboards,
     };
 };
-
-
-
-
 
 
 
@@ -351,94 +344,90 @@ export const getAllLawyerDashboard = async (query: DashboardQuery) => {
 
 
 
-// ✅ Client Dashboard Service
-const getClientDashboard = async (clientId: string) => {
-    const userProfile = await UserProfile.findOne({ user: clientId })
-    // Fetch all client leads
-    const leads = await Lead.find({ userProfileId: userProfile?._id })
-        .populate("hiredLawyerId", "name email")
-        .lean();
-
-    const totalLead = leads.length;
-
-    // Hired leads
-    const hiredCases = leads.filter((c) => c.status === "hired");
-    const totalHired = hiredCases.length;
-
-    // Get responses for client leads
-    const leadIds = leads.map((c) => c._id);
-    const responses = await LeadResponse.find({ leadId: { $in: leadIds } })
-        .populate("lawyerId", "name email")
-        .populate("leadId", "title description status")
-        .lean();
-
-    const totalResponses = responses.length;
-
-    return {
-        totalLead,
-        totalHired,
-        totalResponses,
-        listCases: leads,
-        hiredCases,
-        responseList: responses,
-    };
-}
 
 
+// // ✅ Client Dashboard Service
+// const getClientDashboard = async (clientId: string) => {
+//     const userProfile = await UserProfile.findOne({ user: clientId })
+//     // Fetch all client leads
+//     const leads = await Lead.find({ userProfileId: userProfile?._id })
+//         .populate("hiredLawyerId", "name email")
+//         .lean();
+
+//     const totalLead = leads.length;
+
+//     // Hired leads
+//     const hiredCases = leads.filter((c) => c.status === "hired");
+//     const totalHired = hiredCases.length;
+
+//     // Get responses for client leads
+//     const leadIds = leads.map((c) => c._id);
+//     const responses = await LeadResponse.find({ leadId: { $in: leadIds } })
+//         .populate("lawyerId", "name email")
+//         .populate("leadId", "title description status")
+//         .lean();
+
+//     const totalResponses = responses.length;
+
+//     return {
+//         totalLead,
+//         totalHired,
+//         totalResponses,
+//         listCases: leads,
+//         hiredCases,
+//         responseList: responses,
+//     };
+// }
 
 
+// // ✅ Lawyer Dashboard Service
+// const getLawyerDashboard = async (lawyerId: string) => {
+//     // Lawyer's responses
+//     const lawyerResponses = await LeadResponse.find({ responseBy: lawyerId })
+//         .populate("leadId", "title description status userProfileId")
+//         .lean();
+//     const totalResponses = lawyerResponses.length;
 
+//     // Response case list
+//     const responseCaseList = lawyerResponses.map((resp) => resp.leadId);
 
+//     // Request leads (leads lawyer responded to)
+//     const requestCases = await Lead.find({
+//         _id: { $in: responseCaseList.map((c: any) => c._id) },
+//     })
+//         .populate("userProfileId", "name email")
+//         .lean();
+//     const totalRequests = requestCases.length;
 
+//     // Hired leads
+//     const hiredCases = await Lead.find({ hiredLawyerId: lawyerId })
+//         .populate("userProfileId", "name email")
+//         .lean();
+//     const totalHired = hiredCases.length;
 
-// ✅ Lawyer Dashboard Service
-const getLawyerDashboard = async (lawyerId: string) => {
-    // Lawyer's responses
-    const lawyerResponses = await LeadResponse.find({ responseBy: lawyerId })
-        .populate("leadId", "title description status userProfileId")
-        .lean();
-    const totalResponses = lawyerResponses.length;
+//     // Credit purchase stats
+//     const totalCreditPurchase = await CreditTransaction.aggregate([
+//         { $match: { lawyerId: lawyerId, type: "PURCHASE" } },
+//         { $group: { _id: null, total: { $sum: "$amount" } } },
+//     ]);
 
-    // Response case list
-    const responseCaseList = lawyerResponses.map((resp) => resp.leadId);
+//     // Credit expense stats
+//     const totalCreditExpense = await CreditTransaction.aggregate([
+//         { $match: { lawyerId: lawyerId, type: "SPENT" } },
+//         { $group: { _id: null, total: { $sum: "$amount" } } },
+//     ]);
 
-    // Request leads (leads lawyer responded to)
-    const requestCases = await Lead.find({
-        _id: { $in: responseCaseList.map((c: any) => c._id) },
-    })
-        .populate("userProfileId", "name email")
-        .lean();
-    const totalRequests = requestCases.length;
-
-    // Hired leads
-    const hiredCases = await Lead.find({ hiredLawyerId: lawyerId })
-        .populate("userProfileId", "name email")
-        .lean();
-    const totalHired = hiredCases.length;
-
-    // Credit purchase stats
-    const totalCreditPurchase = await CreditTransaction.aggregate([
-        { $match: { lawyerId: lawyerId, type: "PURCHASE" } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-
-    // Credit expense stats
-    const totalCreditExpense = await CreditTransaction.aggregate([
-        { $match: { lawyerId: lawyerId, type: "SPENT" } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-
-    return {
-        totalResponses,
-        totalRequests,
-        totalHired,
-        responseCaseList,
-        requestCaseList: requestCases,
-        hiredCases,
-        totalCreditPurchase: totalCreditPurchase[0]?.total || 0,
-        totalCreditExpense: totalCreditExpense[0]?.total || 0,
-    };
-}
+//     return {
+//         totalResponses,
+//         totalRequests,
+//         totalHired,
+//         responseCaseList,
+//         requestCaseList: requestCases,
+//         hiredCases,
+//         totalCreditPurchase: totalCreditPurchase[0]?.total || 0,
+//         totalCreditExpense: totalCreditExpense[0]?.total || 0,
+//     };
+// }
 
 
 
@@ -451,6 +440,6 @@ const getLawyerDashboard = async (lawyerId: string) => {
 export const adminService = {
     getAllClientsDashboard,
     getAllLawyerDashboard,
-    getClientDashboard,
-    getLawyerDashboard,
+    // getClientDashboard,
+    // getLawyerDashboard,
 };
