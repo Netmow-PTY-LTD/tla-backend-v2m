@@ -1,5 +1,6 @@
 import User from "../../Auth/models/auth.model";
 import CreditTransaction from "../../CreditPayment/models/creditTransaction.model";
+import Transaction from "../../CreditPayment/models/transaction.model";
 import Lead from "../../Lead/models/lead.model";
 import LeadResponse from "../../LeadResponse/models/response.model";
 import UserProfile from "../../User/models/user.model";
@@ -14,6 +15,8 @@ interface DashboardQuery {
     sortOrder?: "asc" | "desc";
 }
 
+
+//  all client history stats table data
 const getAllClientsDashboard = async (query: DashboardQuery) => {
     const page = Math.max(Number(query.page) || 1, 1); // Ensure page is at least 1
     const limit = Math.max(Number(query.limit) || 10, 1); // Ensure limit is at least 1
@@ -173,9 +176,9 @@ const getAllClientsDashboard = async (query: DashboardQuery) => {
     };
 };
 
+//  all lawyer history stats table data
 
-
-export const getAllLawyerDashboard = async (query: DashboardQuery) => {
+ const getAllLawyerDashboard = async (query: DashboardQuery) => {
     const page = Math.max(Number(query.page) || 1, 1);
     const limit = Math.max(Number(query.limit) || 10, 1);
     const skip = (page - 1) * limit;
@@ -340,6 +343,151 @@ export const getAllLawyerDashboard = async (query: DashboardQuery) => {
 
 
 
+interface ChartDataItem {
+  date: string;
+  users: number;
+  payments: number;
+  creditsSpent: number;
+  casePosts: number;
+  hires: number;
+  lawyerRegistrations: number;
+}
+
+const formatDate = (date: Date) => date.toISOString().split("T")[0];
+
+ const getAdminDashboardChartFromDB = async (
+  startDate?: string,
+  endDate?: string
+): Promise<ChartDataItem[]> => {
+  const start = startDate ? new Date(startDate) : new Date("2024-01-01");
+  const end = endDate ? new Date(endDate) : new Date();
+
+  // 1️⃣ Users count per day
+  const users = await User.aggregate([
+    { $match: { createdAt: { $gte: start, $lte: end } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // 2️⃣ Lawyer registrations per day
+  const lawyerRegistrations = await User.aggregate([
+    {
+      $match: {
+        regUserType: "lawyer",
+        createdAt: { $gte: start, $lte: end },
+      },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // 3️⃣ Successful payments per day
+  const payments = await Transaction.aggregate([
+    {
+      $match: {
+        type: "purchase",
+        status: "completed",
+        createdAt: { $gte: start, $lte: end },
+      },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // 4️⃣ Total credits spent per day
+  const creditsSpent = await CreditTransaction.aggregate([
+    {
+      $match: {
+        type: "usage",
+        createdAt: { $gte: start, $lte: end },
+      },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        totalCredits: { $sum: "$credit" },
+      },
+    },
+  ]);
+
+  // 5️⃣ Leads (case posts) per day
+  const casePosts = await Lead.aggregate([
+    {
+      $match: { createdAt: { $gte: start, $lte: end } },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // 6️⃣ Hires per day
+  const hires = await Lead.aggregate([
+    {
+      $match: {
+        isHired: true,
+        hiredAt: { $gte: start, $lte: end },
+      },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$hiredAt" } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // 📌 Merge results by date
+  const allDates = new Set([
+    ...users.map((u) => u._id),
+    ...lawyerRegistrations.map((l) => l._id),
+    ...payments.map((p) => p._id),
+    ...creditsSpent.map((c) => c._id),
+    ...casePosts.map((cp) => cp._id),
+    ...hires.map((h) => h._id),
+  ]);
+
+  const chartData: ChartDataItem[] = Array.from(allDates)
+    .sort()
+    .map((date) => ({
+      date,
+      users: users.find((u) => u._id === date)?.count || 0,
+      payments: payments.find((p) => p._id === date)?.count || 0,
+      creditsSpent: creditsSpent.find((c) => c._id === date)?.totalCredits || 0,
+      casePosts: casePosts.find((cp) => cp._id === date)?.count || 0,
+      hires: hires.find((h) => h._id === date)?.count || 0,
+      lawyerRegistrations: lawyerRegistrations.find((l) => l._id === date)?.count || 0,
+    }));
+
+  return chartData;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -440,6 +588,7 @@ export const getAllLawyerDashboard = async (query: DashboardQuery) => {
 export const adminService = {
     getAllClientsDashboard,
     getAllLawyerDashboard,
+    getAdminDashboardChartFromDB
     // getClientDashboard,
     // getLawyerDashboard,
 };

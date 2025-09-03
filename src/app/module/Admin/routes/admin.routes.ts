@@ -13,6 +13,7 @@ const router = Router();
 
 router.get("/client/all", auth(USER_ROLE.ADMIN), adminController.getAllClientsDashboard);
 router.get("/lawyer/all", auth(USER_ROLE.ADMIN), adminController.getAllLawyerDashboard);
+router.get("/dashobard/chart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardChart);
 
 
 

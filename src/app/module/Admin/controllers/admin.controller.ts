@@ -17,10 +17,10 @@ const getAllClientsDashboard = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Clients dashboard fetched successfully",
-    pagination:result.pagination,
+    pagination: result.pagination,
     data: result.data,
   });
-  
+
 
 });
 const getAllLawyerDashboard = catchAsync(async (req, res) => {
@@ -29,10 +29,31 @@ const getAllLawyerDashboard = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Lawyer dashboard fetched successfully",
-    pagination:result.pagination,
+    pagination: result.pagination,
     data: result.data,
   });
-  
+
+});
+
+
+
+const getAdminDashboardChart = catchAsync(async (req, res) => {
+
+  const { startDate, endDate } = req.query;
+
+
+  const result = await adminService.getAdminDashboardChartFromDB(
+    startDate as string,
+    endDate as string
+  );
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Admin dashboard chart retrived  successfully",
+    data: result,
+  });
+
 });
 
 
@@ -122,6 +143,7 @@ const getAllLawyerDashboard = catchAsync(async (req, res) => {
 export const adminController = {
   getAllClientsDashboard,
   getAllLawyerDashboard,
+  getAdminDashboardChart
   // getLawyerDashboard,
   // getClientDashboard,
 
