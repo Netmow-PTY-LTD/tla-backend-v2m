@@ -220,7 +220,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           longitude: zipCode.longitude,
         }
         : null,
-      budgetAmount: budgetAmount ?? null,
+      budgetAmount: budgetAmount ?? 0,
       credit: creditInfo?.baseCredit ?? null,
       priority: leadPriority ?? null,
       details: additionalDetails || '',
