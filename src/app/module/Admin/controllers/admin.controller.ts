@@ -85,12 +85,14 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
 
 
  const getAdminDashboardBarChart = catchAsync(async (req, res) => {
-    const { year } = req.query;
+    const { year, month } = req.query;
 
     // ✅ Validate year param
     const selectedYear = year ? parseInt(year as string, 10) : new Date().getFullYear();
+        // ✅ Optional month filter
+    const selectedMonth = month ? parseInt(month as string, 10) : undefined;
 
-    const result = await adminService.getAdminDashboardBarChartFromDB(selectedYear);
+    const result = await adminService.getAdminDashboardBarChartFromDB(selectedYear,selectedMonth);
 
     return sendResponse(res, {
         statusCode: HTTP_STATUS.OK,
