@@ -118,7 +118,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
             countryId,
             serviceId,
             additionalDetails: leadDetails.additionalDetails || '',
-            budgetAmount: leadDetails.budgetAmount || '',
+            budgetAmount: leadDetails.budgetAmount ?? 0,
             locationId: zipCode?._id,
             credit: creditInfo?.baseCredit,
             leadPriority: leadDetails?.leadPriority
