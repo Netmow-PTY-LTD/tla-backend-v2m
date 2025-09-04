@@ -608,31 +608,160 @@ const getAdminDashboardChartFromDB = async (
 
 
 // ✅ Fetch stats for the admin dashboard
- 
 
 
 
-export const getAdminDashboardBarChartFromDB = async (
+
+//  const getAdminDashboardBarChartFromDB = async (
+//     year: number,
+//     month?: number // optional
+// ): Promise<ChartDataItem[]> => {
+//     // 🗓 Define start and end dates
+//     let start: Date;
+//     let end: Date;
+
+//     if (month && month >= 1 && month <= 12) {
+//         // specific month
+//         start = new Date(year, month - 1, 1);
+//         end = new Date(year, month - 1, new Date(year, month, 0).getDate(), 23, 59, 59, 999);
+//     } else {
+//         // whole year
+//         start = new Date(year, 0, 1);
+//         end = new Date(year, 11, 31, 23, 59, 59, 999);
+//     }
+
+//     const dateFormat = "%Y-%m";
+
+//     // 1️⃣ Users per month
+//     const users = await User.aggregate([
+//         { $match: { createdAt: { $gte: start, $lte: end } } },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 2️⃣ Lawyer registrations per month
+//     const lawyerRegistrations = await User.aggregate([
+//         {
+//             $match: {
+//                 regUserType: "lawyer",
+//                 createdAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 3️⃣ Successful payments per month
+//     const payments = await Transaction.aggregate([
+//         {
+//             $match: {
+//                 type: "purchase",
+//                 status: "completed",
+//                 createdAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 4️⃣ Credits spent per month
+//     const creditsSpent = await CreditTransaction.aggregate([
+//         {
+//             $match: {
+//                 type: "usage",
+//                 createdAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 totalCredits: { $sum: "$credit" },
+//             },
+//         },
+//     ]);
+
+//     // 5️⃣ Case posts (leads) per month
+//     const casePosts = await Lead.aggregate([
+//         {
+//             $match: { createdAt: { $gte: start, $lte: end } },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 6️⃣ Hires per month
+//     const hires = await Lead.aggregate([
+//         {
+//             $match: {
+//                 isHired: true,
+//                 hiredAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$hiredAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 📌 Generate months to fill chart
+//     const allMonths = month
+//         ? [`${year}-${month.toString().padStart(2, "0")}`]
+//         : Array.from({ length: 12 }, (_, i) => `${year}-${(i + 1).toString().padStart(2, "0")}`);
+
+//     // 📌 Merge data with 0 for missing months
+//     const chartData: ChartDataItem[] = allMonths.map((m) => ({
+//         date: m,
+//         users: users.find((u) => u._id === m)?.count || 0,
+//         payments: payments.find((p) => p._id === m)?.count || 0,
+//         creditsSpent: creditsSpent.find((c) => c._id === m)?.totalCredits || 0,
+//         casePosts: casePosts.find((cp) => cp._id === m)?.count || 0,
+//         hires: hires.find((h) => h._id === m)?.count || 0,
+//         lawyerRegistrations: lawyerRegistrations.find((l) => l._id === m)?.count || 0,
+//     }));
+
+//     return chartData;
+// };
+
+
+const getAdminDashboardBarChartFromDB = async (
     year: number,
-    month?: number // optional
+    month?: number
 ): Promise<ChartDataItem[]> => {
-    // 🗓 Define start and end dates
     let start: Date;
     let end: Date;
+    let dateFormat: string;
 
     if (month && month >= 1 && month <= 12) {
-        // specific month
+        // ✅ Specific month → group by DAY
         start = new Date(year, month - 1, 1);
-        end = new Date(year, month - 1, new Date(year, month, 0).getDate(), 23, 59, 59, 999);
+        end = new Date(year, month, 0, 23, 59, 59, 999);
+        dateFormat = "%Y-%m-%d"; // ✅ Daily format
     } else {
-        // whole year
+        // ✅ Whole year → group by MONTH
         start = new Date(year, 0, 1);
         end = new Date(year, 11, 31, 23, 59, 59, 999);
+        dateFormat = "%Y-%m"; // ✅ Monthly format
     }
 
-    const dateFormat = "%Y-%m";
-
-    // 1️⃣ Users per month
+    // 1️⃣ Users
     const users = await User.aggregate([
         { $match: { createdAt: { $gte: start, $lte: end } } },
         {
@@ -643,7 +772,7 @@ export const getAdminDashboardBarChartFromDB = async (
         },
     ]);
 
-    // 2️⃣ Lawyer registrations per month
+    // 2️⃣ Lawyer registrations
     const lawyerRegistrations = await User.aggregate([
         {
             $match: {
@@ -659,7 +788,7 @@ export const getAdminDashboardBarChartFromDB = async (
         },
     ]);
 
-    // 3️⃣ Successful payments per month
+    // 3️⃣ Payments
     const payments = await Transaction.aggregate([
         {
             $match: {
@@ -676,7 +805,7 @@ export const getAdminDashboardBarChartFromDB = async (
         },
     ]);
 
-    // 4️⃣ Credits spent per month
+    // 4️⃣ Credits spent
     const creditsSpent = await CreditTransaction.aggregate([
         {
             $match: {
@@ -692,11 +821,9 @@ export const getAdminDashboardBarChartFromDB = async (
         },
     ]);
 
-    // 5️⃣ Case posts (leads) per month
+    // 5️⃣ Case posts (leads)
     const casePosts = await Lead.aggregate([
-        {
-            $match: { createdAt: { $gte: start, $lte: end } },
-        },
+        { $match: { createdAt: { $gte: start, $lte: end } } },
         {
             $group: {
                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
@@ -705,7 +832,7 @@ export const getAdminDashboardBarChartFromDB = async (
         },
     ]);
 
-    // 6️⃣ Hires per month
+    // 6️⃣ Hires
     const hires = await Lead.aggregate([
         {
             $match: {
@@ -721,24 +848,45 @@ export const getAdminDashboardBarChartFromDB = async (
         },
     ]);
 
-    // 📌 Generate months to fill chart
-    const allMonths = month
-        ? [`${year}-${month.toString().padStart(2, "0")}`]
-        : Array.from({ length: 12 }, (_, i) => `${year}-${(i + 1).toString().padStart(2, "0")}`);
+    // 📌 Prepare date labels
+    let allDates: string[];
 
-    // 📌 Merge data with 0 for missing months
-    const chartData: ChartDataItem[] = allMonths.map((m) => ({
-        date: m,
-        users: users.find((u) => u._id === m)?.count || 0,
-        payments: payments.find((p) => p._id === m)?.count || 0,
-        creditsSpent: creditsSpent.find((c) => c._id === m)?.totalCredits || 0,
-        casePosts: casePosts.find((cp) => cp._id === m)?.count || 0,
-        hires: hires.find((h) => h._id === m)?.count || 0,
-        lawyerRegistrations: lawyerRegistrations.find((l) => l._id === m)?.count || 0,
+    if (month && month >= 1 && month <= 12) {
+        // ✅ Daily data for the given month
+        const daysInMonth = new Date(year, month, 0).getDate();
+        allDates = Array.from(
+            { length: daysInMonth },
+            (_, i) => `${year}-${month.toString().padStart(2, "0")}-${(i + 1)
+                .toString()
+                .padStart(2, "0")}`
+        );
+    } else {
+        // ✅ Monthly data for the given year
+        allDates = Array.from(
+            { length: 12 },
+            (_, i) => `${year}-${(i + 1).toString().padStart(2, "0")}`
+        );
+    }
+
+    // 📌 Merge data with defaults
+    const chartData: ChartDataItem[] = allDates.map((date) => ({
+        date,
+        users: users.find((u) => u._id === date)?.count || 0,
+        payments: payments.find((p) => p._id === date)?.count || 0,
+        // creditsSpent: creditsSpent.find((c) => c._id === date)?.totalCredits || 0,
+        creditsSpent: Math.abs(
+            creditsSpent.find((c) => c._id === date)?.totalCredits || 0
+        ),
+        casePosts: casePosts.find((cp) => cp._id === date)?.count || 0,
+        hires: hires.find((h) => h._id === date)?.count || 0,
+        lawyerRegistrations:
+            lawyerRegistrations.find((l) => l._id === date)?.count || 0,
     }));
 
     return chartData;
 };
+
+
 
 
 
