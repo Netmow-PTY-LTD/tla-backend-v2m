@@ -75,6 +75,7 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
 
 
 
+
 });
 
 
@@ -82,6 +83,22 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
 
 
 
+
+ const getAdminDashboardBarChart = catchAsync(async (req, res) => {
+    const { year } = req.query;
+
+    // ✅ Validate year param
+    const selectedYear = year ? parseInt(year as string, 10) : new Date().getFullYear();
+
+    const result = await adminService.getAdminDashboardBarChartFromDB(selectedYear);
+
+    return sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: "Admin dashboard bar chart retrieved successfully",
+        data: result,
+    });
+});
 
 
 
@@ -157,7 +174,8 @@ export const adminController = {
   getAllClientsDashboard,
   getAllLawyerDashboard,
   getAdminDashboardChart,
-  getAdminDashboardStats
+  getAdminDashboardStats,
+  getAdminDashboardBarChart
   // getLawyerDashboard,
   // getClientDashboard,
 

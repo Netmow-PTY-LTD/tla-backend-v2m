@@ -469,6 +469,143 @@ const getAdminDashboardChartFromDB = async (
 
 
 
+ const getAdminDashboardBarChartFromDB = async (
+    year: number
+): Promise<ChartDataItem[]> => {
+    // 🗓️ Define start and end dates manually
+    const start = new Date(year, 0, 1);  // January 1st of given year
+    const end = new Date(year, 11, 31, 23, 59, 59, 999); // December 31st of given year
+
+    const dateFormat = "%Y-%m";
+
+    // 1️⃣ Users per month
+    const users = await User.aggregate([
+        { $match: { createdAt: { $gte: start, $lte: end } } },
+        {
+            $group: {
+                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+
+    // 2️⃣ Lawyer registrations per month
+    const lawyerRegistrations = await User.aggregate([
+        {
+            $match: {
+                regUserType: "lawyer",
+                createdAt: { $gte: start, $lte: end },
+            },
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+
+    // 3️⃣ Successful payments per month
+    const payments = await Transaction.aggregate([
+        {
+            $match: {
+                type: "purchase",
+                status: "completed",
+                createdAt: { $gte: start, $lte: end },
+            },
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+
+    // 4️⃣ Credits spent per month
+    const creditsSpent = await CreditTransaction.aggregate([
+        {
+            $match: {
+                type: "usage",
+                createdAt: { $gte: start, $lte: end },
+            },
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+                totalCredits: { $sum: "$credit" },
+            },
+        },
+    ]);
+
+    // 5️⃣ Case posts (leads) per month
+    const casePosts = await Lead.aggregate([
+        {
+            $match: { createdAt: { $gte: start, $lte: end } },
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+
+    // 6️⃣ Hires per month
+    const hires = await Lead.aggregate([
+        {
+            $match: {
+                isHired: true,
+                hiredAt: { $gte: start, $lte: end },
+            },
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: dateFormat, date: "$hiredAt" } },
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+
+    // 📌 Generate all 12 months for the requested year
+    const allMonths = Array.from({ length: 12 }, (_, i) => {
+        const month = (i + 1).toString().padStart(2, "0");
+        return `${year}-${month}`;
+    });
+
+    // 📌 Merge data with 0 for missing months
+    const chartData: ChartDataItem[] = allMonths.map((month) => ({
+        date: month,
+        users: users.find((u) => u._id === month)?.count || 0,
+        payments: payments.find((p) => p._id === month)?.count || 0,
+        creditsSpent: creditsSpent.find((c) => c._id === month)?.totalCredits || 0,
+        casePosts: casePosts.find((cp) => cp._id === month)?.count || 0,
+        hires: hires.find((h) => h._id === month)?.count || 0,
+        lawyerRegistrations:
+            lawyerRegistrations.find((l) => l._id === month)?.count || 0,
+    }));
+
+    return chartData;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ✅ Fetch stats for the admin dashboard
  const getAdminDashboardStatsFromDB = async (): Promise<AdminDashboardStats> => {
@@ -593,7 +730,8 @@ export const adminService = {
     getAllClientsDashboard,
     getAllLawyerDashboard,
     getAdminDashboardChartFromDB,
-    getAdminDashboardStatsFromDB
+    getAdminDashboardStatsFromDB,
+    getAdminDashboardBarChartFromDB
     // getClientDashboard,
     // getLawyerDashboard,
 };

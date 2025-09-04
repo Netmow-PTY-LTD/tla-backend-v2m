@@ -15,7 +15,7 @@ router.get("/client/all", auth(USER_ROLE.ADMIN), adminController.getAllClientsDa
 router.get("/lawyer/all", auth(USER_ROLE.ADMIN), adminController.getAllLawyerDashboard);
 router.get("/dashboard/chart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardChart);
 router.get("/dashboard/stats", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardStats);
-// router.get("/dashbord/barhart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardChart);
+router.get("/dashbord/bar-chart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardBarChart);
 
 
 
