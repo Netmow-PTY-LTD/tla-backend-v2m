@@ -32,6 +32,7 @@ export interface IUserLocationServiceMap {
 
 export interface ILeadService {
   userProfileId: Types.ObjectId;
+  countryId: Types.ObjectId;
   serviceId: Types.ObjectId;
   questionId: Types.ObjectId;
   optionId: Types.ObjectId;

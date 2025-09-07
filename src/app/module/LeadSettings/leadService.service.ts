@@ -65,9 +65,11 @@ const createLeadService = async (
       // 4. Get all questions for new services
       const allQuestions = await ServiceWiseQuestion.find({
         serviceId: { $in: newServiceIds },
+        countryId: userProfile.country
       })
-        .select('_id serviceId')
+        .select('_id serviceId countryId')
         .session(session);
+
 
       // 5. Group questions by serviceId
       const questionsByServiceId = new Map<
@@ -87,14 +89,17 @@ const createLeadService = async (
       const matchPairs = allQuestions.map((q) => ({
         questionId: q._id,
         serviceId: q.serviceId,
+        countryId: q.countryId
       }));
 
       // 7. Get options by (questionId + serviceId)
       const allOptions = await Option.find({
         $or: matchPairs,
       })
-        .select('_id questionId serviceId')
+        .select('_id questionId serviceId countryId')
         .session(session);
+
+
 
       // 8. Group options by questionId (string-keyed map for consistency)
       const optionsByQuestionId = new Map<
@@ -124,6 +129,7 @@ const createLeadService = async (
             .filter((option) => option.serviceId.equals(serviceId))
             .map((option) => ({
               userProfileId: userProfile._id,
+              countryId: userProfile.country,
               serviceId,
               questionId: question._id,
               optionId: option._id,
@@ -189,144 +195,11 @@ const createLeadService = async (
     await session.endSession();
   }
 };
-// const createLeadService = async (
-//   userId: string,
-//   payload: {
-//     serviceIds: Types.ObjectId[];
-//   },
-// ) => {
-//   const session = await mongoose.startSession();
-
-//   try {
-//     await session.withTransaction(async () => {
-//       // 1. Find user profile
-//       const userProfile = await UserProfile.findOne({ user: userId })
-//         .select('_id serviceIds country')
-//         .session(session);
-
-//       if (!userProfile) {
-//         sendNotFoundResponse('User profile not found');
-//         return;
-//       }
-
-//       // 2. Validate service IDs
-//       payload.serviceIds.forEach((id) =>
-//         validateObjectId(id.toString(), 'service'),
-//       );
-
-//       const objectServiceIds = payload.serviceIds.map(
-//         (id) => new mongoose.Types.ObjectId(id),
-//       );
-
-//       // 3. Filter only new service IDs
-//       const existingServiceIds = new Set(
-//         userProfile?.serviceIds?.map((id) => id.toString()),
-//       );
-
-//       const newServiceIds = objectServiceIds.filter(
-//         (id) => !existingServiceIds.has(id.toString()),
-//       );
-
-//       if (newServiceIds.length === 0) {
-//         throw {
-//           status: 409,
-//           message: 'All selected services already exist for this user',
-//           duplicates: Array.from(existingServiceIds),
-//         };
-//       }
-
-//       const successfulServiceIds: Types.ObjectId[] = [];
-
-//       // 4. Create LeadService documents for each new service
-//       for (const serviceId of newServiceIds) {
-//         const questions = await ServiceWiseQuestion.find({ serviceId }).session(
-//           session,
-//         );
-
-//         let totalCreated = 0;
-
-//         for (const question of questions) {
-//           const options = await Option.find({
-//             questionId: question._id,
-//             serviceId,
-//           }).session(session);
-
-//           if (options.length > 0) {
-//             const docs = options.map((option) => ({
-//               userProfileId: userProfile._id,
-//               serviceId,
-//               questionId: question._id,
-//               optionId: option._id,
-//               isSelected: true,
-//             }));
-
-//             const result = await LeadService.insertMany(docs, { session });
-//             totalCreated += result.length;
-//           }
-//         }
-
-//         if (totalCreated > 0) {
-//           successfulServiceIds.push(serviceId);
-//         }
-//       }
-
-//       // 5. Update userProfile.serviceIds
-//       if (successfulServiceIds.length > 0) {
-//         if (!userProfile.serviceIds) {
-//           userProfile.serviceIds = [];
-//         }
-//         userProfile.serviceIds.push(...successfulServiceIds);
-//         await userProfile.save({ session });
-//       }
-
-//       // 6. Update UserLocationServiceMap
-//       const locationGroup = await ZipCode.findOne({
-//         countryId: userProfile.country,
-//         zipCodeType: 'default',
-//       }).session(session);
-
-//       if (!locationGroup) {
-//         throw {
-//           status: 404,
-//           message: 'Default location group not found',
-//         };
-//       }
-
-//       await UserLocationServiceMap.findOneAndUpdate(
-//         {
-//           userProfileId: userProfile._id,
-//           locationGroupId: locationGroup._id,
-//           locationType: 'nation_wide',
-//         },
-//         {
-//           $addToSet: {
-//             serviceIds: { $each: successfulServiceIds },
-//           },
-//         },
-//         {
-//           upsert: true,
-//           new: true,
-//           session,
-//         },
-//       );
-//     });
-
-//     return {
-//       success: true,
-//       message: 'Lead services created and profile updated successfully',
-//     };
-//   } catch (error) {
-//     console.error('Transaction failed:', error);
-//     throw error;
-//   } finally {
-//     await session.endSession();
-//   }
-// };
 
 const getLeadServicesWithQuestions = async (userId: string) => {
   // 1. Fetch user profile
   const userProfile = await UserProfile.findOne({ user: userId }).select(
-    '_id serviceIds',
+    '_id serviceIds country',
   );
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
@@ -335,6 +208,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   // 2. Fetch relevant lead services
   const leadServices = await LeadService.find({
     userProfileId: userProfile?._id,
+    // countryId: userProfile.country,
     serviceId: { $in: userProfile.serviceIds },
   })
     .populate('serviceId')
@@ -441,6 +315,7 @@ const updateLocations = async (
       new: true,
       upsert: true, // create if not exists
       setDefaultsOnInsert: true,
+
     },
   );
 
