@@ -722,7 +722,7 @@ const getAllLeadFromDB = async (
 
   const matchStage: any = {
     deletedAt: null,
-    countryId: userProfile.country,
+    countryId: new mongoose.Types.ObjectId(userProfile.country),
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
     serviceId: { $in: userProfile.serviceIds },
@@ -801,13 +801,13 @@ const getAllLeadFromDB = async (
 
     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
 
-    //  ---------------------------- match current user and same country lead user -----------------
-    {
-      $match: {
-        'userProfileId.country': new mongoose.Types.ObjectId(userProfile.country)
+    // //  ---------------------------- match current user and same country lead user -----------------
+    // {
+    //   $match: {
+    //     'userProfileId.country': new mongoose.Types.ObjectId(userProfile.country)
 
-      }
-    },
+    //   }
+    // },
     // Keyword match here (AFTER we have userProfileId.name)
     ...(filters.keyword
       ? [{
