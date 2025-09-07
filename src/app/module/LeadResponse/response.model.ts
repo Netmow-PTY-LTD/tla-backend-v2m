@@ -74,10 +74,6 @@ const responseSchema = new Schema<ILeadResponse>(
       default:null
     },
 
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
   },
   {
     timestamps: true,

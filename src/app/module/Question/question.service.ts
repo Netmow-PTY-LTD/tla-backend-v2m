@@ -11,7 +11,7 @@ const CreateServiceWiseQuestionIntoDB = async (
 };
 
 const getAllServiceWiseQuestionFromDB = async () => {
-  const result = await ServiceWiseQuestion.find();
+  const result = await ServiceWiseQuestion.find({});
   return result;
 };
 
@@ -49,6 +49,7 @@ const deleteServiceWiseQuestionFromDB = async (id: string) => {
 
   return result;
 };
+
 
 const updateQuestionOrderIntoDB = async (
   payload: { _id: string; order: number }[],

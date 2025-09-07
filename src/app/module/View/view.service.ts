@@ -11,7 +11,8 @@ import UserProfile from '../User/user.model';
 import ProfilePhotos from '../User/profilePhotos';
 import ProfileSocialMedia from '../User/profileSocialMedia';
 import ProfileCustomService from '../User/profileServiceCoustom.model';
-import { calculateLawyerBadge } from '../User/getBadgeStatus';
+import { calculateLawyerBadge } from '../User/user.utils';
+
 
 
 

@@ -40,8 +40,6 @@ export interface ILeadResponse {
   status: "pending" | "hire_requested" | "hired" | "rejected" | "cancelled";
   hireMessage: string | null;
   clientRating?: Types.ObjectId | null;
-  // Soft delete
-  deletedAt?: Date | null;
   leadAnswers?: ILeadServiceAnswer[];
 
 }

@@ -14,10 +14,7 @@ const serviceSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+   
   },
   {
     timestamps: true,

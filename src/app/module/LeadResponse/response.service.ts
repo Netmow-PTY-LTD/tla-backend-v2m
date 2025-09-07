@@ -41,7 +41,7 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 const getAllResponseFromDB = async () => {
   try {
     const pipeline = [
-      { $match: { deletedAt: null } },
+      // { $match: { deletedAt: null } },
 
       // Lookup lawyer's userProfile (responder)
       {
@@ -242,7 +242,7 @@ const getMyAllResponseFromDB = async (
     {
       $match: {
         responseBy: userProfile?._id,
-        deletedAt: null,
+       
       },
     },
     {
@@ -691,7 +691,7 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
 
   const responses = await LeadResponse.find({
     leadId: leadId,
-    deletedAt: null,
+    // deletedAt: null,
   })
     .populate({
       path: 'leadId',

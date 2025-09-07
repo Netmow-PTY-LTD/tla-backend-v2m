@@ -15,7 +15,7 @@ const getAllOptionFromDB = async () => {
 const getSingleOptionFromDB = async (id: string) => {
   validateObjectId(id, 'Option');
 
-  const result = await Option.findOne({ _id: id });
+  const result = await Option.findById(id);
   return result;
 };
 

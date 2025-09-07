@@ -9,12 +9,12 @@ import CreditPackage from './creditPackage.model';
 import Coupon from './coupon.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
-import { isVerifiedLawyer } from '../User/calculateVerifiedBadge';
 import { USER_PROFILE } from '../User/user.constant';
 import { sendEmail } from '../../emails/email.service';
 import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
+import { isVerifiedLawyer } from '../User/user.utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version

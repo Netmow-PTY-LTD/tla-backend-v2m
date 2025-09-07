@@ -338,7 +338,6 @@ const getAllLawyerDashboard = async (query: DashboardQuery) => {
 
 
 
-
 const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
 const getAdminDashboardChartFromDB = async (

@@ -4,7 +4,7 @@ export interface IService {
   _id?: string;
   name: string;
   slug: string;
-  deletedAt?: Date;
+
 }
 
 export interface ServiceModel extends Model<IService> {
