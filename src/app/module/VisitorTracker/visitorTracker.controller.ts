@@ -1,10 +1,11 @@
 
 import { Request, Response } from "express";
+import catchAsync from "../../utils/catchAsync";
+import sendResponse from "../../utils/sendResponse";
+import { HTTP_STATUS } from "../../constant/httpStatus";
+import { visitorTrackerService } from "./visitorTracker.service";
 
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { HTTP_STATUS } from "../../../constant/httpStatus";
-import { visitorTrackerService } from "../services/visitorTracker.service";
+
 
 const trackVisit = catchAsync(async (req: Request, res: Response) => {
   const {targetId, sessionId, deviceInfo } = req.body;
