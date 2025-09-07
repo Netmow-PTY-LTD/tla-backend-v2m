@@ -5,7 +5,7 @@ import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import User from './auth.model';
 import ZipCode from '../Country/zipcode.model';
-import { UserLocationServiceMap } from '../LeadSettings/models/UserLocationServiceMap.model';
+import { UserLocationServiceMap } from '../LeadSettings/UserLocationServiceMap.model';
 import { createToken } from './auth.utils';
 import config from '../../config';
 import { StringValue } from 'ms';

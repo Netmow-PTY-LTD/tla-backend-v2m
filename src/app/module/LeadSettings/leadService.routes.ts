@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { leadServiceController } from '../controllers/leadService.controller';
-import auth from '../../../middlewares/auth';
-import { USER_ROLE } from '../../../constant';
-import validateRequest from '../../../middlewares/validateRequest';
-import { leadServiceZodValidation } from '../validations/leadService.validation';
+import { leadServiceController } from './leadService.controller';
+import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../../constant';
+import validateRequest from '../../middlewares/validateRequest';
+import { leadServiceZodValidation } from './leadService.validation';
 
 const router = Router();
 

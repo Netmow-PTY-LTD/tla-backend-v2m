@@ -6,14 +6,14 @@ import User from './auth.model';
 import CompanyProfile from '../User/models/companyProfile.model';
 import { LawyerServiceMap } from '../User/models/lawyerServiceMap.model';
 import ZipCode from '../Country/zipcode.model';
-import { UserLocationServiceMap } from '../LeadSettings/models/UserLocationServiceMap.model';
+import { UserLocationServiceMap } from '../LeadSettings/UserLocationServiceMap.model';
 import { createToken } from './auth.utils';
 import config from '../../config';
 import { StringValue } from 'ms';
 import { IUser } from './auth.interface';
 import { REGISTER_USER_TYPE } from './auth.constant';
 import { createLeadService } from './lawyerRegister.utils';
-import { LocationType } from '../LeadSettings/constant/UserWiseLocation.constant';
+import { LocationType } from '../LeadSettings/UserWiseLocation.constant';
 import { sendEmail } from '../../emails/email.service';
 import Service from '../Service/models/service.model';
 

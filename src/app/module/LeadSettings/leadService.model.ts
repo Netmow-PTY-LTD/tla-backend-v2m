@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 import {
   ILeadService,
   ILeadServiceModel,
-} from '../interfaces/leadService.interface';
+} from './leadService.interface';
 
 const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
   {

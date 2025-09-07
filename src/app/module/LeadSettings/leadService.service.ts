@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
-import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { sendNotFoundResponse } from '../../errors/custom.error';
 
-import UserProfile from '../../User/models/user.model';
+import UserProfile from '../User/models/user.model';
 import {
   ILeadService,
   IUpdateLeadServiceAnswers,
   IUserLocationServiceMap,
-} from '../interfaces/leadService.interface';
-import LeadService from '../models/leadService.model';
-import { validateObjectId } from '../../../utils/validateObjectId';
-import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
-import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
+} from './leadService.interface';
+import LeadService from './leadService.model';
+import { validateObjectId } from '../../utils/validateObjectId';
+import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
+import { UserLocationServiceMap } from './UserLocationServiceMap.model';
 
-import Option from '../../Option/models/option.model';
-import ZipCode from '../../Country/zipcode.model';
+import Option from '../Option/models/option.model';
+import ZipCode from '../Country/zipcode.model';
 
 const createLeadService = async (
   userId: string,

@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import {
   IUserLocationServiceMap,
   LocationType,
-} from '../interfaces/leadService.interface';
+} from './leadService.interface';
 
 /* 
 under this interface  model will be changeable just use if for test case

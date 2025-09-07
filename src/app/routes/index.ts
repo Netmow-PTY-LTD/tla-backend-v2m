@@ -8,7 +8,7 @@ import { OptionRouter } from '../module/Option/routes/option.route';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/routes/countryWiseMap.route';
 import { questionRouter } from '../module/Question/routes/ServiceWiseQuestion.route';
 import { viewRouter } from '../module/View/routes/view.router';
-import { leadServiceRouter } from '../module/LeadSettings/routes/leadService.routes';
+import { leadServiceRouter } from '../module/LeadSettings/leadService.routes';
 import { notificationRouter } from '../module/Notification/routes/notification.routes';
 import { creditPaymentRouter } from '../module/CreditPayment/creditPayment.routes';
 import { leadRouter } from '../module/Lead/lead.route';
