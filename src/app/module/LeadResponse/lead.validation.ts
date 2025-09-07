@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zodObjectIdField } from '../../../utils/validateObjectId';
+import { zodObjectIdField } from '../../utils/validateObjectId';
 
 const leadZodValidationSchema = z.object({
   body: z.object({

@@ -12,7 +12,7 @@ import { leadServiceRouter } from '../module/LeadSettings/routes/leadService.rou
 import { notificationRouter } from '../module/Notification/routes/notification.routes';
 import { creditPaymentRouter } from '../module/CreditPayment/creditPayment.routes';
 import { leadRouter } from '../module/Lead/lead.route';
-import { responseRouter } from '../module/LeadResponse/routes/response.route';
+import { responseRouter } from '../module/LeadResponse/response.route';
 import { activityLogRouter } from '../module/Activity/logActivity.route';
 import { contactRouter } from '../module/Contact/contact.route';
 import { settingsRouter } from '../module/Settings/routes/settings.route';

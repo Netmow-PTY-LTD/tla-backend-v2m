@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ILeadResponse } from '../interfaces/response.interface';
+import { ILeadResponse } from './response.interface';
 
 const responseSchema = new Schema<ILeadResponse>(
   {

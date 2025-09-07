@@ -5,7 +5,7 @@ import User from '../Auth/auth.model';
 import CreditTransaction from '../CreditPayment/creditTransaction.model';
 import Transaction from '../CreditPayment/transaction.model';
 import Lead from '../Lead/lead.model';
-import LeadResponse from '../LeadResponse/models/response.model';
+import LeadResponse from '../LeadResponse/response.model';
 import { createNotification } from '../Notification/utils/createNotification';
 import { ProfileVisitor } from '../VisitorTracker/models/profileVisitor.model';
 import { ActivityLog } from './activityLog.model';

@@ -1,11 +1,11 @@
 import mongoose, { Types } from "mongoose";
 import UserProfile from "../../User/models/user.model";
 import CreditTransaction from "../../CreditPayment/creditTransaction.model";
-import LeadResponse from "../../LeadResponse/models/response.model";
+import LeadResponse from "../../LeadResponse/response.model";
 import { HTTP_STATUS } from "../../../constant/httpStatus";
 import CreditPackage from "../../CreditPayment/creditPackage.model";
 import PaymentMethod from "../../CreditPayment/paymentMethod.model";
-import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface";
+import { ILeadResponse } from "../../LeadResponse/response.interface";
 import { logActivity } from "../../Activity/logActivityLog";
 import { createNotification } from "../../Notification/utils/createNotification";
 import Lead from "../../Lead/lead.model";

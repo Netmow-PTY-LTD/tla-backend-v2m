@@ -1,8 +1,8 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import { startQueryTimer } from '../../../utils/queryTimer';
-import sendResponse from '../../../utils/sendResponse';
-import { responseService } from '../services/response.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import { startQueryTimer } from '../../utils/queryTimer';
+import sendResponse from '../../utils/sendResponse';
+import { responseService } from './response.service';
 
 const createResponse = catchAsync(async (req, res) => {
   const userId = req.user.userId;

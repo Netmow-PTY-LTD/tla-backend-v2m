@@ -1,6 +1,6 @@
 
 import { Types } from 'mongoose';
-import LeadResponse from '../../LeadResponse/models/response.model';
+import LeadResponse from '../../LeadResponse/response.model';
 import UserProfile from '../models/user.model';
 
 

@@ -11,7 +11,7 @@ import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWis
 import { customCreditLogic } from './customCreditLogic';
 
 import QueryBuilder from '../../builder/QueryBuilder';
-import LeadResponse from '../LeadResponse/models/response.model';
+import LeadResponse from '../LeadResponse/response.model';
 import Service from '../Service/models/service.model';
 import config from '../../config';
 import { sendEmail } from '../../emails/email.service';
