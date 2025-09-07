@@ -65,12 +65,12 @@ const createLeadService = async (
       // 4. Get all questions for new services
       const allQuestions = await ServiceWiseQuestion.find({
         serviceId: { $in: newServiceIds },
-        countryId:userProfile.country
+        countryId: userProfile.country
       })
         .select('_id serviceId countryId')
         .session(session);
 
-       
+
       // 5. Group questions by serviceId
       const questionsByServiceId = new Map<
         string,
@@ -89,7 +89,7 @@ const createLeadService = async (
       const matchPairs = allQuestions.map((q) => ({
         questionId: q._id,
         serviceId: q.serviceId,
-        countryId:q.countryId
+        countryId: q.countryId
       }));
 
       // 7. Get options by (questionId + serviceId)
@@ -99,7 +99,7 @@ const createLeadService = async (
         .select('_id questionId serviceId countryId')
         .session(session);
 
-          
+
 
       // 8. Group options by questionId (string-keyed map for consistency)
       const optionsByQuestionId = new Map<
@@ -208,7 +208,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   // 2. Fetch relevant lead services
   const leadServices = await LeadService.find({
     userProfileId: userProfile?._id,
-    countryId: userProfile.country,
+    // countryId: userProfile.country,
     serviceId: { $in: userProfile.serviceIds },
   })
     .populate('serviceId')
