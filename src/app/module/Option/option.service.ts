@@ -1,6 +1,6 @@
-import { validateObjectId } from '../../../utils/validateObjectId';
-import { IOption } from '../interfaces/option.interface';
-import Option from '../models/option.model';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { IOption } from './option.interface';
+import Option from './option.model';
 
 const CreateOptionIntoDB = async (payload: IOption) => {
   const result = await Option.create(payload);

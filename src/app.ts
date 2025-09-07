@@ -11,7 +11,7 @@ import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
 import { userSocketsMap } from './app/sockets';
 import ServiceWiseQuestion from './app/module/Question/models/ServiceWiseQuestion.model';
-import Option from './app/module/Option/models/option.model';
+import Option from './app/module/Option/option.model';
 import mongoose from 'mongoose';
 import catchAsync from './app/utils/catchAsync';
 

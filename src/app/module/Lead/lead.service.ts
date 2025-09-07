@@ -17,7 +17,7 @@ import config from '../../config';
 import { sendEmail } from '../../emails/email.service';
 import { IUser } from '../Auth/auth.interface';
 import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
-import Option from '../Option/models/option.model';
+import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 
 

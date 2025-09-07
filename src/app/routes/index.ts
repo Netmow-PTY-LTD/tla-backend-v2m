@@ -4,7 +4,7 @@ import { authRouter } from '../module/Auth/auth.route';
 import { UserProfileRouter } from '../module/User/routes/user.route';
 import { countryRouter } from '../module/Country/country.route';
 import { serviceRouter } from '../module/Service/routes/service.route';
-import { OptionRouter } from '../module/Option/routes/option.route';
+import { OptionRouter } from '../module/Option/option.route';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/routes/countryWiseMap.route';
 import { questionRouter } from '../module/Question/routes/ServiceWiseQuestion.route';
 import { viewRouter } from '../module/View/routes/view.router';

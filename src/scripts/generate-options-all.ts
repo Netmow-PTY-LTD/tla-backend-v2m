@@ -4,7 +4,7 @@
 // It will count all Questions (deletedAt:null) and generate that many Options.
 
 import mongoose, { Model, Types } from "mongoose";
-import Option from "../app/module/Option/models/option.model";
+import Option from "../app/module/Option/option.model";
 import ServiceWiseQuestion from "../app/module/Question/models/ServiceWiseQuestion.model";
 import { faker } from "@faker-js/faker";
 

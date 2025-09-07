@@ -13,7 +13,7 @@ import { validateObjectId } from '../../utils/validateObjectId';
 import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
 import { UserLocationServiceMap } from './UserLocationServiceMap.model';
 
-import Option from '../Option/models/option.model';
+import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 
 const createLeadService = async (

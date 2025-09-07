@@ -3,7 +3,7 @@ import UserProfile from '../User/models/user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { validateObjectId } from '../../utils/validateObjectId';
 import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
-import Option from '../Option/models/option.model';
+import Option from '../Option/option.model';
 import LeadService from '../LeadSettings/leadService.model';
 
 
