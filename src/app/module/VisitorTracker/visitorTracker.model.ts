@@ -1,6 +1,6 @@
 
 import mongoose, { Schema, Document } from "mongoose";
-import { IVisitor } from "../interfaces/visitorTracker.interface";
+import { IVisitor } from "./visitorTracker.interface";
 
 
 

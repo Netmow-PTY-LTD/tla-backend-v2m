@@ -1,7 +1,7 @@
 
 import mongoose from "mongoose";
-import { VisitorTracker } from "../models/visitorTracker.model";
-import { IVisitor } from "../interfaces/visitorTracker.interface";
+import { VisitorTracker } from "./visitorTracker.model";
+import { IVisitor } from "./visitorTracker.interface";
 
 
 /**

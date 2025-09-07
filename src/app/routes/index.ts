@@ -16,7 +16,7 @@ import { contactRouter } from '../module/Contact/contact.route';
 import { settingsRouter } from '../module/Settings/settings.route';
 import { categoryRouter } from '../module/Category/category.route';
 import { ratingRouter } from '../module/Rating/rating.routes';
-import { profileVisitorRouter } from '../module/VisitorTracker/routes/profileVisitor.routes';
+import { profileVisitorRouter } from '../module/VisitorTracker/profileVisitor.routes';
 import { adminRouter } from '../module/Admin/admin.routes';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.route';
 

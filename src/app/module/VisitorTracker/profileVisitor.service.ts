@@ -1,6 +1,6 @@
 // modules/profileVisitor/profileVisitor.service.ts
 import mongoose from "mongoose";
-import { ProfileVisitor } from "../models/profileVisitor.model";
+import { ProfileVisitor } from "./profileVisitor.model";
 
 /**
  * Track a visit (deduplicate per day)

@@ -1,8 +1,8 @@
 
 import { Router } from "express";
-import auth from "../../../middlewares/auth";
-import { USER_ROLE } from "../../../constant";
-import { profileVisitorController } from "../controllers/profileVisitor.controller";
+import auth from "../../middlewares/auth";
+import { USER_ROLE } from "../../constant";
+import { profileVisitorController } from "./profileVisitor.controller";
 
 const router = Router();
 

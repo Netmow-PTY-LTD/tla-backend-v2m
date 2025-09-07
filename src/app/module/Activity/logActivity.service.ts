@@ -7,7 +7,7 @@ import Transaction from '../CreditPayment/transaction.model';
 import Lead from '../Lead/lead.model';
 import LeadResponse from '../LeadResponse/response.model';
 import { createNotification } from '../Notification/notification.utils';
-import { ProfileVisitor } from '../VisitorTracker/models/profileVisitor.model';
+import { ProfileVisitor } from '../VisitorTracker/profileVisitor.model';
 import { ActivityLog } from './activityLog.model';
 
 
