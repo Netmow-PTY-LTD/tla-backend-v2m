@@ -4,7 +4,7 @@ export interface ICountryWiseMap {
   _id: string;
   countryId: Types.ObjectId;
   serviceIds: Types.ObjectId[];
-  deletedAt?: Date | null;
+
 }
 
 export interface CountryWiseMapModel extends Model<ICountryWiseMap> {

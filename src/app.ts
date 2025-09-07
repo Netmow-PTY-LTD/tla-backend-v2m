@@ -150,7 +150,7 @@ app.get(
           foreignField: "questionId",
           as: "options",
           pipeline: [
-            { $match: { deletedAt: null } },
+            // { $match: { deletedAt: null } },
             { $sort: { order: 1 } },
             { $project: { _id: 1, name: 1, slug: 1, order: 1 } },
           ],

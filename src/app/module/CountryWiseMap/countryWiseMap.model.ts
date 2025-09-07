@@ -19,10 +19,7 @@ const countryWiseMapSchema = new Schema<ICountryWiseMap>(
         required: true,
       },
     ],
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+   
   },
   {
     timestamps: true,

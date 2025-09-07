@@ -14,7 +14,7 @@ export const countryServiceFieldSchema = z.object({
     .number()
     .min(0, { message: 'baseCredit must be >= 0' })
     .optional(),
-  deletedAt: z.union([z.date(), z.null()]).optional().optional(),
+  
 });
 
 export const countryServiceFieldZodValidation = {

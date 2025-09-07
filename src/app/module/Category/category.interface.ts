@@ -6,7 +6,7 @@ export interface ICategory {
   slug: string;
   image:string;
   serviceIds:Types.ObjectId[]
-  deletedAt?: Date;
+  
 }
 
 export interface CategoryModel extends Model<ICategory> {
