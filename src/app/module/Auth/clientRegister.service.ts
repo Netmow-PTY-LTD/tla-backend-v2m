@@ -10,9 +10,9 @@ import { createToken } from './auth.utils';
 import config from '../../config';
 import { StringValue } from 'ms';
 import { USER_ROLE } from '../../constant';
-import Lead from '../Lead/models/lead.model';
+import Lead from '../Lead/lead.model';
 
-import { LeadServiceAnswer } from '../Lead/models/leadServiceAnswer.model';
+import { LeadServiceAnswer } from '../Lead/leadServiceAnswer.model';
 import { Types } from 'mongoose';
 import { REGISTER_USER_TYPE } from './auth.constant';
 import { sendEmail } from '../../emails/email.service';

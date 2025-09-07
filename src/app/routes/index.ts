@@ -11,7 +11,7 @@ import { viewRouter } from '../module/View/routes/view.router';
 import { leadServiceRouter } from '../module/LeadSettings/routes/leadService.routes';
 import { notificationRouter } from '../module/Notification/routes/notification.routes';
 import { creditPaymentRouter } from '../module/CreditPayment/routes/creditPayment.routes';
-import { leadRouter } from '../module/Lead/routes/lead.route';
+import { leadRouter } from '../module/Lead/lead.route';
 import { responseRouter } from '../module/LeadResponse/routes/response.route';
 import { activityLogRouter } from '../module/Activity/logActivity.route';
 import { contactRouter } from '../module/Contact/contact.route';

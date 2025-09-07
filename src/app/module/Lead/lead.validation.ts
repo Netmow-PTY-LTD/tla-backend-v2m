@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { zodObjectIdField } from '../../../utils/validateObjectId';
-import { leadPrioritySchema, leadStatusSchema } from '../constant/lead.constant';
+import { zodObjectIdField } from '../../utils/validateObjectId';
+import { leadPrioritySchema, leadStatusSchema } from './lead.constant';
 
 const leadZodValidationSchema = z.object({
   body: z.object({

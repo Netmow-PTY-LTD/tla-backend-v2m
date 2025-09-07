@@ -8,7 +8,7 @@ import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
 import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface";
 import { logActivity } from "../../Activity/logActivityLog";
 import { createNotification } from "../../Notification/utils/createNotification";
-import Lead from "../../Lead/models/lead.model";
+import Lead from "../../Lead/lead.model";
 import { getIO } from "../../../sockets";
 import { ResponseWiseChatMessage } from "../models/chatMessage.model";
 import { LeadContactRequest } from "../models/LeadContactRequest.model";

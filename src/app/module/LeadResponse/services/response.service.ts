@@ -6,7 +6,7 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from '../utils/customCreditLogic';
 import { ILeadResponse } from '../interfaces/response.interface';
-import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
+import { LeadServiceAnswer } from '../../Lead/leadServiceAnswer.model';
 import LeadResponse from '../models/response.model';
 import { ActivityLog } from '../../Activity/activityLog.model';
 import { createNotification } from '../../Notification/utils/createNotification';
@@ -16,7 +16,7 @@ import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/auth.interface';
 import { logActivity } from '../../Activity/logActivityLog';
 import { getIO } from '../../../sockets';
-import Lead from '../../Lead/models/lead.model';
+import Lead from '../../Lead/lead.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
 
 

@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import { Rating } from "../models/rating.model";
 import UserProfile from "../../User/models/user.model";
 import LeadResponse from "../../LeadResponse/models/response.model";
-import Lead from "../../Lead/models/lead.model";
+import Lead from "../../Lead/lead.model";
 
 
 

@@ -1,27 +1,6 @@
 import { Model, Types } from 'mongoose';
+import { PriorityOption } from './lead.constant';
 import { ILeadServiceAnswer } from './leadServiceAnswer.interface';
-import { LeadStatus, PriorityOption } from '../constant/lead.constant';
-
-// export interface ILead {
-//   _id: Types.ObjectId;
-//   userProfileId: Types.ObjectId;
-//   countryId: Types.ObjectId;
-//   serviceId: Types.ObjectId;
-//   additionalDetails: string;
-//   locationId: Types.ObjectId;
-//   budgetAmount: number;
-//   credit?: number;
-//   deletedAt?: Date | null;
-//   status: LeadStatus,
-//   leadPriority: PriorityOption;
-//   responders?:Types.ObjectId[]
-//   isHired:boolean;
-//   leadClosedReason?:string;
-//   leadAnswers?: ILeadServiceAnswer[];
-// }
-
-
-
 
 
 
@@ -91,10 +70,9 @@ export interface ILead {
    *  SOFT DELETE & TIMESTAMPS
    * ------------------------------- **/
   deletedAt?: Date | null;
+  leadAnswers?: ILeadServiceAnswer[];
 
 }
-
-
 
 
 

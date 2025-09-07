@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
-import { ILead } from '../interfaces/lead.interface';
-import { LEAD_STATUS_ENUM, PRIORITY_OPTIONS } from '../constant/lead.constant';
+import { ILead } from './lead.interface';
+import { LEAD_STATUS_ENUM, PRIORITY_OPTIONS } from './lead.constant';
 
 
 const leadSchema = new Schema<ILead>(

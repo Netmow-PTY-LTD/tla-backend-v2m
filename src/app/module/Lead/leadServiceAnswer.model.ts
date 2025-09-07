@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ILeadServiceAnswer } from '../interfaces/leadServiceAnswer.interface';
+import { ILeadServiceAnswer } from './leadServiceAnswer.interface';
 
 const leadServiceAnswerSchema = new Schema<ILeadServiceAnswer>(
   {
