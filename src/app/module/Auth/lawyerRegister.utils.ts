@@ -113,6 +113,7 @@ export  const createLeadService = async (
       return options
         .filter((option) => option.serviceId.equals(serviceId))
         .map((option) => ({
+           countryId:userProfile.country,
           userProfileId: userProfile._id,
           serviceId,
           questionId: question._id,
