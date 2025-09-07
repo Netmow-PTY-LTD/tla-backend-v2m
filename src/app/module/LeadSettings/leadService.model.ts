@@ -12,6 +12,11 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
       ref: 'UserProfile',
       required: true,
     },
+    countryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Country',
+      required: true,
+    },
     serviceId: {
       type: Schema.Types.ObjectId,
       ref: 'Service',
