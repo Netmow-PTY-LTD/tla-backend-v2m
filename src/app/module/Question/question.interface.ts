@@ -8,7 +8,7 @@ export interface IServiceWiseQuestion {
   question: string;
   slug: string;
   questionType: 'radio' | 'checkbox';
-  deletedAt?: Date | null;
+ 
 }
 
 // Define the ServiceWiseStep model interface to include static methods
