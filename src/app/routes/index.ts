@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authRouter } from '../module/Auth/auth.route';
-import { UserProfileRouter } from '../module/User/routes/user.route';
+import { UserProfileRouter } from '../module/User/user.route';
 import { countryRouter } from '../module/Country/country.route';
 import { serviceRouter } from '../module/Service/service.route';
 import { OptionRouter } from '../module/Option/option.route';

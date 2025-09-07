@@ -1,5 +1,5 @@
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 
 import PaymentMethod from './paymentMethod.model';
 import Stripe from 'stripe';
@@ -9,8 +9,8 @@ import CreditPackage from './creditPackage.model';
 import Coupon from './coupon.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
-import { isVerifiedLawyer } from '../User/utils/calculateVerifiedBadge';
-import { USER_PROFILE } from '../User/constants/user.constant';
+import { isVerifiedLawyer } from '../User/calculateVerifiedBadge';
+import { USER_PROFILE } from '../User/user.constant';
 import { sendEmail } from '../../emails/email.service';
 import config from '../../config';
 import { IUser } from '../Auth/auth.interface';

@@ -4,14 +4,14 @@ import Option from '../../Option/option.model';
 import ServiceWiseQuestion from '../../Question/question.model';
 import User from '../../Auth/auth.model';
 import { IUser } from '../../Auth/auth.interface';
-import { IUserProfile } from '../../User/interfaces/user.interface';
-import Experience from '../../User/models/experience.model';
-import Faq from '../../User/models/faq.model';
-import UserProfile from '../../User/models/user.model';
-import ProfilePhotos from '../../User/models/profilePhotos';
-import ProfileSocialMedia from '../../User/models/profileSocialMedia';
-import ProfileCustomService from '../../User/models/profileServiceCoustom.model';
-import { calculateLawyerBadge } from '../../User/utils/getBadgeStatus';
+import { IUserProfile } from '../../User/user.interface';
+import Experience from '../../User/experience.model';
+import Faq from '../../User/faq.model';
+import UserProfile from '../../User/user.model';
+import ProfilePhotos from '../../User/profilePhotos';
+import ProfileSocialMedia from '../../User/profileSocialMedia';
+import ProfileCustomService from '../../User/profileServiceCoustom.model';
+import { calculateLawyerBadge } from '../../User/getBadgeStatus';
 
 
 

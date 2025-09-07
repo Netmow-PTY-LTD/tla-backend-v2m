@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import CreditTransaction from './creditTransaction.model';
 import Transaction from './transaction.model';
 

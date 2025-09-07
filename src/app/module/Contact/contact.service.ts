@@ -7,13 +7,13 @@ import { sendNotFoundResponse } from '../../errors/custom.error';
 import { logActivity } from '../Activity/logActivityLog';
 import Lead from '../Lead/lead.model';
 import { createNotification } from '../Notification/notification.utils';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import { SendEmail } from './SendEmail.model';
 import { SendSMS } from './SendSMS.model';
 import { getIO } from '../../sockets';
 import { IUser } from '../Auth/auth.interface';
 import User from '../Auth/auth.model';
-import { IUserProfile } from '../User/interfaces/user.interface';
+import { IUserProfile } from '../User/user.interface';
 import config from '../../config';
 
 //  -------------------- old code  ---------------------------------

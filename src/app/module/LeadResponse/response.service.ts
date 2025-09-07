@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
 import { validateObjectId } from '../../utils/validateObjectId';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from './customCreditLogic';
@@ -10,14 +10,14 @@ import { LeadServiceAnswer } from '../Lead/leadServiceAnswer.model';
 import LeadResponse from './response.model';
 import { ActivityLog } from '../Activity/activityLog.model';
 import { createNotification } from '../Notification/notification.utils';
-import { USER_PROFILE, UserProfileEnum } from '../User/constants/user.constant';
+import { USER_PROFILE, UserProfileEnum } from '../User/user.constant';
 import config from '../../config';
 import { sendEmail } from '../../emails/email.service';
 import { IUser } from '../Auth/auth.interface';
 import { logActivity } from '../Activity/logActivityLog';
 import { getIO } from '../../sockets';
 import Lead from '../Lead/lead.model';
-import { IUserProfile } from '../User/interfaces/user.interface';
+import { IUserProfile } from '../User/user.interface';
 
 
 const CreateResponseIntoDB = async (userId: string, payload: any) => {

@@ -1,8 +1,8 @@
 import Stripe from 'stripe';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { validateObjectId } from '../../utils/validateObjectId';
-import { IBillingAddress } from '../User/interfaces/user.interface';
-import UserProfile from '../User/models/user.model';
+import { IBillingAddress } from '../User/user.interface';
+import UserProfile from '../User/user.model';
 import { ICreditPackage } from './creditPackage.interface';
 import Coupon from './coupon.model';
 import CreditPackage from './creditPackage.model';

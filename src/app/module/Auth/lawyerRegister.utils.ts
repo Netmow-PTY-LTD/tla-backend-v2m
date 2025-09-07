@@ -1,5 +1,5 @@
 import mongoose, { Types } from 'mongoose';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { validateObjectId } from '../../utils/validateObjectId';
 import ServiceWiseQuestion from '../Question/question.model';

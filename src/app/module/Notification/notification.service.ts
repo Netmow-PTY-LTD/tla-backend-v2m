@@ -1,5 +1,5 @@
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import { INotificationPreference } from './notification.interface';
 import { Notification } from './notification.model';
 import NotificationPreference from './notificationPreference.model';

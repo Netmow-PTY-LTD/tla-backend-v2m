@@ -1,10 +1,10 @@
 import mongoose, { Types } from 'mongoose';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import User from './auth.model';
-import CompanyProfile from '../User/models/companyProfile.model';
-import { LawyerServiceMap } from '../User/models/lawyerServiceMap.model';
+import CompanyProfile from '../User/companyProfile.model';
+import { LawyerServiceMap } from '../User/lawyerServiceMap.model';
 import ZipCode from '../Country/zipcode.model';
 import { UserLocationServiceMap } from '../LeadSettings/UserLocationServiceMap.model';
 import { createToken } from './auth.utils';
