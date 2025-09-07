@@ -37,10 +37,7 @@ const zipCodeSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+   
   },
   {
     versionKey: false,

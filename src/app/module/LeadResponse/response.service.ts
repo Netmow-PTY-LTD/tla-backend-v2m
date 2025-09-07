@@ -41,7 +41,6 @@ const CreateResponseIntoDB = async (userId: string, payload: any) => {
 const getAllResponseFromDB = async () => {
   try {
     const pipeline = [
-      // { $match: { deletedAt: null } },
 
       // Lookup lawyer's userProfile (responder)
       {
@@ -91,7 +90,7 @@ const getAllResponseFromDB = async () => {
                   $and: [
                     { $eq: ['$countryId', '$$countryId'] },
                     { $eq: ['$serviceId', '$$serviceId'] },
-                    { $eq: ['$deletedAt', null] },
+                   
                   ],
                 },
               },
@@ -106,7 +105,6 @@ const getAllResponseFromDB = async () => {
         $project: {
           _id: 1,
           additionalDetails: 1,
-          deletedAt: 1,
           createdAt: 1,
           updatedAt: 1,
           credit: {
@@ -178,7 +176,7 @@ const getAllResponseFromDB = async () => {
 
 //   const responses = await LeadResponse.find({
 //     responseBy: userProfile._id,
-//     deletedAt: null,
+
 //   })
 //     .populate({
 //       path: 'leadId',
@@ -242,7 +240,7 @@ const getMyAllResponseFromDB = async (
     {
       $match: {
         responseBy: userProfile?._id,
-       
+
       },
     },
     {
@@ -509,7 +507,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
       // countryId: (responseDoc.userProfileId as any).country,
       countryId: (responseDoc.responseBy as any).country,
       serviceId: responseDoc.serviceId._id,
-      deletedAt: null,
+
     }).lean(),
   ]);
 
@@ -528,7 +526,7 @@ const getSingleResponseFromDB = async (userId: string, responseId: string) => {
     {
       $match: {
         leadId: leadObjectId,
-        deletedAt: null,
+
       },
     },
     {
@@ -691,7 +689,7 @@ const getAllResponseLeadWiseFromDB = async (userId: string, leadId: string) => {
 
   const responses = await LeadResponse.find({
     leadId: leadId,
-    // deletedAt: null,
+
   })
     .populate({
       path: 'leadId',
@@ -764,7 +762,7 @@ const updateResponseStatus = async (
   validateObjectId(responseId, 'Response');
 
   const result = await LeadResponse.findOneAndUpdate(
-    { _id: responseId, deletedAt: null },
+    { _id: responseId },
     { status },
     { new: true }
   );
@@ -930,15 +928,9 @@ const updateResponseStatus = async (
 const deleteResponseFromDB = async (id: string) => {
 
   validateObjectId(id, 'Response');
-  const deletedAt = new Date().toISOString();
 
-  const result = await LeadResponse.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
-  );
+
+  const result = await LeadResponse.findByIdAndDelete(id);
   return result;
 };
 

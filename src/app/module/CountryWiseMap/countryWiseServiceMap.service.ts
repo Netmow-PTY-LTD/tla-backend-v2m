@@ -15,7 +15,7 @@ const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
 };
 
 const getAllCountryWiseMapFromDB = async () => {
-  const result = await CountryWiseMap.find({ deletedAt: null });
+  const result = await CountryWiseMap.find({});
   return result;
 };
 
@@ -23,7 +23,7 @@ const getSingleCountryWiseMapFromDB = async (id: string) => {
   validateObjectId(id, 'Country Wise Map');
   const result = await CountryWiseMap.findOne({
     _id: id,
-    deletedAt: null,
+    
   });
   return result;
 };
@@ -40,7 +40,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
 
   const filter = {
     countryId: new Types.ObjectId(id),
-    deletedAt: null,
+    
   };
 
   if (query == null) {
@@ -67,7 +67,7 @@ const updateCountryWiseMapIntoDB = async (
 ) => {
   validateObjectId(countryId, 'Country');
   const result = await CountryWiseMap.findOneAndUpdate(
-    { countryId: countryId, deletedAt: null },
+    { countryId: countryId },
     payload,
     {
       new: true,
@@ -78,14 +78,8 @@ const updateCountryWiseMapIntoDB = async (
 
 const deleteCountryWiseMapFromDB = async (id: string) => {
   validateObjectId(id, 'Country Wise Map');
-  const deletedAt = new Date().toISOString();
-  const result = await CountryWiseMap.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
-  );
+
+  const result = await CountryWiseMap.findByIdAndDelete(id);
   return result;
 };
 
@@ -149,7 +143,7 @@ const getAllCountryServiceFieldFromDB = async (
 ) => {
   // Base query to exclude deleted records
   const baseQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
-    deletedAt: null,
+   
   };
 
   // Extract specific query parameters

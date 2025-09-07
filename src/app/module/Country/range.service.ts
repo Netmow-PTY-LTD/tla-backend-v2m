@@ -11,7 +11,7 @@ const getAllRangeFromDB = async () => {
   // const { zipcodeId } = query;
 
   // const filter: Record<string, any> = {
-  //   deletedAt: null,
+  
   // };
   // if (zipcodeId) {
   //   validateObjectId(zipcodeId, 'Country');
@@ -25,7 +25,7 @@ const getAllRangeFromDB = async () => {
 
 const getSingleRangeFromDB = async (id: string) => {
   validateObjectId(id, 'Range');
-  const result = await Range.findOne({ _id: id, deletedAt: null });
+  const result = await Range.findOne({ _id: id });
   // .populate('countryId')
   // .populate('zipCodeId');
   return result;
@@ -34,7 +34,7 @@ const getSingleRangeFromDB = async (id: string) => {
 const updateRangeIntoDB = async (id: string, payload: Partial<IRange>) => {
   validateObjectId(id, 'Range');
   const result = await Range.findOneAndUpdate(
-    { _id: id, deletedAt: null },
+    { _id: id },
     payload,
     {
       new: true,
@@ -45,14 +45,10 @@ const updateRangeIntoDB = async (id: string, payload: Partial<IRange>) => {
 
 const deleteRangeFromDB = async (id: string) => {
   validateObjectId(id, 'Range');
-  const deletedAt = new Date().toISOString();
 
-  const result = await Range.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
+  const result = await Range.findByIdAndDelete(
+    id
+
   );
   return result;
 };

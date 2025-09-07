@@ -13,7 +13,7 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 // const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string ,page:number,limit:number }) => {
 //   const { countryId, search ,page=1,limit=10 } = query;
 
-//   const filter: Record<string, any> = { deletedAt: null };
+//   const filter: Record<string, any> = {  };
 
 //   if (countryId) {
 //     validateObjectId(countryId, "Country");
@@ -57,7 +57,7 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string; page?: number; limit?: number }) => {
   const { countryId, search, page = 1, limit = 10 } = query;
 
-  const filter: Record<string, any> = { deletedAt: null };
+  const filter: Record<string, any> = {};
 
   if (countryId) {
     validateObjectId(countryId, "Country");
@@ -135,7 +135,7 @@ const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string;
 
 const getSingleZipCodeFromDB = async (id: string) => {
   validateObjectId(id, 'ZipCode');
-  const result = await ZipCode.findOne({ _id: id, deletedAt: null }).populate(
+  const result = await ZipCode.findOne({ _id: id }).populate(
     'countryId',
   );
   return result;
@@ -144,7 +144,7 @@ const getSingleZipCodeFromDB = async (id: string) => {
 const updateZipCodeIntoDB = async (id: string, payload: Partial<IZipCode>) => {
   validateObjectId(id, 'ZipCode');
   const result = await ZipCode.findOneAndUpdate(
-    { _id: id, deletedAt: null },
+    { _id: id },
     payload,
     {
       new: true,
@@ -155,15 +155,9 @@ const updateZipCodeIntoDB = async (id: string, payload: Partial<IZipCode>) => {
 
 const deleteZipCodeFromDB = async (id: string) => {
   validateObjectId(id, 'ZipCode');
-  const deletedAt = new Date().toISOString();
 
-  const result = await ZipCode.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
-  );
+
+  const result = await ZipCode.findByIdAndDelete(id);
   return result;
 };
 

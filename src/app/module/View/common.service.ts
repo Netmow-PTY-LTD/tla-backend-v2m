@@ -1007,12 +1007,12 @@ export const updateLeadContactRequestStatus = async (
 
 const countryWiseServiceWiseLeadFromDB = async ({ countryId, serviceId }: any) => {
   // Build match filter
-  const match: any = { deletedAt: null };
+  const match: any = {  };
   if (countryId) match.countryId = new mongoose.Types.ObjectId(countryId);
   if (serviceId) match.serviceId = new mongoose.Types.ObjectId(serviceId);
 
   const result = await Lead.aggregate([
-    { $match: match }, // filter by specific country/service if provided
+    // { $match: match }, // filter by specific country/service if provided
     {
       $lookup: {
         from: 'countries',

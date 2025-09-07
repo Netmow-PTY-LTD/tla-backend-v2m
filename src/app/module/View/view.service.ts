@@ -30,7 +30,7 @@ const getSingleServiceWiseQuestionFromDB = async (
       $match: {
         serviceId: serviceObjectId,
         countryId: countryObjectId,
-        deletedAt: null,
+  
       },
     },
     {
@@ -135,7 +135,7 @@ const getQuestionWiseOptionsFromDB = async (questionId: string) => {
   validateObjectId(questionId, 'Question');
   const result = await Option.find({
     questionId: questionId,
-    deletedAt: null,
+   
   }).populate(['questionId', 'serviceId', 'countryId']); // ✅ fixed
 
   return result;
@@ -221,11 +221,11 @@ const getPublicUserProfileById = async (userId: string) => {
 
   const experience = await Experience.findOne({
     userProfileId: user.profile._id,
-    deletedAt: null,
+  
   });
   const faq = await Faq.find({
     userProfileId: user.profile._id,
-    deletedAt: null,
+   
   });
 
   const photosVideos = await ProfilePhotos.findOne({
@@ -299,12 +299,12 @@ const getPublicUserProfileBySlug = async (slug: string) => {
 
   const experience = await Experience.findOne({
     userProfileId: user.profile._id,
-    deletedAt: null,
+   
   });
 
   const faq = await Faq.find({
     userProfileId: user.profile._id,
-    deletedAt: null,
+    
   });
   const photosVideos = await ProfilePhotos.findOne({
     userProfileId: user.profile._id,

@@ -30,10 +30,7 @@ const countryWiseServiceWiseFieldSchema = new Schema<ICountryServiceField>(
       required: true,
       min: 0,
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+    
   },
   {
     timestamps: true,

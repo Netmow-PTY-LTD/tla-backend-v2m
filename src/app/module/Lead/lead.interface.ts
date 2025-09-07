@@ -66,10 +66,7 @@ export interface ILead {
   hiredLawyerRating?: Types.ObjectId | null;      // Who closed the lead
   repostedFrom?: Types.ObjectId | null;      // Who closed the lead
   isReposted: boolean;
-  /** -------------------------------
-   *  SOFT DELETE & TIMESTAMPS
-   * ------------------------------- **/
-  deletedAt?: Date | null;
+ 
   leadAnswers?: ILeadServiceAnswer[];
 
 }

@@ -8,7 +8,7 @@ export interface ICountryServiceField {
   thumbImage: string;
   bannerImage: string;
   baseCredit: number;
-  deletedAt?: Date;
+  
 }
 
 export interface CountryServiceFieldModel extends Model<ICountryServiceField> {

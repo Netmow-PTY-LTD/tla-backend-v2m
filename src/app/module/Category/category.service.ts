@@ -32,17 +32,17 @@ const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: T
 };
 
 const getAllCategoryFromDB = async () => {
-  const result = await Category.find({  }).populate('serviceIds');
+  const result = await Category.find({}).populate('serviceIds');
   return result;
 };
 
 
-const getAllCategoryPublicFromDB = async (countryQueryId:string) => {
-  // const countryId = new mongoose.Types.ObjectId('682ecd01e6b730f229c8d3d3');
+const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
+
   const countryId = new mongoose.Types.ObjectId(countryQueryId);
 
   const categories = await Category.aggregate([
-    { $match: { deletedAt: null } },
+
     {
       $lookup: {
         from: 'services',
@@ -63,7 +63,7 @@ const getAllCategoryPublicFromDB = async (countryQueryId:string) => {
                 $and: [
                   { $eq: ['$serviceId', '$$serviceId'] },
                   { $eq: ['$countryId', '$$countryId'] },
-                  { $eq: ['$deletedAt', null] },
+
                 ],
               },
             },
@@ -84,12 +84,12 @@ const getAllCategoryPublicFromDB = async (countryQueryId:string) => {
         slug: { $first: '$slug' },
         image: { $first: '$image' },
         services: { $push: '$services' },
-       createdAt: { $first: '$createdAt' },
-       updatedAt: { $first: '$updatedAt' },
-       
+        createdAt: { $first: '$createdAt' },
+        updatedAt: { $first: '$updatedAt' },
+
       },
     },
- // ✅ Sort categories from newest to oldest
+    // ✅ Sort categories from newest to oldest
     {
       $sort: { createdAt: 1 },
     },
@@ -133,7 +133,7 @@ const updateCategoryIntoDB = async (
         // 'avatars', // optional folder or 'categories'
       );
       payload.image = uploadedUrl;
-    } catch (err:unknown) {
+    } catch (err: unknown) {
       throw new AppError(
         HTTP_STATUS.INTERNAL_SERVER_ERROR,
         'File upload failed during update'

@@ -7,5 +7,5 @@ export interface ILeadServiceAnswer {
   optionId: Types.ObjectId;
   isSelected: boolean;
   idExtraData: string;
-  deletedAt?: Date | null;
+  
 }

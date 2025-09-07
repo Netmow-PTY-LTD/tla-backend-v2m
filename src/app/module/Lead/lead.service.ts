@@ -83,7 +83,6 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
     const creditInfo = await CountryWiseServiceWiseField.findOne({
       countryId,
       serviceId,
-      deletedAt: null,
     }).select('baseCredit').session(session);
 
     let formattedAnswers = '';
@@ -721,7 +720,7 @@ const getAllLeadFromDB = async (
 
 
   const matchStage: any = {
-    deletedAt: null,
+  
     countryId: new mongoose.Types.ObjectId(userProfile.country),
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
@@ -873,7 +872,7 @@ const getMyAllLeadFromDB = async (
   const leadQuery = new QueryBuilder(
     Lead.find({
       userProfileId: userProfile?._id,
-      deletedAt: null,
+     
       // serviceId: { $in: userProfile.serviceIds },
     })
       .populate({
@@ -913,7 +912,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   }
 
   validateObjectId(leadId, 'Case');
-  const leadDoc = await Lead.findOne({ _id: leadId, deletedAt: null })
+  const leadDoc = await Lead.findOne({ _id: leadId })
     .populate({
       path: 'userProfileId',
       populate: {
@@ -934,7 +933,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     {
       $match: {
         leadId: new mongoose.Types.ObjectId(leadId),
-        deletedAt: null,
+      
       },
     },
     {
@@ -1096,7 +1095,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
 const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
   validateObjectId(id, 'Case');
   const result = await Lead.findOneAndUpdate(
-    { _id: id, deletedAt: null },
+    { _id: id },
     payload,
     {
       new: true,
@@ -1107,15 +1106,9 @@ const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
 
 const deleteLeadFromDB = async (id: string) => {
   validateObjectId(id, 'Case');
-  const deletedAt = new Date().toISOString();
+ 
 
-  const result = await Lead.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
-  );
+  const result = await Lead.findByIdAndDelete( id);
   return result;
 };
 

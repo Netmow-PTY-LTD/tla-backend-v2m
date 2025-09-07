@@ -24,7 +24,7 @@ export interface INotificationPreference {
     newReviews: boolean;
   };
 
-  deletedAt: Date | null;
+  
 }
 
 export interface INotificationPreferenceModel

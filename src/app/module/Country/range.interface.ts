@@ -7,5 +7,5 @@ export interface IRange {
   name: string;
   value: number;
   unit: 'km' | 'miles';
-  deletedAt?: Date | null;
+  
 }

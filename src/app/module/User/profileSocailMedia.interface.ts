@@ -16,5 +16,5 @@ export interface IProfileSocialMedia {
   threads?: string;
   github?: string;
   other?: string;
-  deletedAt?: Date;
+  
 }
