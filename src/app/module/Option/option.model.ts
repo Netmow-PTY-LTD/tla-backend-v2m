@@ -39,10 +39,7 @@ const optionSchema = new Schema<IOption>(
         ref: 'Option',
       },
     ],
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+   
   },
   {
     timestamps: true,

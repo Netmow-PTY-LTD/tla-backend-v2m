@@ -9,7 +9,7 @@ export interface IOption {
   questionId: Types.ObjectId;
   order: number;
   selected_options: [Types.ObjectId];
-  deletedAt?: Date;
+ 
 }
 
 export interface OptionModel extends Model<IOption> {
