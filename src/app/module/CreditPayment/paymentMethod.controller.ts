@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { paymentMethodService } from '../services/paymentMethod.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { paymentMethodService } from './paymentMethod.service';
 
 const getPaymentMethods = catchAsync(async (req, res) => {
   const methods = await paymentMethodService.getPaymentMethods(req.user.userId);

@@ -1,6 +1,6 @@
 
 import { Types } from 'mongoose';
-import Transaction from '../../CreditPayment/models/transaction.model';
+import Transaction from '../../CreditPayment/transaction.model';
 
 
 export const isVerifiedLawyer = async (userId: Types.ObjectId|string): Promise<boolean> => {

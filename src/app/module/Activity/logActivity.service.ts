@@ -2,8 +2,8 @@
 
 import { getIO } from '../../sockets';
 import User from '../Auth/auth.model';
-import CreditTransaction from '../CreditPayment/models/creditTransaction.model';
-import Transaction from '../CreditPayment/models/transaction.model';
+import CreditTransaction from '../CreditPayment/creditTransaction.model';
+import Transaction from '../CreditPayment/transaction.model';
 import Lead from '../Lead/lead.model';
 import LeadResponse from '../LeadResponse/models/response.model';
 import { createNotification } from '../Notification/utils/createNotification';

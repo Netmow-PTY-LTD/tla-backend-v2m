@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { CreditPaymentService } from '../services/creditPayment.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { CreditPaymentService } from './creditPayment.service';
 
 const getCreditPackages = catchAsync(async (req, res) => {
   const packages = await CreditPaymentService.getCreditPackages();

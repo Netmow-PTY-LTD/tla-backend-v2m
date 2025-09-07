@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
-import UserProfile from '../../User/models/user.model';
-import CreditTransaction from '../models/creditTransaction.model';
-import Transaction from '../models/transaction.model';
+import UserProfile from '../User/models/user.model';
+import CreditTransaction from './creditTransaction.model';
+import Transaction from './transaction.model';
 
 interface SpendCreditsPayload {
   relatedLeadId?: string;

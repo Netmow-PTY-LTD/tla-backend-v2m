@@ -1,13 +1,13 @@
 import Stripe from 'stripe';
-import { sendNotFoundResponse } from '../../../errors/custom.error';
-import { validateObjectId } from '../../../utils/validateObjectId';
-import { IBillingAddress } from '../../User/interfaces/user.interface';
-import UserProfile from '../../User/models/user.model';
-import { ICreditPackage } from '../interfaces/creditPackage.interface';
-import Coupon from '../models/coupon.model';
-import CreditPackage from '../models/creditPackage.model';
-import Transaction from '../models/transaction.model';
-import PaymentMethod from '../models/paymentMethod.model';
+import { sendNotFoundResponse } from '../../errors/custom.error';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { IBillingAddress } from '../User/interfaces/user.interface';
+import UserProfile from '../User/models/user.model';
+import { ICreditPackage } from './creditPackage.interface';
+import Coupon from './coupon.model';
+import CreditPackage from './creditPackage.model';
+import Transaction from './transaction.model';
+import PaymentMethod from './paymentMethod.model';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version

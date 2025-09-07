@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { creditPaymentController } from '../controllers/creditPayment.controller';
-import auth from '../../../middlewares/auth';
-import { USER_ROLE } from '../../../constant';
-import { paymentMethodController } from '../controllers/paymentMethod.controller';
-import validateRequest from '../../../middlewares/validateRequest';
-import { creditPackageZodValidation } from '../validations/creditPackage.validation';
-import { creditController } from '../controllers/credit.controller';
+import { creditPaymentController } from './creditPayment.controller';
+import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../../constant';
+import { paymentMethodController } from './paymentMethod.controller';
+import validateRequest from '../../middlewares/validateRequest';
+import { creditPackageZodValidation } from './creditPackage.validation';
+import { creditController } from './credit.controller';
 
 const router = Router();
 

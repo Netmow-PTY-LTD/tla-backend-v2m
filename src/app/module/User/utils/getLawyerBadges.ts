@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import LeadResponse from '../../LeadResponse/models/response.model';
 import UserProfile from '../models/user.model';
-import Transaction from '../../CreditPayment/models/transaction.model';
+import Transaction from '../../CreditPayment/transaction.model';
 
 export const getLawyerBadges = async (
   userId: Types.ObjectId
