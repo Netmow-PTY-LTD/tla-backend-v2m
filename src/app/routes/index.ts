@@ -14,7 +14,7 @@ import { creditPaymentRouter } from '../module/CreditPayment/routes/creditPaymen
 import { leadRouter } from '../module/Lead/routes/lead.route';
 import { responseRouter } from '../module/LeadResponse/routes/response.route';
 import { activityLogRouter } from '../module/Activity/logActivity.route';
-import { contactRouter } from '../module/Contact/routes/contact.route';
+import { contactRouter } from '../module/Contact/contact.route';
 import { settingsRouter } from '../module/Settings/routes/settings.route';
 import { categoryRouter } from '../module/Category/category.route';
 import { ratingRouter } from '../module/Rating/routes/rating.routes';

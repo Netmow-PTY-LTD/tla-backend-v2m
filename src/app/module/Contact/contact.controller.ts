@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../constant/httpStatus";
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { contactservice } from "../services/contact.service";
+import { HTTP_STATUS } from "../../constant/httpStatus";
+import catchAsync from "../../utils/catchAsync";
+import sendResponse from "../../utils/sendResponse";
+import { contactservice } from "./contact.service";
 
 
 
