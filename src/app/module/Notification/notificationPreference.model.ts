@@ -31,10 +31,7 @@ const notificationPreferenceSchema = new mongoose.Schema({
   // mobilePreferences: {
   //   // Could add mobile-specific preferences here
   // },
-  deletedAt: {
-    type: Date,
-    default: null,
-  },
+  
 });
 
 const NotificationPreference = mongoose.model(

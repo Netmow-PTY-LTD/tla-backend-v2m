@@ -90,7 +90,7 @@ const getAllResponseFromDB = async () => {
                   $and: [
                     { $eq: ['$countryId', '$$countryId'] },
                     { $eq: ['$serviceId', '$$serviceId'] },
-                    { $eq: ['$deletedAt', null] },
+                   
                   ],
                 },
               },
