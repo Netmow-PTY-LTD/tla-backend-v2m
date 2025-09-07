@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import CountryWiseMap from '../../CountryWiseMap/models/countryWiseMap.model';
-import { ICountry } from '../interfaces/country.interface';
-import Country from '../models/country.model';
-import { validateObjectId } from '../../../utils/validateObjectId';
+import CountryWiseMap from '../CountryWiseMap/models/countryWiseMap.model';
+import { ICountry } from './country.interface';
+import Country from './country.model';
+import { validateObjectId } from '../../utils/validateObjectId';
 
 const CreateCountryIntoDB = async (payload: ICountry) => {
   const session = await mongoose.startSession();

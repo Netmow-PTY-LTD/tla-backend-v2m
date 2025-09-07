@@ -14,7 +14,7 @@ import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model
 import { UserLocationServiceMap } from '../models/UserLocationServiceMap.model';
 
 import Option from '../../Option/models/option.model';
-import ZipCode from '../../Country/models/zipcode.model';
+import ZipCode from '../../Country/zipcode.model';
 
 const createLeadService = async (
   userId: string,

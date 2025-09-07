@@ -18,7 +18,7 @@ import { sendEmail } from '../../../emails/email.service';
 import { IUser } from '../../Auth/auth.interface';
 import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
 import Option from '../../Option/models/option.model';
-import ZipCode from '../../Country/models/zipcode.model';
+import ZipCode from '../../Country/zipcode.model';
 
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {

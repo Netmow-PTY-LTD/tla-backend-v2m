@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { zipCodeService } from '../services/zipcode.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { zipCodeService } from './zipcode.service';
 
 const createZipCode = catchAsync(async (req, res) => {
   const zipCodeData = req.body;

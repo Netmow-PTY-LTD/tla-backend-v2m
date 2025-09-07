@@ -1,6 +1,6 @@
-import { validateObjectId } from '../../../utils/validateObjectId';
-import { IRange } from '../interfaces/range.interface';
-import { Range } from '../models/range.model';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { IRange } from './range.interface';
+import { Range } from './range.model';
 
 const CreateRangeIntoDB = async (payload: IRange) => {
   const zipCode = await Range.create(payload);

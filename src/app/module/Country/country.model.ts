@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { CountryModel, ICountry } from '../interfaces/country.interface';
+import { CountryModel, ICountry } from './country.interface';
 import { Schema } from 'mongoose';
 
 const countriesSchema = new mongoose.Schema(

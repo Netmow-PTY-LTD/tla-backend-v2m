@@ -1,7 +1,7 @@
 
-import { validateObjectId } from '../../../utils/validateObjectId';
-import { IZipCode } from '../interfaces/zipcode.interface';
-import ZipCode from '../models/zipcode.model';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { IZipCode } from './zipcode.interface';
+import ZipCode from './zipcode.model';
 
 const CreateZipCodeIntoDB = async (payload: IZipCode) => {
   const zipCode = await ZipCode.create(payload);

@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ICountryWiseLocationGroup } from '../interfaces/country.interface';
+import { ICountryWiseLocationGroup } from './country.interface';
 
 const countryWiseLocationGroupSchema = new Schema<ICountryWiseLocationGroup>(
   {
