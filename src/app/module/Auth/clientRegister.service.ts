@@ -19,7 +19,7 @@ import { sendEmail } from '../../emails/email.service';
 import Service from '../Service/models/service.model';
 import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
 import Option from '../Option/option.model';
-import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
+import ServiceWiseQuestion from '../Question/question.model';
 import { generateRandomPassword } from './generateRandomPassword';
 
 

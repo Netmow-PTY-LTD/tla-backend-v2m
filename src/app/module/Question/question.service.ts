@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { validateObjectId } from '../../../utils/validateObjectId';
-import { IServiceWiseQuestion } from '../interfaces/ServiceWiseQuestion.interface';
-import ServiceWiseQuestion from '../models/ServiceWiseQuestion.model';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { IServiceWiseQuestion } from './question.interface';
+import ServiceWiseQuestion from './question.model';
 
 const CreateServiceWiseQuestionIntoDB = async (
   payload: IServiceWiseQuestion,

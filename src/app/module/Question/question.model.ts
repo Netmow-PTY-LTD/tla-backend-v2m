@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import {
   IServiceWiseQuestion,
   IServiceWiseQuestionModel,
-} from '../interfaces/ServiceWiseQuestion.interface';
+} from './question.interface';
 
 const ServiceWiseQuestionSchema = new mongoose.Schema(
   {

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
-import validateRequest from '../../../middlewares/validateRequest';
-import { serviceWiseStepZodValidation } from '../validations/ServiceWiseStep.validation';
-import { ServiceWiseQuestionController } from '../controllers/ServiceWiseQuestion.controller';
+import validateRequest from '../../middlewares/validateRequest';
+import { serviceWiseStepZodValidation } from './question.validation';
+import { ServiceWiseQuestionController } from './question.controller';
 
 const router = Router();
 

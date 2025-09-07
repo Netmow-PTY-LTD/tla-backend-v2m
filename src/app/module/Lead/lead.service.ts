@@ -16,7 +16,7 @@ import Service from '../Service/models/service.model';
 import config from '../../config';
 import { sendEmail } from '../../emails/email.service';
 import { IUser } from '../Auth/auth.interface';
-import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
+import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 
