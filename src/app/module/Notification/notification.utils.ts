@@ -1,5 +1,5 @@
 import { ClientSession, Types } from "mongoose";
-import { Notification } from "../models/notification.model";
+import { Notification } from "./notification.model";
 
 
 

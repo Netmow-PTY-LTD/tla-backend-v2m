@@ -9,7 +9,7 @@ import { ILeadResponse } from './response.interface';
 import { LeadServiceAnswer } from '../Lead/leadServiceAnswer.model';
 import LeadResponse from './response.model';
 import { ActivityLog } from '../Activity/activityLog.model';
-import { createNotification } from '../Notification/utils/createNotification';
+import { createNotification } from '../Notification/notification.utils';
 import { USER_PROFILE, UserProfileEnum } from '../User/constants/user.constant';
 import config from '../../config';
 import { sendEmail } from '../../emails/email.service';

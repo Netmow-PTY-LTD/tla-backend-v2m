@@ -1,8 +1,8 @@
-import { sendNotFoundResponse } from '../../../errors/custom.error';
-import UserProfile from '../../User/models/user.model';
-import { INotificationPreference } from '../interfaces/notification.interface';
-import { Notification } from '../models/notification.model';
-import NotificationPreference from '../models/notificationPreference.model';
+import { sendNotFoundResponse } from '../../errors/custom.error';
+import UserProfile from '../User/models/user.model';
+import { INotificationPreference } from './notification.interface';
+import { Notification } from './notification.model';
+import NotificationPreference from './notificationPreference.model';
 
 
 const browserNotificationUpdateIntoDB = async (

@@ -6,7 +6,7 @@ import { sendEmail } from '../../emails/email.service';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { logActivity } from '../Activity/logActivityLog';
 import Lead from '../Lead/lead.model';
-import { createNotification } from '../Notification/utils/createNotification';
+import { createNotification } from '../Notification/notification.utils';
 import UserProfile from '../User/models/user.model';
 import { SendEmail } from './SendEmail.model';
 import { SendSMS } from './SendSMS.model';

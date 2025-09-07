@@ -7,7 +7,7 @@ import CreditPackage from "../../CreditPayment/creditPackage.model";
 import PaymentMethod from "../../CreditPayment/paymentMethod.model";
 import { ILeadResponse } from "../../LeadResponse/response.interface";
 import { logActivity } from "../../Activity/logActivityLog";
-import { createNotification } from "../../Notification/utils/createNotification";
+import { createNotification } from "../../Notification/notification.utils";
 import Lead from "../../Lead/lead.model";
 import { getIO } from "../../../sockets";
 import { ResponseWiseChatMessage } from "../models/chatMessage.model";
