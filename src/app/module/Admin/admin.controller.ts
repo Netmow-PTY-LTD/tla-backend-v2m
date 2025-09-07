@@ -1,10 +1,10 @@
 
 
 
-import { HTTP_STATUS } from "../../../constant/httpStatus";
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { adminService } from "../services/admin.service";
+import { HTTP_STATUS } from "../../constant/httpStatus";
+import catchAsync from "../../utils/catchAsync";
+import sendResponse from "../../utils/sendResponse";
+import { adminService } from "./admin.service";
 
 
 

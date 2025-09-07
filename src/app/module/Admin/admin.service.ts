@@ -1,12 +1,12 @@
-import User from "../../Auth/models/auth.model";
-import CreditPackage from "../../CreditPayment/models/creditPackage.model";
-import CreditTransaction from "../../CreditPayment/models/creditTransaction.model";
-import Transaction from "../../CreditPayment/models/transaction.model";
-import Lead from "../../Lead/models/lead.model";
-import LeadResponse from "../../LeadResponse/models/response.model";
-import Service from "../../Service/models/service.model";
-import UserProfile from "../../User/models/user.model";
-import { AdminDashboardStats, ChartDataItem, DashboardQuery } from "../interfaces/admin.interface";
+import User from "../Auth/models/auth.model";
+import CreditPackage from "../CreditPayment/models/creditPackage.model";
+import CreditTransaction from "../CreditPayment/models/creditTransaction.model";
+import Transaction from "../CreditPayment/models/transaction.model";
+import Lead from "../Lead/models/lead.model";
+import LeadResponse from "../LeadResponse/models/response.model";
+import Service from "../Service/models/service.model";
+import UserProfile from "../User/models/user.model";
+import { AdminDashboardStats, ChartDataItem, DashboardQuery } from "./admin.interface";
 
 
 
