@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import CountryWiseMap from '../CountryWiseMap/models/countryWiseMap.model';
+import CountryWiseMap from '../CountryWiseMap/countryWiseMap.model';
 import { ICountry } from './country.interface';
 import Country from './country.model';
 import { validateObjectId } from '../../utils/validateObjectId';

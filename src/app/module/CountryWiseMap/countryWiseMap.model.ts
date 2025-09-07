@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import {
   CountryWiseMapModel,
   ICountryWiseMap,
-} from '../interfaces/countryWiseMap.interface';
+} from './countryWiseMap.interface';
 
 const countryWiseMapSchema = new Schema<ICountryWiseMap>(
   {

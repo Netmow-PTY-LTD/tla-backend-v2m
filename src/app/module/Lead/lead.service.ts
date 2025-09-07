@@ -7,7 +7,7 @@ import Lead from './lead.model';
 import { LeadServiceAnswer } from './leadServiceAnswer.model';
 import UserProfile from '../User/models/user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import CountryWiseServiceWiseField from '../CountryWiseMap/models/countryWiseServiceWiseFields.model';
+import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from './customCreditLogic';
 
 import QueryBuilder from '../../builder/QueryBuilder';

@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 import {
   CountryServiceFieldModel,
   ICountryServiceField,
-} from '../interfaces/countryWiseServiceWiseField.interface';
+} from './countryWiseServiceWiseField.interface';
 
 const countryWiseServiceWiseFieldSchema = new Schema<ICountryServiceField>(
   {

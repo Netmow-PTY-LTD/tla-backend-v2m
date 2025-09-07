@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import validateRequest from '../../../middlewares/validateRequest';
 import { CountryWiseMapZodValidation } from '../validations/countryWiseService.validation';
-import { countryWiseMapController } from '../controllers/countryWiseMap.controller';
+import { countryWiseMapController } from '../countryWiseMap.controller';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../../../constant';
 import { upload } from '../../../config/upload';

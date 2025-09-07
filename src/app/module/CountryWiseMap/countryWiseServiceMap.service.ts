@@ -1,13 +1,13 @@
 import { FilterQuery, Types } from 'mongoose';
-import { validateObjectId } from '../../../utils/validateObjectId';
-import { ICountryWiseMap } from '../interfaces/countryWiseMap.interface';
-import CountryWiseMap from '../models/countryWiseMap.model';
-import { AppError } from '../../../errors/error';
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import CountryWiseServiceWiseField from '../models/countryWiseServiceWiseFields.model';
-import { ICountryServiceField } from '../interfaces/countryWiseServiceWiseField.interface';
-import { TUploadedFile } from '../../../interface/file.interface';
-import { uploadToSpaces } from '../../../config/upload';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { ICountryWiseMap } from './countryWiseMap.interface';
+import CountryWiseMap from './countryWiseMap.model';
+import { AppError } from '../../errors/error';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import CountryWiseServiceWiseField from './countryWiseServiceWiseFields.model';
+import { ICountryServiceField } from './countryWiseServiceWiseField.interface';
+import { TUploadedFile } from '../../interface/file.interface';
+import { uploadToSpaces } from '../../config/upload';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);

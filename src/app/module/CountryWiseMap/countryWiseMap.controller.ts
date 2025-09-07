@@ -1,8 +1,8 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import { TUploadedFile } from '../../../interface/file.interface';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { countryWiseMapService } from '../services/countryWiseServiceMap.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import { TUploadedFile } from '../../interface/file.interface';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { countryWiseMapService } from './countryWiseServiceMap.service';
 
 const createCountryWiseMap = catchAsync(async (req, res) => {
   const CountryWiseMapData = req.body;

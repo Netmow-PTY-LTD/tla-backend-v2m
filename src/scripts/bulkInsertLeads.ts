@@ -2,7 +2,7 @@
 import mongoose, { ClientSession } from "mongoose";
 import UserProfile from "../app/module/User/models/user.model";
 import Lead from "../app/module/Lead/lead.model";
-import CountryWiseServiceWiseField from "../app/module/CountryWiseMap/models/countryWiseServiceWiseFields.model";
+import CountryWiseServiceWiseField from "../app/module/CountryWiseMap/countryWiseServiceWiseFields.model";
 import { LeadServiceAnswer } from "../app/module/Lead/leadServiceAnswer.model";
 
 // --- MongoDB Connection ---

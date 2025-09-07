@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { zodObjectIdField } from '../../../utils/validateObjectId';
+import { zodObjectIdField } from '../../utils/validateObjectId';
 
 export const countryServiceFieldSchema = z.object({
   countryId: zodObjectIdField('country').optional(),
