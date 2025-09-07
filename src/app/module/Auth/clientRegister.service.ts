@@ -106,7 +106,6 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const creditInfo = await CountryWiseServiceWiseField.findOne({
       countryId,
       serviceId,
-      deletedAt: null,
     }).select('baseCredit');
 
     let formattedAnswers = '';
