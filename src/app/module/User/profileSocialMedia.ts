@@ -60,10 +60,7 @@ const profileSocialMediaSchema = new mongoose.Schema(
       trim: true,
       description: 'Any other custom social link',
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+   
   },
   {
     versionKey: false,

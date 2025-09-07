@@ -5,7 +5,7 @@ export interface IFaq {
   question: string;
   answer: string;
   isActive: boolean;
-  deletedAt?: Date | null;
+  
 }
 
 const faqSchema = new Schema<IFaq>(
@@ -25,10 +25,7 @@ const faqSchema = new Schema<IFaq>(
       required: true,
       trim: true,
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+   
   },
   {
     timestamps: true,
