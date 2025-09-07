@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { activityLogController } from '../controllers/logActivity.controller';
-import auth from '../../../middlewares/auth';
-import { USER_ROLE } from '../../../constant';
+import { activityLogController } from './logActivity.controller';
+import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../../constant';
 
 
 const router = Router();

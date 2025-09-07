@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../constant/httpStatus";
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { activityLogService } from "../services/logActivity.service";
+import { HTTP_STATUS } from "../../constant/httpStatus";
+import catchAsync from "../../utils/catchAsync";
+import sendResponse from "../../utils/sendResponse";
+import { activityLogService } from "./logActivity.service";
 
 const getUserActivityLogs = catchAsync(async (req, res) => {
     const userId = req.params.userId;

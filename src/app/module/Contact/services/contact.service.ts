@@ -4,7 +4,7 @@ import { Types } from 'mongoose';
 import { sendSMS } from '../../../config/smsTransporter';
 import { sendEmail } from '../../../emails/email.service';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
-import { logActivity } from '../../Activity/utils/logActivityLog';
+import { logActivity } from '../../Activity/logActivityLog';
 import Lead from '../../Lead/models/lead.model';
 import { createNotification } from '../../Notification/utils/createNotification';
 import UserProfile from '../../User/models/user.model';

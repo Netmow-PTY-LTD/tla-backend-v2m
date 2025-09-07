@@ -13,7 +13,7 @@ import { notificationRouter } from '../module/Notification/routes/notification.r
 import { creditPaymentRouter } from '../module/CreditPayment/routes/creditPayment.routes';
 import { leadRouter } from '../module/Lead/routes/lead.route';
 import { responseRouter } from '../module/LeadResponse/routes/response.route';
-import { activityLogRouter } from '../module/Activity/routes/logActivity.route';
+import { activityLogRouter } from '../module/Activity/logActivity.route';
 import { contactRouter } from '../module/Contact/routes/contact.route';
 import { settingsRouter } from '../module/Settings/routes/settings.route';
 import { categoryRouter } from '../module/Category/routes/category.route';

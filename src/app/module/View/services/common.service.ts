@@ -6,7 +6,7 @@ import { HTTP_STATUS } from "../../../constant/httpStatus";
 import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
 import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface";
-import { logActivity } from "../../Activity/utils/logActivityLog";
+import { logActivity } from "../../Activity/logActivityLog";
 import { createNotification } from "../../Notification/utils/createNotification";
 import Lead from "../../Lead/models/lead.model";
 import { getIO } from "../../../sockets";

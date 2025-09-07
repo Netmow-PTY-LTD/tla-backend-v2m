@@ -1,6 +1,6 @@
 
 import { Types, ClientSession } from 'mongoose';
-import { ActivityLog } from '../models/activityLog.model';
+import { ActivityLog } from './activityLog.model';
 
 
 export const logActivity = async ({

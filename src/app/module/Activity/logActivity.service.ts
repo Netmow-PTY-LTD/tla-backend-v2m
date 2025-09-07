@@ -1,14 +1,14 @@
 
 
-import { getIO } from '../../../sockets';
-import User from '../../Auth/models/auth.model';
-import CreditTransaction from '../../CreditPayment/models/creditTransaction.model';
-import Transaction from '../../CreditPayment/models/transaction.model';
-import Lead from '../../Lead/models/lead.model';
-import LeadResponse from '../../LeadResponse/models/response.model';
-import { createNotification } from '../../Notification/utils/createNotification';
-import { ProfileVisitor } from '../../VisitorTracker/models/profileVisitor.model';
-import { ActivityLog } from '../models/activityLog.model';
+import { getIO } from '../../sockets';
+import User from '../Auth/models/auth.model';
+import CreditTransaction from '../CreditPayment/models/creditTransaction.model';
+import Transaction from '../CreditPayment/models/transaction.model';
+import Lead from '../Lead/models/lead.model';
+import LeadResponse from '../LeadResponse/models/response.model';
+import { createNotification } from '../Notification/utils/createNotification';
+import { ProfileVisitor } from '../VisitorTracker/models/profileVisitor.model';
+import { ActivityLog } from './activityLog.model';
 
 
 export const getUserActivityLogs = async (userId: string) => {
