@@ -1,6 +1,6 @@
 import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import { StringValue } from 'ms';
-import User from '../models/auth.model';
+import User from './auth.model';
 
 export const createToken = (
   jwtPayload: { email: string; role: string },

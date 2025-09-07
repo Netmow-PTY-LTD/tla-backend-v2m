@@ -1,9 +1,9 @@
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { authService } from '../services/auth.service';
-import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { authService } from './auth.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
 
-import { AppError } from '../../../errors/error';
+import { AppError } from '../../errors/error';
 
 /**
  * Handles user login request.

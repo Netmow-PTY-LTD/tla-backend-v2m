@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { clientRegisterService } from '../services/clientRegister.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { clientRegisterService } from './clientRegister.service';
 
 const clientRegister = catchAsync(async (req, res) => {
   // Extract user registration data from the request body

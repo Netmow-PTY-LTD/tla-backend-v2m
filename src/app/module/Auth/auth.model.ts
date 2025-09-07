@@ -1,12 +1,12 @@
 import mongoose, { model } from 'mongoose';
-import { IUser, UserModel } from '../interfaces/auth.interface';
+import { IUser, UserModel } from './auth.interface';
 import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
-import config from '../../../config';
+import config from '../../config';
 import {
   PHONE_VERIFICATION_STATUS,
   USER_STATUS,
-} from '../constant/auth.constant';
-import { USER_ROLE } from '../../../constant';
+} from './auth.constant';
+import { USER_ROLE } from '../../constant';
 const userSchema = new mongoose.Schema(
   {
     // username: {

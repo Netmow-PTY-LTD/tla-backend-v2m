@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { authController } from '../controllers/auth.controller';
-import { authZodValidation } from '../validation/auth.validation';
-import validateRequest from '../../../middlewares/validateRequest';
-import auth from '../../../middlewares/auth';
-import { USER_ROLE } from '../../../constant';
-import { clientRegisterController } from '../controllers/client.controller';
-import { lawyerRegisterController } from '../controllers/lawyer.controller';
+import { authController } from './auth.controller';
+
+import validateRequest from '../../middlewares/validateRequest';
+import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../../constant';
+import { clientRegisterController } from './client.controller';
+import { lawyerRegisterController } from './lawyer.controller';
+import { authZodValidation } from './auth.validation';
 const router = Router();
 
 router.post(

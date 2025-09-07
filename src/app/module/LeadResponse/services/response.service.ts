@@ -13,7 +13,7 @@ import { createNotification } from '../../Notification/utils/createNotification'
 import { USER_PROFILE, UserProfileEnum } from '../../User/constants/user.constant';
 import config from '../../../config';
 import { sendEmail } from '../../../emails/email.service';
-import { IUser } from '../../Auth/interfaces/auth.interface';
+import { IUser } from '../../Auth/auth.interface';
 import { logActivity } from '../../Activity/logActivityLog';
 import { getIO } from '../../../sockets';
 import Lead from '../../Lead/models/lead.model';

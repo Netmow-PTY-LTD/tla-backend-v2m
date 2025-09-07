@@ -1,26 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
-import UserProfile from '../../User/models/user.model';
-import { AppError } from '../../../errors/error';
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import User from '../models/auth.model';
-import ZipCode from '../../Country/models/zipcode.model';
-import { UserLocationServiceMap } from '../../LeadSettings/models/UserLocationServiceMap.model';
-import { createToken } from '../utils/auth.utils';
-import config from '../../../config';
+import UserProfile from '../User/models/user.model';
+import { AppError } from '../../errors/error';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import User from './auth.model';
+import ZipCode from '../Country/models/zipcode.model';
+import { UserLocationServiceMap } from '../LeadSettings/models/UserLocationServiceMap.model';
+import { createToken } from './auth.utils';
+import config from '../../config';
 import { StringValue } from 'ms';
-import { USER_ROLE } from '../../../constant';
-import Lead from '../../Lead/models/lead.model';
+import { USER_ROLE } from '../../constant';
+import Lead from '../Lead/models/lead.model';
 
-import { LeadServiceAnswer } from '../../Lead/models/leadServiceAnswer.model';
+import { LeadServiceAnswer } from '../Lead/models/leadServiceAnswer.model';
 import { Types } from 'mongoose';
-import { REGISTER_USER_TYPE } from '../constant/auth.constant';
-import { sendEmail } from '../../../emails/email.service';
-import Service from '../../Service/models/service.model';
-import CountryWiseServiceWiseField from '../../CountryWiseMap/models/countryWiseServiceWiseFields.model';
-import Option from '../../Option/models/option.model';
-import ServiceWiseQuestion from '../../Question/models/ServiceWiseQuestion.model';
-import { generateRandomPassword } from '../utils/generateRandomPassword';
+import { REGISTER_USER_TYPE } from './auth.constant';
+import { sendEmail } from '../../emails/email.service';
+import Service from '../Service/models/service.model';
+import CountryWiseServiceWiseField from '../CountryWiseMap/models/countryWiseServiceWiseFields.model';
+import Option from '../Option/models/option.model';
+import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
+import { generateRandomPassword } from './generateRandomPassword';
 
 
 const clientRegisterUserIntoDB = async (payload: any) => {

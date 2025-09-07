@@ -11,8 +11,8 @@ import UserProfile from '../../User/models/user.model';
 import { SendEmail } from '../models/SendEmail.model';
 import { SendSMS } from '../models/SendSMS.model';
 import { getIO } from '../../../sockets';
-import { IUser } from '../../Auth/interfaces/auth.interface';
-import User from '../../Auth/models/auth.model';
+import { IUser } from '../../Auth/auth.interface';
+import User from '../../Auth/auth.model';
 import { IUserProfile } from '../../User/interfaces/user.interface';
 import config from '../../../config';
 

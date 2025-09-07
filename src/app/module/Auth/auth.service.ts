@@ -1,20 +1,20 @@
-import config from '../../../config';
-import { AppError } from '../../../errors/error';
-import { ILoginUser, IUser } from '../interfaces/auth.interface';
-import User from '../models/auth.model';
-import { createToken, verifyToken } from '../utils/auth.utils';
-import { USER_STATUS } from '../constant/auth.constant';
+import config from '../../config';
+import { AppError } from '../../errors/error';
+import { ILoginUser, IUser } from './auth.interface';
+import User from './auth.model';
+import { createToken, verifyToken } from './auth.utils';
+import { USER_STATUS } from './auth.constant';
 import { StringValue } from 'ms';
-import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { HTTP_STATUS } from '../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-import UserProfile from '../../User/models/user.model';
+import UserProfile from '../User/models/user.model';
 
-import { sendEmail } from '../../../emails/email.service';
-import { validateObjectId } from '../../../utils/validateObjectId';
-import { generateOtp } from '../utils/otp.utils';
-import { IUserProfile } from '../../User/interfaces/user.interface';
+import { sendEmail } from '../../emails/email.service';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { generateOtp } from './otp.utils';
+import { IUserProfile } from '../User/interfaces/user.interface';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.

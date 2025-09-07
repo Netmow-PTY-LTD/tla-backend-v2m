@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { UserProfileEnum } from '../constants/user.constant';
-import { IUser } from '../../Auth/interfaces/auth.interface';
+import { IUser } from '../../Auth/auth.interface';
 
 export type Gender = 'male' | 'female' | 'other';
 export interface IBillingAddress {
