@@ -1,22 +1,22 @@
 import mongoose, { Types } from "mongoose";
-import UserProfile from "../../User/user.model";
-import CreditTransaction from "../../CreditPayment/creditTransaction.model";
-import LeadResponse from "../../LeadResponse/response.model";
-import { HTTP_STATUS } from "../../../constant/httpStatus";
-import CreditPackage from "../../CreditPayment/creditPackage.model";
-import PaymentMethod from "../../CreditPayment/paymentMethod.model";
-import { ILeadResponse } from "../../LeadResponse/response.interface";
-import { logActivity } from "../../Activity/logActivityLog";
-import { createNotification } from "../../Notification/notification.utils";
-import Lead from "../../Lead/lead.model";
-import { getIO } from "../../../sockets";
-import { ResponseWiseChatMessage } from "../models/chatMessage.model";
-import { LeadContactRequest } from "../models/LeadContactRequest.model";
-import User from "../../Auth/auth.model";
-import { AppError } from "../../../errors/error";
-import { validateObjectId } from "../../../utils/validateObjectId";
-import { USER_STATUS } from "../../Auth/auth.constant";
-import { IUser } from "../../Auth/auth.interface";
+import UserProfile from "../User/user.model";
+import CreditTransaction from "../CreditPayment/creditTransaction.model";
+import LeadResponse from "../LeadResponse/response.model";
+import { HTTP_STATUS } from "../../constant/httpStatus";
+import CreditPackage from "../CreditPayment/creditPackage.model";
+import PaymentMethod from "../CreditPayment/paymentMethod.model";
+import { ILeadResponse } from "../LeadResponse/response.interface";
+import { logActivity } from "../Activity/logActivityLog";
+import { createNotification } from "../Notification/notification.utils";
+import Lead from "../Lead/lead.model";
+import { getIO } from "../../sockets";
+import { ResponseWiseChatMessage } from "./chatMessage.model";
+import { LeadContactRequest } from "./LeadContactRequest.model";
+import User from "../Auth/auth.model";
+import { AppError } from "../../errors/error";
+import { validateObjectId } from "../../utils/validateObjectId";
+import { USER_STATUS } from "../Auth/auth.constant";
+import { IUser } from "../Auth/auth.interface";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,

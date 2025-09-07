@@ -1,9 +1,9 @@
 //  contact lawyer
 
-import { HTTP_STATUS } from "../../../constant/httpStatus";
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { commonService } from "../services/common.service";
+import { HTTP_STATUS } from "../../constant/httpStatus";
+import catchAsync from "../../utils/catchAsync";
+import sendResponse from "../../utils/sendResponse";
+import { commonService } from "./common.service";
 
 
 const contactLawyer = catchAsync(async (req, res) => {

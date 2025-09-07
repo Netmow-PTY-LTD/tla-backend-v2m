@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { ILeadContactRequest } from '../interfaces/leadContactRequest.interface';
+import { ILeadContactRequest } from './leadContactRequest.interface';
 
 
 

@@ -1,17 +1,17 @@
 import { Types } from 'mongoose';
-import { validateObjectId } from '../../../utils/validateObjectId';
-import Option from '../../Option/option.model';
-import ServiceWiseQuestion from '../../Question/question.model';
-import User from '../../Auth/auth.model';
-import { IUser } from '../../Auth/auth.interface';
-import { IUserProfile } from '../../User/user.interface';
-import Experience from '../../User/experience.model';
-import Faq from '../../User/faq.model';
-import UserProfile from '../../User/user.model';
-import ProfilePhotos from '../../User/profilePhotos';
-import ProfileSocialMedia from '../../User/profileSocialMedia';
-import ProfileCustomService from '../../User/profileServiceCoustom.model';
-import { calculateLawyerBadge } from '../../User/getBadgeStatus';
+import { validateObjectId } from '../../utils/validateObjectId';
+import Option from '../Option/option.model';
+import ServiceWiseQuestion from '../Question/question.model';
+import User from '../Auth/auth.model';
+import { IUser } from '../Auth/auth.interface';
+import { IUserProfile } from '../User/user.interface';
+import Experience from '../User/experience.model';
+import Faq from '../User/faq.model';
+import UserProfile from '../User/user.model';
+import ProfilePhotos from '../User/profilePhotos';
+import ProfileSocialMedia from '../User/profileSocialMedia';
+import ProfileCustomService from '../User/profileServiceCoustom.model';
+import { calculateLawyerBadge } from '../User/getBadgeStatus';
 
 
 

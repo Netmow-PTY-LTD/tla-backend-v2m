@@ -1,9 +1,9 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import { startQueryTimer } from '../../../utils/queryTimer';
-import sendResponse from '../../../utils/sendResponse';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import { startQueryTimer } from '../../utils/queryTimer';
+import sendResponse from '../../utils/sendResponse';
 
-import { viewService } from '../services/view.service';
+import { viewService } from './view.service';
 
 const getSingleServiceWiseQuestion = catchAsync(async (req, res) => {
     const timer = startQueryTimer();

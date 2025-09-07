@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { viewController } from '../controllers/view.controller';
-import { commonController } from '../controllers/common.controller';
-import auth from '../../../middlewares/auth';
-import { USER_ROLE } from '../../../constant';
+import { viewController } from './view.controller';
+import { commonController } from './common.controller';
+import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../../constant';
 
 const router = Router();
 

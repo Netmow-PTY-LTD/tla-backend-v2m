@@ -1,6 +1,6 @@
 
 import { Server, Socket } from 'socket.io';
-import { ResponseWiseChatMessage } from '../module/View/models/chatMessage.model';
+import { ResponseWiseChatMessage } from '../module/View/chatMessage.model';
 import { createNotification } from '../module/Notification/notification.utils';
 
 

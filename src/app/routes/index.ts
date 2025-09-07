@@ -5,7 +5,7 @@ import { countryRouter } from '../module/Country/country.route';
 import { serviceRouter } from '../module/Service/service.route';
 import { OptionRouter } from '../module/Option/option.route';
 import { questionRouter } from '../module/Question/question.route';
-import { viewRouter } from '../module/View/routes/view.router';
+import { viewRouter } from '../module/View/view.router';
 import { leadServiceRouter } from '../module/LeadSettings/leadService.routes';
 import { notificationRouter } from '../module/Notification/notification.routes';
 import { creditPaymentRouter } from '../module/CreditPayment/creditPayment.routes';
