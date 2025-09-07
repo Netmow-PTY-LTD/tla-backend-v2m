@@ -468,131 +468,273 @@ const getAdminDashboardChartFromDB = async (
 
 
 
+// const getAdminDashboardBarChartFromDB = async (
+//     year: number,
+//     month?: number
+// ): Promise<ChartDataItem[]> => {
+//     let start: Date;
+//     let end: Date;
+//     let dateFormat: string;
+
+//     if (month && month >= 1 && month <= 12) {
+//         // ✅ Specific month → group by DAY
+//         start = new Date(year, month - 1, 1);
+//         end = new Date(year, month, 0, 23, 59, 59, 999);
+//         dateFormat = "%Y-%m-%d"; // ✅ Daily format
+//     } else {
+//         // ✅ Whole year → group by MONTH
+//         start = new Date(year, 0, 1);
+//         end = new Date(year, 11, 31, 23, 59, 59, 999);
+//         dateFormat = "%Y-%m"; // ✅ Monthly format
+//     }
+
+//     // 1️⃣ Users
+//     const users = await User.aggregate([
+//         { $match: { createdAt: { $gte: start, $lte: end } } },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 2️⃣ Lawyer registrations
+//     const lawyerRegistrations = await User.aggregate([
+//         {
+//             $match: {
+//                 regUserType: "lawyer",
+//                 createdAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 3️⃣ Payments
+//     const payments = await Transaction.aggregate([
+//         {
+//             $match: {
+//                 type: "purchase",
+//                 status: "completed",
+//                 createdAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 4️⃣ Credits spent
+//     const creditsSpent = await CreditTransaction.aggregate([
+//         {
+//             $match: {
+//                 type: "usage",
+//                 createdAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 totalCredits: { $sum: "$credit" },
+//             },
+//         },
+//     ]);
+
+//     // 5️⃣ Case posts (leads)
+//     const casePosts = await Lead.aggregate([
+//         { $match: { createdAt: { $gte: start, $lte: end } } },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 6️⃣ Hires
+//     const hires = await Lead.aggregate([
+//         {
+//             $match: {
+//                 isHired: true,
+//                 hiredAt: { $gte: start, $lte: end },
+//             },
+//         },
+//         {
+//             $group: {
+//                 _id: { $dateToString: { format: dateFormat, date: "$hiredAt" } },
+//                 count: { $sum: 1 },
+//             },
+//         },
+//     ]);
+
+//     // 📌 Prepare date labels
+//     let allDates: string[];
+
+//     if (month && month >= 1 && month <= 12) {
+//         // ✅ Daily data for the given month
+//         const daysInMonth = new Date(year, month, 0).getDate();
+//         allDates = Array.from(
+//             { length: daysInMonth },
+//             (_, i) => `${year}-${month.toString().padStart(2, "0")}-${(i + 1)
+//                 .toString()
+//                 .padStart(2, "0")}`
+//         );
+//     } else {
+//         // ✅ Monthly data for the given year
+//         allDates = Array.from(
+//             { length: 12 },
+//             (_, i) => `${year}-${(i + 1).toString().padStart(2, "0")}`
+//         );
+//     }
+
+//     // 📌 Merge data with defaults
+//     const chartData: ChartDataItem[] = allDates.map((date) => ({
+//         date,
+//         users: users.find((u) => u._id === date)?.count || 0,
+//         payments: payments.find((p) => p._id === date)?.count || 0,
+//         // creditsSpent: creditsSpent.find((c) => c._id === date)?.totalCredits || 0,
+//         creditsSpent: Math.abs(
+//             creditsSpent.find((c) => c._id === date)?.totalCredits || 0
+//         ),
+//         casePosts: casePosts.find((cp) => cp._id === date)?.count || 0,
+//         hires: hires.find((h) => h._id === date)?.count || 0,
+//         lawyerRegistrations:
+//             lawyerRegistrations.find((l) => l._id === date)?.count || 0,
+//     }));
+
+//     return chartData;
+// };
+
+
+
 const getAdminDashboardBarChartFromDB = async (
-    year: number,
-    month?: number
+    filterType: 'yearly' | 'six-months' | 'three-months' | 'monthly' | 'fifteen-days' | 'seven-days'
 ): Promise<ChartDataItem[]> => {
+    const end: Date = new Date();
     let start: Date;
-    let end: Date;
     let dateFormat: string;
 
-    if (month && month >= 1 && month <= 12) {
-        // ✅ Specific month → group by DAY
-        start = new Date(year, month - 1, 1);
-        end = new Date(year, month, 0, 23, 59, 59, 999);
-        dateFormat = "%Y-%m-%d"; // ✅ Daily format
-    } else {
-        // ✅ Whole year → group by MONTH
-        start = new Date(year, 0, 1);
-        end = new Date(year, 11, 31, 23, 59, 59, 999);
-        dateFormat = "%Y-%m"; // ✅ Monthly format
+    // ✅ Normalize filter type to lowercase for safety
+    const type = filterType.toLowerCase();
+
+    // ✅ Decide start date & date format based on filterType
+    switch (type) {
+        case 'yearly':
+            start = new Date(end.getFullYear() - 1, end.getMonth() + 1, 1);
+            dateFormat = "%Y-%m"; // Group by month
+            break;
+
+        case 'six-months':
+            start = new Date();
+            start.setMonth(end.getMonth() - 5);
+            start.setDate(1);
+            dateFormat = "%Y-%m"; // Group by month
+            break;
+
+        case 'three-months':
+            start = new Date();
+            start.setMonth(end.getMonth() - 2);
+            start.setDate(1);
+            dateFormat = "%Y-%m"; // Group by month
+            break;
+
+        case 'monthly':
+            start = new Date();
+            start.setMonth(end.getMonth() - 1);
+            start.setDate(1);
+            dateFormat = "%Y-%m-%d"; // Group by day
+            break;
+
+        case 'fifteen-days':
+            start = new Date();
+            start.setDate(end.getDate() - 14);
+            dateFormat = "%Y-%m-%d"; // Group by day
+            break;
+
+        case 'seven-days':
+            start = new Date();
+            start.setDate(end.getDate() - 6);
+            dateFormat = "%Y-%m-%d"; // Group by day
+            break;
+
+        default:
+            // Fallback → Current year
+            start = new Date(new Date().getFullYear(), 0, 1);
+            dateFormat = "%Y-%m";
     }
 
     // 1️⃣ Users
     const users = await User.aggregate([
         { $match: { createdAt: { $gte: start, $lte: end } } },
-        {
-            $group: {
-                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
-                count: { $sum: 1 },
-            },
-        },
+        { $group: { _id: { $dateToString: { format: dateFormat, date: "$createdAt" } }, count: { $sum: 1 } } },
     ]);
 
     // 2️⃣ Lawyer registrations
     const lawyerRegistrations = await User.aggregate([
-        {
-            $match: {
-                regUserType: "lawyer",
-                createdAt: { $gte: start, $lte: end },
-            },
-        },
-        {
-            $group: {
-                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
-                count: { $sum: 1 },
-            },
-        },
+        { $match: { regUserType: "lawyer", createdAt: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dateToString: { format: dateFormat, date: "$createdAt" } }, count: { $sum: 1 } } },
     ]);
 
     // 3️⃣ Payments
     const payments = await Transaction.aggregate([
-        {
-            $match: {
-                type: "purchase",
-                status: "completed",
-                createdAt: { $gte: start, $lte: end },
-            },
-        },
-        {
-            $group: {
-                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
-                count: { $sum: 1 },
-            },
-        },
+        { $match: { type: "purchase", status: "completed", createdAt: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dateToString: { format: dateFormat, date: "$createdAt" } }, count: { $sum: 1 } } },
     ]);
 
     // 4️⃣ Credits spent
     const creditsSpent = await CreditTransaction.aggregate([
-        {
-            $match: {
-                type: "usage",
-                createdAt: { $gte: start, $lte: end },
-            },
-        },
-        {
-            $group: {
-                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
-                totalCredits: { $sum: "$credit" },
-            },
-        },
+        { $match: { type: "usage", createdAt: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dateToString: { format: dateFormat, date: "$createdAt" } }, totalCredits: { $sum: "$credit" } } },
     ]);
 
     // 5️⃣ Case posts (leads)
     const casePosts = await Lead.aggregate([
         { $match: { createdAt: { $gte: start, $lte: end } } },
-        {
-            $group: {
-                _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
-                count: { $sum: 1 },
-            },
-        },
+        { $group: { _id: { $dateToString: { format: dateFormat, date: "$createdAt" } }, count: { $sum: 1 } } },
     ]);
 
     // 6️⃣ Hires
     const hires = await Lead.aggregate([
-        {
-            $match: {
-                isHired: true,
-                hiredAt: { $gte: start, $lte: end },
-            },
-        },
-        {
-            $group: {
-                _id: { $dateToString: { format: dateFormat, date: "$hiredAt" } },
-                count: { $sum: 1 },
-            },
-        },
+        { $match: { isHired: true, hiredAt: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dateToString: { format: dateFormat, date: "$hiredAt" } }, count: { $sum: 1 } } },
     ]);
 
-    // 📌 Prepare date labels
-    let allDates: string[];
+    // 📌 Generate labels based on filterType
+    let allDates: string[] = [];
 
-    if (month && month >= 1 && month <= 12) {
-        // ✅ Daily data for the given month
-        const daysInMonth = new Date(year, month, 0).getDate();
-        allDates = Array.from(
-            { length: daysInMonth },
-            (_, i) => `${year}-${month.toString().padStart(2, "0")}-${(i + 1)
-                .toString()
-                .padStart(2, "0")}`
-        );
+    if (type === "yearly") {
+        // Last 12 months
+        const now = new Date();
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            allDates.push(`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`);
+        }
+    } else if (type === "six-months") {
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(end.getFullYear(), end.getMonth() - i, 1);
+            allDates.push(`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`);
+        }
+    } else if (type === "three-months") {
+        for (let i = 2; i >= 0; i--) {
+            const d = new Date(end.getFullYear(), end.getMonth() - i, 1);
+            allDates.push(`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`);
+        }
     } else {
-        // ✅ Monthly data for the given year
-        allDates = Array.from(
-            { length: 12 },
-            (_, i) => `${year}-${(i + 1).toString().padStart(2, "0")}`
-        );
+        // For monthly, fifteen-days, seven-days → Daily labels
+        const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        for (let i = 0; i < days; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            allDates.push(`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`);
+        }
     }
 
     // 📌 Merge data with defaults
@@ -600,19 +742,14 @@ const getAdminDashboardBarChartFromDB = async (
         date,
         users: users.find((u) => u._id === date)?.count || 0,
         payments: payments.find((p) => p._id === date)?.count || 0,
-        // creditsSpent: creditsSpent.find((c) => c._id === date)?.totalCredits || 0,
-        creditsSpent: Math.abs(
-            creditsSpent.find((c) => c._id === date)?.totalCredits || 0
-        ),
+        creditsSpent: Math.abs(creditsSpent.find((c) => c._id === date)?.totalCredits || 0),
         casePosts: casePosts.find((cp) => cp._id === date)?.count || 0,
         hires: hires.find((h) => h._id === date)?.count || 0,
-        lawyerRegistrations:
-            lawyerRegistrations.find((l) => l._id === date)?.count || 0,
+        lawyerRegistrations: lawyerRegistrations.find((l) => l._id === date)?.count || 0,
     }));
 
     return chartData;
 };
-
 
 
 
