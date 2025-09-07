@@ -52,9 +52,10 @@ export  const createLeadService = async (
 
   // 4. Get all questions for new services
   const allQuestions = await ServiceWiseQuestion.find({
+    countryId:userProfile.country,
     serviceId: { $in: newServiceIds },
   })
-    .select('_id serviceId')
+    .select('_id serviceId countryId')
     .session(session ?? null);
 
   // 5. Group questions by serviceId
@@ -75,6 +76,7 @@ export  const createLeadService = async (
   const matchPairs = allQuestions.map((q) => ({
     questionId: q._id,
     serviceId: q.serviceId,
+    countryId:q.countryId
   }));
 
   // 7. Get options by (questionId + serviceId)
