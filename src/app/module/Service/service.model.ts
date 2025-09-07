@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IService, ServiceModel } from '../interfaces/service.interface';
+import { IService, ServiceModel } from './service.interface';
 
 const serviceSchema = new mongoose.Schema(
   {

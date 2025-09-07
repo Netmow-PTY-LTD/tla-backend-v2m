@@ -4,7 +4,7 @@ import CreditTransaction from "../CreditPayment/creditTransaction.model";
 import Transaction from "../CreditPayment/transaction.model";
 import Lead from "../Lead/lead.model";
 import LeadResponse from "../LeadResponse/response.model";
-import Service from "../Service/models/service.model";
+import Service from "../Service/service.model";
 import UserProfile from "../User/models/user.model";
 import { AdminDashboardStats, ChartDataItem, DashboardQuery } from "./admin.interface";
 

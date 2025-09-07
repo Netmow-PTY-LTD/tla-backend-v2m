@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authRouter } from '../module/Auth/auth.route';
 import { UserProfileRouter } from '../module/User/routes/user.route';
 import { countryRouter } from '../module/Country/country.route';
-import { serviceRouter } from '../module/Service/routes/service.route';
+import { serviceRouter } from '../module/Service/service.route';
 import { OptionRouter } from '../module/Option/option.route';
 import { questionRouter } from '../module/Question/question.route';
 import { viewRouter } from '../module/View/routes/view.router';

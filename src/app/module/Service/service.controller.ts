@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { serviceService } from '../services/service.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { serviceService } from './service.service';
 
 const createService = catchAsync(async (req, res) => {
   const serviceData = req.body;

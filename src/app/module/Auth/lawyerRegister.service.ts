@@ -15,7 +15,7 @@ import { REGISTER_USER_TYPE } from './auth.constant';
 import { createLeadService } from './lawyerRegister.utils';
 import { LocationType } from '../LeadSettings/UserWiseLocation.constant';
 import { sendEmail } from '../../emails/email.service';
-import Service from '../Service/models/service.model';
+import Service from '../Service/service.model';
 
 
 const lawyerRegisterUserIntoDB = async (payload: IUser) => {

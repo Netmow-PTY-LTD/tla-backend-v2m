@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import { AppError } from '../../../errors/error';
-import { IService } from '../interfaces/service.interface';
-import Service from '../models/service.model';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import { AppError } from '../../errors/error';
+import { IService } from './service.interface';
+import Service from './service.model';
 
 const CreateServiceIntoDB = async (payload: IService) => {
   const result = await Service.create(payload);

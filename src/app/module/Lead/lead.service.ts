@@ -12,7 +12,7 @@ import { customCreditLogic } from './customCreditLogic';
 
 import QueryBuilder from '../../builder/QueryBuilder';
 import LeadResponse from '../LeadResponse/response.model';
-import Service from '../Service/models/service.model';
+import Service from '../Service/service.model';
 import config from '../../config';
 import { sendEmail } from '../../emails/email.service';
 import { IUser } from '../Auth/auth.interface';
