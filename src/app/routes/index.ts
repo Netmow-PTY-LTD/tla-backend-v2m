@@ -13,7 +13,7 @@ import { leadRouter } from '../module/Lead/lead.route';
 import { responseRouter } from '../module/LeadResponse/response.route';
 import { activityLogRouter } from '../module/Activity/logActivity.route';
 import { contactRouter } from '../module/Contact/contact.route';
-import { settingsRouter } from '../module/Settings/routes/settings.route';
+import { settingsRouter } from '../module/Settings/settings.route';
 import { categoryRouter } from '../module/Category/category.route';
 import { ratingRouter } from '../module/Rating/rating.routes';
 import { profileVisitorRouter } from '../module/VisitorTracker/routes/profileVisitor.routes';

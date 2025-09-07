@@ -1,6 +1,6 @@
 
 
-import { AppSettings } from "../models/settings.model";
+import { AppSettings } from "./settings.model";
 
 let cache:any = null;
 export const getAppSettings = async () => {

@@ -1,7 +1,7 @@
 
 
-import { IAppSettings } from "../interfaces/settings.interface";
-import { AppSettings } from "../models/settings.model";
+import { IAppSettings } from "./settings.interface";
+import { AppSettings } from "./settings.model";
 
 
  const getSettings = async () => {

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { settingsService } from '../services/settings.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { settingsService } from './settings.service';
 
 
 const getAppSettings = catchAsync(async (_req: Request, res: Response) => {

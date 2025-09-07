@@ -1,6 +1,6 @@
 
 import { Schema, model } from 'mongoose';
-import { IAppSettings } from '../interfaces/settings.interface';
+import { IAppSettings } from './settings.interface';
 
 const settingsSchema = new Schema({
   siteName: { type: String, default: 'The LawApp' },
