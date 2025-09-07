@@ -5,7 +5,6 @@ export interface IZipCode {
   zipcode: string;
   postalCode?: string;
   countryId: Types.ObjectId;
-  deletedAt?: Date | null;
   zipCodeType: string;
   countryCode?: string;
   longitude?: string;
