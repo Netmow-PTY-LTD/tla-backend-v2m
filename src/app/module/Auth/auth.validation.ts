@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { profileValidationSchema } from '../User/validations/user.validation';
+import { profileValidationSchema } from '../User/user.validation';
 
 
 // Validation schema for creating or updating a user

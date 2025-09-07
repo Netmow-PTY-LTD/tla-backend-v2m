@@ -84,15 +84,45 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
 
 
 
+//  const getAdminDashboardBarChart = catchAsync(async (req, res) => {
+//     const { year, month } = req.query;
+
+//     // ✅ Validate year param
+//     const selectedYear = year ? parseInt(year as string, 10) : new Date().getFullYear();
+//         // ✅ Optional month filter
+//     const selectedMonth = month ? parseInt(month as string, 10) : undefined;
+
+//     const result = await adminService.getAdminDashboardBarChartFromDB(selectedYear,selectedMonth);
+
+//     return sendResponse(res, {
+//         statusCode: HTTP_STATUS.OK,
+//         success: true,
+//         message: "Admin dashboard bar chart retrieved successfully",
+//         data: result,
+//     });
+// });
+
+
  const getAdminDashboardBarChart = catchAsync(async (req, res) => {
-    const { year, month } = req.query;
+    const { filterType } = req.query;
 
-    // ✅ Validate year param
-    const selectedYear = year ? parseInt(year as string, 10) : new Date().getFullYear();
-        // ✅ Optional month filter
-    const selectedMonth = month ? parseInt(month as string, 10) : undefined;
+    
 
-    const result = await adminService.getAdminDashboardBarChartFromDB(selectedYear,selectedMonth);
+    // ✅ Validate filterType
+    const validFilters = ['yearly', 'six-months', 'three-months', 'monthly', 'fifteen-days', 'seven-days'];
+    const selectedFilter = typeof filterType === "string" ? filterType.toLowerCase() : "yearly";
+
+    if (!validFilters.includes(selectedFilter)) {
+        return sendResponse(res, {
+            statusCode:HTTP_STATUS.OK,
+            success: false,
+            message: "Invalid filter type. Use one of: yearly, six-months, three-months, monthly, fifteen-days, seven-days",
+            data:null
+        });
+    }
+
+
+    const result = await adminService.getAdminDashboardBarChartFromDB(selectedFilter as any);
 
     return sendResponse(res, {
         statusCode: HTTP_STATUS.OK,

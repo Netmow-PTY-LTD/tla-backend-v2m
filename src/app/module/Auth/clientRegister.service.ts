@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import User from './auth.model';
 import ZipCode from '../Country/zipcode.model';
-import { UserLocationServiceMap } from '../LeadSettings/models/UserLocationServiceMap.model';
+import { UserLocationServiceMap } from '../LeadSettings/UserLocationServiceMap.model';
 import { createToken } from './auth.utils';
 import config from '../../config';
 import { StringValue } from 'ms';
@@ -16,10 +16,10 @@ import { LeadServiceAnswer } from '../Lead/leadServiceAnswer.model';
 import { Types } from 'mongoose';
 import { REGISTER_USER_TYPE } from './auth.constant';
 import { sendEmail } from '../../emails/email.service';
-import Service from '../Service/models/service.model';
-import CountryWiseServiceWiseField from '../CountryWiseMap/models/countryWiseServiceWiseFields.model';
-import Option from '../Option/models/option.model';
-import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
+import Service from '../Service/service.model';
+import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
+import Option from '../Option/option.model';
+import ServiceWiseQuestion from '../Question/question.model';
 import { generateRandomPassword } from './generateRandomPassword';
 
 

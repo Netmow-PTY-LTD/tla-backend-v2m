@@ -5,19 +5,19 @@ import { validateObjectId } from '../../utils/validateObjectId';
 import { ILead } from './lead.interface';
 import Lead from './lead.model';
 import { LeadServiceAnswer } from './leadServiceAnswer.model';
-import UserProfile from '../User/models/user.model';
+import UserProfile from '../User/user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import CountryWiseServiceWiseField from '../CountryWiseMap/models/countryWiseServiceWiseFields.model';
+import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from './customCreditLogic';
 
 import QueryBuilder from '../../builder/QueryBuilder';
-import LeadResponse from '../LeadResponse/models/response.model';
-import Service from '../Service/models/service.model';
+import LeadResponse from '../LeadResponse/response.model';
+import Service from '../Service/service.model';
 import config from '../../config';
 import { sendEmail } from '../../emails/email.service';
 import { IUser } from '../Auth/auth.interface';
-import ServiceWiseQuestion from '../Question/models/ServiceWiseQuestion.model';
-import Option from '../Option/models/option.model';
+import ServiceWiseQuestion from '../Question/question.model';
+import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 
 
@@ -722,7 +722,7 @@ const getAllLeadFromDB = async (
 
   const matchStage: any = {
     deletedAt: null,
-    countryId: userProfile.country,
+    countryId: new mongoose.Types.ObjectId(userProfile.country),
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
     serviceId: { $in: userProfile.serviceIds },
@@ -801,13 +801,13 @@ const getAllLeadFromDB = async (
 
     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
 
-    //  ---------------------------- match current user and same country lead user -----------------
-    {
-      $match: {
-        'userProfileId.country': new mongoose.Types.ObjectId(userProfile.country)
+    // //  ---------------------------- match current user and same country lead user -----------------
+    // {
+    //   $match: {
+    //     'userProfileId.country': new mongoose.Types.ObjectId(userProfile.country)
 
-      }
-    },
+    //   }
+    // },
     // Keyword match here (AFTER we have userProfileId.name)
     ...(filters.keyword
       ? [{
