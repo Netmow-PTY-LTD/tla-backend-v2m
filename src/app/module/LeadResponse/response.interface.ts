@@ -9,7 +9,7 @@ import { ILeadServiceAnswer } from '../Lead/leadServiceAnswer.interface';
 //   responseBy: Types.ObjectId;
 //   leadId: Types.ObjectId;
 //   serviceId: Types.ObjectId;
-//   deletedAt?: Date | null;
+
 //   status: LeadStatus
 //   leadAnswers?: ILeadServiceAnswer[];
 // }
