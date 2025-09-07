@@ -221,11 +221,11 @@ const getPublicUserProfileById = async (userId: string) => {
 
   const experience = await Experience.findOne({
     userProfileId: user.profile._id,
-    deletedAt: null,
+  
   });
   const faq = await Faq.find({
     userProfileId: user.profile._id,
-    deletedAt: null,
+   
   });
 
   const photosVideos = await ProfilePhotos.findOne({
@@ -299,12 +299,12 @@ const getPublicUserProfileBySlug = async (slug: string) => {
 
   const experience = await Experience.findOne({
     userProfileId: user.profile._id,
-    deletedAt: null,
+   
   });
 
   const faq = await Faq.find({
     userProfileId: user.profile._id,
-    deletedAt: null,
+    
   });
   const photosVideos = await ProfilePhotos.findOne({
     userProfileId: user.profile._id,
