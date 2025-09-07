@@ -114,7 +114,7 @@ const CreateBulkLeads = async (): Promise<void> => {
     const creditInfo = await CountryWiseServiceWiseField.findOne({
       countryId: payload.countryId,
       serviceId: payload.serviceId,
-      deletedAt: null,
+      
     }).select("baseCredit");
 
     // --- Step 1: Create Leads ---

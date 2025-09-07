@@ -139,10 +139,6 @@ const leadSchema = new Schema<ILead>(
     },
 
 
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
   },
   {
     timestamps: true,

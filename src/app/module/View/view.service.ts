@@ -30,7 +30,7 @@ const getSingleServiceWiseQuestionFromDB = async (
       $match: {
         serviceId: serviceObjectId,
         countryId: countryObjectId,
-        deletedAt: null,
+  
       },
     },
     {
@@ -135,7 +135,7 @@ const getQuestionWiseOptionsFromDB = async (questionId: string) => {
   validateObjectId(questionId, 'Question');
   const result = await Option.find({
     questionId: questionId,
-    deletedAt: null,
+   
   }).populate(['questionId', 'serviceId', 'countryId']); // ✅ fixed
 
   return result;

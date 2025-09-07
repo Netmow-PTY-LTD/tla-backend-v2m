@@ -31,10 +31,7 @@ const leadServiceAnswerSchema = new Schema<ILeadServiceAnswer>(
       type: String,
       default: '',
     },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+   
   },
   {
     timestamps: true,
