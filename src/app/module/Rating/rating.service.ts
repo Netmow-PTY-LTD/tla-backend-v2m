@@ -1,9 +1,9 @@
 
 import { Types } from "mongoose";
-import { Rating } from "../models/rating.model";
-import UserProfile from "../../User/models/user.model";
-import LeadResponse from "../../LeadResponse/response.model";
-import Lead from "../../Lead/lead.model";
+import { Rating } from "./rating.model";
+import UserProfile from "../User/models/user.model";
+import LeadResponse from "../LeadResponse/response.model";
+import Lead from "../Lead/lead.model";
 
 
 
