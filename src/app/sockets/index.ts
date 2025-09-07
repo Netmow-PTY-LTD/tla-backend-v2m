@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { registerChatEvents, registerNotificationEvents, registerSocketEvents } from './event';
-import { setUserOnlineStatus } from '../module/Auth/utils/auth.utils';
+import { setUserOnlineStatus } from '../module/Auth/auth.utils';
 
 let io: Server;
 const onlineUsersMap = new Map<string, string>(); // socketId => userId

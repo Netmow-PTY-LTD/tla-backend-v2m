@@ -1,5 +1,5 @@
 import { Model, Types } from 'mongoose';
-import { ILeadServiceAnswer } from '../../Lead/interfaces/leadServiceAnswer.interface';
+import { ILeadServiceAnswer } from '../../Lead/leadServiceAnswer.interface';
 
 
 // type LeadStatus = 'pending' | 'hired' | 'archive';

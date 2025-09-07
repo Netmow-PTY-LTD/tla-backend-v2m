@@ -3,7 +3,7 @@ import { uploadToSpaces } from '../../../config/upload';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
 import { TUploadedFile } from '../../../interface/file.interface';
-import ZipCode from '../../Country/models/zipcode.model';
+import ZipCode from '../../Country/zipcode.model';
 
 import { ICompanyProfile } from '../interfaces/companyProfile.interface';
 import CompanyProfile from '../models/companyProfile.model';

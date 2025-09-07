@@ -13,8 +13,8 @@ import { isVerifiedLawyer } from '../../User/utils/calculateVerifiedBadge';
 import { USER_PROFILE } from '../../User/constants/user.constant';
 import { sendEmail } from '../../../emails/email.service';
 import config from '../../../config';
-import { IUser } from '../../Auth/interfaces/auth.interface';
-import { USER_STATUS } from '../../Auth/constant/auth.constant';
+import { IUser } from '../../Auth/auth.interface';
+import { USER_STATUS } from '../../Auth/auth.constant';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version

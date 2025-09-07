@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
-import { authRouter } from '../module/Auth/routes/auth.route';
+import { authRouter } from '../module/Auth/auth.route';
 import { UserProfileRouter } from '../module/User/routes/user.route';
-import { countryRouter } from '../module/Country/routes/country.route';
+import { countryRouter } from '../module/Country/country.route';
 import { serviceRouter } from '../module/Service/routes/service.route';
 import { OptionRouter } from '../module/Option/routes/option.route';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/routes/countryWiseMap.route';
@@ -11,15 +11,15 @@ import { viewRouter } from '../module/View/routes/view.router';
 import { leadServiceRouter } from '../module/LeadSettings/routes/leadService.routes';
 import { notificationRouter } from '../module/Notification/routes/notification.routes';
 import { creditPaymentRouter } from '../module/CreditPayment/routes/creditPayment.routes';
-import { leadRouter } from '../module/Lead/routes/lead.route';
+import { leadRouter } from '../module/Lead/lead.route';
 import { responseRouter } from '../module/LeadResponse/routes/response.route';
-import { activityLogRouter } from '../module/Activity/routes/logActivity.route';
-import { contactRouter } from '../module/Contact/routes/contact.route';
+import { activityLogRouter } from '../module/Activity/logActivity.route';
+import { contactRouter } from '../module/Contact/contact.route';
 import { settingsRouter } from '../module/Settings/routes/settings.route';
-import { categoryRouter } from '../module/Category/routes/category.route';
+import { categoryRouter } from '../module/Category/category.route';
 import { ratingRouter } from '../module/Rating/routes/rating.routes';
 import { profileVisitorRouter } from '../module/VisitorTracker/routes/profileVisitor.routes';
-import { adminRouter } from '../module/Admin/routes/admin.routes';
+import { adminRouter } from '../module/Admin/admin.routes';
 
 const router = Router();
 

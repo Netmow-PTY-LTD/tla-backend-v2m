@@ -2,7 +2,7 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
-import User from '../../Auth/models/auth.model';
+import User from '../../Auth/auth.model';
 import { IUserProfile } from '../interfaces/user.interface';
 
 import { uploadToSpaces } from '../../../config/upload';

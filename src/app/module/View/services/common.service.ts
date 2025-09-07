@@ -6,17 +6,17 @@ import { HTTP_STATUS } from "../../../constant/httpStatus";
 import CreditPackage from "../../CreditPayment/models/creditPackage.model";
 import PaymentMethod from "../../CreditPayment/models/paymentMethod.model";
 import { ILeadResponse } from "../../LeadResponse/interfaces/response.interface";
-import { logActivity } from "../../Activity/utils/logActivityLog";
+import { logActivity } from "../../Activity/logActivityLog";
 import { createNotification } from "../../Notification/utils/createNotification";
-import Lead from "../../Lead/models/lead.model";
+import Lead from "../../Lead/lead.model";
 import { getIO } from "../../../sockets";
 import { ResponseWiseChatMessage } from "../models/chatMessage.model";
 import { LeadContactRequest } from "../models/LeadContactRequest.model";
-import User from "../../Auth/models/auth.model";
+import User from "../../Auth/auth.model";
 import { AppError } from "../../../errors/error";
 import { validateObjectId } from "../../../utils/validateObjectId";
-import { USER_STATUS } from "../../Auth/constant/auth.constant";
-import { IUser } from "../../Auth/interfaces/auth.interface";
+import { USER_STATUS } from "../../Auth/auth.constant";
+import { IUser } from "../../Auth/auth.interface";
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
