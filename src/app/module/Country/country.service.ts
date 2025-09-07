@@ -32,20 +32,20 @@ const CreateCountryIntoDB = async (payload: ICountry) => {
 };
 
 const getAllCountryFromDB = async () => {
-  const countries = await Country.find({ deletedAt: null });
+  const countries = await Country.find({});
   return countries;
 };
 
 const getSingleCountryFromDB = async (id: string) => {
   validateObjectId(id, 'Country');
-  const result = await Country.findOne({ _id: id, deletedAt: null });
+  const result = await Country.findOne({ _id: id });
   return result;
 };
 
 const updateCountryIntoDB = async (id: string, payload: Partial<ICountry>) => {
   validateObjectId(id, 'Country');
   const result = await Country.findOneAndUpdate(
-    { _id: id, deletedAt: null },
+    { _id: id },
     payload,
     {
       new: true,
@@ -56,15 +56,9 @@ const updateCountryIntoDB = async (id: string, payload: Partial<ICountry>) => {
 
 const deleteCountryFromDB = async (id: string) => {
   validateObjectId(id, 'Country');
-  const deletedAt = new Date().toISOString();
 
-  const result = await Country.findByIdAndUpdate(
-    id,
-    { deletedAt: deletedAt },
-    {
-      new: true,
-    },
-  );
+
+  const result = await Country.findByIdAndDelete(id);
   return result;
 };
 

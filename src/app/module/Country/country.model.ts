@@ -23,10 +23,7 @@ const countriesSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+    
   },
   {
     versionKey: false,

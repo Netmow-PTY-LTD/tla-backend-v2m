@@ -5,7 +5,7 @@ export interface ICountry {
   name: string;
   slug: string;
   serviceIds: [Types.ObjectId];
-  deletedAt?: Date | null;
+ 
 }
 
 export interface ICountryWiseLocationGroup {
