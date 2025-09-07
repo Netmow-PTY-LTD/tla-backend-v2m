@@ -1,8 +1,8 @@
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import { TUploadedFile } from '../../../interface/file.interface';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
-import { categoryService } from '../services/category.service';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import { TUploadedFile } from '../../interface/file.interface';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { categoryService } from './category.service';
 
 
 const createCategory = catchAsync(async (req, res) => {

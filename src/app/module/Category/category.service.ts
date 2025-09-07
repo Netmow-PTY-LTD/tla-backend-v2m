@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import { uploadToSpaces } from '../../../config/upload';
-import { HTTP_STATUS } from '../../../constant/httpStatus';
-import { AppError } from '../../../errors/error';
-import { TUploadedFile } from '../../../interface/file.interface';
-import { ICategory } from '../interfaces/category.interface';
-import Category from '../models/category.model';
+import { uploadToSpaces } from '../../config/upload';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import { AppError } from '../../errors/error';
+import { TUploadedFile } from '../../interface/file.interface';
+import { ICategory } from './category.interface';
+import Category from './category.model';
 
 const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: TUploadedFile) => {
 

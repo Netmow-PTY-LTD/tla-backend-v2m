@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response, Router } from 'express';
-import validateRequest from '../../../middlewares/validateRequest';
+import validateRequest from '../../middlewares/validateRequest';
 
 
-import auth from '../../../middlewares/auth';
-import { USER_ROLE } from '../../../constant';
-import { categoryController } from '../controllers/category.controller';
-import { categoryZodValidation } from '../validations/category.validation';
-import { upload } from '../../../config/upload';
+import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../../constant';
+import { categoryController } from './category.controller';
+import { categoryZodValidation } from './category.validation';
+import { upload } from '../../config/upload';
 
 const router = Router();
 
