@@ -55,7 +55,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
     userId: user?._id,
     // username: user.username,
     email: user?.email,
-    country: (user?.profile as any)?.country, // ✅ Fix TS error
+    country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
     role: user?.role,
     regUserType: user?.regUserType,
     accountStatus: user.accountStatus,
@@ -112,7 +112,8 @@ const refreshToken = async (token: string) => {
   const { email } = decoded;
 
   // checking if the user is exist
-  const user = await User.findOne({ email }).populate('profile');
+  // const user = await User.findOne({ email }).populate('profile');
+  const user = await User.isUserExistsByEmail(email);
 
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
@@ -123,7 +124,7 @@ const refreshToken = async (token: string) => {
     email: user.email,
     role: user.role,
     regUserType: user.regUserType,
-    country: (user?.profile as any)?.country, // ✅ Fix TS error
+    country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
     accountStatus: user.accountStatus,
   };
 
@@ -230,7 +231,7 @@ const forgetPassword = async (userEmail: string) => {
     email: user?.email,
     role: user?.role,
     regUserType: user?.regUserType,
-    country: (user?.profile as any)?.country, // ✅ Fix TS error
+    country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
     accountStatus: user.accountStatus,
   };
 
@@ -396,7 +397,14 @@ const resendVerificationEmail = async (email: string) => {
     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Email is required');
   }
 
-  const user = await User.findOne({ email }).populate('profile');
+  const user = await User.findOne({ email })
+    .populate({
+      path: 'profile',       // populate the profile
+      populate: {
+        path: 'country',     // populate country inside profile
+        model: 'Country',    // replace with your actual Country model name
+      },
+    });
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
   }
@@ -415,7 +423,7 @@ const resendVerificationEmail = async (email: string) => {
     email: user.email,
     role: user.role,
     regUserType: user.regUserType,
-    country: (user?.profile as any)?.country, // ✅ Fix TS error
+    country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
     accountStatus: user.accountStatus,
   };
 
