@@ -54,9 +54,10 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   const jwtPayload = {
     userId: user?._id,
     // username: user.username,
-    regUserType: user?.regUserType,
     email: user?.email,
+    country: (user?.profile as any)?.country, // ✅ Fix TS error
     role: user?.role,
+    regUserType: user?.regUserType,
     accountStatus: user.accountStatus,
   };
 
@@ -111,7 +112,7 @@ const refreshToken = async (token: string) => {
   const { email } = decoded;
 
   // checking if the user is exist
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).populate('profile');
 
   if (!user) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
@@ -122,6 +123,7 @@ const refreshToken = async (token: string) => {
     email: user.email,
     role: user.role,
     regUserType: user.regUserType,
+    country: (user?.profile as any)?.country, // ✅ Fix TS error
     accountStatus: user.accountStatus,
   };
 
@@ -228,6 +230,7 @@ const forgetPassword = async (userEmail: string) => {
     email: user?.email,
     role: user?.role,
     regUserType: user?.regUserType,
+    country: (user?.profile as any)?.country, // ✅ Fix TS error
     accountStatus: user.accountStatus,
   };
 
@@ -412,6 +415,7 @@ const resendVerificationEmail = async (email: string) => {
     email: user.email,
     role: user.role,
     regUserType: user.regUserType,
+    country: (user?.profile as any)?.country, // ✅ Fix TS error
     accountStatus: user.accountStatus,
   };
 
@@ -473,7 +477,7 @@ export const changeAccountStatus = async (
         name: updatedUser.profile?.name ?? "User",
 
       },
-      emailTemplate:'lawyer_approved',
+      emailTemplate: 'lawyer_approved',
     });
 
   }
