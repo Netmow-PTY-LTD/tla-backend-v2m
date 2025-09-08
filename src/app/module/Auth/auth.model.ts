@@ -142,7 +142,14 @@ userSchema.statics.isUserExists = async function (id: string) {
 };
 // Static method to check if a user exists by email
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
-  return await User.findOne({ email }).select('+password');
+  return await User.findOne({ email }).select('+password').populate({
+    path: 'profile',
+    select: 'country', // ✅ Only fetch the "country" field
+    populate: {
+      path: 'country', // ✅ Populate the country field inside profile
+      model: 'Country', // Replace with your actual Country model name
+    },
+  });
 };
 
 // Static method to check if JWT was issued before password change

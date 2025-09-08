@@ -197,9 +197,11 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       userId: newUser._id,
       email: newUser.email,
       // username: newUser.username,
+      country: addressInfo.countryCode,
       regUserType: newUser.regUserType,
       role: newUser.role,
       accountStatus: newUser.accountStatus,
+
     };
 
     const accessToken = createToken(
