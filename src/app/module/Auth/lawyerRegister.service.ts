@@ -244,7 +244,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     return {
       accessToken,
       refreshToken,
-      userData: { ...newUser,country:addressInfo.countryCode},
+      userData: newUser,
     };
   } catch (error) {
     // If an error occurs, abort the transaction to avoid incomplete data
