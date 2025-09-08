@@ -1,7 +1,7 @@
 
 import { Server, Socket } from 'socket.io';
-import { ResponseWiseChatMessage } from '../module/View/models/chatMessage.model';
-import { createNotification } from '../module/Notification/utils/createNotification';
+import { ResponseWiseChatMessage } from '../module/View/chatMessage.model';
+import { createNotification } from '../module/Notification/notification.utils';
 
 
 export const registerNotificationEvents = (socket: Socket, io: Server) => {

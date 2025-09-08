@@ -4,8 +4,8 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../config';
 import catchAsync from '../utils/catchAsync';
 import { AppError } from '../errors/error';
-import User from '../module/Auth/models/auth.model';
-import { USER_STATUS } from '../module/Auth/constant/auth.constant';
+import User from '../module/Auth/auth.model';
+import { USER_STATUS } from '../module/Auth/auth.constant';
 import { HTTP_STATUS } from '../constant/httpStatus';
 import { TUserRole } from '../constant';
 

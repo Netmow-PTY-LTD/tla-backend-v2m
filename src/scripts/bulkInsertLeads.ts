@@ -1,9 +1,9 @@
 
 import mongoose, { ClientSession } from "mongoose";
-import UserProfile from "../app/module/User/models/user.model";
-import Lead from "../app/module/Lead/models/lead.model";
-import CountryWiseServiceWiseField from "../app/module/CountryWiseMap/models/countryWiseServiceWiseFields.model";
-import { LeadServiceAnswer } from "../app/module/Lead/models/leadServiceAnswer.model";
+import UserProfile from "../app/module/User/user.model";
+import Lead from "../app/module/Lead/lead.model";
+import CountryWiseServiceWiseField from "../app/module/CountryWiseMap/countryWiseServiceWiseFields.model";
+import { LeadServiceAnswer } from "../app/module/Lead/leadServiceAnswer.model";
 
 // --- MongoDB Connection ---
 const MONGODB_URI =
@@ -114,7 +114,7 @@ const CreateBulkLeads = async (): Promise<void> => {
     const creditInfo = await CountryWiseServiceWiseField.findOne({
       countryId: payload.countryId,
       serviceId: payload.serviceId,
-      deletedAt: null,
+      
     }).select("baseCredit");
 
     // --- Step 1: Create Leads ---

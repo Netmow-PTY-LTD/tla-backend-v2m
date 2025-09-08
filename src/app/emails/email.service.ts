@@ -1,7 +1,7 @@
 
 
 import { transporter } from "../config/emailTranspoter";
-import { getAppSettings } from "../module/Settings/utils/settingsConfig";
+import { getAppSettings } from "../module/Settings/settingsConfig";
 import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 

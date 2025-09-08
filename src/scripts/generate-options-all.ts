@@ -1,11 +1,11 @@
 // Usage:
 //   MONGODB_URI="mongodb+srv://USER:PASS@CLUSTER/db" npx tsx scripts/generate-options-all.ts
 //
-// It will count all Questions (deletedAt:null) and generate that many Options.
+// It will count all Questions () and generate that many Options.
 
 import mongoose, { Model, Types } from "mongoose";
-import Option from "../app/module/Option/models/option.model";
-import ServiceWiseQuestion from "../app/module/Question/models/ServiceWiseQuestion.model";
+import Option from "../app/module/Option/option.model";
+import ServiceWiseQuestion from "../app/module/Question/question.model";
 import { faker } from "@faker-js/faker";
 
 // ⬇️ Adjust these paths to your actual model files (no extension needed if TS)
@@ -18,14 +18,14 @@ type QuestionLean = {
     _id: Types.ObjectId;
     countryId: Types.ObjectId;
     serviceId: Types.ObjectId;
-    deletedAt?: Date | null;
+   
 };
 
 type OptionLean = {
     name: string;
     slug: string;
     questionId: Types.ObjectId;
-    deletedAt?: Date | null;
+   
 };
 
 function pickRandom<T>(arr: T[]): T {
@@ -35,7 +35,6 @@ function pickRandom<T>(arr: T[]): T {
 async function loadNameSlugPool(OptionModel: Model<any>): Promise<Array<{ name: string; slug: string }>> {
     // Unique (name, slug) pairs sampled from existing options (not deleted)
     const rows = await OptionModel.aggregate([
-        { $match: { deletedAt: null } },
         { $sample: { size: 2000 } }, // mix things up on big collections
         { $group: { _id: { name: "$name", slug: "$slug" } } },
         { $project: { _id: 0, name: "$_id.name", slug: "$_id.slug" } },
@@ -53,7 +52,7 @@ async function generateOptionsEqualToQuestions(
 ): Promise<{ created: number; attempted: number; questions: number; message?: string }> {
     const [questionsRaw, pool] = await Promise.all([
         QuestionModel.find(
-            { deletedAt: null },
+        
             { _id: 1, countryId: 1, serviceId: 1 }
         ).lean<QuestionLean[]>(),
         loadNameSlugPool(OptionModel),
@@ -66,7 +65,7 @@ async function generateOptionsEqualToQuestions(
 
     // Pre-build a Set of existing (name|slug|questionId)
     const existingRaw = await OptionModel.find(
-        { deletedAt: null },
+      
         { name: 1, slug: 1, questionId: 1 }
     ).lean<OptionLean[]>();
 
@@ -94,7 +93,7 @@ async function generateOptionsEqualToQuestions(
             questionId: q._id,         // valid reference
             order: 0,
             selected_options: [],
-            deletedAt: null,
+            
         });
         existingKeys.add(key);
     }
@@ -154,7 +153,7 @@ main().catch((e) => {
 // Usage:
 //   MONGODB_URI="mongodb+srv://USER:PASS@CLUSTER/db" npx tsx scripts/generate-options-all.ts
 //
-// Creates ONE Option per Question (deletedAt:null), with:
+// Creates ONE Option per Question (), with:
 //  - questionId/serviceId/countryId copied from the Question
 //  - NEW name + slug generated per Question (faker-based, with safe slugification)
 //  - De-dupe on (questionId, slug) to avoid collisions.
@@ -210,15 +209,15 @@ main().catch((e) => {
 //   OptionModel: Model<any>
 // ): Promise<{ created: number; skippedExisting: number; questions: number }> {
 //   const questions = await QuestionModel.find(
-//     { deletedAt: null },
+
 //     { _id: 1, countryId: 1, serviceId: 1, question: 1, slug: 1 }
 //   ).lean<QuestionLean[]>();
 
-//   if (!questions.length) throw new Error("No Questions found (deletedAt:null).");
+//   if (!questions.length) throw new Error("No Questions found .");
 
 //   // Load existing (questionId, slug) to prevent duplicates
 //   const existing = await OptionModel.find(
-//     { deletedAt: null },
+
 //     { questionId: 1, slug: 1 }
 //   ).lean<OptionLean[]>();
 
@@ -246,7 +245,7 @@ main().catch((e) => {
 //         questionId: q._id,
 //         order: 0,
 //         selected_options: [],
-//         deletedAt: null,
+//        
 //       });
 
 //       existingKeys.add(key);
