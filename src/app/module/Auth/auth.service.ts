@@ -82,7 +82,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   return {
     accessToken,
     refreshToken,
-    userData,
+    userData: { ...userData, country: (user?.profile as any)?.country.slug },
   };
 };
 
