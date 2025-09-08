@@ -296,7 +296,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
-      country: newProfile.country,
+      country: addressInfo.countryCode,
       role: newUser.role,
       regUserType: newUser.regUserType,
       accountStatus: newUser.accountStatus,
