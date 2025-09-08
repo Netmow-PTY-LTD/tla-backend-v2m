@@ -337,7 +337,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     return {
       accessToken,
       refreshToken,
-      userData: { ...newUser,country:addressInfo.countryCode},
+      userData: newUser,
       leadUser,
 
     };

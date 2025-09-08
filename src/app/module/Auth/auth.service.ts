@@ -77,12 +77,11 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 
   // Fetch user data
   const userData = await User.findOne({ email: payload.email });
-
   // Return tokens and user data
   return {
     accessToken,
     refreshToken,
-    userData: { ...userData, country: (user?.profile as any)?.country.slug },
+    userData,
   };
 };
 
