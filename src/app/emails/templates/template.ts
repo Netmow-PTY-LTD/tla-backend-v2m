@@ -1,4 +1,4 @@
-import config from "../../config";
+import config from '../../config';
 
 const appName = 'TheLawApp';
 const headerDesign = `<!DOCTYPE html>
@@ -44,7 +44,6 @@ const headerDesign = `<!DOCTYPE html>
             </td>
         </tr>`;
 
-
 const footerDesign = ` 
         <tr>
       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
@@ -77,19 +76,17 @@ const footerDesign = `
         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
             You are receiving this email because you registered on TheLawApp as a legal professional.</p>
         <p style="margin: 0;">
-          <a href="${config.client_url}/privacy-policy" style="color: #999;">Privacy Policy</a> •
-          <a href="${config.client_url}/terms" style="color: #999;">Terms</a> •
-          <a href="${config.client_url}/trust-and-quality" style="color: #999;">Trust and Quality</a> •
-          <a href="${config.client_url}/faq" style="color: #999;">FAQs</a>
-          <a href="${config.client_url}/disclaimer" style="color: #999;">Disclaimer</a>
+          <a href="${config.client_url}/privacy-policy" style="color: #999; margin-right: 5px;">Privacy Policy</a> •
+          <a href="${config.client_url}/terms" style="color: #999; margin-left: 5px; margin-right: 5px;">Terms</a> •
+          <a href="${config.client_url}/trust-and-quality" style="color:#999; margin-left: 5px; margin-right: 5px;">Trust and Quality</a> •
+          <a href="${config.client_url}/faq" style="color: #999; margin-left: 5px; margin-right: 5px;">FAQs</a> •
+          <a href="${config.client_url}/disclaimer" style="color: #999; margin-left: 5px;">Disclaimer</a>
         </p>
       </td>
     </tr>
     </table>
 </body>
-</html>`
-
-
+</html>`;
 
 // export const congratulationsLawyerPromotion = (data: {
 //   name: string;
@@ -165,7 +162,6 @@ const footerDesign = `
 //       </td>
 //     </tr>
 
-
 //     <!-- Greeting & Message -->
 
 //     <tr>
@@ -190,7 +186,7 @@ const footerDesign = `
 //     <!-- CTA Button -->
 //     <tr>
 //       <td align="center" style="padding: 30px 0;">
-//         <a href="${dashboardUrl}" 
+//         <a href="${dashboardUrl}"
 //           style="background-color: #f68c1f; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
 //           Go to Dashboard
 //         </a>
@@ -235,8 +231,6 @@ const footerDesign = `
 // </html>
 //   `;
 // };
-
-
 
 //  ------------------------- New Lead Alert ---------------------------------------
 
@@ -326,10 +320,7 @@ export const congratulationsLawyerPromotion = (data: {
   `;
 };
 
-
-
 //  ------------------------- New Lead Alert ---------------------------------------
-
 
 export const newLeadAlertToLawyer = (data: {
   clientName: string;
@@ -356,10 +347,10 @@ export const newLeadAlertToLawyer = (data: {
     description,
     projectType,
     projectValue,
-    mapImageUrl = "https://via.placeholder.com/150x100?text=Map",
-    contactUrl = "#",
-    viewDetailsUrl = "#",
-    discountUrl = "#"
+    mapImageUrl = 'https://via.placeholder.com/150x100?text=Map',
+    contactUrl = '#',
+    viewDetailsUrl = '#',
+    discountUrl = '#',
   } = data;
 
   return `
@@ -456,7 +447,6 @@ export const newLeadAlertToLawyer = (data: {
 </html>
   `;
 };
-
 
 // ------------------------------------  Clinet or Lead create or submission ----------------------------------------------------
 // export const welcomeLeadSubmitted = (data: {
@@ -683,7 +673,6 @@ ${footerDesign}
   `;
 };
 
-
 //  -------------------------- Welcome Lawyer For Registration ---------------------------
 
 // export const welcomeLawyerEmail = (data: {
@@ -812,13 +801,16 @@ ${footerDesign}
 
 // };
 
-
 export const welcomeLawyerEmail = (data: {
   name: string;
   paracticeArea: string;
   dashboardUrl?: string;
 }) => {
-  const { name, paracticeArea, dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard` } = data;
+  const {
+    name,
+    paracticeArea,
+    dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard`,
+  } = data;
   const appName = 'TheLawApp';
   return `
 ${headerDesign}
@@ -870,17 +862,15 @@ ${headerDesign}
 
         <!-- Signoff -->
         <tr>
-            <td style="padding-top: 30px; font-size: 16px; padding:0 20px">
+            <td style="font-size: 16px; padding:0 20px; padding-top: 30px; padding-bottom: 30px;">
                 Best Regards, <br />
                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
             </td>
         </tr>
 
       ${footerDesign}
-`
-
+`;
 };
-
 
 //  -------------------------- Welcome client For Registration ---------------------------
 
@@ -1014,7 +1004,12 @@ export const welcomeClientEmail = (data: {
   defaultPassword: string;
   dashboardUrl?: string;
 }) => {
-  const { name, email, defaultPassword, dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard` } = data;
+  const {
+    name,
+    email,
+    defaultPassword,
+    dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard`,
+  } = data;
   // const appName = 'TheLawApp';
   return `
 ${headerDesign}
@@ -1076,14 +1071,10 @@ ${headerDesign}
         </tr>
 
        ${footerDesign}
-`
+`;
 };
 
-
-
 //   ------------------------ Public and client Lawyer intraction  -----------------------------------------
-
-
 
 // export const interactionEmail = (data: {
 //   name: string;
@@ -1193,7 +1184,6 @@ ${headerDesign}
 //       </td>
 //     </tr>
 
-
 //     <!-- Footer -->
 //     <tr>
 //       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
@@ -1286,11 +1276,6 @@ ${headerDesign}
     ${footerDesign}
 `;
 };
-
-
-
-
-
 
 // export const publicContactEmail = (data: {
 //   name: string;
@@ -1407,7 +1392,6 @@ ${headerDesign}
 // `;
 // };
 
-
 export const publicContactEmail = (data: {
   name: string;
   email: string;
@@ -1439,11 +1423,15 @@ ${headerDesign}
             <td style="font-size: 15px; color: #333;"><strong>Email:</strong></td>
             <td style="font-size: 15px; color: #555;">${email}</td>
           </tr>
-          ${phone ? `
+          ${
+            phone
+              ? `
           <tr>
             <td style="font-size: 15px; color: #333;"><strong>Phone:</strong></td>
             <td style="font-size: 15px; color: #555;">${phone}</td>
-          </tr>` : ''}
+          </tr>`
+              : ''
+          }
           <tr>
             <td colspan="2" style="padding-top: 15px; font-size: 15px; color: #333;"><strong>Message:</strong></td>
           </tr>
@@ -1458,12 +1446,7 @@ ${headerDesign}
 `;
 };
 
-
-
 //  ---------------- Authentication Related Email Template --------------------------------------
-
-
-
 
 // export const emailVerificationTemplate = (data: {
 //   name: string;
@@ -1474,7 +1457,7 @@ ${headerDesign}
 //   const appName = 'TheLawApp';
 //   return `
 // <!DOCTYPE html>
-// <html lang="en">     
+// <html lang="en">
 // <head>
 //   <meta charset="UTF-8">
 //   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1541,8 +1524,6 @@ ${headerDesign}
 //       </td>
 //     </tr>
 
-
-
 //      <!-- Footer -->
 //         <tr>
 //       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
@@ -1593,7 +1574,7 @@ export const emailVerificationTemplate = (data: {
           If you did not create this account, you can safely ignore this email.
         </p>
 
-        <p style="font-size: 14px; margin-top: 20px;">
+        <p style="font-size: 14px; margin-top: 20px; margin-bottom: 20px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
         </p>
@@ -1606,9 +1587,6 @@ export const emailVerificationTemplate = (data: {
   `;
 };
 
-
-
-
 // export const passwordResetEmail = (data: {
 //   name: string;
 //   resetUrl: string;
@@ -1617,7 +1595,7 @@ export const emailVerificationTemplate = (data: {
 //   const appName = 'TheLawApp';
 //   return `
 // <!DOCTYPE html>
-// <html lang="en">     
+// <html lang="en">
 // <head>
 //   <meta charset="UTF-8">
 //   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1686,7 +1664,7 @@ export const emailVerificationTemplate = (data: {
 //       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
 //         <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />
 //         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
-//           You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below. 
+//           You are receiving this mail because you requested to reset your password at TheLawApp. If you no longer want to receive such emails, click the unsubscribe link below.
 //         </p>
 //         <p style="margin: 0;">
 //           <a href="https://thelawapp.com/privacy" style="color: #999; text-decoration: none;">Privacy Policy</a> •
@@ -1738,11 +1716,8 @@ ${headerDesign}
   `;
 };
 
-
-
 // export const otpEmail = (data: { username: string; otp: string; expiresAt?: string }) => {
 //   const { username = 'users', otp, expiresAt = "3 minutes" } = data;
-
 
 //   return `
 // <!DOCTYPE html>
@@ -1774,7 +1749,7 @@ ${headerDesign}
 //         </div>
 //         <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 30px;">
 //           OTP will expire in <strong>${expiresAt}</strong>.
-//         </p>         
+//         </p>
 //         <p style="font-size: 14px; margin-top: 20px;">
 //           Best Regards,<br>
 //           <span style="color:#FF7F27; font-weight: bold;">TheLawApp team</span>
@@ -1787,12 +1762,12 @@ ${headerDesign}
 //   `;
 // };
 
-
-
-
-export const otpEmail = (data: { username: string; otp: string; expiresAt?: string }) => {
-  const { username = 'users', otp, expiresAt = "3 minutes" } = data;
-
+export const otpEmail = (data: {
+  username: string;
+  otp: string;
+  expiresAt?: string;
+}) => {
+  const { username = 'users', otp, expiresAt = '3 minutes' } = data;
 
   return `
 ${headerDesign}
@@ -1805,7 +1780,7 @@ ${headerDesign}
         </p>
         <div style="text-align: center; margin: 30px 0;">
           <div style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 10px; background-color:#f8f6fc; padding: 12px 20px; border-radius: 6px;">
-            ${otp.split("").join("&nbsp;")}
+            ${otp.split('').join('&nbsp;')}
           </div>
         </div>
         <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 30px;">
@@ -1818,13 +1793,11 @@ ${headerDesign}
   `;
 };
 
-
-
-export const lawyerApprval = (data: {
-  name: string;
-  dashboardUrl: string
-}) => {
-  const { name, dashboardUrl = `${process.env.CLIENT_SITE_URL}/lawyer/dashboard` } = data;
+export const lawyerApprval = (data: { name: string; dashboardUrl: string }) => {
+  const {
+    name,
+    dashboardUrl = `${process.env.CLIENT_SITE_URL}/lawyer/dashboard`,
+  } = data;
 
   return `
 ${headerDesign}
@@ -1862,10 +1835,5 @@ ${headerDesign}
   </td>
 </tr>
       ${footerDesign}
-`
-
+`;
 };
-
-
-
-
