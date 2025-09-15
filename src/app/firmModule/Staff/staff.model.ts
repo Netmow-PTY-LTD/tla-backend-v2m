@@ -12,12 +12,9 @@ export enum StaffStatus {
   INACTIVE = "Inactive",
 }
 
-export interface IStaff extends Document {
+export interface IStaffProfile extends Document {
   fullName: string;
-  email: string;
   role: StaffRole;
-  password?: string;
-  temporaryLoginLink?: string;
   status: StaffStatus;
   permissions: string[];
   assignedCases?: Schema.Types.ObjectId[]; // Case IDs
@@ -25,57 +22,17 @@ export interface IStaff extends Document {
   lastLogin?: Date;
 }
 
-const staffSchema = new Schema<IStaff>(
+const staffProfileSchema = new Schema<IStaffProfile>(
   {
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-    role: {
-      type: String,
-      enum: Object.values(StaffRole),
-      required: true,
-    },
-    password: {
-      type: String,
-    },
-    temporaryLoginLink: {
-      type: String,
-    },
-    status: {
-      type: String,
-      enum: Object.values(StaffStatus),
-      default: StaffStatus.ACTIVE,
-    },
-    permissions: {
-      type: [String], // e.g. ["CAN_VIEW_CASES", "CAN_MESSAGE_CLIENTS"]
-      default: [],
-    },
-    assignedCases: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Case",
-      },
-    ],
-    assignedDepartments: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Department",
-      },
-    ],
-    lastLogin: {
-      type: Date,
-    },
+    fullName: { type: String, required: true, trim: true },
+    role: { type: String, enum: Object.values(StaffRole), required: true },
+    status: { type: String, enum: Object.values(StaffStatus), default: StaffStatus.ACTIVE },
+    permissions: { type: [String], default: [] },
+    assignedCases: [{ type: Schema.Types.ObjectId, ref: "Case" }],
+    assignedDepartments: [{ type: Schema.Types.ObjectId, ref: "Department" }],
+    lastLogin: { type: Date },
   },
   { timestamps: true }
 );
 
-export const Staff = model<IStaff>("Staff", staffSchema);
+export const StaffProfile = model<IStaffProfile>("StaffProfile", staffProfileSchema);
