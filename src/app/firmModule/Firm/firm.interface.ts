@@ -1,24 +1,25 @@
-import { Schema } from "mongoose";
+import { Document, Schema } from "mongoose";
 
 export interface IFirmProfile extends Document {
-  // 1. Firm Details
+  // Firm details
   firmName: string;
-  logo?: string; // Branding image URL
+  logo?: string;
   registrationNumber?: string;
   vatTaxId?: string;
   yearEstablished?: number;
-  legalFocusAreas?: string[]; // e.g. ["Corporate Law", "Family Law"]
+  legalFocusAreas: string[];
 
-  // 2. Contact Information
+  // Contact info
   contactInfo: {
     officeAddress?: string;
     city?: string;
+    country?: string;
     phone?: string;
     email?: string;
     officialWebsite?: string;
   };
 
-  // 3. Managing Partners / Key Contacts
+  // Managing Partners
   managingPartners: {
     fullName: string;
     positionOrTitle?: string;
@@ -27,28 +28,37 @@ export interface IFirmProfile extends Document {
     licenseDetails?: string;
   }[];
 
-  // 4. Jurisdiction & Licensing
+  // Jurisdictions & Licensing
   jurisdictions: {
     regionOrState: string;
     barRegistrationCertificate?: string;
     barRegistrationNumber?: string;
-    operatingLicenses?: string[];
-    gdprCompliances?: string[];
+    operatingLicenses: string[];
+    gdprCompliances: string[];
   }[];
 
-  // 5. Firm Overview
-  overview?: string; // History, mission, services
-
-  // 6. Credits & Billing (Optional)
-  credits?: {
-    currentCreditBalance: number;
-    billingContact?: string;
-    defaultCurrency?: string; // e.g. "USD"
+  // ✅ License Details (from UI screenshot)
+  licenseDetails: {
+    licenseType: string;   // i.e. Law Firm License
+    licenseNumber: string; // i.e. ABC1234567
+    issuedBy: string;      // i.e. Bar Association
+    validUntil: Date;      // Expiry date
   };
 
+  // Firm Overview
+  overview?: string;
 
-  // 8. Permissions
-  createdBy: Schema.Types.ObjectId; // UserProfile/Admin who created
+  // Credits & Billing
+  credits: {
+    currentCreditBalance: number;
+    billingContact?: string;
+    defaultCurrency: string;
+  };
+
+  // Permissions
+  createdBy: Schema.Types.ObjectId;
   updatedBy?: Schema.Types.ObjectId;
-}
 
+  createdAt?: Date;
+  updatedAt?: Date;
+}

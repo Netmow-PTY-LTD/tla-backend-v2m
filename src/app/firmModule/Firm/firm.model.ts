@@ -17,6 +17,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     // Contact info
     contactInfo: {
       officeAddress: { type: String },
+      country: { type: String },
       city: { type: String },
       phone: { type: String },
       email: { type: String },
@@ -45,6 +46,14 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       },
     ],
 
+    // ✅ License Details (from screenshot)
+    licenseDetails: {
+      licenseType: { type: String, required: true }, // i.e. Law Firm License
+      licenseNumber: { type: String, required: true }, // ABC1234567
+      issuedBy: { type: String, required: true }, // Select a body
+      validUntil: { type: Date, required: true }, // Expiry date
+    },
+
     // Firm Overview
     overview: { type: String },
 
@@ -55,12 +64,14 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       defaultCurrency: { type: String, default: "USD" },
     },
 
-
     // Permissions
-    createdBy: { type: Schema.Types.ObjectId, ref: "UserProfile", required: true },
-    updatedBy: { type: Schema.Types.ObjectId, ref: "UserProfile" },
+    createdBy: { type: Schema.Types.ObjectId, ref: "FirmUser", required: true },
+    updatedBy: { type: Schema.Types.ObjectId, ref: "FirmUser" },
   },
   { timestamps: true }
 );
 
-export const FirmProfile = model<IFirmProfile>("FirmProfile", firmProfileSchema);
+export const FirmProfile = model<IFirmProfile>(
+  "FirmProfile",
+  firmProfileSchema
+);

@@ -32,6 +32,41 @@ const staffRegister = catchAsync(async (req, res) => {
 });
 
 
+
+
+const firmRegister = catchAsync(async (req, res) => {
+  const payload = req.body;
+
+  const { accessToken, refreshToken, userData, profileData } =
+    await firmAuthService.firmRegisterUserIntoDB(payload);
+
+  // Set refresh token in secure cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Firm registered successfully.",
+    token: accessToken,
+    data: {
+      user: userData,
+      profile: profileData,
+    },
+  });
+});
+
+
+
+
+
+
+
 export const firmAuthController = {
     staffRegister,
+    firmRegister
 };
