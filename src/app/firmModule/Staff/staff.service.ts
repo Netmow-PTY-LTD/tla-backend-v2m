@@ -1,8 +1,8 @@
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 import { AppError } from "../../errors/error";
 import { HTTP_STATUS } from "../../constant/httpStatus";
-import StaffProfile from "./staff.model";
+import StaffProfile, { IStaffProfile } from "./staff.model";
 
 const getStaffList = async (firmId: string) => {
   return StaffProfile.find({ createdBy: new Types.ObjectId(firmId) })
@@ -36,8 +36,34 @@ const deleteStaff = async (firmId: string, staffId: string) => {
   return deleted;
 };
 
+
+
+
+ const createStaff = async (firmId: string, payload: Partial<IStaffProfile>) => {
+  if (!mongoose.Types.ObjectId.isValid(firmId)) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid firm ID.");
+  }
+
+  try {
+    const newStaff = await StaffProfile.create({
+      createdBy: firmId,
+      ...payload,
+    });
+
+    return newStaff;
+  } catch (err) {
+    throw new AppError(
+      HTTP_STATUS.EXPECTATION_FAILED,
+      "Failed to create staff profile."
+    );
+  }
+};
+
+
+
 export const staffService = {
   getStaffList,
   updateStaff,
   deleteStaff,
+  createStaff
 };

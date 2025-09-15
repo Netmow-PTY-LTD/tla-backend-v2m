@@ -5,6 +5,26 @@ import { staffService } from "./staff.service";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 
+
+
+
+const createStaff = catchAsync(async (req, res) => {
+    const firmId=req.user.userId
+  const staffData = req.body;
+  const newStaff = await staffService.createStaff(firmId,staffData);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: "Staff created successfully.",
+    data: newStaff,
+  });
+});
+
+
+
+
+
 const listStaff = catchAsync(async (req, res) => {
   const { firmId } = req.params;
   const staffList = await staffService.getStaffList(firmId);
@@ -48,4 +68,5 @@ export const staffController = {
   listStaff,
   updateStaff,
   deleteStaff,
+  createStaff
 };
