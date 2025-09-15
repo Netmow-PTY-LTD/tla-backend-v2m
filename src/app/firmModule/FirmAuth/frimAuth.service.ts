@@ -432,6 +432,9 @@ const refreshToken = async (token: string) => {
     };
 };
 
+
+
+
 const changePasswordIntoDB = async (
     userData: JwtPayload,
     payload: { oldPassword: string; newPassword: string },
@@ -495,7 +498,7 @@ const forgetPassword = async (userEmail: string) => {
     if (!user) {
         throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
     }
-    const userProfile = await UserProfile.findOne({ user: user._id });
+    // const userProfile = await UserProfile.findOne({ user: user._id });
 
     // Check if the user is marked as deleted
     const deletedAt = user?.deletedAt;
@@ -519,7 +522,7 @@ const forgetPassword = async (userEmail: string) => {
         email: user?.email,
         role: user?.role,
         regUserType: user?.regUserType,
-        country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
+        // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
         accountStatus: user.accountStatus,
     };
 
@@ -535,7 +538,8 @@ const forgetPassword = async (userEmail: string) => {
 
     // Prepare email content for password reset
     const restEmailData = {
-        name: userProfile?.name,
+        // name: userProfile?.name,
+        name: 'user',
         resetUrl: resetUILink
 
     };
@@ -680,13 +684,14 @@ const resendVerificationEmail = async (email: string) => {
     }
 
     const user = await FirmUser.findOne({ email })
-        .populate({
-            path: 'profile',       // populate the profile
-            populate: {
-                path: 'country',     // populate country inside profile
-                model: 'Country',    // replace with your actual Country model name
-            },
-        });
+        // .populate({
+        //     path: 'profile',       // populate the profile
+        //     populate: {
+        //         path: 'country',     // populate country inside profile
+        //         model: 'Country',    // replace with your actual Country model name
+        //     },
+        // });
+
     if (!user) {
         throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
     }
@@ -724,7 +729,8 @@ const resendVerificationEmail = async (email: string) => {
         to: user.email,
         subject: 'Verify your account – TheLawApp',
         data: {
-            name: (user?.profile as any)?.name,
+            // name: (user?.profile as any)?.name,
+            name: 'User',
             verifyUrl: emailVerificationUrl,
             role: user.role,
         },
@@ -871,14 +877,6 @@ const changeEmail = async (userId: string, newEmail: string) => {
 
     return user;
 };
-
-
-
-
-
-
-
-
 
 
 

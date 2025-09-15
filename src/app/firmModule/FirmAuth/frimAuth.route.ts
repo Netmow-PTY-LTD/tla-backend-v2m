@@ -3,16 +3,14 @@ import { Router } from "express";
 import validateRequest from "../../middlewares/validateRequest";
 import { firmAuthController } from "./frimAuth.controller";
 import { firmAuthZodValidation } from "./firmAuth.validation";
-
-
+import firmAuth from "../middleware/firmAuth";
+import { Firm_USER_ROLE } from "./frimAuth.constant";
 
 
 const router = Router();
 
-
 router.post('/register/firm', firmAuthController.firmRegister)
 router.post('/register/staff', firmAuthController.staffRegister)
-
 
 
 router.post(
@@ -30,7 +28,7 @@ router.post(
 );
 router.post(
     '/change-password',
-    //   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+      firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.FIRM,Firm_USER_ROLE.STAFF),
     validateRequest(firmAuthZodValidation.changePasswordValidationSchema),
     firmAuthController.changePassword,
 );
@@ -64,7 +62,7 @@ router.post(
 );
 
 router.patch('/users/:userId/status',
-    // auth(USER_ROLE.ADMIN),
+    firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.FIRM),
     firmAuthController.updateAccountStatusController);
 
 

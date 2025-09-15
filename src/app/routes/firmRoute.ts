@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { firmAuthRouter } from "../firmModule/FirmAuth/frimAuth.route";
+import { claimRouter } from "../firmModule/Claim/claim.route";
 
 
 const firmRouter = Router();
@@ -8,6 +9,10 @@ const moduleRoutes = [
   {
     path: '/auth',
     route: firmAuthRouter,
+  },
+  {
+    path: '/claims',
+    route: claimRouter,
   },
  
 
