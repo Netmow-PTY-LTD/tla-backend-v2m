@@ -5,9 +5,14 @@
 import { Model } from "mongoose";
 import { FirmUserRole, FirmUserStatus } from "./frimAuth.constant";
 
+export interface IFirmLoginUser {
+  email: string;
+  password: string;
+}
 
 // Single user document
 export interface IFirmUser extends Document {
+  _id: any;
   email: string;
   role: FirmUserRole;
   regUserType?: string;

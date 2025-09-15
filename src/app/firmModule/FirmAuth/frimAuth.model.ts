@@ -134,14 +134,15 @@ firmUserSchema.statics.isUserExists = async function (id: string) {
 };
 // Static method to check if a user exists by email
 firmUserSchema.statics.isUserExistsByEmail = async function (email: string) {
-  return await FirmUser.findOne({ email }).select('+password').populate({
-    path: 'profile',
-    select: 'country', // ✅ Only fetch the "country" field
-    populate: {
-      path: 'country', // ✅ Populate the country field inside profile
-      model: 'Country', // Replace with your actual Country model name
-    },
-  });
+  return await FirmUser.findOne({ email }).select('+password')
+  // .populate({
+  //   path: 'profile',
+  //   select: 'country', // ✅ Only fetch the "country" field
+  //   populate: {
+  //     path: 'country', // ✅ Populate the country field inside profile
+  //     model: 'Country', // Replace with your actual Country model name
+  //   },
+  // });
 };
 
 

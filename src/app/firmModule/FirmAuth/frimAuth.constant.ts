@@ -28,7 +28,8 @@ export type FirmPhoneVerificationStatus =
 
 export const Firm_USER_ROLE = {
   ADMIN: 'admin',
-  STAFF: 'staff'
+  STAFF: 'staff',
+  FIRM: 'firm'
 
 } as const;
 
