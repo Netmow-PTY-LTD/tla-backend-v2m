@@ -6,7 +6,7 @@ import { Firm_USER_ROLE } from "../FirmAuth/frimAuth.constant";
 const router = Router();
 
 
-router.post('/', firmAuth(Firm_USER_ROLE.FIRM) ,staffController.createStaff)
+router.post('/add', firmAuth(Firm_USER_ROLE.FIRM) ,staffController.createStaff)
 
 // GET staff list
 router.get("/:firmId/list", staffController.listStaff);
