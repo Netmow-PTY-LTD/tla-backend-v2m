@@ -15,7 +15,7 @@ import Option from './app/module/Option/option.model';
 import mongoose from 'mongoose';
 import catchAsync from './app/utils/catchAsync';
 
-import firmRouter from './app/routes/firmRoute';
+import firmRoute from './app/routes/firmRoute';
 
 
 // Create Express app
@@ -149,7 +149,7 @@ app.use(
 
 
 app.use('/api/v1', router);
-app.use('/api/firm', firmRouter);
+app.use('/api/firm', firmRoute);
 
 app.get('/server-info', (req: Request, res: Response) => {
   const info = logServerInfo();
