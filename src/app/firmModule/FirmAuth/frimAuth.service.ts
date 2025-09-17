@@ -244,6 +244,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             [
                 {
                     // Firm details
+                    firmUser:newUser._id,
                     firmName,
                     registrationNumber,
                     yearEstablished,
