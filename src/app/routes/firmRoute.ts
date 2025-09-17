@@ -3,9 +3,10 @@ import { firmAuthRouter } from "../firmModule/FirmAuth/frimAuth.route";
 import { claimRouter } from "../firmModule/Claim/claim.route";
 import { staffRoutes } from "../firmModule/Staff/staff.route";
 import { partnerRouter } from "../firmModule/partner/partner.route";
+import { firmRouter } from "../firmModule/Firm/firm.route";
 
 
-const firmRouter = Router();
+const firmRoute = Router();
 
 const moduleRoutes = [
   {
@@ -24,10 +25,14 @@ const moduleRoutes = [
     path: '/partner',
     route: partnerRouter,
   },
+  {
+    path: '/admin',
+    route: firmRouter,
+  },
  
 
 ];
 
-moduleRoutes.forEach((route) => firmRouter.use(route.path, route.route));
+moduleRoutes.forEach((route) => firmRoute.use(route.path, route.route));
 
-export default firmRouter;
+export default firmRoute;
