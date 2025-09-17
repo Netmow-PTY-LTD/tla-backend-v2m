@@ -63,6 +63,25 @@ const firmRegister = catchAsync(async (req, res) => {
 
 
 
+const userInfo = catchAsync(async (req, res) => {
+
+  const userId = req.user.userId
+
+  const user = await firmAuthService.getUserInfoFromDB(userId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Firm userInfo get  successfully.",
+    data: user,
+  });
+});
+
+
+
+
+
+
 
 
 const login = catchAsync(async (req, res) => {
@@ -376,4 +395,5 @@ export const firmAuthController = {
   sendOtp,
   verifyOtp,
   changeEmail,
+  userInfo
 };

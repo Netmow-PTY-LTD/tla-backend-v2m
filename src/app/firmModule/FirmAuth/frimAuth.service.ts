@@ -879,6 +879,21 @@ const changeEmail = async (userId: string, newEmail: string) => {
 };
 
 
+const getUserInfoFromDB = async (userId: string) => {
+  // Find user
+  const user = await FirmUser.findById(userId).lean();
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Find associated firm profile
+  const firmProfile = await FirmProfile.findOne({ firmUser: userId }).lean();
+
+  return {
+    ...user,
+    firmProfile: firmProfile || null, // attach profile if exists
+  };
+};
 
 
 
@@ -901,5 +916,6 @@ export const firmAuthService = {
     resendVerificationEmail,
     sendOtp,
     verifyOtp,
-    changeEmail
+    changeEmail,
+    getUserInfoFromDB
 };

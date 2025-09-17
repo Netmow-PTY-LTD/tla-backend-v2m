@@ -11,6 +11,7 @@ const router = Router();
 
 router.post('/register/firm', firmAuthController.firmRegister)
 router.post('/register/staff', firmAuthController.staffRegister)
+router.get('/user/userInfo', firmAuthController.userInfo)
 
 
 router.post(

@@ -1,7 +1,9 @@
-import { Document, Schema } from "mongoose";
+import { Document, Schema, Types } from "mongoose";
 
 export interface IFirmProfile extends Document {
   // Firm details
+
+  firmUser: Types.ObjectId;
   firmName: string;
   logo?: string;
   registrationNumber?: string;
