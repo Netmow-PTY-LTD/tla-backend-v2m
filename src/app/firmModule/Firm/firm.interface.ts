@@ -16,6 +16,9 @@ export interface IFirmProfile extends Document {
     officeAddress?: string;
     city?: string;
     country?: string;
+    // country?: Types.ObjectId;
+    // zipCode?: Types.ObjectId;
+    
     phone?: string;
     email?: string;
     officialWebsite?: string;

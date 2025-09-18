@@ -15,3 +15,24 @@ const settingsSchema = new Schema({
 }, { timestamps: true });
 
 export const AppSettings = model<IAppSettings>('AppSettings', settingsSchema);
+
+
+
+//   law firm certification type model
+
+const lawFirmCertificationSchema = new Schema({
+  countryId: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
+  type: {
+    type: String,
+    required: true,
+    enum: ['mandatory', 'optional']
+  },
+  certificatiionName: { type: String, required: true },
+  logo: { type: String }
+}, { timestamps: true });
+
+// Model
+export const LawFirmCertification = model("LawFirmCertification", lawFirmCertificationSchema);
+
+
+

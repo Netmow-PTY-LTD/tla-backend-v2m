@@ -8,6 +8,7 @@ import { zipcodeZodValidation } from './zipcode.validation';
 import { zipCodeController } from './zipcode.controller';
 import { rangeZodValidation } from './range.validation';
 import { rangeController } from './range.controller';
+import { cityController } from './city.controller';
 
 const router = Router();
 
@@ -93,5 +94,17 @@ router.patch(
   validateRequest(rangeZodValidation.updateRangeZodValidationSchema),
   rangeController.updateSingleRange,
 );
+
+
+
+//  city
+
+router.get('/city/list', cityController.getAllCity);
+
+
+
+
+
+
 
 export const countryRouter = router;
