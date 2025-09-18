@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 import { IFirmProfile } from "./firm.interface";
 
 
@@ -20,6 +20,9 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       officeAddress: { type: String },
       country: { type: String },
       city: { type: String },
+      // country: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
+      // city: { type: Schema.Types.ObjectId, ref: 'City', required: true },
+      zipCode: { type: Schema.Types.ObjectId, ref: 'ZipCode', required: true },
       phone: { type: String },
       email: { type: String },
       officialWebsite: { type: String },
