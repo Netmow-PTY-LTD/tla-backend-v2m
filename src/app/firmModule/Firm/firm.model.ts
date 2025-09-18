@@ -22,7 +22,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       city: { type: String },
       // country: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
       // city: { type: Schema.Types.ObjectId, ref: 'City', required: true },
-      zipCode: { type: Schema.Types.ObjectId, ref: 'ZipCode', required: true },
+      // zipCode: { type: Schema.Types.ObjectId, ref: 'ZipCode', required: true },
       phone: { type: String },
       email: { type: String },
       officialWebsite: { type: String },
