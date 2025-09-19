@@ -17,9 +17,6 @@ const firmProfileSchema = new Schema<IFirmProfile>(
 
     // Contact info
     contactInfo: {
-      // officeAddress: { type: String },
-      // country: { type: String },
-      // city: { type: String },
       country: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
       city: { type: Schema.Types.ObjectId, ref: 'City', required: true },
       zipCode: { type: Schema.Types.ObjectId, ref: 'ZipCode', required: true },
@@ -29,34 +26,34 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     },
 
     // Managing Partners
-    managingPartners: [
-      {
-        fullName: { type: String, required: true },
-        positionOrTitle: { type: String },
-        contactEmail: { type: String },
-        barAssociationLicense: { type: String },
-        licenseDetails: { type: String },
-      },
-    ],
+    // managingPartners: [
+    //   {
+    //     fullName: { type: String, required: true },
+    //     positionOrTitle: { type: String },
+    //     contactEmail: { type: String },
+    //     barAssociationLicense: { type: String },
+    //     licenseDetails: { type: String },
+    //   },
+    // ],
 
     // Jurisdictions & Licensing
-    jurisdictions: [
-      {
-        regionOrState: { type: String, required: true },
-        barRegistrationCertificate: { type: String },
-        barRegistrationNumber: { type: String },
-        operatingLicenses: { type: [String], default: [] },
-        gdprCompliances: { type: [String], default: [] },
-      },
-    ],
+    // jurisdictions: [
+    //   {
+    //     regionOrState: { type: String, required: true },
+    //     barRegistrationCertificate: { type: String },
+    //     barRegistrationNumber: { type: String },
+    //     operatingLicenses: { type: [String], default: [] },
+    //     gdprCompliances: { type: [String], default: [] },
+    //   },
+    // ],
 
     // ✅ License Details (from screenshot)
-    licenseDetails: {
-      licenseType: { type: String, required: true }, // i.e. Law Firm License
-      licenseNumber: { type: String, required: true }, // ABC1234567
-      issuedBy: { type: String, required: true }, // Select a body
-      validUntil: { type: Date, required: true }, // Expiry date
-    },
+    // licenseDetails: {
+    //   licenseType: { type: String, required: true }, // i.e. Law Firm License
+    //   licenseNumber: { type: String, required: true }, // ABC1234567
+    //   issuedBy: { type: String, required: true }, // Select a body
+    //   validUntil: { type: Date, required: true }, // Expiry date
+    // },
 
     // Firm Overview
     overview: { type: String },

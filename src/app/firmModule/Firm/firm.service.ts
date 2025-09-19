@@ -167,11 +167,25 @@ const getFirmInfoFromDB = async (id: string) => {
 
 
 
+const updateFirmInfoIntoDB = async (firmUserId: string, data: Partial<IFirmProfile>) => {
+
+    const updateFirmInfo=await FirmProfile.findOneAndUpdate({firmUser:firmUserId}, data, {
+        new: true,
+        runValidators: true,
+    });
+    return  updateFirmInfo
+};
+
+
+
+
+
 export const firmService = {
     createFirm,
     listFirms,
     getFirmById,
     updateFirm,
     deleteFirm,
-    getFirmInfoFromDB
+    getFirmInfoFromDB,
+    updateFirmInfoIntoDB
 }

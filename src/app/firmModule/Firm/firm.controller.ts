@@ -69,12 +69,15 @@ const deleteFirm = catchAsync(async (req, res) => {
 });
 
 
-// ✅ Get Firm by ID
+
+//   --------------------  current firm  user dedicated api -------------------
+
+
 const getFirmInfo = catchAsync(async (req, res) => {
     const firmUser=req.user.userId
     const firm = await firmService.getFirmInfoFromDB(firmUser);
 
-    console.log('firm user  ===>',firmUser)
+
     return sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -84,6 +87,19 @@ const getFirmInfo = catchAsync(async (req, res) => {
 });
 
 
+// ✅ Update Firm
+const updateFirmInfo = catchAsync(async (req, res) => {
+    const firmUser=req.user.userId
+    const updateData = req.body;
+    const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUser, updateData);
+    return sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Firm updated successfully.",
+        data: updatedFirm,
+    });
+});
+
 
 
 export const firmController = {
@@ -92,6 +108,7 @@ export const firmController = {
     getFirmById,
     listFirms,
     createFirm,
-    getFirmInfo
+    getFirmInfo,
+    updateFirmInfo
 
 }
