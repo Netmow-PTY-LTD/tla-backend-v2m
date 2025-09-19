@@ -162,18 +162,21 @@ export const deleteFirm = async (id: string) => {
 
 // ✅ Get by ID
 const getFirmInfoFromDB = async (id: string) => {
-    return await FirmProfile.findOne({firmUser:id}).populate("firmUser createdBy updatedBy");
+    return await FirmProfile.findOne({ firmUser: id }).populate("firmUser createdBy updatedBy") // user refs
+        .populate("contactInfo.country")          // country ref
+        .populate("contactInfo.city")             // city ref
+        .populate("contactInfo.zipCode");         // zip code ref
 };
 
 
 
 const updateFirmInfoIntoDB = async (firmUserId: string, data: Partial<IFirmProfile>) => {
 
-    const updateFirmInfo=await FirmProfile.findOneAndUpdate({firmUser:firmUserId}, data, {
+    const updateFirmInfo = await FirmProfile.findOneAndUpdate({ firmUser: firmUserId }, data, {
         new: true,
         runValidators: true,
     });
-    return  updateFirmInfo
+    return updateFirmInfo
 };
 
 

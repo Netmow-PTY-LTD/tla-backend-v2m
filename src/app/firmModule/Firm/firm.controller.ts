@@ -70,9 +70,7 @@ const deleteFirm = catchAsync(async (req, res) => {
 });
 
 
-
 //   --------------------  current firm  user dedicated api -------------------
-
 
 const getFirmInfo = catchAsync(async (req, res) => {
     const firmUser = req.user.userId
