@@ -255,6 +255,30 @@ const countryWiseServiceWiseLead = catchAsync(async (req, res) => {
 
 
 
+const getLawFirmCertifications = catchAsync(async (req, res) => {
+  const { countryId, type, search, page, limit } = req.query;
+
+  const result = await commonService.getAllLawFirmCertificationsFromDB({
+    countryId: countryId as string,
+    type: type as "mandatory" | "optional",
+    search: search as string,
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 10,
+  });
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Law certifications retrieved successfully",
+    pagination: result.meta,
+    data: result.data,
+  });
+});
+
+
+
+
+
 export const commonController = {
   contactLawyer,
   getChatHistory,
@@ -263,6 +287,7 @@ export const commonController = {
   getLeadContactRequests,
   updateLeadContactRequestStatus,
   getSingleLeadContactRequests,
-  countryWiseServiceWiseLead
+  countryWiseServiceWiseLead,
+  getLawFirmCertifications
 
 };
