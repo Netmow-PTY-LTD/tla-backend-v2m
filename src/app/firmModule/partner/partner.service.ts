@@ -50,9 +50,14 @@ const deletePartner = async (partnerId: string) => {
   return await FirmPartner.findByIdAndDelete(partnerId);
 };
 
+const getSinglePartnerFromDB = async (partnerId: string) => {
+  return await FirmPartner.findById(partnerId);
+};
+
 export const partnerService = {
   createPartner,
   getPartnerList,
   updatePartner,
   deletePartner,
+  getSinglePartnerFromDB
 };

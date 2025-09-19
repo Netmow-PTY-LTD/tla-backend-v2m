@@ -82,9 +82,23 @@ const deletePartner = catchAsync(async (req, res) => {
   });
 });
 
+const getSinglePartner = catchAsync(async (req, res) => {
+  const { partnerId } = req.params;
+
+  await partnerService.getSinglePartnerFromDB(partnerId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Partner retrived successfully.",
+    data: null,
+  });
+});
+
 export const partnerController = {
   createPartner,
   listPartners,
   updatePartner,
   deletePartner,
+  getSinglePartner
 };

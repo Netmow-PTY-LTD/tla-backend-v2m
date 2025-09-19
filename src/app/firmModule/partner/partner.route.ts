@@ -27,5 +27,7 @@ router.put("/:partnerId/update",
 
     partnerController.updatePartner);
 router.delete("/:partnerId/delete", partnerController.deletePartner);
+router.delete("/:partnerId", partnerController.deletePartner);
+router.get("/:partnerId", partnerController.getSinglePartner);
 
 export const partnerRouter = router;
