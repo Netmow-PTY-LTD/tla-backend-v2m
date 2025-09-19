@@ -31,7 +31,7 @@ const moduleRoutes = [
     route: firmRouter,
   },
   {
-    path: '/firm-licenseAndCertificate',
+    path: '/licenseAndCertificate',
     route: firmLicenseRoute,
   },
  

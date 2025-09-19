@@ -9,6 +9,7 @@ import { IFirmLicense } from "./cirtificateLicese.interface";
 export const createFirmLicenseInDB = async (
     firmUserId: string,
     data: {
+        certificationId: string;
         licenseNumber: string;
         issuedBy: string;
         additionalNote: string;
@@ -21,20 +22,27 @@ export const createFirmLicenseInDB = async (
         throw new Error("Firm profile not found for this user");
     }
 
+
     // Include firmProfileId in the license data
     const licenseData = {
         ...data,
         firmProfileId: firmProfile._id,
     };
-
+    console.log('firmProfile', licenseData)
     // Create the license
     const license = await FirmLicense.create(licenseData);
     return license;
 };
 
 // Get all licenses for a firm
-const getFirmLicensesFromDB = async (firmProfileId: string) => {
-    return await FirmLicense.find({ firmProfileId })
+const getFirmLicensesFromDB = async (firmUserId: string) => {
+  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+    if (!firmProfile) {
+        throw new Error("Firm profile not found for this user");
+    }
+
+
+    return await FirmLicense.find({ firmProfileId:firmProfile?._id })
         .populate("certificationId", "certificatiionName type logo") // populate certification info
         .exec();
 };
@@ -50,7 +58,8 @@ const getFirmLicenseById = async (licenseId: string) => {
 // Update license by ID
 const updateFirmLicenseInDB = async (licenseId: string, updateData: Partial<IFirmLicense>) => {
     if (!Types.ObjectId.isValid(licenseId)) throw new Error("Invalid license ID");
-    return await FirmLicense.findByIdAndUpdate(licenseId, updateData, { new: true, runValidators: true });
+   const updateResult= await FirmLicense.findByIdAndUpdate(licenseId, updateData, { new: true, runValidators: true });
+    return updateResult;
 };
 
 // Delete license by ID
