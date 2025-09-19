@@ -4,6 +4,7 @@ import { claimRouter } from "../firmModule/Claim/claim.route";
 import { staffRoutes } from "../firmModule/Staff/staff.route";
 import { partnerRouter } from "../firmModule/partner/partner.route";
 import { firmRouter } from "../firmModule/Firm/firm.route";
+import { firmLicenseRoute } from "../firmModule/FirmWiseCertLicense/cirtificateLicese.route";
 
 
 const firmRoute = Router();
@@ -28,6 +29,10 @@ const moduleRoutes = [
   {
     path: '/firms',
     route: firmRouter,
+  },
+  {
+    path: '/firm-licenseAndCertificate',
+    route: firmLicenseRoute,
   },
  
 
