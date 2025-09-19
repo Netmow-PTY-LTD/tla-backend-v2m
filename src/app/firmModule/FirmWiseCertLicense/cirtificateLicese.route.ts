@@ -9,10 +9,10 @@ const router = Router();
 // All routes require firm role
 router.use(firmAuth(Firm_USER_ROLE.FIRM)); 
 
-router.post("/", firmLicenseController.createFirmLicense); // create license
-router.get("/", firmLicenseController.getFirmLicenses); // get all firm licenses
+router.post("/add", firmLicenseController.createFirmLicense); // create license
+router.get("/list", firmLicenseController.getFirmLicenses); // get all firm licenses
 router.get("/:licenseId", firmLicenseController.getFirmLicense); // get license by licenseId
-router.put("/:licenseId", firmLicenseController.updateFirmLicense); // update license by licenseId
-router.delete("/:licenseId", firmLicenseController.deleteFirmLicense); // delete license by id
+router.put("/:licenseId/update", firmLicenseController.updateFirmLicense); // update license by licenseId
+router.delete("/:licenseId/delete", firmLicenseController.deleteFirmLicense); // delete license by id
 
 export  const firmLicenseRoute= router;
