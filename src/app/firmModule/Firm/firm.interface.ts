@@ -14,11 +14,12 @@ export interface IFirmProfile extends Document {
   // Contact info
   contactInfo: {
     officeAddress?: string;
-    city?: string;
-    country?: string;
-    // country?: Types.ObjectId;
-    // zipCode?: Types.ObjectId;
-    
+    // city?: string;
+    // country?: string;
+    country: Types.ObjectId;
+    zipCode: Types.ObjectId;
+    city: Types.ObjectId;
+
     phone?: string;
     email?: string;
     officialWebsite?: string;
