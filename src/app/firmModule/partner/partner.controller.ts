@@ -17,7 +17,7 @@ const createPartner = catchAsync(async (req, res) => {
 });
 
 const listPartners = catchAsync(async (req, res) => {
-  const { firmId } = req.params;
+    const firmId = req.user.userId; // from auth middleware
   const partnerList = await partnerService.getPartnerList(firmId);
 
   return sendResponse(res, {
@@ -29,10 +29,10 @@ const listPartners = catchAsync(async (req, res) => {
 });
 
 const updatePartner = catchAsync(async (req, res) => {
-  const { firmId, partnerId } = req.params;
+  const {  partnerId } = req.params;
   const payload = req.body;
 
-  const updated = await partnerService.updatePartner(firmId, partnerId, payload);
+  const updated = await partnerService.updatePartner(partnerId, payload);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -43,9 +43,9 @@ const updatePartner = catchAsync(async (req, res) => {
 });
 
 const deletePartner = catchAsync(async (req, res) => {
-  const { firmId, partnerId } = req.params;
+  const { partnerId } = req.params;
 
-  await partnerService.deletePartner(firmId, partnerId);
+  await partnerService.deletePartner( partnerId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
