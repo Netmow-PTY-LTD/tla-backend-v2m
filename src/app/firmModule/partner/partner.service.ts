@@ -1,29 +1,53 @@
+import { FirmProfile } from "../Firm/firm.model";
 import { IPartner } from "./partner.interface";
-import { Partner } from "./partner.model";
+import { FirmPartner } from "./partner.model";
 
 
-const createPartner = async (firmId: string, data: Partial<IPartner>) => {
-  return await Partner.create({ ...data, firmId });
+
+const createPartner = async (firmUserId: string, data: Partial<IPartner>) => {
+  // Get the firm profile ID for this user
+  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+  if (!firmProfile) {
+    throw new Error("Firm profile not found for this user");
+  }
+
+
+  // Include firmProfileId in the license data
+  const partnerData = {
+    ...data,
+    firmProfileId: firmProfile._id,
+  };
+
+
+  return await FirmPartner.create(partnerData);
 };
 
-const getPartnerList = async (firmId: string) => {
-  return await Partner.find({ firmId });
+const getPartnerList = async (firmUserId: string) => {
+
+  // Get the firm profile ID for this user
+  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+  if (!firmProfile) {
+    throw new Error("Firm profile not found for this user");
+  }
+
+  return await FirmPartner.find({ firmProfileId: firmProfile?._id });
 };
+
+
 
 const updatePartner = async (
-  firmId: string,
   partnerId: string,
   data: Partial<IPartner>
 ) => {
-  return await Partner.findOneAndUpdate(
-    { _id: partnerId, firmId },
+  return await FirmPartner.findOneAndUpdate(
+    { _id: partnerId },
     data,
     { new: true }
   );
 };
 
-const deletePartner = async (firmId: string, partnerId: string) => {
-  return await Partner.findOneAndDelete({ _id: partnerId, firmId });
+const deletePartner = async (partnerId: string) => {
+  return await FirmPartner.findOneAndDelete({ _id: partnerId });
 };
 
 export const partnerService = {
