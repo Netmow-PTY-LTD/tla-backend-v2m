@@ -26,30 +26,30 @@ export interface IFirmProfile extends Document {
   };
 
   // Managing Partners
-  managingPartners: {
-    fullName: string;
-    positionOrTitle?: string;
-    contactEmail?: string;
-    barAssociationLicense?: string;
-    licenseDetails?: string;
-  }[];
+  // managingPartners: {
+  //   fullName: string;
+  //   positionOrTitle?: string;
+  //   contactEmail?: string;
+  //   barAssociationLicense?: string;
+  //   licenseDetails?: string;
+  // }[];
 
   // Jurisdictions & Licensing
-  jurisdictions: {
-    regionOrState: string;
-    barRegistrationCertificate?: string;
-    barRegistrationNumber?: string;
-    operatingLicenses: string[];
-    gdprCompliances: string[];
-  }[];
+  // jurisdictions: {
+  //   regionOrState: string;
+  //   barRegistrationCertificate?: string;
+  //   barRegistrationNumber?: string;
+  //   operatingLicenses: string[];
+  //   gdprCompliances: string[];
+  // }[];
 
   // ✅ License Details (from UI screenshot)
-  licenseDetails: {
-    licenseType: string;   // i.e. Law Firm License
-    licenseNumber: string; // i.e. ABC1234567
-    issuedBy: string;      // i.e. Bar Association
-    validUntil: Date;      // Expiry date
-  };
+  // licenseDetails: {
+  //   licenseType: string;   // i.e. Law Firm License
+  //   licenseNumber: string; // i.e. ABC1234567
+  //   issuedBy: string;      // i.e. Bar Association
+  //   validUntil: Date;      // Expiry date
+  // };
 
   // Firm Overview
   overview?: string;
