@@ -6,5 +6,6 @@ export interface IPartner extends Document {
   position: string;
   email: string;
   phone: string;
+  image?:string;
 
 }

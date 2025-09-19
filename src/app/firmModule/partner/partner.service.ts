@@ -47,7 +47,7 @@ const updatePartner = async (
 };
 
 const deletePartner = async (partnerId: string) => {
-  return await FirmPartner.findOneAndDelete({ _id: partnerId });
+  return await FirmPartner.findByIdAndDelete(partnerId);
 };
 
 export const partnerService = {
