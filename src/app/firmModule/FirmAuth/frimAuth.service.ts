@@ -18,6 +18,7 @@ import { generateOtpForFrim } from "./auth.utils";
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IFirmLoginUser } from "./frimAuth.interface";
+import { FirmLicense } from "../FirmWiseCertLicense/cirtificateLicese.model";
 
 
 /* 
@@ -146,11 +147,13 @@ FIRM REGISTER API
 
 
 export interface FirmLicenseDetailsPayload {
-    licenseType: string;       // e.g. "Law Firm License"
+    certificationId: string;   // reference to LawFirmCertification _id
     licenseNumber: string;     // e.g. "ABC1234567"
-    issuedBy: string;          // e.g. "Queensland Law Society"
-    validUntil: string | Date; // mm/dd/yyyy from UI or Date
+    issuedBy?: string;          // e.g. "Queensland Law Society"
+    validUntil: string | Date; // mm/dd/yyyy from UI or Date object
+    additionalNote?: string;   // optional note about license
 }
+
 
 export interface FirmContactInfoPayload {
     zipCode?: string;    // Address / Zip
@@ -206,7 +209,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
 
         // Basic guard for required license details (schema requires it)
         if (
-            !licenseDetails?.licenseType ||
+
             !licenseDetails?.licenseNumber ||
             !licenseDetails?.issuedBy ||
             !licenseDetails?.validUntil
@@ -263,12 +266,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                     },
 
                     // License details (REQUIRED)
-                    licenseDetails: {
-                        licenseType: licenseDetails.licenseType,
-                        licenseNumber: licenseDetails.licenseNumber,
-                        issuedBy: licenseDetails.issuedBy,
-                        validUntil: normalizeValidUntil(licenseDetails.validUntil),
-                    },
+
 
                     // Permissions
                     createdBy: newUser._id,
@@ -276,6 +274,24 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             ],
             { session }
         );
+
+
+        // 4️⃣ Create FirmLicense linked to FirmProfile
+        const newLicense = await FirmLicense.create(
+            [
+                {
+                    firmProfileId: newProfile._id,
+                    certificationId: licenseDetails.certificationId,
+                    licenseNumber: licenseDetails.licenseNumber,
+                    issuedBy: licenseDetails.issuedBy,
+                    additionalNote: licenseDetails.additionalNote ?? "",
+                    validUntil: normalizeValidUntil(licenseDetails.validUntil),
+                },
+            ],
+            { session }
+        );
+
+
 
         // 4) tokens
         const jwtPayload = {

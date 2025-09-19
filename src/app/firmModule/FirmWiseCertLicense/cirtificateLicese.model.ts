@@ -10,7 +10,7 @@ const firmLicenseSchema = new Schema(
     certificationId: { type: Schema.Types.ObjectId, ref: "LawFirmCertification", required: true }, // reference to certification type
     licenseNumber: { type: String, required: true }, // firm's license number
     issuedBy: { type: String, default:'' }, // issuing authority
-    additionalNote: { type: String, required: true }, // issuing authority
+    additionalNote: { type: String, default:'' }, // issuing authority
     validUntil: { type: Date, required: true }, // expiration date
   },
   { timestamps: true }
