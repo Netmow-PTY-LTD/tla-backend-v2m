@@ -36,13 +36,13 @@ export const createFirmLicenseInDB = async (
 
 // Get all licenses for a firm
 const getFirmLicensesFromDB = async (firmUserId: string) => {
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+    const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
     if (!firmProfile) {
         throw new Error("Firm profile not found for this user");
     }
 
 
-    return await FirmLicense.find({ firmProfileId:firmProfile?._id })
+    return await FirmLicense.find({ firmProfileId: firmProfile?._id })
         .populate("certificationId", "certificatiionName type logo") // populate certification info
         .exec();
 };
@@ -58,7 +58,7 @@ const getFirmLicenseById = async (licenseId: string) => {
 // Update license by ID
 const updateFirmLicenseInDB = async (licenseId: string, updateData: Partial<IFirmLicense>) => {
     if (!Types.ObjectId.isValid(licenseId)) throw new Error("Invalid license ID");
-   const updateResult= await FirmLicense.findByIdAndUpdate(licenseId, updateData, { new: true, runValidators: true });
+    const updateResult = await FirmLicense.findByIdAndUpdate(licenseId, updateData, { new: true, runValidators: true });
     return updateResult;
 };
 
