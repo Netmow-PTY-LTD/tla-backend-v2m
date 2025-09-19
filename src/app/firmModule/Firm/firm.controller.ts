@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { firmService } from "./firm.service";
+import { uploadToSpaces } from "../../config/upload";
 
 // ✅ Create Firm
 const createFirm = catchAsync(async (req, res) => {
@@ -74,7 +75,7 @@ const deleteFirm = catchAsync(async (req, res) => {
 
 
 const getFirmInfo = catchAsync(async (req, res) => {
-    const firmUser=req.user.userId
+    const firmUser = req.user.userId
     const firm = await firmService.getFirmInfoFromDB(firmUser);
 
 
@@ -89,12 +90,19 @@ const getFirmInfo = catchAsync(async (req, res) => {
 
 // ✅ Update Firm
 const updateFirmInfo = catchAsync(async (req, res) => {
-    const firmUser=req.user.userId
+    const firmUserId = req.user.userId
     const updateData = req.body;
-    const firmLogo=req.file
 
-    console.log('firmLogo',req.file )
-    const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUser, updateData);
+    // ✅ handle file upload if present
+    if (req.file) {
+        const fileBuffer = req.file.buffer;
+        const originalName = req.file.originalname;
+
+        // upload to Spaces and get public URL
+        const logoUrl = await uploadToSpaces(fileBuffer, originalName, firmUserId);
+        updateData.logo = logoUrl;
+    }
+    const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUserId, updateData);
     return sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
