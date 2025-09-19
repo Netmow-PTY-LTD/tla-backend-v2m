@@ -160,10 +160,18 @@ export const deleteFirm = async (id: string) => {
 };;
 
 
+// ✅ Get by ID
+const getFirmInfoFromDB = async (id: string) => {
+    return await FirmProfile.findOne({firmUser:id}).populate("firmUser createdBy updatedBy");
+};
+
+
+
 export const firmService = {
     createFirm,
     listFirms,
     getFirmById,
     updateFirm,
-    deleteFirm
+    deleteFirm,
+    getFirmInfoFromDB
 }

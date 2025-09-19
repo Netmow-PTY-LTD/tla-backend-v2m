@@ -26,7 +26,7 @@ const moduleRoutes = [
     route: partnerRouter,
   },
   {
-    path: '/admin',
+    path: '/firms',
     route: firmRouter,
   },
  

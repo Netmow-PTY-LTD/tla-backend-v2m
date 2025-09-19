@@ -69,11 +69,29 @@ const deleteFirm = catchAsync(async (req, res) => {
 });
 
 
+// ✅ Get Firm by ID
+const getFirmInfo = catchAsync(async (req, res) => {
+    const firmUser=req.user.userId
+    const firm = await firmService.getFirmInfoFromDB(firmUser);
+
+    console.log('firm user  ===>',firmUser)
+    return sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Firm details info fetched successfully.",
+        data: firm,
+    });
+});
+
+
+
+
 export const firmController = {
     deleteFirm,
     updateFirm,
     getFirmById,
     listFirms,
-    createFirm
+    createFirm,
+    getFirmInfo
 
 }
