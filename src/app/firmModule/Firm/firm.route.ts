@@ -16,11 +16,13 @@ router.put("/firmInfo/update",
         req.body = JSON.parse(req.body.data);
         next();
     },
-
     firmAuth(Firm_USER_ROLE.FIRM), firmController.updateFirmInfo);
 
 
+
+
 // Admin  Firm Management Endpoints 
+
 router.post("/", firmAuth(Firm_USER_ROLE.ADMIN), firmController.createFirm);
 router.get("/", firmAuth(Firm_USER_ROLE.ADMIN), firmController.listFirms);
 router.get("/:id", firmController.getFirmById);

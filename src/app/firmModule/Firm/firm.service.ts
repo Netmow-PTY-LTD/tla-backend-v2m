@@ -169,7 +169,6 @@ const getFirmInfoFromDB = async (id: string) => {
 };
 
 
-
 const updateFirmInfoIntoDB = async (firmUserId: string, data: Partial<IFirmProfile>) => {
 
     const updateFirmInfo = await FirmProfile.findOneAndUpdate({ firmUser: firmUserId }, data, {
@@ -178,7 +177,6 @@ const updateFirmInfoIntoDB = async (firmUserId: string, data: Partial<IFirmProfi
     });
     return updateFirmInfo
 };
-
 
 
 
