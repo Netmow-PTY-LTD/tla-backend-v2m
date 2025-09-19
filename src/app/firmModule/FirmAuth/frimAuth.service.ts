@@ -153,7 +153,7 @@ export interface FirmLicenseDetailsPayload {
 }
 
 export interface FirmContactInfoPayload {
-    officeAddress?: string;    // Address / Zip
+    zipCode?: string;    // Address / Zip
     country?: string;          // Country select
     city?: string;             // City select
     phone?: string;            // +1 (123) 456-7890
@@ -244,7 +244,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             [
                 {
                     // Firm details
-                    firmUser:newUser._id,
+                    firmUser: newUser._id,
                     firmName,
                     registrationNumber,
                     yearEstablished,
@@ -254,7 +254,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
 
                     // Contact info (nested)
                     contactInfo: {
-                        officeAddress: contactInfo?.officeAddress,
+                        zipCode: contactInfo?.zipCode,
                         country: contactInfo?.country,
                         city: contactInfo?.city,
                         phone: contactInfo?.phone,
@@ -325,7 +325,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
 //  AUTH RELATED API
 
 
- 
+
 const loginUserIntoDB = async (payload: IFirmLoginUser) => {
     // Checking if the user exists by email
 
@@ -685,13 +685,13 @@ const resendVerificationEmail = async (email: string) => {
     }
 
     const user = await FirmUser.findOne({ email })
-        // .populate({
-        //     path: 'profile',       // populate the profile
-        //     populate: {
-        //         path: 'country',     // populate country inside profile
-        //         model: 'Country',    // replace with your actual Country model name
-        //     },
-        // });
+    // .populate({
+    //     path: 'profile',       // populate the profile
+    //     populate: {
+    //         path: 'country',     // populate country inside profile
+    //         model: 'Country',    // replace with your actual Country model name
+    //     },
+    // });
 
     if (!user) {
         throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
@@ -881,19 +881,19 @@ const changeEmail = async (userId: string, newEmail: string) => {
 
 
 const getUserInfoFromDB = async (userId: string) => {
-  // Find user
-  const user = await FirmUser.findById(userId).lean();
-  if (!user) {
-    throw new Error("User not found");
-  }
+    // Find user
+    const user = await FirmUser.findById(userId).lean();
+    if (!user) {
+        throw new Error("User not found");
+    }
 
-  // Find associated firm profile
-  const firmProfile = await FirmProfile.findOne({ firmUser: userId }).lean();
+    // Find associated firm profile
+    const firmProfile = await FirmProfile.findOne({ firmUser: userId }).lean();
 
-  return {
-    ...user,
-    firmProfile: firmProfile || null, // attach profile if exists
-  };
+    return {
+        ...user,
+        firmProfile: firmProfile || null, // attach profile if exists
+    };
 };
 
 
