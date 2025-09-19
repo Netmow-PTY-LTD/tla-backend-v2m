@@ -18,7 +18,7 @@ export const AppSettings = model<IAppSettings>('AppSettings', settingsSchema);
 
 
 
-//   law firm certification type model
+//   law firm certification type model  - it will be next time use dedicated module   just temporary stay here 
 
 const lawFirmCertificationSchema = new Schema({
   countryId: { type: Schema.Types.ObjectId, ref: 'Country', required: true },

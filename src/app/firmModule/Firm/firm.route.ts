@@ -1,16 +1,31 @@
-import { Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import { firmController } from "./firm.controller";
 import firmAuth from "../middleware/firmAuth";
 import { Firm_USER_ROLE } from "../FirmAuth/frimAuth.constant";
+import { upload } from "../../config/upload";
 
 
 const router = Router();
 
-// Admin Firm Management Endpoints
-router.post("/firms", firmAuth(Firm_USER_ROLE.ADMIN), firmController.createFirm);
-router.get("/firms", firmAuth(Firm_USER_ROLE.ADMIN), firmController.listFirms);
-router.get("/firms/:id", firmController.getFirmById);
-router.put("/firms/:id", firmAuth(Firm_USER_ROLE.ADMIN), firmController.updateFirm);
+router.get("/firmInfo", firmAuth(Firm_USER_ROLE.FIRM), firmController.getFirmInfo);
+
+router.put("/firmInfo/update",
+    // upload.single('firmLogo'),
+
+    // (req: Request, res: Response, next: NextFunction) => {
+    //     req.body = JSON.parse(req.body.data);
+    //     next();
+    // },
+
+    firmAuth(Firm_USER_ROLE.FIRM), firmController.updateFirmInfo);
+
+
+// Admin  Firm Management Endpoints 
+router.post("/", firmAuth(Firm_USER_ROLE.ADMIN), firmController.createFirm);
+router.get("/", firmAuth(Firm_USER_ROLE.ADMIN), firmController.listFirms);
+router.get("/:id", firmController.getFirmById);
+router.put("/:id", firmAuth(Firm_USER_ROLE.ADMIN), firmController.updateFirm);
 router.delete("/firms/:id", firmAuth(Firm_USER_ROLE.ADMIN), firmController.deleteFirm);
 
-export const firmRouter= router;
+
+export const firmRouter = router;

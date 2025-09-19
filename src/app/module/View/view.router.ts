@@ -58,6 +58,13 @@ router.get(
 
 
 
+router.get(
+   '/lawfirm-certification/list',
+  commonController.getLawFirmCertifications,
+);
+
+
+
 
 
 
