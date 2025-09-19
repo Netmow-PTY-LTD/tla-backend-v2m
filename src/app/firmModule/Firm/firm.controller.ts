@@ -91,6 +91,9 @@ const getFirmInfo = catchAsync(async (req, res) => {
 const updateFirmInfo = catchAsync(async (req, res) => {
     const firmUser=req.user.userId
     const updateData = req.body;
+    const firmLogo=req.file
+
+    console.log('firmLogo',req.file )
     const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUser, updateData);
     return sendResponse(res, {
         statusCode: httpStatus.OK,
