@@ -11,34 +11,50 @@ function getDiskUsage() {
     }
 }
 
-export function logServerInfo() {
+function getFolderUsage(path = "/") {
+    try {
+        // Show top 10 biggest directories at root
+        return execSync(
+            `du -h --max-depth=1 ${path} | sort -hr | head -10`,
+            { encoding: "utf8" }
+        );
+    } catch (err) {
+        return `Error retrieving folder usage for ${path}`;
+    }
+}
 
-    console.log('================== Server Configuration ==================');
+export function logServerInfo() {
+    console.log("================== Server Configuration ==================");
     console.log(`Hostname       : ${os.hostname()}`);
     console.log(`Platform       : ${os.platform()}`);
     console.log(`Architecture   : ${os.arch()}`);
     console.log(`CPU Cores      : ${os.cpus().length}`);
     console.log(`CPU Model      : ${os.cpus()[0].model}`);
-    console.log(`Total Memory   : ${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`);
-    console.log(`Free Memory    : ${(os.freemem() / 1024 / 1024 / 1024).toFixed(2)} GB`);
+    console.log(
+        `Total Memory   : ${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`
+    );
+    console.log(
+        `Free Memory    : ${(os.freemem() / 1024 / 1024 / 1024).toFixed(2)} GB`
+    );
     console.log(`Uptime         : ${Math.floor(os.uptime() / 60)} minutes`);
     console.log(`Node.js Version: ${process.version}`);
     console.log(`User           : ${os.userInfo().username}`);
-    console.log('----------------------------------------------------------');
-    console.log('Disk Usage:');
+    console.log("----------------------------------------------------------");
+    console.log("Disk Usage:");
     console.log(getDiskUsage());
-    console.log('----------------------------------------------------------');
-    console.log('Environment Variables (selected):');
-    console.log(`NODE_ENV       : ${process.env.NODE_ENV || 'N/A'}`);
-    console.log(`PORT           : ${process.env.PORT || 'N/A'}`);
-    console.log(`HOME           : ${process.env.HOME || 'N/A'}`);
-    console.log(`SHELL          : ${process.env.SHELL || 'N/A'}`);
-    console.log('----------------------------------------------------------');
-    console.log('Network Interfaces:');
+    console.log("----------------------------------------------------------");
+    console.log("Top Folders by Disk Usage (/):");
+    console.log(getFolderUsage("/"));
+    console.log("----------------------------------------------------------");
+    console.log("Environment Variables (selected):");
+    console.log(`NODE_ENV       : ${process.env.NODE_ENV || "N/A"}`);
+    console.log(`PORT           : ${process.env.PORT || "N/A"}`);
+    console.log(`HOME           : ${process.env.HOME || "N/A"}`);
+    console.log(`SHELL          : ${process.env.SHELL || "N/A"}`);
+    console.log("----------------------------------------------------------");
+    console.log("Network Interfaces:");
     console.log(os.networkInterfaces());
-    console.log('==========================================================');
-
-
+    console.log("==========================================================");
 
     return {
         hostname: os.hostname(),
@@ -56,18 +72,13 @@ export function logServerInfo() {
         nodeVersion: process.version,
         user: os.userInfo().username,
         diskUsage: getDiskUsage(),
+        folderUsage: getFolderUsage("/"), // 🔥 added folder usage here
         env: {
-            NODE_ENV: process.env.NODE_ENV || 'N/A',
-            PORT: process.env.PORT || 'N/A',
-            HOME: process.env.HOME || 'N/A',
-            SHELL: process.env.SHELL || 'N/A',
+            NODE_ENV: process.env.NODE_ENV || "N/A",
+            PORT: process.env.PORT || "N/A",
+            HOME: process.env.HOME || "N/A",
+            SHELL: process.env.SHELL || "N/A",
         },
         networkInterfaces: os.networkInterfaces(),
     };
-
-
-
-
-
-
 }
