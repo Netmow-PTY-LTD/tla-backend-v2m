@@ -28,6 +28,18 @@ const listPartners = catchAsync(async (req, res) => {
   });
 });
 
+const getSinglePartner = catchAsync(async (req, res) => {
+  const { partnerId } = req.params;
+  const partner = await partnerService.getSinglePartnerFromDB(partnerId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Partner fetched successfully.',
+    data: partner,
+  });
+});
+
 const updatePartner = catchAsync(async (req, res) => {
   const { firmId, partnerId } = req.params;
   const payload = req.body;
@@ -62,6 +74,7 @@ const deletePartner = catchAsync(async (req, res) => {
 export const partnerController = {
   createPartner,
   listPartners,
+  getSinglePartner,
   updatePartner,
   deletePartner,
 };

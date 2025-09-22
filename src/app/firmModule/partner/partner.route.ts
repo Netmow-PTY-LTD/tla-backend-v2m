@@ -31,7 +31,7 @@ router.put(
   partnerController.updatePartner,
 );
 router.delete('/:firmId/:partnerId/delete', partnerController.deletePartner);
-router.delete('/:partnerId', partnerController.deletePartner);
+//router.delete('/:partnerId', partnerController.deletePartner);
 router.get('/:firmId/:partnerId', partnerController.getSinglePartner);
 
 export const partnerRouter = router;
