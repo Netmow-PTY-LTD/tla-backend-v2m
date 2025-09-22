@@ -1,29 +1,22 @@
-import { Request, Response } from "express";
+// import { Request, Response } from "express";
 
-import { HTTP_STATUS } from "../../constant/httpStatus";
-import { staffService } from "./staff.service";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-
-
-
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import { staffService } from './staff.service';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
 
 const createStaff = catchAsync(async (req, res) => {
-    const firmId=req.user.userId
+  const firmId = req.user.userId;
   const staffData = req.body;
-  const newStaff = await staffService.createStaff(firmId,staffData);
+  const newStaff = await staffService.createStaff(firmId, staffData);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
-    message: "Staff created successfully.",
+    message: 'Staff created successfully.',
     data: newStaff,
   });
 });
-
-
-
-
 
 const listStaff = catchAsync(async (req, res) => {
   const { firmId } = req.params;
@@ -32,8 +25,23 @@ const listStaff = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: "Staff list fetched successfully.",
+    message: 'Staff list fetched successfully.',
     data: staffList,
+  });
+});
+
+// GET staff by id
+// router.get('/:firmId/:staffId', staffController.getStaffById);
+
+const getStaffById = catchAsync(async (req, res) => {
+  const { firmId, staffId } = req.params;
+  const staff = await staffService.getStaffById(firmId, staffId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Staff fetched successfully.',
+    data: staff,
   });
 });
 
@@ -46,7 +54,7 @@ const updateStaff = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: "Staff updated successfully.",
+    message: 'Staff updated successfully.',
     data: updated,
   });
 });
@@ -59,14 +67,15 @@ const deleteStaff = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: "Staff deleted successfully.",
-    data:null
+    message: 'Staff deleted successfully.',
+    data: null,
   });
 });
 
 export const staffController = {
   listStaff,
+  getStaffById,
   updateStaff,
   deleteStaff,
-  createStaff
+  createStaff,
 };
