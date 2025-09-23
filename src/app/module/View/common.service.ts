@@ -1,23 +1,23 @@
-import mongoose, { Types } from "mongoose";
-import UserProfile from "../User/user.model";
-import CreditTransaction from "../CreditPayment/creditTransaction.model";
-import LeadResponse from "../LeadResponse/response.model";
-import { HTTP_STATUS } from "../../constant/httpStatus";
-import CreditPackage from "../CreditPayment/creditPackage.model";
-import PaymentMethod from "../CreditPayment/paymentMethod.model";
-import { ILeadResponse } from "../LeadResponse/response.interface";
-import { logActivity } from "../Activity/logActivityLog";
-import { createNotification } from "../Notification/notification.utils";
-import Lead from "../Lead/lead.model";
-import { getIO } from "../../sockets";
-import { ResponseWiseChatMessage } from "./chatMessage.model";
-import { LeadContactRequest } from "./LeadContactRequest.model";
-import User from "../Auth/auth.model";
-import { AppError } from "../../errors/error";
-import { validateObjectId } from "../../utils/validateObjectId";
-import { USER_STATUS } from "../Auth/auth.constant";
-import { IUser } from "../Auth/auth.interface";
-import { LawFirmCertification } from "../Settings/settings.model";
+import mongoose, { Types } from 'mongoose';
+import UserProfile from '../User/user.model';
+import CreditTransaction from '../CreditPayment/creditTransaction.model';
+import LeadResponse from '../LeadResponse/response.model';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import CreditPackage from '../CreditPayment/creditPackage.model';
+import PaymentMethod from '../CreditPayment/paymentMethod.model';
+import { ILeadResponse } from '../LeadResponse/response.interface';
+import { logActivity } from '../Activity/logActivityLog';
+import { createNotification } from '../Notification/notification.utils';
+import Lead from '../Lead/lead.model';
+import { getIO } from '../../sockets';
+import { ResponseWiseChatMessage } from './chatMessage.model';
+import { LeadContactRequest } from './LeadContactRequest.model';
+import User from '../Auth/auth.model';
+import { AppError } from '../../errors/error';
+import { validateObjectId } from '../../utils/validateObjectId';
+import { USER_STATUS } from '../Auth/auth.constant';
+import { IUser } from '../Auth/auth.interface';
+import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -57,7 +57,6 @@ import { LawFirmCertification } from "../Settings/settings.model";
 //         };
 //       }
 
-
 //       return {
 //         success: false,
 //         status: HTTP_STATUS.PAYMENT_REQUIRED, // 402 or 400 as you prefer
@@ -70,10 +69,7 @@ import { LawFirmCertification } from "../Settings/settings.model";
 //       };
 //     }
 
-
 //     // Enough credits: do the transaction as before
-
-
 
 //     let resultLeadResponse: ILeadResponse | null = null;
 
@@ -162,7 +158,6 @@ import { LawFirmCertification } from "../Settings/settings.model";
 //         session,
 //       },);
 
-
 //       // 3. Create notification for the lead
 
 //       const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' }).session(session)
@@ -175,7 +170,6 @@ import { LawFirmCertification } from "../Settings/settings.model";
 //           user: Types.ObjectId;
 //         };
 //       };
-
 
 //       // Return the leadResponse in the outer scope
 //       resultLeadResponse = leadResponse; // declare this before transaction
@@ -223,11 +217,7 @@ import { LawFirmCertification } from "../Settings/settings.model";
 //         link: `/lawyer/responses/${leadResponse._id}`,
 //       });
 
-
-
 //     });
-
-
 
 //     return {
 //       success: true,
@@ -247,7 +237,11 @@ import { LawFirmCertification } from "../Settings/settings.model";
 
 const createLawyerResponseAndSpendCredit = async (
   userId: Types.ObjectId,
-  payload: { leadId: Types.ObjectId; credit: number; serviceId: Types.ObjectId }
+  payload: {
+    leadId: Types.ObjectId;
+    credit: number;
+    serviceId: Types.ObjectId;
+  },
 ) => {
   const io = getIO();
   const session = await mongoose.startSession();
@@ -256,10 +250,12 @@ const createLawyerResponseAndSpendCredit = async (
     // Find user profile
     let user = await UserProfile.findOne({ user: userId }).populate('user');
     if (!user) {
-      return { success: false, status: HTTP_STATUS.NOT_FOUND, message: 'User not found' };
+      return {
+        success: false,
+        status: HTTP_STATUS.NOT_FOUND,
+        message: 'User not found',
+      };
     }
-
-
 
     // 2️⃣ Check if account status is approved
     const accountStatus = (user.user as IUser)?.accountStatus; // if using User ref
@@ -269,35 +265,42 @@ const createLawyerResponseAndSpendCredit = async (
       return {
         success: false,
         status: HTTP_STATUS.FORBIDDEN,
-        message: "Your account is not approved yet. Please wait until it is approved by the admin."
+        message:
+          'Your account is not approved yet. Please wait until it is approved by the admin.',
       };
     }
-
 
     const { leadId, credit, serviceId } = payload;
 
     if (user.credits < credit) {
-
       // User has saved cards — suggest automatic credit purchase
-      const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
+      const creditPackages = await CreditPackage.find({ isActive: true }).sort({
+        credit: 1,
+      });
       const requiredCredits = Math.max(0, credit - user.credits);
-      const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
+      const recommendedPackage = creditPackages.find(
+        (pkg) => pkg.credit >= requiredCredits,
+      );
 
       // Check if user has saved payment methods
-      const savedCards = await PaymentMethod.find({ userProfileId: user._id, isActive: true, isDefault: true });
+      const savedCards = await PaymentMethod.find({
+        userProfileId: user._id,
+        isActive: true,
+        isDefault: true,
+      });
 
       if (savedCards.length === 0) {
         // No saved card — tell frontend to ask user to add a card first
         return {
           success: false,
           status: HTTP_STATUS.PRECONDITION_FAILED, // 412 or 400 as you prefer
-          message: 'Insufficient credits and no saved payment method. Please add a card first.',
+          message:
+            'Insufficient credits and no saved payment method. Please add a card first.',
           needAddCard: true,
           requiredCredits: requiredCredits,
-          recommendedPackage
+          recommendedPackage,
         };
       }
-
 
       return {
         success: false,
@@ -311,12 +314,12 @@ const createLawyerResponseAndSpendCredit = async (
       };
     }
 
-
     let resultLeadResponse: ILeadResponse | null = null;
     // let leadUser;
 
-
-    const leadUser = await Lead.findById(leadId).populate({ path: 'userProfileId', select: 'name user' }).session(session)
+    const leadUser = await Lead.findById(leadId)
+      .populate({ path: 'userProfileId', select: 'name user' })
+      .session(session);
 
     // Type assertion to safely access user field
     const populatedLeadUser = leadUser as typeof leadUser & {
@@ -326,7 +329,6 @@ const createLawyerResponseAndSpendCredit = async (
         user: Types.ObjectId;
       };
     };
-
 
     await session.withTransaction(async () => {
       user = await UserProfile.findOne({ user: userId }).session(session);
@@ -352,7 +354,7 @@ const createLawyerResponseAndSpendCredit = async (
             relatedLeadId: leadId,
           },
         ],
-        { session }
+        { session },
       );
 
       const [leadResponse] = await LeadResponse.create(
@@ -364,7 +366,7 @@ const createLawyerResponseAndSpendCredit = async (
             serviceId,
           },
         ],
-        { session }
+        { session },
       );
 
       await Lead.findOneAndUpdate(
@@ -382,7 +384,7 @@ const createLawyerResponseAndSpendCredit = async (
             },
           },
         ],
-        { new: true, session }
+        { new: true, session },
       );
       // Log: Credit spent
       await logActivity({
@@ -398,7 +400,7 @@ const createLawyerResponseAndSpendCredit = async (
           leadId,
         },
         session,
-      },);
+      });
       // Log: Response created
       await logActivity({
         createdBy: userId,
@@ -411,8 +413,7 @@ const createLawyerResponseAndSpendCredit = async (
           serviceId,
         },
         session,
-      },);
-
+      });
 
       // Return the leadResponse in the outer scope
       resultLeadResponse = leadResponse; // declare this before transaction
@@ -422,8 +423,8 @@ const createLawyerResponseAndSpendCredit = async (
         toUser: userId,
         title: "You've received a new contact request",
         message: `${user.name} wants to connect with you.`,
-        module: 'lead',        // module relates to the lead domain
-        type: 'contact',       // type indicates a contact request notification
+        module: 'lead', // module relates to the lead domain
+        type: 'contact', // type indicates a contact request notification
         link: `/client/dashboard/my-cases/${leadId}`,
         session,
       });
@@ -432,46 +433,44 @@ const createLawyerResponseAndSpendCredit = async (
       await createNotification({
         userId: userId,
         toUser: populatedLeadUser?.userProfileId?.user,
-        title: "Your message was sent",
+        title: 'Your message was sent',
         message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
-        module: 'response',    // module relates to response domain
-        type: 'create',        // type for creating a response/contact
+        module: 'response', // module relates to response domain
+        type: 'create', // type for creating a response/contact
         link: `/lawyer/dashboard/my-responses?responseId=${leadResponse._id}`,
         session,
       });
-
-
     });
 
     // 📡 --------------- Emit socket notifications -----------------------------------------
-    io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit('notification', {
-      userId: populatedLeadUser?.userProfileId?.user,
-      toUser: userId,
-      title: "You've received a new contact request",
-      message: `${user.name} wants to connect with you.`,
-      module: 'lead',        // module relates to the lead domain
-      type: 'contact',       // type indicates a contact request notification
-      link: `/client/dashboard/my-cases/${leadId}`,
-
-    });
+    io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit(
+      'notification',
+      {
+        userId: populatedLeadUser?.userProfileId?.user,
+        toUser: userId,
+        title: "You've received a new contact request",
+        message: `${user.name} wants to connect with you.`,
+        module: 'lead', // module relates to the lead domain
+        type: 'contact', // type indicates a contact request notification
+        link: `/client/dashboard/my-cases/${leadId}`,
+      },
+    );
     io.to(`user:${userId}`).emit('notification', {
       userId: userId,
       toUser: populatedLeadUser?.userProfileId?.user,
-      title: "Your message was sent",
+      title: 'Your message was sent',
       message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
-      module: 'response',    // module relates to response domain
-      type: 'create',        // type for creating a response/contact
+      module: 'response', // module relates to response domain
+      type: 'create', // type for creating a response/contact
       link: `/lawyer/dashboard/my-responses?responseId=${(resultLeadResponse as any)?._id}`,
     });
-
 
     return {
       success: true,
       message: 'Contact initiated and credits deducted successfully',
       data: {
-        responseId: (resultLeadResponse as any)?._id
-      }
-
+        responseId: (resultLeadResponse as any)?._id,
+      },
     };
   } catch (error) {
     console.error('Transaction failed:', error);
@@ -481,10 +480,7 @@ const createLawyerResponseAndSpendCredit = async (
   }
 };
 
-
-
 const getChatHistoryFromDB = async (responseId: string) => {
-
   // const messages = await ResponseWiseChatMessage.find({ responseId })
   //   .populate({
   //     path: 'from',
@@ -519,15 +515,8 @@ const getChatHistoryFromDB = async (responseId: string) => {
     })
     .sort({ createdAt: 1 }); // oldest messages first
 
-
-
-
-
-  return messages
-
-}
-
-
+  return messages;
+};
 
 const getLawyerSuggestionsFromDB = async (
   userId: string,
@@ -539,31 +528,34 @@ const getLawyerSuggestionsFromDB = async (
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
     minRating?: number | null; // minimum rating filter
-  } = {}
+  } = {},
 ) => {
-  const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'asc', minRating } = options;
-
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = 'createdAt',
+    sortOrder = 'asc',
+    minRating,
+  } = options;
 
   const skip = (page - 1) * limit;
   const sortOption: Record<string, 1 | -1> = {};
   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-
-
-
   // First, get current user's profileId (needed for lookup)
-  const currentUserProfile = await UserProfile.findOne({ user: userId }, { _id: 1, country: 1 });
+  const currentUserProfile = await UserProfile.findOne(
+    { user: userId },
+    { _id: 1, country: 1 },
+  );
   const currentProfileId = currentUserProfile?._id;
-
-
 
   const pipeline = [
     // 1. Match users excluding the current one
     {
       $match: {
         _id: { $ne: new mongoose.Types.ObjectId(userId) },
-        accountStatus: USER_STATUS.APPROVED // ✅ Only approved users
-      }
+        accountStatus: USER_STATUS.APPROVED, // ✅ Only approved users
+      },
     },
     // 2. Lookup profile
     {
@@ -571,16 +563,18 @@ const getLawyerSuggestionsFromDB = async (
         from: 'userprofiles',
         localField: 'profile',
         foreignField: '_id',
-        as: 'profile'
-      }
+        as: 'profile',
+      },
     },
     // 3. Unwind profile
 
     { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
 
-
-
-    { $addFields: { 'profile.avgRating': { $ifNull: ['$profile.avgRating', 0] } } },
+    {
+      $addFields: {
+        'profile.avgRating': { $ifNull: ['$profile.avgRating', 0] },
+      },
+    },
     // {
     //   $match: {
     //     $expr: {
@@ -599,32 +593,37 @@ const getLawyerSuggestionsFromDB = async (
     //   }
     // },
 
-
-
     {
       $match: {
         $expr: {
           $and: [
-            { $eq: ['$profile.country', new mongoose.Types.ObjectId(currentUserProfile?.country)] },
-            { $in: [new mongoose.Types.ObjectId(serviceId), { $ifNull: ['$profile.serviceIds', []] }] },
+            {
+              $eq: [
+                '$profile.country',
+                new mongoose.Types.ObjectId(currentUserProfile?.country),
+              ],
+            },
+            {
+              $in: [
+                new mongoose.Types.ObjectId(serviceId),
+                { $ifNull: ['$profile.serviceIds', []] },
+              ],
+            },
             {
               $or: [
                 { $eq: [minRating, null] }, // if minRating not provided, include all
                 {
                   $and: [
                     { $gte: ['$profile.avgRating', minRating] },
-                    { $lt: ['$profile.avgRating', { $add: [minRating, 1] }] }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      }
+                    { $lt: ['$profile.avgRating', { $add: [minRating, 1] }] },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
     },
-
-
-
 
     // // 4. Filter only profiles that have serviceId
 
@@ -634,7 +633,6 @@ const getLawyerSuggestionsFromDB = async (
     //     'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
     //   }
     // },
-
 
     // 🔹 Lookup responses for this specific lead
     {
@@ -647,25 +645,23 @@ const getLawyerSuggestionsFromDB = async (
               $expr: {
                 $and: [
                   { $eq: ['$leadId', new mongoose.Types.ObjectId(leadId)] },
-                  { $eq: ['$responseBy', '$$lawyerId'] }
-                ]
-              }
-            }
+                  { $eq: ['$responseBy', '$$lawyerId'] },
+                ],
+              },
+            },
           },
-          { $limit: 1 }
+          { $limit: 1 },
         ],
-        as: 'leadResponseForThisLead'
-      }
+        as: 'leadResponseForThisLead',
+      },
     },
 
     // 🔹 Exclude lawyers who already responded
     {
       $match: {
-        leadResponseForThisLead: { $size: 0 }
-      }
+        leadResponseForThisLead: { $size: 0 },
+      },
     },
-
-
 
     // 5. Lookup serviceIds in profile
     {
@@ -673,14 +669,9 @@ const getLawyerSuggestionsFromDB = async (
         from: 'services', // adjust to your services collection name
         localField: 'profile.serviceIds',
         foreignField: '_id',
-        as: 'profile.serviceIds'
-      }
+        as: 'profile.serviceIds',
+      },
     },
-
-
-
-
-
 
     //  Lookup into LeadContactRequest to see if request exists
     {
@@ -694,52 +685,50 @@ const getLawyerSuggestionsFromDB = async (
                 $and: [
                   { $eq: ['$leadId', new mongoose.Types.ObjectId(leadId)] }, // specific lead request
                   { $eq: ['$requestedId', currentProfileId] }, // current user requested
-                  { $eq: ['$toRequestId', '$$lawyerProfileId'] } // to this lawyer
-                ]
-              }
-            }
+                  { $eq: ['$toRequestId', '$$lawyerProfileId'] }, // to this lawyer
+                ],
+              },
+            },
           },
-          { $limit: 1 }
+          { $limit: 1 },
         ],
-        as: 'requestInfo'
-      }
+        as: 'requestInfo',
+      },
     },
     //  Add requested: true/false
     {
       $addFields: {
         // isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
-        isRequested: { $gt: [{ $size: { $ifNull: ['$requestInfo', []] } }, 0] }
-      }
+        isRequested: { $gt: [{ $size: { $ifNull: ['$requestInfo', []] } }, 0] },
+      },
     },
-
-
 
     // 8. 🔹 NEW: Lookup into ProfileVisitor to check if current user visited this lawyer
     {
       $lookup: {
-        from: "profilevisitors",
-        let: { targetProfileId: "$_id" },
+        from: 'profilevisitors',
+        let: { targetProfileId: '$_id' },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ["$visitorId", new mongoose.Types.ObjectId(userId)] },
-                  { $eq: ["$targetId", "$$targetProfileId"] },
+                  { $eq: ['$visitorId', new mongoose.Types.ObjectId(userId)] },
+                  { $eq: ['$targetId', '$$targetProfileId'] },
                 ],
               },
             },
           },
           { $limit: 1 }, // Only need one visit record
         ],
-        as: "profileVisitInfo",
+        as: 'profileVisitInfo',
       },
     },
     // Add isProfileVisited: true/false + attach visit data
     {
       $addFields: {
-        isProfileVisited: { $gt: [{ $size: "$profileVisitInfo" }, 0] },
-        profileVisit: { $arrayElemAt: ["$profileVisitInfo", 0] },
+        isProfileVisited: { $gt: [{ $size: '$profileVisitInfo' }, 0] },
+        profileVisit: { $arrayElemAt: ['$profileVisitInfo', 0] },
       },
     },
 
@@ -760,21 +749,15 @@ const getLawyerSuggestionsFromDB = async (
     //   }
     // },
 
-
     // 6. Sorting
     { $sort: sortOption },
     // 7. Facet for paginated data and total count
     {
       $facet: {
-        paginatedData: [
-          { $skip: skip },
-          { $limit: limit }
-        ],
-        totalCount: [
-          { $count: 'count' }
-        ]
-      }
-    }
+        paginatedData: [{ $skip: skip }, { $limit: limit }],
+        totalCount: [{ $count: 'count' }],
+      },
+    },
   ];
 
   const result = await User.aggregate(pipeline);
@@ -786,15 +769,9 @@ const getLawyerSuggestionsFromDB = async (
     lawyers,
     totalCount,
     totalPages: Math.ceil(totalCount / limit),
-    currentPage: page
+    currentPage: page,
   };
 };
-
-
-
-
-
-
 
 // export const createLeadContactRequest = async (
 //   leadId: string,
@@ -846,7 +823,6 @@ const getLawyerSuggestionsFromDB = async (
 //     createdAt: new Date(),
 //   });
 
-
 //   // 📢 Notification content
 //   const notificationPayload = {
 //     userId: toRequestUserId,        // receiver
@@ -864,22 +840,19 @@ const getLawyerSuggestionsFromDB = async (
 //   // Emit via socket
 //   io.to(`user:${toRequestUserId}`).emit('notification', notificationPayload);
 
-
-
 //   return newRequest;
 // };
 
-
 export const createLeadContactRequest = async (
   leadId: string,
-  requestedUserId: string,   // sender
-  toRequestUserId: string,   // receiver
-  message?: string
+  requestedUserId: string, // sender
+  toRequestUserId: string, // receiver
+  message?: string,
 ) => {
   const io = getIO();
-  validateObjectId(leadId, "leadId")
-  validateObjectId(requestedUserId, "requestedUserId")
-  validateObjectId(toRequestUserId, "toRequestUserId")
+  validateObjectId(leadId, 'leadId');
+  validateObjectId(requestedUserId, 'requestedUserId');
+  validateObjectId(toRequestUserId, 'toRequestUserId');
 
   // Prevent self-request
   if (requestedUserId === toRequestUserId) {
@@ -892,8 +865,10 @@ export const createLeadContactRequest = async (
     UserProfile.findOne({ user: toRequestUserId }).select('_id name'),
   ]);
 
-  if (!requestedProfile) throw new AppError(404, 'Requested user profile not found.');
-  if (!toRequestProfile) throw new AppError(404, 'Target user profile not found.');
+  if (!requestedProfile)
+    throw new AppError(404, 'Requested user profile not found.');
+  if (!toRequestProfile)
+    throw new AppError(404, 'Target user profile not found.');
 
   // Check for existing request
   const existingRequest = await LeadContactRequest.findOne({
@@ -923,19 +898,18 @@ export const createLeadContactRequest = async (
           createdAt: new Date(),
         },
       ],
-      { session }
+      { session },
     );
 
     // 📢 Notification content
     const notificationPayload = {
-      userId: toRequestUserId,        // receiver
-      toUser: requestedUserId,        // sender
-      title: "New Contact Request",
+      userId: toRequestUserId, // receiver
+      toUser: requestedUserId, // sender
+      title: 'New Contact Request',
       message: `${requestedProfile.name} has sent you a contact request regarding a lead.`,
       module: 'lead',
       type: 'contact',
       link: `/lawyer/dashboard/requests`,
-
     };
 
     // Save notification in DB (inside same transaction)
@@ -956,35 +930,26 @@ export const createLeadContactRequest = async (
   }
 };
 
-
-
-
-
-
-
 export const getLeadContactRequestsForUser = async (userId: string) => {
-
   const toUser = await UserProfile.findOne({ user: userId }).select('_id');
 
   return LeadContactRequest.find({ toRequestId: toUser?._id })
     .populate({
       path: 'leadId',
-      populate: "userProfileId"
+      populate: 'userProfileId',
     })
     .populate('requestedId')
     .populate('toRequestId')
     .sort({ createdAt: -1 });
 };
 
-export const getSingleLeadContactRequestsForUser = async (leadRequestId: string) => {
+export const getSingleLeadContactRequestsForUser = async (
+  leadRequestId: string,
+) => {
   return LeadContactRequest.findById(leadRequestId)
     .populate({
       path: 'leadId',
-      populate: [
-        { path: 'userProfileId' },
-        { path: 'serviceId' }
-      ]
-
+      populate: [{ path: 'userProfileId' }, { path: 'serviceId' }],
     })
     .populate('requestedId')
     .populate('toRequestId')
@@ -993,20 +958,19 @@ export const getSingleLeadContactRequestsForUser = async (leadRequestId: string)
 
 export const updateLeadContactRequestStatus = async (
   requestId: string,
-  status: 'read' | 'unread' | 'deleted'
+  status: 'read' | 'unread' | 'deleted',
 ) => {
   return LeadContactRequest.findByIdAndUpdate(
     requestId,
     { status },
-    { new: true }
+    { new: true },
   );
 };
 
-
-
-
-
-const countryWiseServiceWiseLeadFromDB = async ({ countryId, serviceId }: any) => {
+const countryWiseServiceWiseLeadFromDB = async ({
+  countryId,
+  serviceId,
+}: any) => {
   // Build match filter
   const match: any = {};
   if (countryId) match.countryId = new mongoose.Types.ObjectId(countryId);
@@ -1034,7 +998,11 @@ const countryWiseServiceWiseLeadFromDB = async ({ countryId, serviceId }: any) =
     { $unwind: { path: '$service', preserveNullAndEmptyArrays: true } },
     {
       $group: {
-        _id: { country: '$country.name', serviceId: '$service._id', service: '$service.name' },
+        _id: {
+          country: '$country.name',
+          serviceId: '$service._id',
+          service: '$service.name',
+        },
         totalLeads: { $sum: 1 },
       },
     },
@@ -1052,24 +1020,20 @@ const countryWiseServiceWiseLeadFromDB = async ({ countryId, serviceId }: any) =
   return result;
 };
 
-
-
-
-
 // Fetch certifications with filter + search + pagination
-const getAllLawFirmCertificationsFromDB = async (query: { 
-  countryId?: string; 
-  type?: "mandatory" | "optional"; 
-  search?: string; 
-  page?: number; 
-  limit?: number; 
+const getAllLawFirmCertificationsFromDB = async (query: {
+  countryId?: string;
+  type?: 'mandatory' | 'optional';
+  search?: string;
+  page?: number;
+  limit?: number;
 }) => {
   const { countryId, type, search, page = 1, limit = 10 } = query;
 
   const filter: Record<string, any> = {};
 
   if (countryId) {
-    validateObjectId(countryId, "Country");
+    validateObjectId(countryId, 'Country');
     filter.countryId = countryId;
   }
 
@@ -1078,7 +1042,7 @@ const getAllLawFirmCertificationsFromDB = async (query: {
   }
 
   // Base query
-  let certQuery = LawFirmCertification.find(filter)
+  let certQuery = LawFirmCertification.find(filter);
   // .populate("countryId");
 
   if (search && search.trim()) {
@@ -1087,8 +1051,8 @@ const getAllLawFirmCertificationsFromDB = async (query: {
     // 🔍 First try exact match on certificationName
     const exactMatch = await LawFirmCertification.find({
       ...filter,
-      certificatiionName: { $regex: `^${trimmedSearch}$`, $options: "i" },
-    })
+      certificationName: { $regex: `^${trimmedSearch}$`, $options: 'i' },
+    });
     // .populate("countryId");
 
     if (exactMatch.length > 0) {
@@ -1107,10 +1071,10 @@ const getAllLawFirmCertificationsFromDB = async (query: {
     certQuery = LawFirmCertification.find({
       ...filter,
       $or: [
-        { certificatiionName: { $regex: trimmedSearch, $options: "i" } },
-        { type: { $regex: trimmedSearch, $options: "i" } },
+        { certificationName: { $regex: trimmedSearch, $options: 'i' } },
+        { type: { $regex: trimmedSearch, $options: 'i' } },
       ],
-    })
+    });
     // .populate("countryId");
   }
 
@@ -1120,11 +1084,11 @@ const getAllLawFirmCertificationsFromDB = async (query: {
       ? {
           ...filter,
           $or: [
-            { certificatiionName: { $regex: search.trim(), $options: "i" } },
-            { type: { $regex: search.trim(), $options: "i" } },
+            { certificationName: { $regex: search.trim(), $options: 'i' } },
+            { type: { $regex: search.trim(), $options: 'i' } },
           ],
         }
-      : filter
+      : filter,
   );
 
   // Pagination
@@ -1142,9 +1106,6 @@ const getAllLawFirmCertificationsFromDB = async (query: {
   };
 };
 
-
-
-
 export const commonService = {
   createLawyerResponseAndSpendCredit,
   getChatHistoryFromDB,
@@ -1154,6 +1115,5 @@ export const commonService = {
   getLeadContactRequestsForUser,
   getSingleLeadContactRequestsForUser,
   countryWiseServiceWiseLeadFromDB,
-  getAllLawFirmCertificationsFromDB
-
+  getAllLawFirmCertificationsFromDB,
 };
