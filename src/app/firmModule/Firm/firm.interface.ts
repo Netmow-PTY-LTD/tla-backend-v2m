@@ -1,4 +1,4 @@
-import { Document, Schema, Types } from "mongoose";
+import { Document, Schema, Types } from 'mongoose';
 
 export interface IFirmProfile extends Document {
   // Firm details
@@ -23,8 +23,28 @@ export interface IFirmProfile extends Document {
     officialWebsite?: string;
   };
 
+  location?: {
+    address?: string;
+    coordinates?: {
+      lat?: number;
+      lng?: number;
+    };
+    hideFromProfile?: boolean;
+    locationReason?: 'No Location' | 'Online only' | 'Multiple Location';
+  };
   // Firm Overview
-  overview?: string;
+  companySize?: string;
+  yearsInBusiness?: number;
+  description?: string;
+
+  billingInfo: {
+    billingEmail?: string;
+    iban?: string;
+    bicSwift?: string;
+    taxId?: string;
+    currency?: string;
+    notes?: string;
+  };
 
   // Credits & Billing
   credits: {
