@@ -4,7 +4,6 @@ import sendResponse from '../../utils/sendResponse';
 import { firmService } from './firm.service';
 import { uploadToSpaces } from '../../config/upload';
 import { TUploadedFile } from '../../interface/file.interface';
-import { BillingTaxInfoService } from '../billingTaxInfo/billing.service';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 
 // ✅ Create Firm
