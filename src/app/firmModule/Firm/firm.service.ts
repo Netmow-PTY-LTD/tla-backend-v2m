@@ -167,21 +167,23 @@ const getFirmInfoFromDB = async (id: string) => {
     .populate('contactInfo.zipCode'); // zip code ref
 };
 
-const updateFirmInfoIntoDB = async (
-  firmUserId: string,
-  data: Partial<IFirmProfile>,
-) => {
-  const updateFirmInfo = await FirmProfile.findOneAndUpdate(
-    { firmUser: firmUserId },
-    { $set: data },
-    {
-      new: true,
-      runValidators: true,
-      upsert: true,
-    },
-  );
-  return updateFirmInfo;
+
+
+
+const updateFirmInfoIntoDB = async (firmUserId: string, data: Partial<IFirmProfile>) => {
+
+    const updateFirmInfo = await FirmProfile.findOneAndUpdate({ firmUser: firmUserId }, data, {
+        new: true,
+        runValidators: true,
+    });
+    return updateFirmInfo
 };
+
+
+
+
+
+
 
 export const firmService = {
   createFirm,

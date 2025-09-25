@@ -90,17 +90,11 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       //billing and tax info
 
     billingInfo: {
-
       billingEmail: { type: String },
-
       iban: { type: String },
-
       bicSwift: { type: String },
-
       taxId: { type: String },
-
       currency: { type: String },
-
       notes: { type: String },
     },
 
