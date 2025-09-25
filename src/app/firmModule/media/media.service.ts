@@ -62,10 +62,13 @@ const updateFirmMediaIntoDB = async (
   return updatedFirmMedia;
 };
 
+
+
+
 const removeFirmMediaFromDB = async (
   firmUserId: string,
   type: 'photos' | 'videos',
-  urlToRemove: string,
+  index: number
 ) => {
   const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
 
@@ -73,24 +76,23 @@ const removeFirmMediaFromDB = async (
     return {
       statusCode: 200,
       success: false,
-      message: 'firm not found',
+      message: 'Firm not found',
       data: null,
     };
   }
 
-  const updateResult = await FirmMedia.findOneAndUpdate(
-    { firmProfileId: firmProfile._id },
-    {
-      $pull: {
-        [type]: urlToRemove,
-      },
-    },
-    { new: true },
-  );
+  const firmMedia = await FirmMedia.findOne({ firmProfileId: firmProfile._id });
+  if (!firmMedia) return null;
 
-  return updateResult;
+  // Check if index is valid
+  if (index < 0 || index >= firmMedia[type].length) return firmMedia;
+
+  // Remove the item at that index
+  firmMedia[type].splice(index, 1);
+  await firmMedia.save();
+
+  return firmMedia;
 };
-
 
 
 

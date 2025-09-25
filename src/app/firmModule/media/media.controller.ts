@@ -33,26 +33,46 @@ const updateFirmMedia = catchAsync(async (req, res) => {
 /**
  * Remove a specific photo or video
  */
+
+
 const removeFirmMedia = catchAsync(async (req, res) => {
   const firmUserId = req.user.userId; // from auth middleware
-  const { type } = req.query; // photos | videos
-  const { url } = req.body;   // media URL to remove
+  const {type, index} = req.body; // index of media to remove
 
-  const updated = await FirmMediaService.removeFirmMediaFromDB(
-    firmUserId,
-    type as 'photos' | 'videos',
-    url,
-  );
+  // Validate type
+  if (!type || !['photos', 'videos'].includes(type)) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      success: false,
+      message: "Invalid media type. Must be 'photos' or 'videos'.",
+      data: null,
+    });
+  }
+
+  // Validate index
+  if (typeof index !== "number") {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      success: false,
+      message: "Index must be provided and be a number.",
+      data: null,
+    });
+  }
+
+  const updated = await FirmMediaService.removeFirmMediaFromDB(firmUserId, type, index);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Firm media removed successfully.',
+    message: `${type.slice(0, -1)} removed successfully.`,
     data: updated,
   });
 });
 
+
+
 /**
+ * 
  * Get all firm media for logged-in firm
  */
 const getFirmMedia = catchAsync(async (req, res) => {
