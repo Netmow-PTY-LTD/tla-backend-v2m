@@ -86,70 +86,7 @@ const getFirmInfo = catchAsync(async (req, res) => {
   });
 });
 
-// ✅ Update Firm
-// const updateFirmInfo = catchAsync(async (req, res) => {
-//   const firmUserId = req.user.userId;
-//   //console.log('req.body', req.body);
-//   let parsedData = req.body.companyProfileInfo
-//     ? JSON.parse(req.body.companyProfileInfo)
-//     : {};
-//   console.log('parsedData', parsedData);
-//   const files = req.files as TUploadedFile[];
 
-//   // Map files by field name
-//   const fileMap: Record<string, TUploadedFile[]> = {};
-//   files?.forEach((file) => {
-//     if (!fileMap[file.fieldname]) fileMap[file.fieldname] = [];
-//     fileMap[file.fieldname].push(file);
-//   });
-
-//   let companyProfileResult = null;
-
-//   // ✅ handle file upload if present
-//   // if (req.file) {
-//   //     const fileBuffer = req.file.buffer;
-//   //     const originalName = req.file.originalname;
-
-//   //     // upload to Spaces and get public URL
-//   //     const logoUrl = await uploadToSpaces(fileBuffer, originalName, firmUserId);
-//   //     updateData.logo = logoUrl;
-//   // }
-
-//   if (fileMap['companyLogo']?.[0]) {
-//     const logoFile = fileMap['companyLogo'][0];
-
-//     if (!logoFile.buffer) {
-//       throw new Error('File buffer missing in upload');
-//     }
-
-//     const logoUrl = await uploadToSpaces(
-//       logoFile.buffer,
-//       logoFile.originalname,
-//       firmUserId,
-//     );
-
-//     parsedData = {
-//       ...parsedData,
-//       logo: logoUrl,
-//     };
-//   }
-
-//   if (parsedData) {
-//     companyProfileResult = await firmService.updateFirmInfoIntoDB(
-//       firmUserId,
-//       parsedData,
-//     );
-//   }
-//   // const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUserId, updateData);
-
-//   const finalResult = companyProfileResult;
-//   return sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'Firm updated successfully.',
-//     data: finalResult,
-//   });
-// });
 
 const updateFirmInfo = catchAsync(async (req, res) => {
   const firmUserId = req.user.userId;
