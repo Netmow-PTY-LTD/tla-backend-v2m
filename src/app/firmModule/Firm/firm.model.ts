@@ -23,7 +23,6 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       officialWebsite: { type: String },
     },
 
-
     // Firm Overview
     
     companySize: {
@@ -51,42 +50,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       trim: true,
     },
 
-    //   no clarify
-    // location: {
-    //   address: {
-    //     type: String,
-    //     trim: true,
-    //   },
-    //   coordinates: {
-    //     lat: {
-    //       type: Number,
-    //       default: 0,
-    //     },
-    //     lng: {
-    //       type: Number,
-    //       default: 0,
-    //     },
-    //   },
-    //   hideFromProfile: {
-    //     type: Boolean,
-    //     default: false,
-    //   },
-    //   locationReason: {
-    //     type: String,
-    //     enum: ['no_location', 'online_only', 'multiple_location'],
-    //     default: 'no_location',
-    //     set: (value: string) => {
-    //       return value === '' ? 'no_location' : value;
-    //     },
-    //   },
-    // },
-
-
-
-
-
-
-    // Credits & Billing
+ // Credits & Billing
     credits: {
       currentCreditBalance: { type: Number, default: 0 },
       billingContact: { type: String },
@@ -104,6 +68,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       notes: { type: String },
     },
 
+   
     // Permissions
     createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
