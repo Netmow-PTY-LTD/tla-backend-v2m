@@ -54,8 +54,8 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 
 
 
-const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string; page?: number; limit?: number }) => {
-  const { countryId, search, page = 1, limit = 10 } = query;
+const getAllZipCodeFromDB = async (query: { countryId?: string; zipCodeId?: string, search?: string; page?: number; limit?: number }) => {
+  const { countryId, zipCodeId, search, page = 1, limit = 10 } = query;
 
   const filter: Record<string, any> = {};
 
@@ -63,6 +63,13 @@ const getAllZipCodeFromDB = async (query: { countryId?: string; search?: string;
     validateObjectId(countryId, "Country");
     filter.countryId = countryId;
   }
+
+  // ✅ New: filter by specific ZipCode ID if provided
+  if (countryId && zipCodeId) {
+    validateObjectId(zipCodeId, "ZipCode");
+    filter._id = zipCodeId;
+  }
+
 
   let zipCodesQuery = ZipCode.find(filter).populate("countryId");
 
