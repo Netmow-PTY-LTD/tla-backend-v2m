@@ -23,6 +23,8 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       officialWebsite: { type: String },
     },
 
+
+    //   no clarify
     location: {
       address: {
         type: String,
@@ -76,7 +78,16 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       trim: true,
     },
 
-    //billing and tax info
+  
+
+    // Credits & Billing
+    credits: {
+      currentCreditBalance: { type: Number, default: 0 },
+      billingContact: { type: String },
+      defaultCurrency: { type: String, default: 'USD' },
+    },
+
+      //billing and tax info
 
     billingInfo: {
       billingEmail: { type: String },
@@ -85,13 +96,6 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       taxId: { type: String },
       currency: { type: String },
       notes: { type: String },
-    },
-
-    // Credits & Billing
-    credits: {
-      currentCreditBalance: { type: Number, default: 0 },
-      billingContact: { type: String },
-      defaultCurrency: { type: String, default: 'USD' },
     },
 
     // Permissions
