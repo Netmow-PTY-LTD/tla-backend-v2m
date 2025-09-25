@@ -24,37 +24,8 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     },
 
 
-    //   no clarify
-    location: {
-      address: {
-        type: String,
-        trim: true,
-      },
-      coordinates: {
-        lat: {
-          type: Number,
-          default: 0,
-        },
-        lng: {
-          type: Number,
-          default: 0,
-        },
-      },
-      hideFromProfile: {
-        type: Boolean,
-        default: false,
-      },
-      locationReason: {
-        type: String,
-        enum: ['no_location', 'online_only', 'multiple_location'],
-        default: 'no_location',
-        set: (value: string) => {
-          return value === '' ? 'no_location' : value;
-        },
-      },
-    },
-
     // Firm Overview
+    
     companySize: {
       type: String,
       enum: [
@@ -69,16 +40,51 @@ const firmProfileSchema = new Schema<IFirmProfile>(
         return value === '' ? 'self_employed' : value;
       },
     },
+
     yearsInBusiness: {
       type: Number,
       min: 0,
     },
+
     description: {
       type: String,
       trim: true,
     },
 
-  
+    //   no clarify
+    // location: {
+    //   address: {
+    //     type: String,
+    //     trim: true,
+    //   },
+    //   coordinates: {
+    //     lat: {
+    //       type: Number,
+    //       default: 0,
+    //     },
+    //     lng: {
+    //       type: Number,
+    //       default: 0,
+    //     },
+    //   },
+    //   hideFromProfile: {
+    //     type: Boolean,
+    //     default: false,
+    //   },
+    //   locationReason: {
+    //     type: String,
+    //     enum: ['no_location', 'online_only', 'multiple_location'],
+    //     default: 'no_location',
+    //     set: (value: string) => {
+    //       return value === '' ? 'no_location' : value;
+    //     },
+    //   },
+    // },
+
+
+
+
+
 
     // Credits & Billing
     credits: {
@@ -87,7 +93,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       defaultCurrency: { type: String, default: 'USD' },
     },
 
-      //billing and tax info
+    //billing and tax info
 
     billingInfo: {
       billingEmail: { type: String },
