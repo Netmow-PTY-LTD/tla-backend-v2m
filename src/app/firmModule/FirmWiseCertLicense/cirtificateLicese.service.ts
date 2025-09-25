@@ -1,80 +1,80 @@
-import { Types } from 'mongoose';
-import { FirmLicense } from './cirtificateLicese.model';
-import { FirmProfile } from '../Firm/firm.model';
-import { IFirmLicense } from './cirtificateLicese.interface';
+
+import { Types } from "mongoose";
+import { FirmLicense } from "./cirtificateLicese.model";
+import { FirmProfile } from "../Firm/firm.model";
+import { IFirmLicense } from "./cirtificateLicese.interface";
+
 
 // Create a new license
 export const createFirmLicenseInDB = async (
-  firmUserId: string,
-  data: {
-    certificationId: string;
-    licenseNumber: string;
-    issuedBy: string;
-    additionalNote: string;
-    validUntil: Date;
-  },
+    firmUserId: string,
+    data: {
+        certificationId: string;
+        licenseNumber: string;
+        issuedBy: string;
+        additionalNote: string;
+        validUntil: Date;
+    }
 ) => {
-  // Get the firm profile ID for this user
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
-  if (!firmProfile) {
-    throw new Error('Firm profile not found for this user');
-  }
+    // Get the firm profile ID for this user
+    const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+    if (!firmProfile) {
+        throw new Error("Firm profile not found for this user");
+    }
 
-  // Include firmProfileId in the license data
-  const licenseData = {
-    ...data,
-    firmProfileId: firmProfile._id,
-  };
-  console.log('firmProfile', licenseData);
-  // Create the license
-  const license = await FirmLicense.create(licenseData);
-  return license;
+
+    // Include firmProfileId in the license data
+    const licenseData = {
+        ...data,
+        firmProfileId: firmProfile._id,
+    };
+    console.log('firmProfile', licenseData)
+    // Create the license
+    const license = await FirmLicense.create(licenseData);
+    return license;
 };
 
 // Get all licenses for a firm
 const getFirmLicensesFromDB = async (firmUserId: string) => {
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
-  if (!firmProfile) {
-    throw new Error('Firm profile not found for this user');
-  }
+    const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+    if (!firmProfile) {
+        throw new Error("Firm profile not found for this user");
+    }
 
-  return await FirmLicense.find({ firmProfileId: firmProfile?._id })
-    .populate('certificationId') // populate certification info
-    .exec();
+
+    return await FirmLicense.find({ firmProfileId: firmProfile?._id })
+        .populate("certificationId", "certificatiionName type logo") // populate certification info
+        .exec();
 };
 
 // Get single license by ID
 const getFirmLicenseById = async (licenseId: string) => {
-  if (!Types.ObjectId.isValid(licenseId)) throw new Error('Invalid license ID');
-  return await FirmLicense.findById(licenseId)
-    .populate('certificationId')
-    .exec();
+    if (!Types.ObjectId.isValid(licenseId)) throw new Error("Invalid license ID");
+    return await FirmLicense.findById(licenseId)
+        .populate("certificationId", "certificatiionName type logo")
+        .exec();
 };
 
 // Update license by ID
-const updateFirmLicenseInDB = async (
-  licenseId: string,
-  updateData: Partial<IFirmLicense>,
-) => {
-  if (!Types.ObjectId.isValid(licenseId)) throw new Error('Invalid license ID');
-  const updateResult = await FirmLicense.findByIdAndUpdate(
-    licenseId,
-    updateData,
-    { new: true, runValidators: true },
-  );
-  return updateResult;
+const updateFirmLicenseInDB = async (licenseId: string, updateData: Partial<IFirmLicense>) => {
+    if (!Types.ObjectId.isValid(licenseId)) throw new Error("Invalid license ID");
+    const updateResult = await FirmLicense.findByIdAndUpdate(licenseId, updateData, { new: true, runValidators: true });
+    return updateResult;
 };
 
 // Delete license by ID
 const deleteFirmLicenseFromDB = async (licenseId: string) => {
-  if (!Types.ObjectId.isValid(licenseId)) throw new Error('Invalid license ID');
-  return await FirmLicense.findByIdAndDelete(licenseId);
+    if (!Types.ObjectId.isValid(licenseId)) throw new Error("Invalid license ID");
+    return await FirmLicense.findByIdAndDelete(licenseId);
 };
 
+
+
 export const firmLicenseService = {
-  createFirmLicenseInDB,
-  getFirmLicensesFromDB,
-  getFirmLicenseById,
-  updateFirmLicenseInDB,
-  deleteFirmLicenseFromDB,
-};
+    createFirmLicenseInDB,
+    getFirmLicensesFromDB,
+    getFirmLicenseById,
+    updateFirmLicenseInDB,
+    deleteFirmLicenseFromDB
+
+}
