@@ -17,7 +17,9 @@ const createFirm = catchAsync(async (req, res) => {
   });
 });
 
-// ✅ List Firms
+
+
+//  List Firms
 const listFirms = catchAsync(async (req, res) => {
   const firms = await firmService.listFirms();
 
@@ -29,7 +31,7 @@ const listFirms = catchAsync(async (req, res) => {
   });
 });
 
-// ✅ Get Firm by ID
+//  Get Firm by ID
 const getFirmById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const firm = await firmService.getFirmById(id);
@@ -42,7 +44,7 @@ const getFirmById = catchAsync(async (req, res) => {
   });
 });
 
-// ✅ Update Firm
+//  Update Firm
 const updateFirm = catchAsync(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
@@ -102,7 +104,6 @@ const updateFirmInfo = catchAsync(async (req, res) => {
 
 
   const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUserId, updateData);
-
 
   // Determine the response message
   let message = "Firm info updated successfully.";
