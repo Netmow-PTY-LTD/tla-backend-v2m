@@ -150,6 +150,7 @@ export interface FirmLicenseDetailsPayload {
     certificationId: string;   // reference to LawFirmCertification _id
     licenseNumber: string;     // e.g. "ABC1234567"
     issuedBy?: string;          // e.g. "Queensland Law Society"
+    type: string;          // e.g. "Queensland Law Society"
     validUntil: string | Date; // mm/dd/yyyy from UI or Date object
     additionalNote?: string;   // optional note about license
 }
@@ -284,6 +285,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                     certificationId: licenseDetails.certificationId,
                     licenseNumber: licenseDetails.licenseNumber,
                     issuedBy: licenseDetails.issuedBy,
+                    type: licenseDetails.type,
                     additionalNote: licenseDetails.additionalNote ?? "",
                     validUntil: normalizeValidUntil(licenseDetails.validUntil),
                 },
