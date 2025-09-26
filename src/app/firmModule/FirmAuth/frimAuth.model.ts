@@ -1,4 +1,4 @@
-import mongoose, { model } from 'mongoose';
+import mongoose, { model, Types } from 'mongoose';
 
 import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
 import config from '../../config';
@@ -82,6 +82,16 @@ const firmUserSchema = new mongoose.Schema(
     pendingEmail: { type: String, lowercase: true, trim: true },
     emailChangeToken: { type: String },
     emailChangeTokenExpires: { type: Date },
+    profileType: {
+      type: String,
+      required: true,
+      enum: ["StaffProfile", "FirmProfile"],
+    },
+    profileId: {
+      type: Types.ObjectId,
+      refPath: "profileType",
+    },
+
   },
   {
     versionKey: false,
