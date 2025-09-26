@@ -138,13 +138,14 @@ export const createStaffUserIntoDB = async (firmId: string, payload: StaffRegist
     const [newProfile] = await StaffProfile.create(
       [
         {
+          firmUserId: newUser._id,
           fullName,
           designation,
           phone,
           permissions: permissions || [],
           role,
           status,
-          createdBy: firmId,
+          createdBy: new mongoose.Types.ObjectId(firmId)
         },
       ],
       { session }
@@ -176,7 +177,6 @@ export const createStaffUserIntoDB = async (firmId: string, payload: StaffRegist
     session.endSession();
 
     return {
-      accessToken,
       userData: newUser,
       profileData: newProfile,
     };
