@@ -10,8 +10,21 @@ import FirmUser from '../FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 
-const getStaffList = async (userId: string) => {
-  return StaffProfile.find({ userId: { $ne: userId }, })
+const getStaffList = async (userId: string, query: Record<string, any>) => {
+
+  const { firmId } = query;
+
+  // Build base filter
+  const filter: Record<string, any> = {
+    userId: { $ne: userId },
+  };
+
+  // If firmId exists in query, add it to filter
+  if (firmId) {
+    filter.firmId = firmId;
+  }
+
+  return StaffProfile.find(filter)
     .populate("userId")
     .populate('createdBy', 'email role')
     .sort({ createdAt: -1 });
@@ -36,7 +49,7 @@ const getStaffById = async (staffUserId: string) => {
 
 
 
-const updateStaff = async (userId:string, staffUserId: string, payload: any) => {
+const updateStaff = async (userId: string, staffUserId: string, payload: any) => {
 
   const firmUser = await FirmUser.findById(staffUserId).select("+password");
   if (!firmUser) {
@@ -141,6 +154,7 @@ export interface StaffRegisterPayload {
   fullName: string;
   designation?: string;
   phone?: string;
+  firmId: Types.ObjectId; // optional
   permissions?: Types.ObjectId[]; // optional
   role?: string;
   status?: "active" | "inactive"; // optional
@@ -155,6 +169,7 @@ export const createStaffUserIntoDB = async (userId: string, payload: StaffRegist
       email,
       password,
       fullName,
+      firmId,
       designation,
       phone,
       permissions,
@@ -190,6 +205,7 @@ export const createStaffUserIntoDB = async (userId: string, payload: StaffRegist
       [
         {
           userId: newUser._id,
+          firmId: new mongoose.Types.ObjectId(firmId),
           fullName,
           designation,
           phone,
