@@ -18,15 +18,17 @@ const getStaffList = async (userId: string) => {
 };
 
 
-const getStaffById = async (staffId: string) => {
+const getStaffById = async (staffUserId: string) => {
 
-  const existingUser = await FirmUser.isUserExists(staffId);
-  if (existingUser) {
+  console.log('check user id ', staffUserId)
+
+  const existingUser = await FirmUser.isUserExists(staffUserId);
+  if (!existingUser) {
     return sendNotFoundResponse('User not found')
   }
 
   return StaffProfile.findOne({
-    userId: new Types.ObjectId(staffId),
+    userId: new Types.ObjectId(staffUserId),
 
   });
 
@@ -34,15 +36,14 @@ const getStaffById = async (staffId: string) => {
 
 
 
+const updateStaff = async (userId:string, staffUserId: string, payload: any) => {
 
-const updateStaff = async (staffId: string, payload: any) => {
-
-  const firmUser = await FirmUser.findById(staffId).select("+password");
+  const firmUser = await FirmUser.findById(staffUserId).select("+password");
   if (!firmUser) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
   }
 
-  const staffProfile = await StaffProfile.findOne({ userId: staffId }).populate("userId");
+  const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).populate("userId");
   if (!staffProfile) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff not found");
   }
@@ -64,15 +65,20 @@ const updateStaff = async (staffId: string, payload: any) => {
 
   // 4️ Update StaffProfile fields
   const updatedProfile = await StaffProfile.findOneAndUpdate(
-    { _id: staffId },
-    { $set: profilePayload },
+    { _id: staffProfile?._id },
+    {
+      $set: {
+        ...profilePayload,
+        updatedBy: new Types.ObjectId(userId) // ensure ObjectId type
+      }
+    },
     { new: true }
   );
 
   if (!updatedProfile) {
     throw new AppError(
       HTTP_STATUS.NOT_FOUND,
-      "Staff profile not found or unauthorized."
+      "Staff profile not found "
     );
   }
 
@@ -84,23 +90,40 @@ const updateStaff = async (staffId: string, payload: any) => {
 
 
 
+const deleteStaff = async (staffUserId: string) => {
+  const session = await mongoose.startSession();
 
-const deleteStaff = async ( staffId: string) => {
-  const deleted = await StaffProfile.findOneAndDelete({
-    _id: staffId,
-   
-  });
+  try {
+    session.startTransaction();
 
-  if (!deleted) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      'Staff not found or unauthorized.',
+    // 1️⃣ Delete the firm user
+    const user = await FirmUser.findByIdAndDelete(staffUserId, { session });
+    if (!user) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm user not found.");
+    }
+
+    // 2️⃣ Delete the staff profile linked to that user
+    const deleted = await StaffProfile.findOneAndDelete(
+      { userId: staffUserId },
+      { session }
     );
+
+    if (!deleted) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found.");
+    }
+
+    // 3️⃣ Commit transaction (✅ both deleted)
+    await session.commitTransaction();
+    session.endSession();
+
+    return { message: "Firm user and staff profile deleted successfully." };
+  } catch (err) {
+    // ❌ Rollback everything if any error occurs
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
   }
-
-  return deleted;
 };
-
 
 
 
@@ -214,8 +237,6 @@ export const createStaffUserIntoDB = async (userId: string, payload: StaffRegist
     throw error;
   }
 };
-
-
 
 
 export const staffService = {

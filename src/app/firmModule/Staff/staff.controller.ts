@@ -19,8 +19,8 @@ const createStaff = catchAsync(async (req, res) => {
 });
 
 const listStaff = catchAsync(async (req, res) => {
-  const { firmId } = req.params;
-  const staffList = await staffService.getStaffList(firmId);
+  const userId = req.user.userId;
+  const staffList = await staffService.getStaffList(userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -28,13 +28,14 @@ const listStaff = catchAsync(async (req, res) => {
     message: 'Staff list fetched successfully.',
     data: staffList,
   });
+
 });
 
 
 
 const getStaffById = catchAsync(async (req, res) => {
-  const {staffId } = req.params;
-  const staff = await staffService.getStaffById(staffId);
+  const { staffUserId } = req.params;
+  const staff = await staffService.getStaffById(staffUserId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -44,11 +45,13 @@ const getStaffById = catchAsync(async (req, res) => {
   });
 });
 
+
 const updateStaff = catchAsync(async (req, res) => {
-  const {  staffId } = req.params;
+  const userId = req.user.userId;
+  const { staffUserId } = req.params;
   const payload = req.body;
 
-  const updated = await staffService.updateStaff( staffId, payload);
+  const updated = await staffService.updateStaff(userId, staffUserId, payload);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -58,10 +61,12 @@ const updateStaff = catchAsync(async (req, res) => {
   });
 });
 
-const deleteStaff = catchAsync(async (req, res) => {
-  const {staffId } = req.params;
 
-  await staffService.deleteStaff(staffId);
+
+const deleteStaff = catchAsync(async (req, res) => {
+  const { staffUserId } = req.params;
+
+  await staffService.deleteStaff(staffUserId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -70,6 +75,8 @@ const deleteStaff = catchAsync(async (req, res) => {
     data: null,
   });
 });
+
+
 
 export const staffController = {
   listStaff,
