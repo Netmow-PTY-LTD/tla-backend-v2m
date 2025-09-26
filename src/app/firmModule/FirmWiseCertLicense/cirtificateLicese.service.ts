@@ -43,7 +43,7 @@ const getFirmLicensesFromDB = async (firmUserId: string) => {
 
 
     return await FirmLicense.find({ firmProfileId: firmProfile?._id })
-        .populate("certificationId", "certificatiionName type logo") // populate certification info
+        .populate("certificationId", "certificationName type logo") // populate certification info
         .exec();
 };
 
@@ -51,7 +51,7 @@ const getFirmLicensesFromDB = async (firmUserId: string) => {
 const getFirmLicenseById = async (licenseId: string) => {
     if (!Types.ObjectId.isValid(licenseId)) throw new Error("Invalid license ID");
     return await FirmLicense.findById(licenseId)
-        .populate("certificationId", "certificatiionName type logo")
+        .populate("certificationId", "certificationName type logo")
         .exec();
 };
 
