@@ -1,6 +1,6 @@
 
 
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { AppError } from "../../errors/error";
 import config from "../../config";
 import { createToken, verifyToken } from "../../module/Auth/auth.utils";
@@ -19,114 +19,6 @@ import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IFirmLoginUser } from "./frimAuth.interface";
 import { FirmLicense } from "../FirmWiseCertLicense/cirtificateLicese.model";
-
-
-/* 
-
-
-------------------------------------------------------------
-ALL REGISTER SERVICE HERE
-
--------------------------------------------
-
-
-*/
-
-
-
-export interface StaffRegisterPayload {
-    email: string;
-    password: string;
-    fullName: string;
-    role?: string; // optional, default to STAFF
-}
-
-export const staffRegisterUserIntoDB = async (payload: StaffRegisterPayload) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const { email, password, fullName, role = Firm_USER_ROLE.STAFF } = payload;
-
-        // 1️⃣ Check if user already exists
-        const existingUser = await FirmUser.isUserExistsByEmail(email);
-        if (existingUser) {
-            throw new AppError(
-                HTTP_STATUS.CONFLICT,
-                "Account already exists with this email. Please login or use a new email."
-            );
-        }
-
-        // 2️⃣ Create new FirmUser
-        const [newUser] = await FirmUser.create(
-            [
-                {
-                    email,
-                    password,
-                    role,
-                    regUserType: "staff",
-                },
-            ],
-            { session }
-        );
-
-        // 3️⃣ Create corresponding StaffProfile linked to FirmUser
-        const [newProfile] = await StaffProfile.create(
-            [
-                {
-                    fullName,
-                    createdBy: newUser._id, // link creator
-                },
-            ],
-            { session }
-        );
-
-        // Optionally link StaffProfile back to FirmUser if needed
-        // newUser.profileId = newProfile._id;
-        // await newUser.save({ session });
-
-        // 4️⃣ Generate JWTs
-        const jwtPayload = {
-            userId: newUser._id,
-            email: newUser.email,
-            role: newUser.role,
-            accountStatus: newUser.accountStatus,
-        };
-
-        const accessToken = createToken(
-            jwtPayload,
-            config.jwt_access_secret as StringValue,
-            config.jwt_access_expires_in as StringValue
-        );
-
-        const refreshToken = createToken(
-            jwtPayload,
-            config.jwt_refresh_secret as StringValue,
-            config.jwt_refresh_expires_in as StringValue
-        );
-
-        // 5️⃣ Save access token for verification
-        newUser.verifyToken = accessToken;
-        await newUser.save({ session });
-
-        // 6️⃣ Commit transaction
-        await session.commitTransaction();
-        session.endSession();
-
-        return {
-            accessToken,
-            refreshToken,
-            userData: newUser,
-            profileData: newProfile,
-        };
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        throw error;
-    }
-};
-
-
 
 
 
@@ -150,6 +42,7 @@ export interface FirmLicenseDetailsPayload {
     certificationId: string;   // reference to LawFirmCertification _id
     licenseNumber: string;     // e.g. "ABC1234567"
     issuedBy?: string;          // e.g. "Queensland Law Society"
+    type: string;          // e.g. "Queensland Law Society"
     validUntil: string | Date; // mm/dd/yyyy from UI or Date object
     additionalNote?: string;   // optional note about license
 }
@@ -237,6 +130,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                     password,
                     role,
                     regUserType: "firm",
+                    profileType: 'FirmProfile'
                 },
             ],
             { session }
@@ -251,9 +145,6 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                     firmName,
                     registrationNumber,
                     yearEstablished,
-                    // Optional: if you collect VAT/GST later, map here:
-                    // vatTaxId: payload.vatTaxId,
-                    // legalFocusAreas: payload.legalFocusAreas ?? [],
 
                     // Contact info (nested)
                     contactInfo: {
@@ -275,6 +166,11 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             { session }
         );
 
+        //  Assign profileId correctly (ObjectId)
+        newUser.profileId = newProfile._id as Types.ObjectId
+        await newUser.save({ session });
+
+
 
         // 4️⃣ Create FirmLicense linked to FirmProfile
         const newLicense = await FirmLicense.create(
@@ -284,6 +180,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                     certificationId: licenseDetails.certificationId,
                     licenseNumber: licenseDetails.licenseNumber,
                     issuedBy: licenseDetails.issuedBy,
+                    type: licenseDetails.type,
                     additionalNote: licenseDetails.additionalNote ?? "",
                     validUntil: normalizeValidUntil(licenseDetails.validUntil),
                 },
@@ -920,7 +817,6 @@ const getUserInfoFromDB = async (userId: string) => {
 
 // Export service
 export const firmAuthService = {
-    staffRegisterUserIntoDB,
     firmRegisterUserIntoDB,
     loginUserIntoDB,
     refreshToken,

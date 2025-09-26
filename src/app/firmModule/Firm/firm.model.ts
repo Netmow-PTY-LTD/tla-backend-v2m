@@ -12,7 +12,6 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     vatTaxId: { type: String },
     yearEstablished: { type: Number },
     legalFocusAreas: { type: [String], default: [] },
-
     // Contact info
     contactInfo: {
       country: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
@@ -22,9 +21,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       email: { type: String },
       officialWebsite: { type: String },
     },
-
     // Firm Overview
-    
     companySize: {
       type: String,
       enum: [
@@ -39,17 +36,14 @@ const firmProfileSchema = new Schema<IFirmProfile>(
         return value === '' ? 'self_employed' : value;
       },
     },
-
     yearsInBusiness: {
       type: Number,
       min: 0,
     },
-
     description: {
       type: String,
       trim: true,
     },
-
  // Credits & Billing
     credits: {
       currentCreditBalance: { type: Number, default: 0 },
@@ -67,8 +61,6 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       currency: { type: String },
       notes: { type: String },
     },
-
-   
     // Permissions
     createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },

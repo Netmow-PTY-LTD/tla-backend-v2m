@@ -8,7 +8,7 @@ import sendResponse from '../../utils/sendResponse';
 const createStaff = catchAsync(async (req, res) => {
   const firmId = req.user.userId;
   const staffData = req.body;
-  const newStaff = await staffService.createStaff(firmId, staffData);
+  const newStaff = await staffService.createStaffUserIntoDB(firmId, staffData);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,

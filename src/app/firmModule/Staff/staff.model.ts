@@ -1,16 +1,12 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IStaffProfile extends Document {
+  firmUserId: Types.ObjectId;
   fullName: string;
   designation: string;
-  email: string;
   phone: string;
-  password: string;
-  image: { type: string; required: false };
-  role: 'staff' | 'admin';
+  image: string;
   status: 'active' | 'inactive';
-  // assignedCases?: Types.ObjectId[];
-  // assignedDepartments?: Types.ObjectId[];
   permissions?: Types.ObjectId[];
   lastLogin?: Date;
   createdBy: Types.ObjectId;
@@ -19,15 +15,11 @@ export interface IStaffProfile extends Document {
 
 const staffProfileSchema = new Schema<IStaffProfile>(
   {
+    firmUserId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     fullName: { type: String, required: true, trim: true },
     designation: { type: String, required: true },
-    // assignedCases: [{ type: Schema.Types.ObjectId, ref: 'Lead' }],
-    // assignedDepartments: [{ type: String, trim: true }],
-    email: { type: String, required: true, unique: true, trim: true },
     phone: { type: String, required: true, trim: true },
-    password: { type: String, required: true },
     image: { type: String, required: false },
-    role: { type: String, enum: ['staff', 'admin'], required: true },
     status: {
       type: String,
       enum: ['active', 'inactive'],
