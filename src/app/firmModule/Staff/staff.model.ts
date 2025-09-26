@@ -9,8 +9,6 @@ export interface IStaffProfile extends Document {
   image: { type: string; required: false };
   role: 'staff' | 'admin';
   status: 'active' | 'inactive';
-  // assignedCases?: Types.ObjectId[];
-  // assignedDepartments?: Types.ObjectId[];
   permissions?: Types.ObjectId[];
   lastLogin?: Date;
   createdBy: Types.ObjectId;
@@ -21,8 +19,6 @@ const staffProfileSchema = new Schema<IStaffProfile>(
   {
     fullName: { type: String, required: true, trim: true },
     designation: { type: String, required: true },
-    // assignedCases: [{ type: Schema.Types.ObjectId, ref: 'Lead' }],
-    // assignedDepartments: [{ type: String, trim: true }],
     email: { type: String, required: true, unique: true, trim: true },
     phone: { type: String, required: true, trim: true },
     password: { type: String, required: true },

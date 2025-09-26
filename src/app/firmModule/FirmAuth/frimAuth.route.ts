@@ -10,7 +10,6 @@ import { Firm_USER_ROLE } from "./frimAuth.constant";
 const router = Router();
 
 router.post('/register/firm', firmAuthController.firmRegister)
-router.post('/register/staff', firmAuthController.staffRegister)
 router.get('/user/userInfo', firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.FIRM,Firm_USER_ROLE.STAFF), firmAuthController.userInfo)
 
 
