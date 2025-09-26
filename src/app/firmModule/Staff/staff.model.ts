@@ -4,7 +4,7 @@ export interface IStaffProfile extends Document {
   fullName: string;
   designation: string;
   phone: string;
-  image: { type: string; required: false };
+  image: string;
   status: 'active' | 'inactive';
   permissions?: Types.ObjectId[];
   lastLogin?: Date;

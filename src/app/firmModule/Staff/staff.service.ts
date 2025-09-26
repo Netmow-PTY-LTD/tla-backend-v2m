@@ -98,7 +98,6 @@ export const createStaffUserIntoDB = async (firmId: string, payload: StaffRegist
   const session = await mongoose.startSession();
   session.startTransaction();
 
-console.log('check payload ==>',payload)
 
   try {
     const {
