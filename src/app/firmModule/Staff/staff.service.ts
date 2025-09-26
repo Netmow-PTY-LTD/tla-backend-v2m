@@ -20,7 +20,7 @@ const getStaffList = async (userId: string) => {
 
 const getStaffById = async (staffUserId: string) => {
 
-  console.log('check user id ', staffUserId)
+
 
   const existingUser = await FirmUser.isUserExists(staffUserId);
   if (!existingUser) {
@@ -30,7 +30,7 @@ const getStaffById = async (staffUserId: string) => {
   return StaffProfile.findOne({
     userId: new Types.ObjectId(staffUserId),
 
-  });
+  }).populate("userId");
 
 };
 
