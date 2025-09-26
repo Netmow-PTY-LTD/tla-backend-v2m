@@ -1,7 +1,7 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IStaffProfile extends Document {
-  firmUserId: Types.ObjectId;
+  userId: Types.ObjectId;
   fullName: string;
   designation: string;
   phone: string;
@@ -15,7 +15,7 @@ export interface IStaffProfile extends Document {
 
 const staffProfileSchema = new Schema<IStaffProfile>(
   {
-    firmUserId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     fullName: { type: String, required: true, trim: true },
     designation: { type: String, required: true },
     phone: { type: String, required: true, trim: true },

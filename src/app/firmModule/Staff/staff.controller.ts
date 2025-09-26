@@ -6,9 +6,9 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 
 const createStaff = catchAsync(async (req, res) => {
-  const firmId = req.user.userId;
+  const userId = req.user.userId;
   const staffData = req.body;
-  const newStaff = await staffService.createStaffUserIntoDB(firmId, staffData);
+  const newStaff = await staffService.createStaffUserIntoDB(userId, staffData);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
@@ -34,8 +34,8 @@ const listStaff = catchAsync(async (req, res) => {
 // router.get('/:firmId/:staffId', staffController.getStaffById);
 
 const getStaffById = catchAsync(async (req, res) => {
-  const { firmId, staffId } = req.params;
-  const staff = await staffService.getStaffById(firmId, staffId);
+  const {staffId } = req.params;
+  const staff = await staffService.getStaffById(staffId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
