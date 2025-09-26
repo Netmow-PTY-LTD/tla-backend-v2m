@@ -2,7 +2,7 @@
 // Interfaces
 // ===============================
 
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { FirmUserRole, FirmUserStatus } from "./frimAuth.constant";
 
 export interface IFirmLoginUser {
@@ -35,6 +35,8 @@ export interface IFirmUser extends Document {
   pendingEmail?: string;
   emailChangeToken?: string;
   emailChangeTokenExpires?: Date;
+  profileType: "StaffProfile" | "FirmProfile";
+  profileId: Types.ObjectId;
 }
 
 // Static methods for the model
