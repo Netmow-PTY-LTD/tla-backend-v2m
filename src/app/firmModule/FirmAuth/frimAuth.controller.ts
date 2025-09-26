@@ -351,8 +351,6 @@ const changeEmail = catchAsync(async (req, res) => {
 
 
 
-
-
 export const firmAuthController = {
   firmRegister,
   login,

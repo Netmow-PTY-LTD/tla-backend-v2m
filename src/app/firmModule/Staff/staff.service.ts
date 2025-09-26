@@ -83,23 +83,45 @@ export interface StaffRegisterPayload {
 }
 
 
-export const createStaffUserIntoDB = async (payload: StaffRegisterPayload) => {
+export interface StaffRegisterPayload {
+  email: string;
+  password: string;
+  fullName: string;
+  designation?: string;
+  phone?: string;
+  permissions?: Types.ObjectId[]; // optional
+  role?: string;
+  status?: "active" | "inactive"; // optional
+}
+
+export const createStaffUserIntoDB = async (firmId: string, payload: StaffRegisterPayload) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  try {
-    const { email, password, fullName, role = Firm_USER_ROLE.STAFF } = payload;
+console.log('check payload ==>',payload)
 
-    // 1️ Check if user already exists
+  try {
+    const {
+      email,
+      password,
+      fullName,
+      designation,
+      phone,
+      permissions,
+      role = Firm_USER_ROLE.STAFF,
+      status = "active",
+    } = payload;
+
+    // 1️⃣ Check if user already exists
     const existingUser = await FirmUser.isUserExistsByEmail(email);
     if (existingUser) {
       throw new AppError(
         HTTP_STATUS.CONFLICT,
-        "Account already exists with this email. Please login or use a new email."
+        "Account already exists with this email. Please  use a new email."
       );
     }
 
-    // 2️ Create new FirmUser
+    // 2️⃣ Create new FirmUser
     const [newUser] = await FirmUser.create(
       [
         {
@@ -107,27 +129,33 @@ export const createStaffUserIntoDB = async (payload: StaffRegisterPayload) => {
           password,
           role,
           regUserType: "staff",
+          profileType: "StaffProfile",
         },
       ],
       { session }
     );
 
-    // 3️ Create corresponding StaffProfile linked to FirmUser
+    // 3️⃣ Create corresponding StaffProfile
     const [newProfile] = await StaffProfile.create(
       [
         {
           fullName,
-          createdBy: newUser._id, // link creator
+          designation,
+          phone,
+          permissions: permissions || [],
+          role,
+          status,
+          createdBy: firmId,
         },
       ],
       { session }
     );
 
-    //  Assign profileId correctly (ObjectId)
-    newUser.profileId = newProfile._id as Types.ObjectId
+    // 4️⃣ Link profileId to user
+    newUser.profileId = newProfile._id as Types.ObjectId;
     await newUser.save({ session });
 
-    // 4️⃣ Generate JWTs
+    // 5️⃣ Generate JWT token
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
@@ -141,7 +169,6 @@ export const createStaffUserIntoDB = async (payload: StaffRegisterPayload) => {
       config.jwt_access_expires_in as StringValue
     );
 
-    // 5️⃣ Save access token for verification
     newUser.verifyToken = accessToken;
     await newUser.save({ session });
 
@@ -150,7 +177,9 @@ export const createStaffUserIntoDB = async (payload: StaffRegisterPayload) => {
     session.endSession();
 
     return {
-
+      accessToken,
+      userData: newUser,
+      profileData: newProfile,
     };
   } catch (error) {
     await session.abortTransaction();
