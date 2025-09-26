@@ -30,8 +30,7 @@ const listStaff = catchAsync(async (req, res) => {
   });
 });
 
-// GET staff by id
-// router.get('/:firmId/:staffId', staffController.getStaffById);
+
 
 const getStaffById = catchAsync(async (req, res) => {
   const {staffId } = req.params;
@@ -46,10 +45,10 @@ const getStaffById = catchAsync(async (req, res) => {
 });
 
 const updateStaff = catchAsync(async (req, res) => {
-  const { firmId, staffId } = req.params;
+  const {  staffId } = req.params;
   const payload = req.body;
 
-  const updated = await staffService.updateStaff(firmId, staffId, payload);
+  const updated = await staffService.updateStaff( staffId, payload);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -60,9 +59,9 @@ const updateStaff = catchAsync(async (req, res) => {
 });
 
 const deleteStaff = catchAsync(async (req, res) => {
-  const { firmId, staffId } = req.params;
+  const {staffId } = req.params;
 
-  await staffService.deleteStaff(firmId, staffId);
+  await staffService.deleteStaff(staffId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

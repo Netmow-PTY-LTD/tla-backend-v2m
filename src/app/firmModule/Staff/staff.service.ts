@@ -85,10 +85,10 @@ const updateStaff = async (staffId: string, payload: any) => {
 
 
 
-const deleteStaff = async (userId: string, staffId: string) => {
+const deleteStaff = async ( staffId: string) => {
   const deleted = await StaffProfile.findOneAndDelete({
     _id: staffId,
-    createdBy: userId,
+   
   });
 
   if (!deleted) {
