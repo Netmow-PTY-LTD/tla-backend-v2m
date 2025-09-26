@@ -8,40 +8,87 @@ import { StringValue } from 'ms';
 import config from '../../config';
 import FirmUser from '../FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
+import { sendNotFoundResponse } from '../../errors/custom.error';
 
-const getStaffList = async (firmId: string) => {
-  return StaffProfile.find({ createdBy: new Types.ObjectId(firmId) })
+const getStaffList = async (userId: string) => {
+  return StaffProfile.find({ userId: { $ne: userId }, })
+    .populate("userId")
     .populate('createdBy', 'email role')
     .sort({ createdAt: -1 });
 };
 
-const getStaffById = async (firmId: string, staffId: string) => {
+
+const getStaffById = async (staffId: string) => {
+
+  const existingUser = await FirmUser.isUserExists(staffId);
+  if (existingUser) {
+    return sendNotFoundResponse('User not found')
+  }
+
   return StaffProfile.findOne({
-    _id: new Types.ObjectId(staffId),
-    createdBy: new Types.ObjectId(firmId),
+    userId: new Types.ObjectId(staffId),
+
   });
+
 };
 
-const updateStaff = async (firmId: string, staffId: string, payload: any) => {
-  const updated = await StaffProfile.findOneAndUpdate(
-    { _id: staffId, createdBy: firmId },
-    { $set: payload },
-    { new: true },
+
+
+
+const updateStaff = async (staffId: string, payload: any) => {
+
+  const firmUser = await FirmUser.findById(staffId).select("+password");
+  if (!firmUser) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
+  }
+
+  const staffProfile = await StaffProfile.findOne({ userId: staffId }).populate("userId");
+  if (!staffProfile) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff not found");
+  }
+
+  if (payload.email) {
+    firmUser.email = payload.email;
+  }
+
+  if (payload.password) {
+    firmUser.password = payload.password; // will be auto-hashed by pre-save hook
+    firmUser.needsPasswordChange = true; // optional: force user to login again
+    firmUser.passwordChangedAt = new Date();
+  }
+
+  await firmUser.save();
+
+  // 3️ Remove fields meant for FirmUser from StaffProfile update payload
+  const { email, password, ...profilePayload } = payload;
+
+  // 4️ Update StaffProfile fields
+  const updatedProfile = await StaffProfile.findOneAndUpdate(
+    { _id: staffId },
+    { $set: profilePayload },
+    { new: true }
   );
 
-  if (!updated) {
+  if (!updatedProfile) {
     throw new AppError(
       HTTP_STATUS.NOT_FOUND,
-      'Staff not found or unauthorized.',
+      "Staff profile not found or unauthorized."
     );
   }
-  return updated;
+
+  return {
+    staffProfile: updatedProfile,
+    user: firmUser,
+  };
 };
 
-const deleteStaff = async (firmId: string, staffId: string) => {
+
+
+
+const deleteStaff = async (userId: string, staffId: string) => {
   const deleted = await StaffProfile.findOneAndDelete({
     _id: staffId,
-    createdBy: firmId,
+    createdBy: userId,
   });
 
   if (!deleted) {
@@ -54,25 +101,7 @@ const deleteStaff = async (firmId: string, staffId: string) => {
   return deleted;
 };
 
-const createStaff = async (firmId: string, payload: Partial<IStaffProfile>) => {
-  if (!mongoose.Types.ObjectId.isValid(firmId)) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Invalid firm ID.');
-  }
 
-  try {
-    const newStaff = await StaffProfile.create({
-      createdBy: firmId,
-      ...payload,
-    });
-
-    return newStaff;
-  } catch (err) {
-    throw new AppError(
-      HTTP_STATUS.EXPECTATION_FAILED,
-      'Failed to create staff profile.',
-    );
-  }
-};
 
 
 export interface StaffRegisterPayload {
@@ -94,10 +123,9 @@ export interface StaffRegisterPayload {
   status?: "active" | "inactive"; // optional
 }
 
-export const createStaffUserIntoDB = async (firmId: string, payload: StaffRegisterPayload) => {
+export const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPayload) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-
 
   try {
     const {
@@ -138,14 +166,14 @@ export const createStaffUserIntoDB = async (firmId: string, payload: StaffRegist
     const [newProfile] = await StaffProfile.create(
       [
         {
-          firmUserId: newUser._id,
+          userId: newUser._id,
           fullName,
           designation,
           phone,
           permissions: permissions || [],
           role,
           status,
-          createdBy: new mongoose.Types.ObjectId(firmId)
+          createdBy: new mongoose.Types.ObjectId(userId)
         },
       ],
       { session }
@@ -190,21 +218,10 @@ export const createStaffUserIntoDB = async (firmId: string, payload: StaffRegist
 
 
 
-
-
-
-
-
-
-
-
-
-
 export const staffService = {
   getStaffList,
   getStaffById,
   updateStaff,
   deleteStaff,
-  createStaff,
   createStaffUserIntoDB
 };
