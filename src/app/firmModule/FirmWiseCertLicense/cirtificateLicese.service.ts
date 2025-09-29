@@ -3,11 +3,13 @@ import { Types } from "mongoose";
 import { FirmLicense } from "./cirtificateLicese.model";
 import { FirmProfile } from "../Firm/firm.model";
 import { IFirmLicense } from "./cirtificateLicese.interface";
+import FirmUser from "../FirmAuth/frimAuth.model";
+import { sendNotFoundResponse } from "../../errors/custom.error";
 
 
 // Create a new license
 export const createFirmLicenseInDB = async (
-    firmUserId: string,
+    userId: string,
     data: {
         certificationId: string;
         licenseNumber: string;
@@ -16,35 +18,42 @@ export const createFirmLicenseInDB = async (
         validUntil: Date;
     }
 ) => {
-    // Get the firm profile ID for this user
-    const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
-    if (!firmProfile) {
-        throw new Error("Firm profile not found for this user");
-    }
 
+    const user = await FirmUser.findById(userId).select('firmProfileId')
+
+    if (!user) {
+        return sendNotFoundResponse("User not found");
+    }
 
     // Include firmProfileId in the license data
     const licenseData = {
         ...data,
-        firmProfileId: firmProfile._id,
+        firmProfileId: user.firmProfileId,
     };
-    console.log('firmProfile', licenseData)
+
+
     // Create the license
     const license = await FirmLicense.create(licenseData);
     return license;
 };
 
+
 // Get all licenses for a firm
-const getFirmLicensesFromDB = async (firmUserId: string) => {
-    const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
-    if (!firmProfile) {
-        throw new Error("Firm profile not found for this user");
+const getFirmLicensesFromDB = async (userId: string) => {
+
+
+    const user = await FirmUser.findById(userId).select('firmProfileId')
+
+    if (!user) {
+        return sendNotFoundResponse("User not found");
     }
 
 
-    return await FirmLicense.find({ firmProfileId: firmProfile?._id })
+    return await FirmLicense.find({ firmProfileId: user.firmProfileId })
         .populate("certificationId", "certificationName type logo") // populate certification info
         .exec();
+
+
 };
 
 // Get single license by ID

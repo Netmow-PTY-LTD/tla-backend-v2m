@@ -74,8 +74,8 @@ const deleteFirm = catchAsync(async (req, res) => {
 //   --------------------  current firm  user dedicated api -------------------
 
 const getFirmInfo = catchAsync(async (req, res) => {
-  const firmUser = req.user.userId;
-  const firm = await firmService.getFirmInfoFromDB(firmUser);
+  const userId = req.user.userId;
+  const firm = await firmService.getFirmInfoFromDB(userId);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -88,7 +88,7 @@ const getFirmInfo = catchAsync(async (req, res) => {
 
 
 const updateFirmInfo = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId
+  const userId = req.user.userId
   const updateData = req.body;
 
 
@@ -98,12 +98,12 @@ const updateFirmInfo = catchAsync(async (req, res) => {
     const originalName = req.file.originalname;
 
     // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, firmUserId);
+    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
     updateData.logo = logoUrl;
   }
 
 
-  const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUserId, updateData);
+  const updatedFirm = await firmService.updateFirmInfoIntoDB(userId, updateData);
 
   // Determine the response message
   let message = "Firm info updated successfully.";

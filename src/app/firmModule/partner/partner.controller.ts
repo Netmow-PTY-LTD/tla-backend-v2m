@@ -5,7 +5,7 @@ import sendResponse from "../../utils/sendResponse";
 import { partnerService } from "./partner.service";
 
 const createPartner = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId; // from auth middleware
+  const userId = req.user.userId; // from auth middleware
   const partnerData = req.body;
 
 
@@ -15,12 +15,12 @@ const createPartner = catchAsync(async (req, res) => {
     const originalName = req.file.originalname;
 
     // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, firmUserId);
+    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
     partnerData.image = logoUrl;
   }
 
 
-  const newPartner = await partnerService.createPartner(firmUserId, partnerData);
+  const newPartner = await partnerService.createPartner(userId, partnerData);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
@@ -43,7 +43,7 @@ const listPartners = catchAsync(async (req, res) => {
 });
 
 const updatePartner = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId; // from auth middleware
+  const userId = req.user.userId; // from auth middleware
   const { partnerId } = req.params;
   const payload = req.body;
 
@@ -54,7 +54,7 @@ const updatePartner = catchAsync(async (req, res) => {
     const originalName = req.file.originalname;
 
     // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, firmUserId);
+    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
     payload.image = logoUrl;
   }
 
