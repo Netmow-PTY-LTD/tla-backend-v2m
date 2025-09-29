@@ -74,10 +74,6 @@ const firmUserSchema = new mongoose.Schema(
     pendingEmail: { type: String, lowercase: true, trim: true },
     emailChangeToken: { type: String },
     emailChangeTokenExpires: { type: Date },
-    firmProfileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
-    fullName: { type: String, trim: true },
-    designation: { type: String },
-    image: { type: String },
     permissions: [
       {
         pageId: { type: Schema.Types.ObjectId },
@@ -85,8 +81,14 @@ const firmUserSchema = new mongoose.Schema(
 
       },
     ],
-    createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
-    updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
+    firmProfileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
+    profileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
+
+    // fullName: { type: String, trim: true },
+    // designation: { type: String },
+    // image: { type: String },
+    // createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
+    // updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
 
   },
   {
