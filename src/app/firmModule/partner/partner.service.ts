@@ -4,9 +4,9 @@ import { FirmPartner } from "./partner.model";
 
 
 
-const createPartner = async (firmUserId: string, data: Partial<IPartner>) => {
+const createPartner = async (userId: string, data: Partial<IPartner>) => {
   // Get the firm profile ID for this user
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+  const firmProfile = await FirmProfile.findOne({ userId: userId });
   if (!firmProfile) {
     throw new Error("Firm profile not found for this user");
   }
@@ -22,10 +22,10 @@ const createPartner = async (firmUserId: string, data: Partial<IPartner>) => {
   return await FirmPartner.create(partnerData);
 };
 
-const getPartnerList = async (firmUserId: string) => {
+const getPartnerList = async (userId: string) => {
 
   // Get the firm profile ID for this user
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+  const firmProfile = await FirmProfile.findOne({ userId: userId });
   if (!firmProfile) {
     throw new Error("Firm profile not found for this user");
   }

@@ -6,9 +6,9 @@ import { firmLicenseService } from "./cirtificateLicese.service";
 
 // Create License
 const createFirmLicense = catchAsync(async (req, res) => {
- const firmId = req.user.userId; // assuming user has firmProfileId
- console.log('firmId ==>',firmId)
-    const license = await firmLicenseService.createFirmLicenseInDB(firmId, req.body);
+ const userId = req.user.userId; // assuming user has firmProfileId
+ console.log('userId ==>',userId)
+    const license = await firmLicenseService.createFirmLicenseInDB(userId, req.body);
 
     return sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -20,8 +20,8 @@ const createFirmLicense = catchAsync(async (req, res) => {
 
 // Get all licenses of firm
 const getFirmLicenses = catchAsync(async (req, res) => {
-    const firmId = req.user.userId; // assuming user has firmProfileId
-    const licenses = await firmLicenseService.getFirmLicensesFromDB(firmId);
+    const userId = req.user.userId; // assuming user has firmProfileId
+    const licenses = await firmLicenseService.getFirmLicensesFromDB(userId);
     return sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

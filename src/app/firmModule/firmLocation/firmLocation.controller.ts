@@ -4,10 +4,10 @@ import { HTTP_STATUS } from "../../constant/httpStatus";
 import { firmLocationService } from "./firmLocation.service";
 
 const createLocation = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId; 
-  const locationData = { ...req.body, firmId: firmUserId };
+  const userId = req.user.userId; 
+  const locationData = { ...req.body, firmId: userId };
 
-  const newLocation = await firmLocationService.createLocation(firmUserId, locationData);
+  const newLocation = await firmLocationService.createLocation(userId, locationData);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
@@ -18,8 +18,8 @@ const createLocation = catchAsync(async (req, res) => {
 });
 
 const listLocations = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId;
-  const locations = await firmLocationService.getAllLocations(firmUserId);
+  const userId = req.user.userId;
+  const locations = await firmLocationService.getAllLocations(userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -30,10 +30,10 @@ const listLocations = catchAsync(async (req, res) => {
 });
 
 const getSingleLocation = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId;
+  const userId = req.user.userId;
   const { locationId } = req.params;
 
-  const location = await firmLocationService.getLocationById(locationId, firmUserId);
+  const location = await firmLocationService.getLocationById(locationId, userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -44,11 +44,11 @@ const getSingleLocation = catchAsync(async (req, res) => {
 });
 
 const updateLocation = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId;
+  const userId = req.user.userId;
   const { locationId } = req.params;
   const payload = req.body;
 
-  const updatedLocation = await firmLocationService.updateLocation(locationId, firmUserId, payload);
+  const updatedLocation = await firmLocationService.updateLocation(locationId, userId, payload);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -59,10 +59,10 @@ const updateLocation = catchAsync(async (req, res) => {
 });
 
 const deleteLocation = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId;
+  const userId = req.user.userId;
   const { locationId } = req.params;
 
-  await firmLocationService.deleteLocation(locationId, firmUserId);
+  await firmLocationService.deleteLocation(locationId, userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

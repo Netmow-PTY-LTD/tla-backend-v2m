@@ -1,15 +1,15 @@
 import { sendNotFoundResponse } from "../../errors/custom.error";
 import { FirmProfile } from "../Firm/firm.model";
-import { FirmLocationPayload, IFirmLocation } from "./firmLocation.interface";
+import { FirmLocationPayload } from "./firmLocation.interface";
 import { FirmLocationModel } from "./firmLocation.model";
 
 // Create a new location
 const createLocation = async (
-  firmUserId: string,
+  userId: string,
   payload: FirmLocationPayload
 )=> {
   // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+  const firmProfile = await FirmProfile.findOne({ userId: userId });
 
   if (!firmProfile) {
     return sendNotFoundResponse("Firm profile not found");
@@ -30,7 +30,7 @@ const createLocation = async (
 // Get all locations for a firm
 const getAllLocations = async (firmId: string) => {
   // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmId });
+  const firmProfile = await FirmProfile.findOne({ userId: firmId });
 
   if (!firmProfile) {
     return sendNotFoundResponse("Firm profile not found");
@@ -48,7 +48,7 @@ const getAllLocations = async (firmId: string) => {
 const getLocationById = async (locationId: string, firmId: string) => {
 
   // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmId });
+  const firmProfile = await FirmProfile.findOne({ userId: firmId });
 
   if (!firmProfile) {
     return sendNotFoundResponse("Firm profile not found");
@@ -70,7 +70,7 @@ const updateLocation = async (
 )=> {
 
   // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmId });
+  const firmProfile = await FirmProfile.findOne({ userId: firmId });
 
   if (!firmProfile) {
     return sendNotFoundResponse("Firm profile not found");
@@ -92,7 +92,7 @@ const updateLocation = async (
 const deleteLocation = async (locationId: string, firmId: string) => {
 
     // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmId });
+  const firmProfile = await FirmProfile.findOne({ userId: firmId });
 
   if (!firmProfile) {
     return sendNotFoundResponse("Firm profile not found");

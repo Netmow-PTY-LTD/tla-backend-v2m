@@ -7,7 +7,7 @@ import { IFirmLicense } from "./cirtificateLicese.interface";
 
 // Create a new license
 export const createFirmLicenseInDB = async (
-    firmUserId: string,
+   userId: string,
     data: {
         certificationId: string;
         licenseNumber: string;
@@ -17,7 +17,7 @@ export const createFirmLicenseInDB = async (
     }
 ) => {
     // Get the firm profile ID for this user
-    const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+    const firmProfile = await FirmProfile.findOne({ userId:userId });
     if (!firmProfile) {
         throw new Error("Firm profile not found for this user");
     }
@@ -35,8 +35,8 @@ export const createFirmLicenseInDB = async (
 };
 
 // Get all licenses for a firm
-const getFirmLicensesFromDB = async (firmUserId: string) => {
-    const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+const getFirmLicensesFromDB = async (userId: string) => {
+    const firmProfile = await FirmProfile.findOne({ userId:userId });
     if (!firmProfile) {
         throw new Error("Firm profile not found for this user");
     }
