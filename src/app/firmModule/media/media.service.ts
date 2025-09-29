@@ -4,6 +4,7 @@ import { sendNotFoundResponse } from '../../errors/custom.error';
 import { AppError } from '../../errors/error';
 import { TUploadedFile } from '../../interface/file.interface';
 import { FirmProfile } from '../Firm/firm.model';
+import FirmUser from '../FirmAuth/frimAuth.model';
 import FirmMedia from './media.model';
 
 
@@ -14,10 +15,10 @@ const updateFirmMediaIntoDB = async (
   },
   files: TUploadedFile[],
 ) => {
-  const firmProfile = await FirmProfile.findOne({ userId: userId });
+  const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!firmProfile) {
-    return sendNotFoundResponse('firm profile data');
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
 
   let uploadedUrls: string[] = [];
@@ -51,7 +52,7 @@ const updateFirmMediaIntoDB = async (
   }
 
   const updatedFirmMedia = await FirmMedia.findOneAndUpdate(
-    { firmProfileId: firmProfile._id },
+    { firmProfileId: user.firmProfileId },
     update,
     {
       upsert: true,
@@ -70,18 +71,14 @@ const removeFirmMediaFromDB = async (
   type: 'photos' | 'videos',
   index: number
 ) => {
-  const firmProfile = await FirmProfile.findOne({ userId: userId });
+  const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!firmProfile) {
-    return {
-      statusCode: 200,
-      success: false,
-      message: 'Firm not found',
-      data: null,
-    };
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
 
-  const firmMedia = await FirmMedia.findOne({ firmProfileId: firmProfile._id });
+
+  const firmMedia = await FirmMedia.findOne({ firmProfileId: user.firmProfileId });
   if (!firmMedia) return null;
 
   // Check if index is valid
@@ -99,21 +96,21 @@ const removeFirmMediaFromDB = async (
 /**
  * Get Firm Media by Firm User ID
  */
-const getFirmMediaFromDB = async (userId: string) => {
-  const firmProfile = await FirmProfile.findOne({ userId: userId });
 
-  if (!firmProfile) {
-    return sendNotFoundResponse('firm profile data');
+const getFirmMediaFromDB = async (userId: string) => {
+  const user = await FirmUser.findById(userId).select('firmProfileId')
+
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
 
+
   const firmMedia = await FirmMedia.findOne({
-    firmProfileId: firmProfile._id,
+    firmProfileId: user.firmProfileId,
   });
 
   return firmMedia;
 };
-
-
 
 
 
