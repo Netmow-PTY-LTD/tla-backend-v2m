@@ -162,7 +162,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
         );
 
         //  Assign profileId correctly (ObjectId)
-        newUser.firmId = newProfile._id as Types.ObjectId
+        newUser.firmProfileId = newProfile._id as Types.ObjectId
         await newUser.save({ session });
 
 
@@ -776,13 +776,17 @@ const getUserInfoFromDB = async (userId: string) => {
         throw new Error("User not found");
     }
 
-    // Find associated firm profile
-    const firmProfile = await FirmProfile.findOne({ firmUser: userId }).lean();
+    // If the user role is "FIRM", attach the firm profile
+    if (user.role === Firm_USER_ROLE.ADMIN) {
+        const firmProfile = await FirmProfile.findOne({ userId: userId }).lean();
+        return {
+            ...user,
+            firmProfile: firmProfile || null, // attach profile if exists
+        };
+    }
 
-    return {
-        ...user,
-        firmProfile: firmProfile || null, // attach profile if exists
-    };
+    // Otherwise, return only user info
+    return user;
 };
 
 

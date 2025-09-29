@@ -85,6 +85,8 @@ const firmUserSchema = new mongoose.Schema(
 
       },
     ],
+    createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
+    updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
 
   },
   {

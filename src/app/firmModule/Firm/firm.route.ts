@@ -8,7 +8,7 @@ const router = Router();
 
 router.get(
   '/firmInfo',
-  firmAuth(Firm_USER_ROLE.FIRM),
+  firmAuth(Firm_USER_ROLE.ADMIN),
   firmController.getFirmInfo,
 );
 
@@ -20,7 +20,7 @@ router.put(
     req.body = JSON.parse(req.body.data);
     next();
   },
-  firmAuth(Firm_USER_ROLE.FIRM),
+  firmAuth(Firm_USER_ROLE.STAFF,Firm_USER_ROLE.ADMIN),
   firmController.updateFirmInfo,
 );
 
@@ -37,3 +37,4 @@ router.delete(
 );
 
 export const firmRouter = router;
+

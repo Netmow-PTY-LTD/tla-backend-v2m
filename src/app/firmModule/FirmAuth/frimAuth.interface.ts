@@ -33,7 +33,7 @@ export interface IFirmUser extends Document {
   pendingEmail?: string;
   emailChangeToken?: string;
   emailChangeTokenExpires?: Date;
-  firmId: Types.ObjectId;
+  firmProfileId: Types.ObjectId;
   fullName: string;
   designation: string;
   image: string;
