@@ -8,13 +8,13 @@ import FirmMedia from './media.model';
 
 
 const updateFirmMediaIntoDB = async (
-  firmUserId: string,
+  userId: string,
   payload: {
     videos: string; // single video URL from input
   },
   files: TUploadedFile[],
 ) => {
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+  const firmProfile = await FirmProfile.findOne({ userId: userId });
 
   if (!firmProfile) {
     return sendNotFoundResponse('firm profile data');
@@ -27,7 +27,7 @@ const updateFirmMediaIntoDB = async (
       const uploadPromises = files
         .filter((file) => file?.buffer)
         .map((file) =>
-          uploadToSpaces(file.buffer as Buffer, file.originalname, firmUserId),
+          uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
         );
 
       uploadedUrls = await Promise.all(uploadPromises);
@@ -66,11 +66,11 @@ const updateFirmMediaIntoDB = async (
 
 
 const removeFirmMediaFromDB = async (
-  firmUserId: string,
+  userId: string,
   type: 'photos' | 'videos',
   index: number
 ) => {
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+  const firmProfile = await FirmProfile.findOne({ userId: userId });
 
   if (!firmProfile) {
     return {
@@ -99,8 +99,8 @@ const removeFirmMediaFromDB = async (
 /**
  * Get Firm Media by Firm User ID
  */
-const getFirmMediaFromDB = async (firmUserId: string) => {
-  const firmProfile = await FirmProfile.findOne({ firmUser: firmUserId });
+const getFirmMediaFromDB = async (userId: string) => {
+  const firmProfile = await FirmProfile.findOne({ userId: userId });
 
   if (!firmProfile) {
     return sendNotFoundResponse('firm profile data');
