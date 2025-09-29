@@ -7,7 +7,7 @@ import { upload } from "../../config/upload";
 const router = Router();
 
 // All routes require firm role
-router.use(firmAuth(Firm_USER_ROLE.FIRM));
+router.use(firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.STAFF));
 
 router.post("/add",
     upload.single('partnerImage'),
