@@ -5,7 +5,7 @@ import { firmLocationService } from "./firmLocation.service";
 
 const createLocation = catchAsync(async (req, res) => {
   const userId = req.user.userId; 
-  const locationData = { ...req.body, firmId: userId };
+  const locationData = req.body
 
   const newLocation = await firmLocationService.createLocation(userId, locationData);
 

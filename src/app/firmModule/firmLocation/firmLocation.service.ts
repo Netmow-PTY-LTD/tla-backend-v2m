@@ -1,5 +1,6 @@
 import { sendNotFoundResponse } from "../../errors/custom.error";
 import { FirmProfile } from "../Firm/firm.model";
+import FirmUser from "../FirmAuth/frimAuth.model";
 import { FirmLocationPayload } from "./firmLocation.interface";
 import { FirmLocationModel } from "./firmLocation.model";
 
@@ -7,18 +8,16 @@ import { FirmLocationModel } from "./firmLocation.model";
 const createLocation = async (
   userId: string,
   payload: FirmLocationPayload
-)=> {
-  // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ userId: userId });
+) => {
+  const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!firmProfile) {
-    return sendNotFoundResponse("Firm profile not found");
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
-
   // Attach the firmProfileId to payload
   const locationPayload = {
     ...payload,
-    firmProfileId: firmProfile._id,
+    firmProfileId: user.firmProfileId,
   };
 
   const result = await FirmLocationModel.create(locationPayload);
@@ -28,15 +27,14 @@ const createLocation = async (
 
 
 // Get all locations for a firm
-const getAllLocations = async (firmId: string) => {
-  // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ userId: firmId });
+const getAllLocations = async (userId: string) => {
+  const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!firmProfile) {
-    return sendNotFoundResponse("Firm profile not found");
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
 
-  const result = await FirmLocationModel.find({ firmProfileId: firmProfile._id })
+  const result = await FirmLocationModel.find({ firmProfileId: user.firmProfileId })
     .populate("address") // populate ZipCode details
     .sort({ createdAt: -1 });
 
@@ -45,16 +43,16 @@ const getAllLocations = async (firmId: string) => {
 
 
 // Get a single location by ID and firm
-const getLocationById = async (locationId: string, firmId: string) => {
+const getLocationById = async (locationId: string, userId: string) => {
 
-  // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ userId: firmId });
+  const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!firmProfile) {
-    return sendNotFoundResponse("Firm profile not found");
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
 
-  const result = await FirmLocationModel.findOne({ _id: locationId, firmProfileId: firmProfile._id })
+
+  const result = await FirmLocationModel.findOne({ _id: locationId, firmProfileId: user.firmProfileId })
     .populate("address"); // populate ZipCode details
 
   return result;
@@ -65,20 +63,18 @@ const getLocationById = async (locationId: string, firmId: string) => {
 // Update a location
 const updateLocation = async (
   locationId: string,
-  firmId: string,
+  userId: string,
   payload: Partial<Omit<FirmLocationPayload, "firmProfileId">>
-)=> {
+) => {
 
-  // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ userId: firmId });
+  const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!firmProfile) {
-    return sendNotFoundResponse("Firm profile not found");
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
 
-
   const result = await FirmLocationModel.findOneAndUpdate(
-    { _id: locationId, firmProfileId: firmProfile._id },
+    { _id: locationId, firmProfileId: user.firmProfileId },
     { $set: payload },
     { new: true }
   ).populate("address"); // populate ZipCode details
@@ -89,16 +85,15 @@ const updateLocation = async (
 
 
 // Delete a location
-const deleteLocation = async (locationId: string, firmId: string) => {
+const deleteLocation = async (locationId: string, userId: string) => {
 
-    // Check if the firm profile exists
-  const firmProfile = await FirmProfile.findOne({ userId: firmId });
+  const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!firmProfile) {
-    return sendNotFoundResponse("Firm profile not found");
+  if (!user) {
+    return sendNotFoundResponse("User not found");
   }
 
-  const result = await FirmLocationModel.findOneAndDelete({ _id: locationId, firmProfileId: firmProfile._id });
+  const result = await FirmLocationModel.findOneAndDelete({ _id: locationId, firmProfileId: user.firmProfileId });
   return result;
 };
 
