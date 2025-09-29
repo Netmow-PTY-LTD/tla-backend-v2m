@@ -161,6 +161,7 @@ interface StaffRegisterPayload {
   password: string;
   fullName: string;
   role?: string; // optional, default to STAFF
+
 }
 
 
@@ -174,7 +175,7 @@ interface StaffRegisterPayload {
   permissions?: Types.ObjectId[]; // optional
   role?: string;
   image?: string;
-  status?: "active" | "inactive"; // optional
+  status: "active" | "inactive"; // optional
 }
 
 const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPayload) => {
@@ -191,8 +192,8 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       phone,
       permissions,
       role = Firm_USER_ROLE.STAFF,
-      status = "active",
-      image
+      image,
+      status
     } = payload;
 
     // 1️⃣ Check if user already exists
@@ -211,6 +212,8 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
           email,
           password,
           role,
+          // permissions: permissions || [],
+          accountStatus: status
         },
       ],
       { session }
@@ -225,9 +228,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
           fullName,
           designation,
           phone,
-          permissions: permissions || [],
           role,
-          status,
           image,
           createdBy: new mongoose.Types.ObjectId(userId)
         },
@@ -235,6 +236,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       { session }
     );
 
+    newUser.firmProfileId = firmProfileId as Types.ObjectId
     newUser.profile = newProfile._id as Types.ObjectId
     await newUser.save({ session });
 
