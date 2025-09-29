@@ -32,7 +32,7 @@ export const getStaffList = async (userId: string) => {
     const staffList = await StaffProfile.find(filter)
       .populate({
         path: 'userId',
-        select: 'email fullName role',
+        select: 'email  role accountStatus',
       })
       .populate({
         path: 'createdBy',
