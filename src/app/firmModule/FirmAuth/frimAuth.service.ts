@@ -140,7 +140,6 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                     firmName,
                     registrationNumber,
                     yearEstablished,
-
                     // Contact info (nested)
                     contactInfo: {
                         zipCode: contactInfo?.zipCode,
@@ -150,10 +149,6 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                         email: contactInfo?.email ?? email, // default to account email if not provided
                         officialWebsite: contactInfo?.officialWebsite,
                     },
-
-                    // License details (REQUIRED)
-
-
                     // Permissions
                     createdBy: newUser._id,
                 },
@@ -191,6 +186,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             email: newUser.email,
             role: newUser.role,
             accountStatus: newUser.accountStatus,
+            firmProfileId: newUser.firmProfileId,
         };
 
         const accessToken = createToken(
@@ -267,6 +263,7 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
         // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
         role: user?.role,
         accountStatus: user.accountStatus,
+        firmProfileId: user.firmProfileId,
     };
 
     // Generate access token

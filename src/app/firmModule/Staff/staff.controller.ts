@@ -20,8 +20,7 @@ const createStaff = catchAsync(async (req, res) => {
 
 const listStaff = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const query=req.query;
-  const staffList = await staffService.getStaffList(userId,query);
+  const staffList = await staffService.getStaffList(userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
