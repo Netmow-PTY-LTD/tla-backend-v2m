@@ -8,7 +8,7 @@ const router = Router();
 
 router.get(
   '/firmInfo',
-  firmAuth(Firm_USER_ROLE.ADMIN),
+  firmAuth(Firm_USER_ROLE.STAFF,Firm_USER_ROLE.ADMIN),
   firmController.getFirmInfo,
 );
 

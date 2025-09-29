@@ -267,6 +267,7 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
         firmProfileId: user.firmProfileId,
     };
 
+
     // Generate access token
     const accessToken = createToken(
         jwtPayload,
