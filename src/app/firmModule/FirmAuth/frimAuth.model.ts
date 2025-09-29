@@ -82,7 +82,7 @@ const firmUserSchema = new mongoose.Schema(
       },
     ],
     firmProfileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
-    profileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
+    profile: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
 
     // fullName: { type: String, trim: true },
     // designation: { type: String },

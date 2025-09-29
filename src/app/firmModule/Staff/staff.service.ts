@@ -156,7 +156,7 @@ const deleteStaff = async (staffUserId: string) => {
 
 
 
- interface StaffRegisterPayload {
+interface StaffRegisterPayload {
   email: string;
   password: string;
   fullName: string;
@@ -164,7 +164,7 @@ const deleteStaff = async (staffUserId: string) => {
 }
 
 
- interface StaffRegisterPayload {
+interface StaffRegisterPayload {
   email: string;
   password: string;
   fullName: string;
@@ -173,6 +173,7 @@ const deleteStaff = async (staffUserId: string) => {
   firmProfileId: Types.ObjectId; // optional
   permissions?: Types.ObjectId[]; // optional
   role?: string;
+  image?: string;
   status?: "active" | "inactive"; // optional
 }
 
@@ -191,6 +192,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       permissions,
       role = Firm_USER_ROLE.STAFF,
       status = "active",
+      image
     } = payload;
 
     // 1️⃣ Check if user already exists
@@ -226,12 +228,15 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
           permissions: permissions || [],
           role,
           status,
+          image,
           createdBy: new mongoose.Types.ObjectId(userId)
         },
       ],
       { session }
     );
 
+    newUser.profile = newProfile._id as Types.ObjectId
+    await newUser.save({ session });
 
 
     // 5️⃣ Generate JWT token

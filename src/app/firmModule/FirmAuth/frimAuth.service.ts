@@ -158,6 +158,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
 
         //  Assign profileId correctly (ObjectId)
         newUser.firmProfileId = newProfile._id as Types.ObjectId
+        newUser.profile= newProfile._id as Types.ObjectId
         await newUser.save({ session });
 
 
