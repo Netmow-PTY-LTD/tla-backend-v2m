@@ -7,7 +7,6 @@ import { firmLicenseService } from "./cirtificateLicese.service";
 // Create License
 const createFirmLicense = catchAsync(async (req, res) => {
  const userId = req.user.userId; // assuming user has firmProfileId
- console.log('userId ==>',userId)
     const license = await firmLicenseService.createFirmLicenseInDB(userId, req.body);
 
     return sendResponse(res, {

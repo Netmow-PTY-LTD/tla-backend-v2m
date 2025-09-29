@@ -14,6 +14,7 @@ export interface IStaffProfile extends Document {
   updatedBy?: Types.ObjectId;
 }
 
+
 const staffProfileSchema = new Schema<IStaffProfile>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
