@@ -48,7 +48,6 @@ const getStaffById = async (staffUserId: string) => {
 };
 
 
-
 const updateStaff = async (userId: string, staffUserId: string, payload: any) => {
 
   const firmUser = await FirmUser.findById(staffUserId).select("+password");
@@ -218,9 +217,7 @@ export const createStaffUserIntoDB = async (userId: string, payload: StaffRegist
       { session }
     );
 
-    // 4️⃣ Link profileId to user
-    newUser.profileId = newProfile._id as Types.ObjectId;
-    await newUser.save({ session });
+
 
     // 5️⃣ Generate JWT token
     const jwtPayload = {

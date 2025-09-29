@@ -15,13 +15,11 @@ export interface IFirmUser extends Document {
   _id: any;
   email: string;
   role: FirmUserRole;
-  regUserType?: string;
-  regType?: string;
   password: string;
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
   isPhoneVerified: boolean;
-  phoneNo?: string;
+  phone?: string;
   verifyCode?: string;
   verifyToken?: string;
   isVerifiedAccount: boolean;
@@ -35,8 +33,10 @@ export interface IFirmUser extends Document {
   pendingEmail?: string;
   emailChangeToken?: string;
   emailChangeTokenExpires?: Date;
-  profileType: "StaffProfile" | "FirmProfile";
-  profileId: Types.ObjectId;
+  firmId: Types.ObjectId;
+  fullName: string;
+  designation: string;
+  image: string;
 }
 
 // Static methods for the model

@@ -10,7 +10,7 @@ import { Firm_USER_ROLE } from "./frimAuth.constant";
 const router = Router();
 
 router.post('/register/firm', firmAuthController.firmRegister)
-router.get('/user/userInfo', firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.FIRM,Firm_USER_ROLE.STAFF), firmAuthController.userInfo)
+router.get('/user/userInfo', firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.STAFF), firmAuthController.userInfo)
 
 
 router.post(
@@ -28,7 +28,7 @@ router.post(
 );
 router.post(
     '/change-password',
-      firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.FIRM,Firm_USER_ROLE.STAFF),
+      firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.STAFF),
     validateRequest(firmAuthZodValidation.changePasswordValidationSchema),
     firmAuthController.changePassword,
 );
@@ -62,7 +62,7 @@ router.post(
 );
 
 router.patch('/users/:userId/status',
-    firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.FIRM),
+    firmAuth(Firm_USER_ROLE.ADMIN,),
     firmAuthController.updateAccountStatusController);
 
 

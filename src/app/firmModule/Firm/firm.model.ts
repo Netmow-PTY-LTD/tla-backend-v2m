@@ -5,7 +5,7 @@ import { IFirmProfile } from './firm.interface';
 const firmProfileSchema = new Schema<IFirmProfile>(
   {
     // Firm details
-    firmUser: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     firmName: { type: String, required: true, trim: true },
     logo: { type: String },
     registrationNumber: { type: String },

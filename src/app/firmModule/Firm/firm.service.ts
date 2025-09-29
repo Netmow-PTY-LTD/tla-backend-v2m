@@ -6,7 +6,7 @@ import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import FirmUser from '../FirmAuth/frimAuth.model';
 
-// ✅ Create
+//  Create
 // helper: normalize date
 const normalizeValidUntil = (date: string | Date) => {
   return new Date(date);
@@ -22,7 +22,7 @@ export const createFirm = async (payload: any) => {
       email,
       password,
       firmName,
-      role = Firm_USER_ROLE.FIRM,
+      role = Firm_USER_ROLE.ADMIN,
       registrationNumber,
       yearEstablished,
       contactInfo,
@@ -58,7 +58,6 @@ export const createFirm = async (payload: any) => {
           email,
           password,
           role,
-          regUserType: 'firm',
         },
       ],
       { session },
@@ -68,11 +67,10 @@ export const createFirm = async (payload: any) => {
     const [newProfile] = await FirmProfile.create(
       [
         {
-          firmUser: newUser._id,
+          userId: newUser._id,
           firmName,
           registrationNumber,
           yearEstablished,
-
           contactInfo: {
             officeAddress: contactInfo?.officeAddress,
             country: contactInfo?.country,
@@ -109,19 +107,19 @@ export const createFirm = async (payload: any) => {
   }
 };
 
-// ✅ List
+//  List
 const listFirms = async () => {
   return await FirmProfile.find().populate('firmUser createdBy updatedBy');
 };
 
-// ✅ Get by ID
+//  Get by ID
 const getFirmById = async (id: string) => {
   return await FirmProfile.findById(id).populate(
     'firmUser createdBy updatedBy',
   );
 };
 
-// ✅ Update
+//  Update
 const updateFirm = async (id: string, data: Partial<IFirmProfile>) => {
   return await FirmProfile.findByIdAndUpdate(id, data, {
     new: true,
@@ -129,22 +127,22 @@ const updateFirm = async (id: string, data: Partial<IFirmProfile>) => {
   });
 };
 
-// ✅ Delete Firm (and associated FirmUser) transactionally
+//  Delete Firm (and associated FirmUser) transactionally
 export const deleteFirm = async (id: string) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // 1️⃣ Find the firm profile
+    // 1️ Find the firm profile
     const firm = await FirmProfile.findById(id).session(session);
     if (!firm) {
       throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm not found');
     }
 
-    // 2️⃣ Delete associated FirmUser
-    await FirmUser.findByIdAndDelete(firm.firmUser, { session });
+    // 2️ Delete associated FirmUser
+    await FirmUser.findByIdAndDelete(firm.userId, { session });
 
-    // 3️⃣ Delete the FirmProfile
+    // 3️ Delete the FirmProfile
     await FirmProfile.findByIdAndDelete(id, { session });
 
     await session.commitTransaction();
@@ -158,10 +156,10 @@ export const deleteFirm = async (id: string) => {
   }
 };
 
-// ✅ Get by ID
+//  Get by ID
 const getFirmInfoFromDB = async (id: string) => {
   return await FirmProfile.findOne({ firmUser: id })
-    .populate('firmUser createdBy updatedBy') // user refs
+    .populate('userId createdBy updatedBy') // user refs
     .populate('contactInfo.country') // country ref
     .populate('contactInfo.city') // city ref
     .populate('contactInfo.zipCode'); // zip code ref
@@ -172,11 +170,11 @@ const getFirmInfoFromDB = async (id: string) => {
 
 const updateFirmInfoIntoDB = async (firmUserId: string, data: Partial<IFirmProfile>) => {
 
-    const updateFirmInfo = await FirmProfile.findOneAndUpdate({ firmUser: firmUserId }, data, {
-        new: true,
-        runValidators: true,
-    });
-    return updateFirmInfo
+  const updateFirmInfo = await FirmProfile.findOneAndUpdate({ firmUser: firmUserId }, data, {
+    new: true,
+    runValidators: true,
+  });
+  return updateFirmInfo
 };
 
 

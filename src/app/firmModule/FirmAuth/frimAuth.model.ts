@@ -1,8 +1,7 @@
-import mongoose, { model, Types } from 'mongoose';
+import mongoose, { model, Schema, Types } from 'mongoose';
 
 import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
 import config from '../../config';
-
 import { FirmUserModel, IFirmUser } from './frimAuth.interface';
 import { Firm_USER_ROLE, FIRM_USER_STATUS } from './frimAuth.constant';
 
@@ -20,14 +19,7 @@ const firmUserSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: Object.values(Firm_USER_ROLE),
-      default: Firm_USER_ROLE.STAFF,
-    },
-    regUserType: {
-      type: String,
-
-    },
-    regType: {
-      type: String,
+      default: Firm_USER_ROLE.ADMIN,
     },
     password: {
       type: String,
@@ -45,8 +37,9 @@ const firmUserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    phoneNo: {
+    phone: {
       type: String,
+      trim: true
     },
     verifyCode: {
       type: String,
@@ -70,7 +63,7 @@ const firmUserSchema = new mongoose.Schema(
     accountStatus: {
       type: String,
       enum: Object.values(FIRM_USER_STATUS),
-      default: FIRM_USER_STATUS.PENDING,
+      default: FIRM_USER_STATUS.ACTIVE,
     },
     isOnline: { type: Boolean, default: false },
     lastSeen: { type: Date, default: null },
@@ -78,19 +71,20 @@ const firmUserSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
     pendingEmail: { type: String, lowercase: true, trim: true },
     emailChangeToken: { type: String },
     emailChangeTokenExpires: { type: Date },
-    profileType: {
-      type: String,
-      required: true,
-      enum: ["StaffProfile", "FirmProfile"],
-    },
-    profileId: {
-      type: Types.ObjectId,
-      refPath: "profileType",
-    },
+    firmProfileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
+    fullName: { type: String, trim: true },
+    designation: { type: String },
+    image: { type: String },
+    permissions: [
+      {
+        pageId: { type: Schema.Types.ObjectId },
+        permission: { type: Boolean, default: false },
+
+      },
+    ],
 
   },
   {
@@ -147,9 +141,9 @@ firmUserSchema.statics.isUserExistsByEmail = async function (email: string) {
   return await FirmUser.findOne({ email }).select('+password')
   // .populate({
   //   path: 'profile',
-  //   select: 'country', // ✅ Only fetch the "country" field
+  //   select: 'country', //  Only fetch the "country" field
   //   populate: {
-  //     path: 'country', // ✅ Populate the country field inside profile
+  //     path: 'country', // Populate the country field inside profile
   //     model: 'Country', // Replace with your actual Country model name
   //   },
   // });
