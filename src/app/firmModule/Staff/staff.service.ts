@@ -87,10 +87,15 @@ const updateStaff = async (userId: string, staffUserId: string, payload: any) =>
     user.passwordChangedAt = new Date();
   }
 
+    if (payload.email) {
+    user.accountStatus = payload.status;
+  }
+
+
   await user.save();
 
   // 3️ Remove fields meant for FirmUser from StaffProfile update payload
-  const { email, password, ...profilePayload } = payload;
+  const { email, password,status, ...profilePayload } = payload;
 
   // 4️ Update StaffProfile fields
   const updatedProfile = await StaffProfile.findOneAndUpdate(
