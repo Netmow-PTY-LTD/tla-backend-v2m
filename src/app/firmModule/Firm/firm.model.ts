@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { IFirmProfile } from './firm.interface';
 
 //   model
@@ -44,7 +44,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       type: String,
       trim: true,
     },
- // Credits & Billing
+    // Credits & Billing
     credits: {
       currentCreditBalance: { type: Number, default: 0 },
       billingContact: { type: String },
