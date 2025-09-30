@@ -10,6 +10,10 @@ const firmMediaSchema = new mongoose.Schema(
       ref: 'FirmProfile', // Reference to the firm profile
       required: true,
     },
+    bannerImage: {
+      type: String, // single banner image URL
+      default: null, // or "" if you prefer empty string
+    },
     photos: {
       type: [String],
       default: [],
