@@ -10,26 +10,30 @@ const router = Router();
 //  Get all media (photos + videos) for logged-in firm
 router.get(
   '/',
- firmAuth(Firm_USER_ROLE.ADMIN ,Firm_USER_ROLE.STAFF), // restrict to firm role
+  firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.STAFF), // restrict to firm role
   FirmMediaController.getFirmMedia,
 );
 
 //  Update media (upload photos + optional video URL)
 router.patch(
   '/update',
- firmAuth(Firm_USER_ROLE.ADMIN ,Firm_USER_ROLE.STAFF), // restrict to firm role
-  upload.array('photos'), // multiple file uploads
-   (req: Request, res: Response, next: NextFunction) => {
-        req.body = JSON.parse(req.body.data);
-        next();
-    },
+  firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.STAFF), // restrict to firm role
+  // upload.array('photos'), // multiple file uploads
+  upload.fields([
+    { name: "photos", maxCount: 10 },
+    { name: "bannerImage", maxCount: 1 },
+  ]),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   FirmMediaController.updateFirmMedia,
 );
 
 //  Remove specific photo or video
 router.delete(
   '/remove',
- firmAuth(Firm_USER_ROLE.ADMIN ,Firm_USER_ROLE.STAFF), // restrict to firm role
+  firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.STAFF), // restrict to firm role
   FirmMediaController.removeFirmMedia,
 );
 
