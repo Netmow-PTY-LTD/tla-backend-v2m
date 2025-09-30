@@ -9,7 +9,6 @@ import { FirmUser } from "./frimAuth.model";
 
 import { StringValue } from "ms";
 import { HTTP_STATUS } from "../../constant/httpStatus";
-import { StaffProfile } from "../Staff/staff.model";
 import { FirmProfile } from "../Firm/firm.model";
 import { sendEmail } from "../../emails/email.service";
 import { validateObjectId } from "../../utils/validateObjectId";
@@ -19,9 +18,6 @@ import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IFirmLoginUser } from "./frimAuth.interface";
 import { FirmLicense } from "../FirmWiseCertLicense/cirtificateLicese.model";
-
-
-
 
 
 
@@ -93,7 +89,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             email,
             password,
             firmName,
-            role = Firm_USER_ROLE.FIRM,
+            role = Firm_USER_ROLE.ADMIN,
             registrationNumber,
             yearEstablished,
             contactInfo,
@@ -129,8 +125,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                     email,
                     password,
                     role,
-                    regUserType: "firm",
-                    profileType: 'FirmProfile'
+
                 },
             ],
             { session }
@@ -141,11 +136,10 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             [
                 {
                     // Firm details
-                    firmUser: newUser._id,
+                    userId: newUser._id,
                     firmName,
                     registrationNumber,
                     yearEstablished,
-
                     // Contact info (nested)
                     contactInfo: {
                         zipCode: contactInfo?.zipCode,
@@ -155,10 +149,6 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                         email: contactInfo?.email ?? email, // default to account email if not provided
                         officialWebsite: contactInfo?.officialWebsite,
                     },
-
-                    // License details (REQUIRED)
-
-
                     // Permissions
                     createdBy: newUser._id,
                 },
@@ -167,7 +157,8 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
         );
 
         //  Assign profileId correctly (ObjectId)
-        newUser.profileId = newProfile._id as Types.ObjectId
+        newUser.firmProfileId = newProfile._id as Types.ObjectId
+        newUser.profile= newProfile._id as Types.ObjectId
         await newUser.save({ session });
 
 
@@ -196,6 +187,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             email: newUser.email,
             role: newUser.role,
             accountStatus: newUser.accountStatus,
+            firmProfileId: newUser.firmProfileId,
         };
 
         const accessToken = createToken(
@@ -234,7 +226,6 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
 
 
 
-
 //  AUTH RELATED API
 
 
@@ -256,8 +247,8 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
     // Checking if the user is blocked
     const userStatus = user?.accountStatus;
     if (
-        userStatus === FIRM_USER_STATUS.SUSPENDED ||
-        userStatus === FIRM_USER_STATUS.ARCHIVED || userStatus === FIRM_USER_STATUS.REJECTED
+        userStatus === FIRM_USER_STATUS.PENDING ||
+        userStatus === FIRM_USER_STATUS.INACTIVE
     ) {
         throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
     }
@@ -272,9 +263,10 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
         email: user?.email,
         // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
         role: user?.role,
-        regUserType: user?.regUserType,
         accountStatus: user.accountStatus,
+        firmProfileId: user.firmProfileId,
     };
+
 
     // Generate access token
     const accessToken = createToken(
@@ -299,8 +291,6 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
         userData,
     };
 };
-
-
 
 
 
@@ -330,8 +320,7 @@ const refreshToken = async (token: string) => {
         userId: user._id,
         email: user.email,
         role: user.role,
-        regUserType: user.regUserType,
-        // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
+        // country: (user?.profile as any)?.country.slug, //  Fix TS error
         accountStatus: user.accountStatus,
     };
 
@@ -367,15 +356,13 @@ const changePasswordIntoDB = async (
         throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
     }
 
-    // checking if the user is Suspend or suspended spam
-
+    // Checking if the user is blocked
     const userStatus = user?.accountStatus;
-
     if (
-        userStatus === FIRM_USER_STATUS.SUSPENDED ||
-        userStatus === FIRM_USER_STATUS.ARCHIVED || userStatus === FIRM_USER_STATUS.REJECTED
+        userStatus === FIRM_USER_STATUS.PENDING ||
+        userStatus === FIRM_USER_STATUS.INACTIVE
     ) {
-        throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
+        throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
     }
 
     //checking if the password is correct
@@ -420,13 +407,13 @@ const forgetPassword = async (userEmail: string) => {
         throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
     }
 
-    // Check if the user’s account is blocked or suspended
+    // Checking if the user is blocked
     const userStatus = user?.accountStatus;
     if (
-        userStatus === FIRM_USER_STATUS.SUSPENDED ||
-        userStatus === FIRM_USER_STATUS.ARCHIVED || userStatus === FIRM_USER_STATUS.REJECTED
+        userStatus === FIRM_USER_STATUS.PENDING ||
+        userStatus === FIRM_USER_STATUS.INACTIVE
     ) {
-        throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
+        throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
     }
 
     // Prepare the payload for the reset token
@@ -435,7 +422,6 @@ const forgetPassword = async (userEmail: string) => {
         // username: user.username,
         email: user?.email,
         role: user?.role,
-        regUserType: user?.regUserType,
         // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
         accountStatus: user.accountStatus,
     };
@@ -487,13 +473,14 @@ const resetPassword = async (
         throw new AppError(HTTP_STATUS.FORBIDDEN, 'This user is deleted !');
     }
 
-    // Check if the user’s account is blocked or suspended
+
+    // Checking if the user is blocked
     const userStatus = user?.accountStatus;
     if (
-        userStatus === FIRM_USER_STATUS.SUSPENDED ||
-        userStatus === FIRM_USER_STATUS.ARCHIVED || userStatus === FIRM_USER_STATUS.REJECTED
+        userStatus === FIRM_USER_STATUS.PENDING ||
+        userStatus === FIRM_USER_STATUS.INACTIVE
     ) {
-        throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !!`);
+        throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
     }
 
     // Decode and verify the reset token
@@ -623,7 +610,6 @@ const resendVerificationEmail = async (email: string) => {
         userId: user._id,
         email: user.email,
         role: user.role,
-        regUserType: user.regUserType,
         accountStatus: user.accountStatus,
     };
 
@@ -660,7 +646,7 @@ const resendVerificationEmail = async (email: string) => {
 
 export const changeAccountStatus = async (
     userId: string,
-    accountStatus: "pending" | "approved" | "suspended" | "rejected" | "archived",
+    accountStatus: "pending" | "active" | "inactive",
 ) => {
 
     validateObjectId(userId, 'User')
@@ -678,18 +664,7 @@ export const changeAccountStatus = async (
         throw new Error('User not found or deleted');
     }
 
-    if (accountStatus === "approved") {
-        await sendEmail({
-            to: updatedUser.email,
-            subject: "Your account is approved  by Admin",
-            data: {
-                name: "User",
 
-            },
-            emailTemplate: 'lawyer_approved',
-        });
-
-    }
     return updatedUser;
 };
 
@@ -800,13 +775,17 @@ const getUserInfoFromDB = async (userId: string) => {
         throw new Error("User not found");
     }
 
-    // Find associated firm profile
-    const firmProfile = await FirmProfile.findOne({ firmUser: userId }).lean();
+    // If the user role is "FIRM", attach the firm profile
+    if (user.role === Firm_USER_ROLE.ADMIN) {
+        const firmProfile = await FirmProfile.findOne({ userId: userId }).lean();
+        return {
+            ...user,
+            firmProfile: firmProfile || null, // attach profile if exists
+        };
+    }
 
-    return {
-        ...user,
-        firmProfile: firmProfile || null, // attach profile if exists
-    };
+    // Otherwise, return only user info
+    return user;
 };
 
 

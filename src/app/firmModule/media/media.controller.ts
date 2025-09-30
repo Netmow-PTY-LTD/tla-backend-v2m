@@ -11,13 +11,13 @@ import { TUploadedFile } from '../../interface/file.interface';
  * Add or update Firm Media (photos & videos)
  */
 const updateFirmMedia = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId; // from auth middleware
+  const userId = req.user.userId; // from auth middleware
   const payload = req.body;
   const files = req.files as TUploadedFile[]; // multiple file uploads
 
 
   const updated = await FirmMediaService.updateFirmMediaIntoDB(
-    firmUserId,
+    userId,
     payload,
     files,
   );
@@ -36,7 +36,7 @@ const updateFirmMedia = catchAsync(async (req, res) => {
 
 
 const removeFirmMedia = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId; // from auth middleware
+  const userId = req.user.userId; // from auth middleware
   const {type, index} = req.body; // index of media to remove
 
   // Validate type
@@ -59,7 +59,7 @@ const removeFirmMedia = catchAsync(async (req, res) => {
     });
   }
 
-  const updated = await FirmMediaService.removeFirmMediaFromDB(firmUserId, type, index);
+  const updated = await FirmMediaService.removeFirmMediaFromDB(userId, type, index);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -76,8 +76,8 @@ const removeFirmMedia = catchAsync(async (req, res) => {
  * Get all firm media for logged-in firm
  */
 const getFirmMedia = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId; // from auth middleware
-  const firmMedia = await FirmMediaService.getFirmMediaFromDB(firmUserId);
+  const userId = req.user.userId; // from auth middleware
+  const firmMedia = await FirmMediaService.getFirmMediaFromDB(userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
