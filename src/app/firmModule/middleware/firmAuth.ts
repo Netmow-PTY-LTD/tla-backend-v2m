@@ -48,12 +48,14 @@ const firmAuth = (...requiredRoles: FirmUserRole[]) => {
     }
 
     // checking if the user is blocked
+
+
     const userStatus = user?.accountStatus;
     if (
-        userStatus === FIRM_USER_STATUS.PENDING ||
-        userStatus === FIRM_USER_STATUS.INACTIVE
+      userStatus === FIRM_USER_STATUS.PENDING ||
+      userStatus === FIRM_USER_STATUS.INACTIVE
     ) {
-        throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
+      throw new AppError(HTTP_STATUS.FORBIDDEN, `This user is ${userStatus} !`);
     }
 
     if (
