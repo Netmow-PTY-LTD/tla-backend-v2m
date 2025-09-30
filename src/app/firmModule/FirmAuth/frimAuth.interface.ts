@@ -13,6 +13,7 @@ export interface IFirmLoginUser {
 // Single user document
 export interface IFirmUser extends Document {
   _id: any;
+  name: string;
   email: string;
   role: FirmUserRole;
   password: string;
