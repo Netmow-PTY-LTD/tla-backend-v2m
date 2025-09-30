@@ -2,7 +2,6 @@
 
 import mongoose, { Schema, model } from "mongoose";
 
-
 export interface IFirmLocation extends mongoose.Document {
   firmProfileId: mongoose.Types.ObjectId;
   name: string;

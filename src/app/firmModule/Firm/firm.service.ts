@@ -169,7 +169,7 @@ const getFirmInfoFromDB = async (userId: string) => {
     return sendNotFoundResponse("User not found");
   }
 
-  console.log('user',user)
+ 
 
 
   return await FirmProfile.findById(user.firmProfileId)
