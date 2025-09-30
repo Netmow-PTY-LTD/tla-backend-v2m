@@ -8,6 +8,10 @@ import { Firm_USER_ROLE, FIRM_USER_STATUS } from './frimAuth.constant';
 
 const firmUserSchema = new mongoose.Schema(
   {
+    name: {
+      type: String,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
