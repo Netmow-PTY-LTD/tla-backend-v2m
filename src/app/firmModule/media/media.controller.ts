@@ -13,13 +13,14 @@ import { TUploadedFile } from '../../interface/file.interface';
 const updateFirmMedia = catchAsync(async (req, res) => {
   const userId = req.user.userId; // from auth middleware
   const payload = req.body;
-  const files = req.files as TUploadedFile[]; // multiple file uploads
+  // const files = req.files as TUploadedFile[]; // multiple file uploads
+  const files = req.files; // multiple file uploads
 
 
   const updated = await FirmMediaService.updateFirmMediaIntoDB(
     userId,
     payload,
-    files,
+    files as  { [fieldname: string]: TUploadedFile[] } // 👈 correct type
   );
 
   return sendResponse(res, {
@@ -35,26 +36,58 @@ const updateFirmMedia = catchAsync(async (req, res) => {
  */
 
 
-const removeFirmMedia = catchAsync(async (req, res) => {
-  const userId = req.user.userId; // from auth middleware
-  const {type, index} = req.body; // index of media to remove
+// const removeFirmMedia = catchAsync(async (req, res) => {
+//   const userId = req.user.userId; // from auth middleware
+//   const {type, index} = req.body; // index of media to remove
 
-  // Validate type
-  if (!type || !['photos', 'videos'].includes(type)) {
+//   // Validate type
+//   if (!type || !['photos', 'videos'].includes(type)) {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.BAD_REQUEST,
+//       success: false,
+//       message: "Invalid media type. Must be 'photos' or 'videos'.",
+//       data: null,
+//     });
+//   }
+
+//   // Validate index
+//   if (typeof index !== "number") {
+//     return sendResponse(res, {
+//       statusCode: HTTP_STATUS.BAD_REQUEST,
+//       success: false,
+//       message: "Index must be provided and be a number.",
+//       data: null,
+//     });
+//   }
+
+//   const updated = await FirmMediaService.removeFirmMediaFromDB(userId, type, index);
+
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: `${type.slice(0, -1)} removed successfully.`,
+//     data: updated,
+//   });
+// });
+
+const removeFirmMedia = catchAsync(async (req, res) => {
+  const userId = req.user.userId; 
+  const { type, index } = req.body; 
+
+  if (!type || !["photos", "videos", "bannerImage"].includes(type)) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.BAD_REQUEST,
       success: false,
-      message: "Invalid media type. Must be 'photos' or 'videos'.",
+      message: "Invalid media type. Must be 'photos', 'videos', or 'bannerImage'.",
       data: null,
     });
   }
 
-  // Validate index
-  if (typeof index !== "number") {
+  if ((type === "photos" || type === "videos") && typeof index !== "number") {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.BAD_REQUEST,
       success: false,
-      message: "Index must be provided and be a number.",
+      message: "Index must be provided and be a number for photos/videos.",
       data: null,
     });
   }
@@ -64,10 +97,13 @@ const removeFirmMedia = catchAsync(async (req, res) => {
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: `${type.slice(0, -1)} removed successfully.`,
+    message: `${type === "bannerImage" ? "Banner image" : type.slice(0, -1)} removed successfully.`,
     data: updated,
   });
 });
+
+
+
 
 
 

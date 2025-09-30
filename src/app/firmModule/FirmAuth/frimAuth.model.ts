@@ -98,12 +98,6 @@ const firmUserSchema = new mongoose.Schema(
       select: false, // hide from queries by default
     },
 
-    // fullName: { type: String, trim: true },
-    // designation: { type: String },
-    // image: { type: String },
-    // createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
-    // updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
-
   },
   {
     versionKey: false,
