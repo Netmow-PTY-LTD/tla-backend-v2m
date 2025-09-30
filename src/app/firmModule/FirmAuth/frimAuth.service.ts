@@ -127,6 +127,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
                     email: userData.email,
                     password: userData.password,
                     role: Firm_USER_ROLE.ADMIN,
+                    phone:userData.phone?? ''
 
                 },
             ],
