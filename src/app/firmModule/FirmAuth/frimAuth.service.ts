@@ -33,41 +33,47 @@ FIRM REGISTER API
 */
 
 
+/** Step 1: Firm-specific data */
+interface FirmDataPayload {
+    firmName: string;
+    registrationNumber?: string;
+    yearEstablished?: number;
+    contactInfo?: {
+        zipCode?: string;
+        country?: string;
+        city?: string;
+        phone?: string;
+        email?: string; // optional, fallback to user email
+        officialWebsite?: string;
+    };
+}
 
-export interface FirmLicenseDetailsPayload {
-    certificationId: string;   // reference to LawFirmCertification _id
-    licenseNumber: string;     // e.g. "ABC1234567"
-    issuedBy?: string;          // e.g. "Queensland Law Society"
-    type: string;          // e.g. "Queensland Law Society"
-    validUntil: string | Date; // mm/dd/yyyy from UI or Date object
+/** Step 2: User-specific data */
+interface UserDataPayload {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    role?: string; // optional, defaults to ADMIN
+}
+
+/** Step 3: License-specific data */
+interface LicenseDataPayload {
+    certificationId: string; // reference to LawFirmCertification _id
+    licenseNumber: string;    // e.g. "ABC1234567"
+    issuedBy: string;         // e.g. "Queensland Law Society"
+    validUntil: string | Date; // mm/dd/yyyy or Date
+    type?: string;             // e.g. "mandatory"
     additionalNote?: string;   // optional note about license
 }
 
-
-export interface FirmContactInfoPayload {
-    zipCode?: string;    // Address / Zip
-    country?: string;          // Country select
-    city?: string;             // City select
-    phone?: string;            // +1 (123) 456-7890
-    email?: string;            // firm email (can be same as user, optional)
-    officialWebsite?: string;  // https://example.com
+/** Full payload for registration (matches slice structure) */
+interface LawFirmRegistrationPayload {
+    firmData: FirmDataPayload;
+    userData: UserDataPayload;
+    licenseData: LicenseDataPayload;
 }
 
-/** Full payload for registration + profile creation */
-export interface FirmRegisterPayload {
-    email: string;                 // login email for FirmUser
-    password: string;
-    firmName: string;              // Law Firm Name
-    role?: string;                 // defaults to ADMIN
-
-    // --- FirmProfile fields from "List Your Law Firm" step ---
-    registrationNumber?: string;   // e.g. 1234567890
-    yearEstablished?: number;      // e.g. 2003
-    contactInfo?: FirmContactInfoPayload;
-
-    // --- FirmProfile fields from "License Details" step (REQUIRED by schema) ---
-    licenseDetails: FirmLicenseDetailsPayload;
-}
 
 const normalizeValidUntil = (value: string | Date): Date => {
     if (value instanceof Date) return value;
@@ -80,28 +86,23 @@ const normalizeValidUntil = (value: string | Date): Date => {
     return d;
 };
 
-const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
+const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
         const {
-            email,
-            password,
-            firmName,
-            role = Firm_USER_ROLE.ADMIN,
-            registrationNumber,
-            yearEstablished,
-            contactInfo,
-            licenseDetails, // required
+            firmData,
+            userData,
+            licenseData,
         } = payload;
 
         // Basic guard for required license details (schema requires it)
         if (
 
-            !licenseDetails?.licenseNumber ||
-            !licenseDetails?.issuedBy ||
-            !licenseDetails?.validUntil
+            !licenseData?.licenseNumber ||
+            !licenseData?.issuedBy ||
+            !licenseData?.validUntil
         ) {
             throw new AppError(
                 HTTP_STATUS.BAD_REQUEST,
@@ -110,7 +111,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
         }
 
         // 1) ensure user not exists
-        const existingUser = await FirmUser.isUserExistsByEmail(email);
+        const existingUser = await FirmUser.isUserExistsByEmail(userData.email);
         if (existingUser) {
             throw new AppError(
                 HTTP_STATUS.CONFLICT,
@@ -122,9 +123,10 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
         const [newUser] = await FirmUser.create(
             [
                 {
-                    email,
-                    password,
-                    role,
+                    name: userData.name,
+                    email: userData.email,
+                    password: userData.password,
+                    role: Firm_USER_ROLE.ADMIN,
 
                 },
             ],
@@ -137,17 +139,17 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
                 {
                     // Firm details
                     userId: newUser._id,
-                    firmName,
-                    registrationNumber,
-                    yearEstablished,
+                    firmName: firmData.firmName,
+                    registrationNumber: firmData.registrationNumber,
+                    yearEstablished: firmData.yearEstablished,
                     // Contact info (nested)
                     contactInfo: {
-                        zipCode: contactInfo?.zipCode,
-                        country: contactInfo?.country,
-                        city: contactInfo?.city,
-                        phone: contactInfo?.phone,
-                        email: contactInfo?.email ?? email, // default to account email if not provided
-                        officialWebsite: contactInfo?.officialWebsite,
+                        zipCode: firmData?.contactInfo?.zipCode,
+                        country: firmData?.contactInfo?.country,
+                        city: firmData?.contactInfo?.city,
+                        phone: firmData?.contactInfo?.phone,
+                        email: firmData?.contactInfo?.email ?? userData.email, // default to account email if not provided
+                        officialWebsite: firmData?.contactInfo?.officialWebsite,
                     },
                     // Permissions
                     createdBy: newUser._id,
@@ -158,7 +160,7 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
 
         //  Assign profileId correctly (ObjectId)
         newUser.firmProfileId = newProfile._id as Types.ObjectId
-        newUser.profile= newProfile._id as Types.ObjectId
+        newUser.profile = newProfile._id as Types.ObjectId
         await newUser.save({ session });
 
 
@@ -168,12 +170,12 @@ const firmRegisterUserIntoDB = async (payload: FirmRegisterPayload) => {
             [
                 {
                     firmProfileId: newProfile._id,
-                    certificationId: licenseDetails.certificationId,
-                    licenseNumber: licenseDetails.licenseNumber,
-                    issuedBy: licenseDetails.issuedBy,
-                    type: licenseDetails.type,
-                    additionalNote: licenseDetails.additionalNote ?? "",
-                    validUntil: normalizeValidUntil(licenseDetails.validUntil),
+                    certificationId: licenseData?.certificationId,
+                    licenseNumber: licenseData?.licenseNumber,
+                    issuedBy: licenseData?.issuedBy,
+                    type: licenseData?.type,
+                    additionalNote: licenseData?.additionalNote ?? "",
+                    validUntil: normalizeValidUntil(licenseData?.validUntil),
                 },
             ],
             { session }
