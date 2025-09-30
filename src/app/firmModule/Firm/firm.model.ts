@@ -1,11 +1,11 @@
-import mongoose, { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { IFirmProfile } from './firm.interface';
 
 //   model
 const firmProfileSchema = new Schema<IFirmProfile>(
   {
     // Firm details
-    firmUser: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     firmName: { type: String, required: true, trim: true },
     logo: { type: String },
     registrationNumber: { type: String },
@@ -44,7 +44,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       type: String,
       trim: true,
     },
- // Credits & Billing
+    // Credits & Billing
     credits: {
       currentCreditBalance: { type: Number, default: 0 },
       billingContact: { type: String },

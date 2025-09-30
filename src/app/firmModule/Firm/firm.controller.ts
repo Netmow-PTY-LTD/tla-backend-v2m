@@ -17,9 +17,7 @@ const createFirm = catchAsync(async (req, res) => {
   });
 });
 
-
-
-//  List Firms
+// ✅ List Firms
 const listFirms = catchAsync(async (req, res) => {
   const firms = await firmService.listFirms();
 
@@ -31,7 +29,7 @@ const listFirms = catchAsync(async (req, res) => {
   });
 });
 
-//  Get Firm by ID
+// ✅ Get Firm by ID
 const getFirmById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const firm = await firmService.getFirmById(id);
@@ -44,7 +42,7 @@ const getFirmById = catchAsync(async (req, res) => {
   });
 });
 
-//  Update Firm
+// ✅ Update Firm
 const updateFirm = catchAsync(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
@@ -74,8 +72,8 @@ const deleteFirm = catchAsync(async (req, res) => {
 //   --------------------  current firm  user dedicated api -------------------
 
 const getFirmInfo = catchAsync(async (req, res) => {
-  const firmUser = req.user.userId;
-  const firm = await firmService.getFirmInfoFromDB(firmUser);
+  const userId = req.user.userId;
+  const firm = await firmService.getFirmInfoFromDB(userId);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -85,12 +83,9 @@ const getFirmInfo = catchAsync(async (req, res) => {
   });
 });
 
-
-
 const updateFirmInfo = catchAsync(async (req, res) => {
-  const firmUserId = req.user.userId
+  const userId = req.user.userId;
   const updateData = req.body;
-
 
   // ✅ handle file upload if present
   if (req.file) {
@@ -98,31 +93,32 @@ const updateFirmInfo = catchAsync(async (req, res) => {
     const originalName = req.file.originalname;
 
     // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, firmUserId);
+    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
     updateData.logo = logoUrl;
   }
 
-
-  const updatedFirm = await firmService.updateFirmInfoIntoDB(firmUserId, updateData);
+  const updatedFirm = await firmService.updateFirmInfoIntoDB(
+    userId,
+    updateData,
+  );
 
   // Determine the response message
-  let message = "Firm info updated successfully.";
+  let message = 'Firm info updated successfully.';
 
   // Check if only billingInfo was updated
-  if (updateData.billingInfo && Object.keys(updateData.billingInfo).length > 0) {
+  if (
+    updateData.billingInfo &&
+    Object.keys(updateData.billingInfo).length > 0
+  ) {
     // If other firm fields also updated, mention both
     const otherFields = { ...updateData };
     delete otherFields.billingInfo;
     if (Object.keys(otherFields).length > 0) {
-      message = "Firm info and billing info updated successfully.";
+      message = 'Firm info and billing info updated successfully.';
     } else {
-      message = "Billing info updated successfully.";
+      message = 'Billing info updated successfully.';
     }
   }
-
-
-
-
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -131,8 +127,6 @@ const updateFirmInfo = catchAsync(async (req, res) => {
     data: updatedFirm,
   });
 });
-
-
 
 export const firmController = {
   deleteFirm,
