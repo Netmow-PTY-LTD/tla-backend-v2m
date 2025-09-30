@@ -88,12 +88,10 @@ const firmUserSchema = new mongoose.Schema(
     firmProfileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile' },
     profile: {
       type: Schema.Types.ObjectId,
-      required: true,
       refPath: 'profileModel',
     },
     profileModel: {
       type: String,
-      required: true,
       enum: ['FirmProfile', 'StaffProfile'],
       select: false, // hide from queries by default
     },
