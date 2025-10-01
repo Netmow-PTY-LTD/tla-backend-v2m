@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-import { LawFirmCertification } from '../app/module/Settings/settings.model';
+
 import certificationsData from './data/certificationsData';
+import { LawFirmCertification } from '../app/module/LawfirmCertification/lawFirmCert.model';
 
 const countryIds: Record<string, string> = {
   Australia: '682ecd01e6b730f229c8d3d3',
