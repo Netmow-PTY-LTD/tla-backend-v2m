@@ -3,8 +3,9 @@
 ;
 import HTTP_STATUS from "http-status"; // or your constants
 import catchAsync from "../../utils/catchAsync";
-import { subscriptionService } from "./Subscription.service";
+
 import sendResponse from "../../utils/sendResponse";
+import { subscriptionService } from "./subscription.service";
 
 //  Create
 const createSubscription = catchAsync(async (req, res) => {

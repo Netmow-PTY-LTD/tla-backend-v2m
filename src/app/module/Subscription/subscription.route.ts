@@ -1,8 +1,9 @@
 
 import { Router } from "express";
-import { subscriptionController } from "./Subscription.controller";
+
 import auth from "../../middlewares/auth";
 import { USER_ROLE } from "../../constant";
+import { subscriptionController } from "./subscription.controller";
 
 
 const router = Router();
