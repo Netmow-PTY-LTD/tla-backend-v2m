@@ -1,5 +1,6 @@
 // services/subscription.service.ts
 
+import QueryBuilder from "../../builder/QueryBuilder";
 import SubscriptionModel, { ISubscription } from "./subscription.model";
 
 
@@ -8,9 +9,20 @@ const createSubscriptionIntoDB = async (payload: Partial<ISubscription>) => {
   return subscription;
 };
 
-const getAllSubscriptionsFromDB = async () => {
-  return SubscriptionModel.find().sort({ createdAt: -1 });
+const getAllSubscriptionsFromDB = async (query: Record<string, any>) => {
+  const pageQuery = new QueryBuilder(SubscriptionModel.find({}), query).search([
+    "name",
+    "slug",
+    "features",
+    "description"
+  ]).filter().sort().paginate().fields();
+  const data = await pageQuery.modelQuery;
+  const pagination = await pageQuery.countTotal();
+  return { data, pagination };
 };
+
+
+
 
 const getSubscriptionByIdFromDB = async (id: string) => {
   return SubscriptionModel.findById(id);

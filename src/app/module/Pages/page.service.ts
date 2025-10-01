@@ -7,7 +7,7 @@ const createPage = async (data: Partial<IPage>) => {
 };
 
 const getPages = async (query: Record<string, any>) => {
-    const pageQuery = new QueryBuilder(PageModel.find({}), query).search(['title', 'description']).filter().sort().paginate().fields();
+    const pageQuery = new QueryBuilder(PageModel.find({}), query).search(['title',"slug", 'description']).filter().sort().paginate().fields();
     const data = await pageQuery.modelQuery;
     const pagination = await pageQuery.countTotal();
     return { data, pagination };
