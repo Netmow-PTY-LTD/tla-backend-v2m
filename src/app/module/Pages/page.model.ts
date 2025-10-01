@@ -12,7 +12,7 @@ export interface IPage extends Document {
 const PageSchema = new Schema<IPage>(
   {
     title: { type: String, required: true, trim: true, maxlength: 200 },
-    slug: { type: String, required: true, trim: true, lowercase: true, unique: true },
+    slug: { type: String,  trim: true, lowercase: true, unique: true },
     description: { type: String, default: "" },
   },
   {

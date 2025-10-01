@@ -11,4 +11,4 @@ router.get('/:id', pageController.getPageByIdController);
 router.put('/:id/update', pageController.updatePageController);
 router.delete('/:id/delete', pageController.deletePageController);
 
-export default router;
+export const pageRouter = router;
