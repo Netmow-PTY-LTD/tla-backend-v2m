@@ -22,6 +22,7 @@ import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.ro
 import {  lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
 import { subscriptionRoutes } from '../module/Subscription/subscription.route';
 import { eliteProSubscriptionRouter } from '../module/EliteProSubscriptions/EliteProSubs.route';
+import { pageRouter } from '../module/Pages/page.route';
 
 const router = Router();
 
@@ -114,6 +115,10 @@ const moduleRoutes = [
   {
     path: '/elite-pro-subscriptions',
     route: eliteProSubscriptionRouter,
+  },
+  {
+    path: '/pages',
+    route: pageRouter,
   },
   {
     path: '/',
