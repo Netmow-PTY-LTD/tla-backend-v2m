@@ -45,12 +45,13 @@ export const upload = multer({
 export const uploadToSpaces = async (
   fileBuffer: Buffer,
   originalName: string,
-  userId: string, // 👈 Add userId to distinguish folders
+  userId: string, //  Add userId to distinguish folders
+  folder: string = 'profiles' // default folder if not provided
 ): Promise<string> => {
   const fileExt = path.extname(originalName);
   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
-  const fileName = `profiles/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
-  // const fileName = `${folder}/${userId}/${uuidv4()}${fileExt}`;
+  // const fileName = `  profiles/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
+  const fileName = `/thelawapp/${folder}/${userId}/${uuidv4()}${fileExt}`;
 
   const command = new PutObjectCommand({
     Bucket: config.do_spaces_bucket!,
@@ -62,16 +63,49 @@ export const uploadToSpaces = async (
 
   await s3Client.send(command);
 
-  // 👇 Construct public URL
+  //  Construct public URL
   const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
   const publicUrl = `https://${config.do_spaces_bucket}.${endpoint}/${fileName}`;
   return publicUrl;
 };
 
-export const deleteFromSpaces = async (fileKey: string) => {
+
+// export const deleteFromSpaces = async (fileKey: string) => {
+//   const command = new DeleteObjectCommand({
+//     Bucket: config.do_spaces_bucket!,
+//     Key: fileKey,
+//   });
+//   await s3Client.send(command);
+// };
+
+
+
+// const getFileKeyFromUrl = (url: string): string => {
+//   const urlObj = new URL(url);
+//   return urlObj.pathname.substring(1); // remove the leading '/'
+// };
+
+
+
+/**
+ * Delete a single file from DigitalOcean Space using its public URL
+ * Throws an error if deletion fails
+ */
+export const deleteFromSpace = async (fileUrl: string): Promise<void> => {
+  const urlObj = new URL(fileUrl);
+  const fileKey = urlObj.pathname.substring(1); // remove leading '/'
+
   const command = new DeleteObjectCommand({
     Bucket: config.do_spaces_bucket!,
     Key: fileKey,
   });
+
   await s3Client.send(command);
+};
+
+/**
+ * Delete multiple files from DigitalOcean Space using their public URLs
+ */
+export const deleteMultipleFromSpace = async (fileUrls: string[]): Promise<void> => {
+  await Promise.all(fileUrls.map(url => deleteFromSpace(url)));
 };
