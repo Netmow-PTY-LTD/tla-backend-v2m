@@ -1,3 +1,4 @@
+import { uploadToSpaces } from "../../config/upload";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
@@ -32,8 +33,22 @@ const getLawFirmCertifications = catchAsync(async (req, res) => {
 
 // Create Law Firm Certification
 const createLawFirmCertification = catchAsync(async (req, res) => {
-  // TODO: Implement actual DB logic
-  const result = await lawFirmCertService.createLawFirmCertification(req.body);
+  const userId = req.user.userId;
+  const staffData = req.body;
+
+  //  handle file upload if present
+  if (req.file) {
+    const fileBuffer = req.file.buffer;
+    const originalName = req.file.originalname;
+
+    // upload to Spaces and get public URL
+    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
+    staffData.logo = logoUrl;
+  }
+
+
+
+  const result = await lawFirmCertService.createLawFirmCertification(staffData);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -56,8 +71,23 @@ const getLawFirmCertificationById = catchAsync(async (req, res) => {
 
 // Update Law Firm Certification by ID
 const updateLawFirmCertification = catchAsync(async (req, res) => {
+  
+  const userId = req.user.userId;
+  const staffData = req.body;
   const { id } = req.params;
-  const result = await lawFirmCertService.updateLawFirmCertification(id, req.body);
+
+  //  handle file upload if present
+  if (req.file) {
+    const fileBuffer = req.file.buffer;
+    const originalName = req.file.originalname;
+
+    // upload to Spaces and get public URL
+    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
+    staffData.logo = logoUrl;
+  }
+
+
+  const result = await lawFirmCertService.updateLawFirmCertification(id, staffData);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
