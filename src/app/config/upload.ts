@@ -70,22 +70,6 @@ export const uploadToSpaces = async (
 };
 
 
-// export const deleteFromSpaces = async (fileKey: string) => {
-//   const command = new DeleteObjectCommand({
-//     Bucket: config.do_spaces_bucket!,
-//     Key: fileKey,
-//   });
-//   await s3Client.send(command);
-// };
-
-
-
-// const getFileKeyFromUrl = (url: string): string => {
-//   const urlObj = new URL(url);
-//   return urlObj.pathname.substring(1); // remove the leading '/'
-// };
-
-
 
 /**
  * Delete a single file from DigitalOcean Space using its public URL
@@ -109,3 +93,87 @@ export const deleteFromSpace = async (fileUrl: string): Promise<void> => {
 export const deleteMultipleFromSpace = async (fileUrls: string[]): Promise<void> => {
   await Promise.all(fileUrls.map(url => deleteFromSpace(url)));
 };
+
+
+
+/* 
+
+******* it will use thelawapp as the main bucket folder and then create subfolders based on entity type and ID - it use in future
+
+interface UploadOptions {
+  folder?: TFolder;        // Main folder (profiles, lawyer, client...)
+  entityId?: string;       // userId, lawyerId, clientId, etc.
+  subFolder?: string;      // Optional subfolder like 'documents', 'images'
+}
+
+export const uploadToSpaces = async (
+  fileBuffer: Buffer,
+  originalName: string,
+  options: UploadOptions = {}
+): Promise<string> => {
+  const { folder = FOLDERS.PROFILES, entityId = 'unknown', subFolder } = options;
+
+  const fileExt = path.extname(originalName);
+  const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
+
+  // Construct folder path
+  const parts = ['thelawapp', folder, entityId];
+  if (subFolder) parts.push(subFolder);
+
+  const filePath = `${parts.join('/')}/${uuidv4()}${fileExt}`;
+
+  // Upload to S3 / DigitalOcean Spaces
+  const command = new PutObjectCommand({
+    Bucket: config.do_spaces_bucket!,
+    Key: filePath,
+    Body: fileBuffer,
+    ACL: 'public-read',
+    ContentType: mimeType,
+  });
+
+  await s3Client.send(command);
+
+  // Construct public URL
+  const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
+  return `https://${config.do_spaces_bucket}.${endpoint}/${filePath}`;
+};
+
+
+
+ *** example uses in api controllers:
+
+import { FOLDERS } from '@/constants/folderNames';
+
+// Upload a client profile image
+const clientProfileUrl = await uploadToSpaces(file.buffer, file.originalname, {
+  folder: FOLDERS.CLIENT,
+  entityId: clientId,
+  subFolder: 'avatars'
+});
+
+// Upload a lawyer certification document
+const lawyerCertUrl = await uploadToSpaces(file.buffer, file.originalname, {
+  folder: FOLDERS.LAWYER,
+  entityId: lawyerId,
+  subFolder: 'certifications'
+});
+
+// Upload a marketing banner
+const bannerUrl = await uploadToSpaces(file.buffer, file.originalname, {
+  folder: FOLDERS.BANNERS,
+  entityId: 'homepage',
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
