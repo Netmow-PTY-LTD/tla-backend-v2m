@@ -117,23 +117,66 @@ const firmUserSchema = new mongoose.Schema(
 
 // Password hashing
 
-firmUserSchema.pre('save', async function (next) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this; // doc
+// firmUserSchema.pre('save', async function (next) {
+//   // eslint-disable-next-line @typescript-eslint/no-this-alias
+//   const user = this; // doc
 
-  // ✅ Prevent re-hashing if password isn't modified
+//   // ✅ Prevent re-hashing if password isn't modified
+//   if (!user.isModified('password')) {
+//     return next();
+//   }
+
+//   const generatedHasPassword = await bcrypt.hash(
+//     user.password,
+//     Number(config.bcrypt_salt_rounds),
+//   );
+//   // hashing password and save into DB
+//   user.password = generatedHasPassword;
+//   next();
+// });
+
+
+firmUserSchema.pre('save', async function (next) {
+  const user = this;
+
+  // ------------------------
+  // 1. Guard: Prevent re-hashing if password isn't modified
+  // ------------------------
   if (!user.isModified('password')) {
     return next();
   }
 
-  const generatedHasPassword = await bcrypt.hash(
-    user.password,
-    Number(config.bcrypt_salt_rounds),
-  );
-  // hashing password and save into DB
-  user.password = generatedHasPassword;
+  // ------------------------
+  // 2. Handle password hashing
+  // ------------------------
+  try {
+    const saltRounds = Number(config.bcrypt_salt_rounds) || 10; // fallback to 10
+    user.password = await bcrypt.hash(user.password, saltRounds);
+  } catch (err) {
+    return next(err as mongoose.CallbackError);
+  }
+
+  // ------------------------
+  // 3. Automatically set profileModel based on role
+  // ------------------------
+  if (!user.profileModel) {
+    switch (user.role) {
+      case Firm_USER_ROLE.ADMIN:
+        user.profileModel = 'FirmProfile';
+        break;
+      case Firm_USER_ROLE.STAFF:
+        user.profileModel = 'StaffProfile';
+        break;
+      default:
+        // fallback to FirmProfile if role is invalid or unknown
+        user.profileModel = 'FirmProfile';
+    }
+  }
+
   next();
 });
+
+
 
 // Static method to check if the plain password matches the hashed password
 firmUserSchema.statics.isPasswordMatched = async function (
