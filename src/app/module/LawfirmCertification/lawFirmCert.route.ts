@@ -6,6 +6,7 @@ const router = Router();
 // Add Law Firm Certification
 router.post(
   '/add',
+  
   lawFirmCertController.createLawFirmCertification
 );
 
