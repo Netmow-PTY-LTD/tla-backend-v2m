@@ -17,7 +17,7 @@ import { AppError } from '../../errors/error';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { USER_STATUS } from '../Auth/auth.constant';
 import { IUser } from '../Auth/auth.interface';
-import { LawFirmCertification } from '../Settings/settings.model';
+// import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
 //   userId: Types.ObjectId,
@@ -1021,90 +1021,90 @@ const countryWiseServiceWiseLeadFromDB = async ({
 };
 
 // Fetch certifications with filter + search + pagination
-const getAllLawFirmCertificationsFromDB = async (query: {
-  countryId?: string;
-  type?: 'mandatory' | 'optional';
-  search?: string;
-  page?: number;
-  limit?: number;
-}) => {
-  const { countryId, type, search, page = 1, limit = 10 } = query;
+// const getAllLawFirmCertificationsFromDB = async (query: {
+//   countryId?: string;
+//   type?: 'mandatory' | 'optional';
+//   search?: string;
+//   page?: number;
+//   limit?: number;
+// }) => {
+//   const { countryId, type, search, page = 1, limit = 10 } = query;
 
-  const filter: Record<string, any> = {};
+//   const filter: Record<string, any> = {};
 
-  if (countryId) {
-    validateObjectId(countryId, 'Country');
-    filter.countryId = countryId;
-  }
+//   if (countryId) {
+//     validateObjectId(countryId, 'Country');
+//     filter.countryId = countryId;
+//   }
 
-  if (type) {
-    filter.type = type; // ✅ filter by mandatory | optional
-  }
+//   if (type) {
+//     filter.type = type; // ✅ filter by mandatory | optional
+//   }
 
-  // Base query
-  let certQuery = LawFirmCertification.find(filter);
-  // .populate("countryId");
+//   // Base query
+//   let certQuery = LawFirmCertification.find(filter);
+//   // .populate("countryId");
 
-  if (search && search.trim()) {
-    const trimmedSearch = search.trim();
+//   if (search && search.trim()) {
+//     const trimmedSearch = search.trim();
 
-    // 🔍 First try exact match on certificationName
-    const exactMatch = await LawFirmCertification.find({
-      ...filter,
-      certificationName: { $regex: `^${trimmedSearch}$`, $options: 'i' },
-    });
-    // .populate("countryId");
+//     // 🔍 First try exact match on certificationName
+//     const exactMatch = await LawFirmCertification.find({
+//       ...filter,
+//       certificationName: { $regex: `^${trimmedSearch}$`, $options: 'i' },
+//     });
+//     // .populate("countryId");
 
-    if (exactMatch.length > 0) {
-      return {
-        data: exactMatch,
-        meta: {
-          total: exactMatch.length,
-          page: 1,
-          limit: exactMatch.length,
-          totalPage: 1,
-        },
-      };
-    }
+//     if (exactMatch.length > 0) {
+//       return {
+//         data: exactMatch,
+//         meta: {
+//           total: exactMatch.length,
+//           page: 1,
+//           limit: exactMatch.length,
+//           totalPage: 1,
+//         },
+//       };
+//     }
 
-    // Partial match on certificationName or type
-    certQuery = LawFirmCertification.find({
-      ...filter,
-      $or: [
-        { certificationName: { $regex: trimmedSearch, $options: 'i' } },
-        { type: { $regex: trimmedSearch, $options: 'i' } },
-      ],
-    });
-    // .populate("countryId");
-  }
+//     // Partial match on certificationName or type
+//     certQuery = LawFirmCertification.find({
+//       ...filter,
+//       $or: [
+//         { certificationName: { $regex: trimmedSearch, $options: 'i' } },
+//         { type: { $regex: trimmedSearch, $options: 'i' } },
+//       ],
+//     });
+//     // .populate("countryId");
+//   }
 
-  // Count total docs
-  const total = await LawFirmCertification.countDocuments(
-    search && search.trim()
-      ? {
-          ...filter,
-          $or: [
-            { certificationName: { $regex: search.trim(), $options: 'i' } },
-            { type: { $regex: search.trim(), $options: 'i' } },
-          ],
-        }
-      : filter,
-  );
+//   // Count total docs
+//   const total = await LawFirmCertification.countDocuments(
+//     search && search.trim()
+//       ? {
+//           ...filter,
+//           $or: [
+//             { certificationName: { $regex: search.trim(), $options: 'i' } },
+//             { type: { $regex: search.trim(), $options: 'i' } },
+//           ],
+//         }
+//       : filter,
+//   );
 
-  // Pagination
-  const skip = (page - 1) * limit;
-  const certifications = await certQuery.skip(skip).limit(limit).exec();
+//   // Pagination
+//   const skip = (page - 1) * limit;
+//   const certifications = await certQuery.skip(skip).limit(limit).exec();
 
-  return {
-    data: certifications,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPage: Math.ceil(total / limit),
-    },
-  };
-};
+//   return {
+//     data: certifications,
+//     meta: {
+//       total,
+//       page,
+//       limit,
+//       totalPage: Math.ceil(total / limit),
+//     },
+//   };
+// };
 
 export const commonService = {
   createLawyerResponseAndSpendCredit,
@@ -1115,5 +1115,5 @@ export const commonService = {
   getLeadContactRequestsForUser,
   getSingleLeadContactRequestsForUser,
   countryWiseServiceWiseLeadFromDB,
-  getAllLawFirmCertificationsFromDB,
+  // getAllLawFirmCertificationsFromDB,
 };

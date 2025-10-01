@@ -20,22 +20,22 @@ export const AppSettings = model<IAppSettings>('AppSettings', settingsSchema);
 
 //   law firm certification type model  - it will be next time use dedicated module   just temporary stay here
 
-const lawFirmCertificationSchema = new Schema(
-  {
-    countryId: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
-    type: {
-      type: String,
-      required: true,
-      enum: ['mandatory', 'optional'],
-    },
-    certificationName: { type: String, required: true },
-    logo: { type: String },
-  },
-  { timestamps: true },
-);
+// const lawFirmCertificationSchema = new Schema(
+//   {
+//     countryId: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
+//     type: {
+//       type: String,
+//       required: true,
+//       enum: ['mandatory', 'optional'],
+//     },
+//     certificationName: { type: String, required: true },
+//     logo: { type: String },
+//   },
+//   { timestamps: true },
+// );
 
-// Model
-export const LawFirmCertification = model(
-  'LawFirmCertification',
-  lawFirmCertificationSchema,
-);
+// // Model
+// export const LawFirmCertification = model(
+//   'LawFirmCertification',
+//   lawFirmCertificationSchema,
+// );

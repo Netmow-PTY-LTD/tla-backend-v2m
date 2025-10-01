@@ -19,6 +19,7 @@ import { ratingRouter } from '../module/Rating/rating.routes';
 import { profileVisitorRouter } from '../module/VisitorTracker/profileVisitor.routes';
 import { adminRouter } from '../module/Admin/admin.routes';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.route';
+import {  lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
 
 const router = Router();
 
@@ -99,6 +100,10 @@ const moduleRoutes = [
   {
     path: '/visitor-tracker',
     route: profileVisitorRouter,
+  },
+  {
+    path: '/lawfirm-certification',
+    route: lawFirmCertRouter,
   },
   {
     path: '/',

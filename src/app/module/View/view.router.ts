@@ -58,10 +58,10 @@ router.get(
 
 
 
-router.get(
-   '/lawfirm-certification/list',
-  commonController.getLawFirmCertifications,
-);
+// router.get(
+//    '/lawfirm-certification/list',
+//   commonController.getLawFirmCertifications,
+// );
 
 
 
