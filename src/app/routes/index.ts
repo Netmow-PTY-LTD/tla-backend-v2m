@@ -20,6 +20,8 @@ import { profileVisitorRouter } from '../module/VisitorTracker/profileVisitor.ro
 import { adminRouter } from '../module/Admin/admin.routes';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.route';
 import {  lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
+import { subscriptionRoutes } from '../module/Subscription/subscription.route';
+import { eliteProSubscriptionRouter } from '../module/EliteProSubscriptions/EliteProSubs.route';
 
 const router = Router();
 
@@ -104,6 +106,14 @@ const moduleRoutes = [
   {
     path: '/lawfirm-certification',
     route: lawFirmCertRouter,
+  },
+  {
+    path: '/subscriptions',
+    route: subscriptionRoutes,
+  },
+  {
+    path: '/elite-pro-subscriptions',
+    route: eliteProSubscriptionRouter,
   },
   {
     path: '/',
