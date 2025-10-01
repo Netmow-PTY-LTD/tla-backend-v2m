@@ -45,12 +45,13 @@ export const upload = multer({
 export const uploadToSpaces = async (
   fileBuffer: Buffer,
   originalName: string,
-  userId: string, // 👈 Add userId to distinguish folders
+  userId: string, //  Add userId to distinguish folders
+  folder: string = 'profiles' // default folder if not provided
 ): Promise<string> => {
   const fileExt = path.extname(originalName);
   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
-  const fileName = `profiles/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
-  // const fileName = `${folder}/${userId}/${uuidv4()}${fileExt}`;
+  // const fileName = `  profiles/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
+  const fileName = `${folder}/${userId}/${uuidv4()}${fileExt}`;
 
   const command = new PutObjectCommand({
     Bucket: config.do_spaces_bucket!,
@@ -68,6 +69,7 @@ export const uploadToSpaces = async (
   return publicUrl;
 };
 
+
 export const deleteFromSpaces = async (fileKey: string) => {
   const command = new DeleteObjectCommand({
     Bucket: config.do_spaces_bucket!,
@@ -75,3 +77,17 @@ export const deleteFromSpaces = async (fileKey: string) => {
   });
   await s3Client.send(command);
 };
+
+
+
+const getFileKeyFromUrl = (url: string): string => {
+  const urlObj = new URL(url);
+  return urlObj.pathname.substring(1); // remove the leading '/'
+};
+
+
+// Example usage
+// const fileUrl = 'https://thelawapp.syd1.digitaloceanspaces.com/profiles/68b80573973bc207259783a3/2b485e87-1a21-4b61-a51f-d390f7b0b30c.webp';
+// const fileKey = getFileKeyFromUrl(fileUrl);
+// console.log(fileKey);
+// // Output: profiles/68b80573973bc207259783a3/2b485e87-1a21-4b61-a51f-d390f7b0b30c.webp
