@@ -1,5 +1,6 @@
 // services/eliteProSubscription.service.ts
 
+import QueryBuilder from "../../builder/QueryBuilder";
 import EliteProSubscriptionModel, { IEliteProSubscription } from "./EliteProSubs.model";
 
 
@@ -8,8 +9,18 @@ const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProSubscr
   return subscription;
 };
 
-const getAllEliteProSubscriptionsFromDB = async () => {
-  return EliteProSubscriptionModel.find().sort({ createdAt: -1 });
+const getAllEliteProSubscriptionsFromDB = async (query: Record<string, any>) => {
+  
+  const pageQuery = new QueryBuilder(EliteProSubscriptionModel.find({}), query).search([
+    "name",
+    "slug",
+    "features",
+    "description"
+  ]).filter().sort().paginate().fields();
+  const data = await pageQuery.modelQuery;
+  const pagination = await pageQuery.countTotal();
+
+  return { data, pagination };
 };
 
 const getEliteProSubscriptionByIdFromDB = async (id: string) => {

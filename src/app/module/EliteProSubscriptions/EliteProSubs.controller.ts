@@ -18,14 +18,15 @@ const createEliteProSubscription = catchAsync(async (req, res) => {
 });
 
 // Get All
-const getEliteProSubscriptions = catchAsync(async (_req, res) => {
-  const result = await eliteProSubscriptionService.getAllEliteProSubscriptionsFromDB();
+const getEliteProSubscriptions = catchAsync(async (req, res) => {
+  const result = await eliteProSubscriptionService.getAllEliteProSubscriptionsFromDB(req.query);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Elite Pro Subscriptions retrieved successfully",
-    data: result,
+    pagination: result.pagination,
+    data: result.data,
   });
 });
 
