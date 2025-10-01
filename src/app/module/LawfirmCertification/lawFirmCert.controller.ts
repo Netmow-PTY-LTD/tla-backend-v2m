@@ -75,19 +75,20 @@ const updateLawFirmCertification = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const staffData = req.body;
   const { id } = req.params;
+    const file = req.file; // multer file
 
-  //  handle file upload if present
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
+  // //  handle file upload if present
+  // if (req.file) {
+  //   const fileBuffer = req.file.buffer;
+  //   const originalName = req.file.originalname;
 
-    // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-    staffData.logo = logoUrl;
-  }
+  //   // upload to Spaces and get public URL
+  //   const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
+  //   staffData.logo = logoUrl;
+  // }
 
 
-  const result = await lawFirmCertService.updateLawFirmCertification(id, staffData);
+  const result = await lawFirmCertService.updateLawFirmCertification(id, staffData, file, userId);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,

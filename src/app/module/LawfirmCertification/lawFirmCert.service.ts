@@ -1,3 +1,4 @@
+import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { validateObjectId } from "../../utils/validateObjectId";
 import { LawFirmCertification } from "./lawFirmCert.model";
 
@@ -63,12 +64,12 @@ const getAllLawFirmCertificationsFromDB = async (query: {
   const total = await LawFirmCertification.countDocuments(
     search && search.trim()
       ? {
-          ...filter,
-          $or: [
-            { certificationName: { $regex: search.trim(), $options: 'i' } },
-            { type: { $regex: search.trim(), $options: 'i' } },
-          ],
-        }
+        ...filter,
+        $or: [
+          { certificationName: { $regex: search.trim(), $options: 'i' } },
+          { type: { $regex: search.trim(), $options: 'i' } },
+        ],
+      }
       : filter,
   );
 
@@ -98,11 +99,43 @@ const getLawFirmCertificationById = async (id: string) => {
   return result;
 };
 
-const updateLawFirmCertification = async (id: string, payload: any) => {
+
+
+ const updateLawFirmCertification = async (id: string, payload: any, file?: Express.Multer.File, userId?: string) => {
+  // Validate ID
   validateObjectId(id, 'LawFirmCertification');
-  const result = await LawFirmCertification.findByIdAndUpdate(id, payload, { new: true });
-  return result;
+
+  // Fetch existing record
+  const existingCert = await LawFirmCertification.findById(id);
+
+  if (!existingCert) throw new Error('LawFirmCertification not found');
+
+  // Handle new file upload
+  if (file && userId) {
+    const fileBuffer = file.buffer;
+    const originalName = file.originalname;
+
+    // Upload new file
+    const newFileUrl = await uploadToSpaces(fileBuffer, originalName, userId, 'law-firm-certifications');
+    payload.logo = newFileUrl;
+
+    // Delete old file if exists
+    if (existingCert.logo) {
+      try {
+        await deleteFromSpace(existingCert.logo);
+      } catch (err) {
+        console.error('Failed to delete old file from Space:', err);
+      }
+    }
+  }
+
+  // Update DB record
+  const updatedCert = await LawFirmCertification.findByIdAndUpdate(id, payload, { new: true });
+
+  return updatedCert;
 };
+
+
 
 const deleteLawFirmCertification = async (id: string) => {
   validateObjectId(id, 'LawFirmCertification');
