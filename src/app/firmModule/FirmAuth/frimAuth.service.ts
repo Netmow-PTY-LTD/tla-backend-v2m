@@ -810,6 +810,34 @@ const getUserInfoFromDB = async (userId: string) => {
 };
 
 
+// const getUserInfoFromDB = async (userId: string) => {
+//     validateObjectId(userId, 'User');
+
+//     // 1️⃣ Fetch user with profile populated
+//     const user = await FirmUser.findById(userId)
+//         .select('+password +profileModel')
+//         .populate('profile')
+//         .lean();
+
+//     if (!user) {
+//         return sendNotFoundResponse('User not found');
+//     }
+
+//     // 2️⃣ Remove sensitive fields
+//     delete (user as any).password;
+//     //     delete (user as any).profileModel;
+
+//     // 3️⃣ Merge profile fields into top-level user object
+//     if (user.profile) {
+//         Object.assign(user, user.profile); // copy all profile fields into user
+//         delete user?.profile; // remove nested profile
+//     }
+
+//     return user;
+// };
+
+
+
 // // Export service
 // const updateCurrentUser = async (
 //     userId: string,
@@ -859,68 +887,68 @@ const getUserInfoFromDB = async (userId: string) => {
 
 
 const profileModelMap: Record<string, any> = {
-  AdminProfile,
-  StaffProfile,
-  // Add more roles here
+    AdminProfile,
+    StaffProfile,
+    // Add more roles here
 };
 
 export const updateCurrentUser = async (
-  userId: string,
-  payload: any,
-  file?: TUploadedFile
+    userId: string,
+    payload: any,
+    file?: TUploadedFile
 ) => {
-  // 1️ Fetch user with password for potential password update
-  const user = await FirmUser.findById(userId).select("+password");
-  if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+    // 1️ Fetch user with password for potential password update
+    const user = await FirmUser.findById(userId).select("+password");
+    if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
-  // 2️ Handle file upload (profile image/logo)
-  if (file?.buffer) {
-    const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
-    if (!payload.profile) payload.profile = {};
-    payload.profile.image = logoUrl;
-  }
+    // 2️ Handle file upload (profile image/logo)
+    if (file?.buffer) {
+        const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
+        if (!payload.profile) payload.profile = {};
+        payload.profile.image = logoUrl;
+    }
 
-  // 3️ Update core FirmUser fields: name, phone, email, password, status
-  if (payload.name) user.name = payload.name;
-  if (payload.phone) user.phone = payload.phone;
-  if (payload.email) user.email = payload.email;
-  if (payload.password) {
-    user.password = payload.password; // pre-save hook hashes it
-    user.needsPasswordChange = true;
-    user.passwordChangedAt = new Date();
-  }
-  if (payload.status) user.accountStatus = payload.status;
+    // 3️ Update core FirmUser fields: name, phone, email, password, status
+    if (payload.name) user.name = payload.name;
+    if (payload.phone) user.phone = payload.phone;
+    if (payload.email) user.email = payload.email;
+    if (payload.password) {
+        user.password = payload.password; // pre-save hook hashes it
+        user.needsPasswordChange = true;
+        user.passwordChangedAt = new Date();
+    }
+    if (payload.status) user.accountStatus = payload.status;
 
-  await user.save(); // triggers password hashing if updated
+    await user.save(); // triggers password hashing if updated
 
-  // 4️ Update role profile fields only
-  let updatedProfile = null;
-  if (payload.profile) {
-    const Model = profileModelMap[user.profileModel];
-    if (!Model) throw new AppError(HTTP_STATUS.BAD_REQUEST, "Profile model not found");
+    // 4️ Update role profile fields only
+    let updatedProfile = null;
+    if (payload.profile) {
+        const Model = profileModelMap[user.profileModel];
+        if (!Model) throw new AppError(HTTP_STATUS.BAD_REQUEST, "Profile model not found");
 
-    // Remove user-only fields from profile payload
-    const { email, password, status, ...profilePayload } = payload;
+        // Remove user-only fields from profile payload
+        const { email, password, status, ...profilePayload } = payload;
 
-    updatedProfile = await Model.findByIdAndUpdate(
-      user.profile,
-      {
-        $set: {
-          ...profilePayload,
-          updatedBy: new Types.ObjectId(userId),
-        },
-      },
-      { new: true }
-    );
+        updatedProfile = await Model.findByIdAndUpdate(
+            user.profile,
+            {
+                $set: {
+                    ...profilePayload,
+                    updatedBy: new Types.ObjectId(userId),
+                },
+            },
+            { new: true }
+        );
 
-    if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
-  }
+        if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
+    }
 
-  // 5️ Return merged result
-  return {
-    user,
-    profile: updatedProfile,
-  };
+    // 5️ Return merged result
+    return {
+        user,
+        profile: updatedProfile,
+    };
 };
 
 
