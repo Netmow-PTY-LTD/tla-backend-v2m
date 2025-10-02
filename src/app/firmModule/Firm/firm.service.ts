@@ -170,7 +170,7 @@ const getFirmInfoFromDB = async (userId: string) => {
 
 
   return await FirmProfile.findById(user.firmProfileId)
-    .populate('userId createdBy updatedBy') // user refs
+    .populate('createdBy updatedBy') // user refs
     .populate('contactInfo.country') // country ref
     .populate('contactInfo.city') // city ref
     .populate('contactInfo.zipCode'); // zip code ref
