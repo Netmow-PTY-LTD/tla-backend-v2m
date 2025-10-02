@@ -799,7 +799,10 @@ const getUserInfoFromDB = async (userId: string) => {
     // 1️ Fetch user with profile populated
     const user = await FirmUser.findById(userId)
         .select('+password +profileModel -name -phone')
-        .populate('profile')
+        .populate({
+            path: "profile",
+            select: "-_id -createdAt -updatedAt", // select only needed profile fields
+        })
         .lean();
 
     if (!user) {
