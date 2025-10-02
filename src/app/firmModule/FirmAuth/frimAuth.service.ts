@@ -810,6 +810,7 @@ const getUserInfoFromDB = async (userId: string) => {
 };
 
 
+// // Export service
 // const updateCurrentUser = async (
 //     userId: string,
 //     payload: { user?: any; profile?: any },
@@ -817,9 +818,7 @@ const getUserInfoFromDB = async (userId: string) => {
 // ) => {
 //     const user = await FirmUser.findById(userId);
 
-
 //     if (!user) throw new Error("User not found");
-
 
 //     // ✅ handle file upload if present
 //     if (file) {
@@ -827,17 +826,19 @@ const getUserInfoFromDB = async (userId: string) => {
 //         const originalName = file.originalname;
 
 //         // upload to Spaces and get public URL
+//         if (!fileBuffer) {
+//             throw new Error("File buffer is undefined");
+//         }
 //         const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-//         profile.image = logoUrl;
+//         if (payload.profile) {
+//             payload.profile.image = logoUrl;
+//         }
 //     }
-
-
 
 //     // Update user core data
 //     if (payload.user) {
 //         await FirmUser.findByIdAndUpdate(userId, payload.user);
 //     }
-
 
 //     // Update role profile
 //     if (payload.profile) {
@@ -857,55 +858,70 @@ const getUserInfoFromDB = async (userId: string) => {
 // };
 
 
-
-// Export service
-const updateCurrentUser = async (
-    userId: string,
-    payload: { user?: any; profile?: any },
-    file: TUploadedFile
-) => {
-    const user = await FirmUser.findById(userId);
-
-    if (!user) throw new Error("User not found");
-
-    // ✅ handle file upload if present
-    if (file) {
-        const fileBuffer = file.buffer;
-        const originalName = file.originalname;
-
-        // upload to Spaces and get public URL
-        if (!fileBuffer) {
-            throw new Error("File buffer is undefined");
-        }
-        const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-        if (payload.profile) {
-            payload.profile.image = logoUrl;
-        }
-    }
-
-    // Update user core data
-    if (payload.user) {
-        await FirmUser.findByIdAndUpdate(userId, payload.user);
-    }
-
-    // Update role profile
-    if (payload.profile) {
-        switch (user.profileModel) {
-            case "AdminProfile":
-                await AdminProfile.findByIdAndUpdate(user.profile, payload.profile);
-                break;
-            case "StaffProfile":
-                await StaffProfile.findByIdAndUpdate(user.profile, payload.profile);
-                break;
-
-        }
-    }
-
-    // Return merged result
-    return await FirmUser.findById(userId).populate("profile");
+const profileModelMap: Record<string, any> = {
+  AdminProfile,
+  StaffProfile,
+  // Add more roles here
 };
 
+export const updateCurrentUser = async (
+  userId: string,
+  payload: any,
+  file?: TUploadedFile
+) => {
+  // 1️ Fetch user with password for potential password update
+  const user = await FirmUser.findById(userId).select("+password");
+  if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
+  // 2️ Handle file upload (profile image/logo)
+  if (file?.buffer) {
+    const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
+    if (!payload.profile) payload.profile = {};
+    payload.profile.image = logoUrl;
+  }
+
+  // 3️ Update core FirmUser fields: name, phone, email, password, status
+  if (payload.name) user.name = payload.name;
+  if (payload.phone) user.phone = payload.phone;
+  if (payload.email) user.email = payload.email;
+  if (payload.password) {
+    user.password = payload.password; // pre-save hook hashes it
+    user.needsPasswordChange = true;
+    user.passwordChangedAt = new Date();
+  }
+  if (payload.status) user.accountStatus = payload.status;
+
+  await user.save(); // triggers password hashing if updated
+
+  // 4️ Update role profile fields only
+  let updatedProfile = null;
+  if (payload.profile) {
+    const Model = profileModelMap[user.profileModel];
+    if (!Model) throw new AppError(HTTP_STATUS.BAD_REQUEST, "Profile model not found");
+
+    // Remove user-only fields from profile payload
+    const { email, password, status, ...profilePayload } = payload;
+
+    updatedProfile = await Model.findByIdAndUpdate(
+      user.profile,
+      {
+        $set: {
+          ...profilePayload,
+          updatedBy: new Types.ObjectId(userId),
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
+  }
+
+  // 5️ Return merged result
+  return {
+    user,
+    profile: updatedProfile,
+  };
+};
 
 
 

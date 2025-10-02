@@ -11,7 +11,7 @@ const router = Router();
 
 router.post('/register/firm', firmAuthController.firmRegister)
 router.get('/user/me', firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.STAFF), firmAuthController.userInfo)
-router.patch('/user/me', firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.STAFF), firmAuthController.userInfo)
+router.patch('/user/me', firmAuth(Firm_USER_ROLE.ADMIN,Firm_USER_ROLE.STAFF), firmAuthController.updateCurrentUserInfo)
 
 
 router.post(

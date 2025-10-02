@@ -52,6 +52,7 @@ const userInfo = catchAsync(async (req, res) => {
   });
 });
 
+
 const updateCurrentUserInfo = catchAsync(async (req, res) => {
 
   const userId = req.user.userId

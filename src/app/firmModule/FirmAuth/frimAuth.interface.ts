@@ -36,7 +36,7 @@ export interface IFirmUser extends Document {
   emailChangeTokenExpires?: Date;
   firmProfileId: Types.ObjectId;
   profile: Types.ObjectId;
-  profileModel?: string; // Add this line
+  profileModel: string; // Add this line
 }
 
 // Static methods for the model
