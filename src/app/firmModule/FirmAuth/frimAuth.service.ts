@@ -18,6 +18,7 @@ import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IFirmLoginUser } from "./frimAuth.interface";
 import { FirmLicense } from "../FirmWiseCertLicense/cirtificateLicese.model";
+import { sendNotFoundResponse } from "../../errors/custom.error";
 
 
 
@@ -771,29 +772,38 @@ const changeEmail = async (userId: string, newEmail: string) => {
 };
 
 
+// const getUserInfoFromDB = async (userId: string) => {
+//     // Find user
+//     const user = await FirmUser.findById(userId).lean();
+//     if (!user) {
+//         throw new Error("User not found");
+//     }
+
+//     // If the user role is "FIRM", attach the firm profile
+//     if (user.role === Firm_USER_ROLE.ADMIN) {
+//         const firmProfile = await FirmProfile.findOne({ userId: userId }).lean();
+//         return {
+//             ...user,
+//             firmProfile: firmProfile || null, // attach profile if exists
+//         };
+//     }
+
+//     // Otherwise, return only user info
+//     return user;
+// };
+
+
 const getUserInfoFromDB = async (userId: string) => {
+    validateObjectId(userId, 'User');
     // Find user
-    const user = await FirmUser.findById(userId).lean();
+    const user = await FirmUser.findById(userId).populate('profile').lean();
+   
     if (!user) {
-        throw new Error("User not found");
+        return sendNotFoundResponse('user not found');
     }
 
-    // If the user role is "FIRM", attach the firm profile
-    if (user.role === Firm_USER_ROLE.ADMIN) {
-        const firmProfile = await FirmProfile.findOne({ userId: userId }).lean();
-        return {
-            ...user,
-            firmProfile: firmProfile || null, // attach profile if exists
-        };
-    }
-
-    // Otherwise, return only user info
     return user;
 };
-
-
-
-
 
 
 
