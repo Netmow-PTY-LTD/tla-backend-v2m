@@ -7,6 +7,7 @@ import { firmRouter } from "../firmModule/Firm/firm.route";
 import { firmLicenseRoute } from "../firmModule/FirmWiseCertLicense/cirtificateLicese.route";
 import { FirmMediaRoutes } from "../firmModule/media/media.route";
 import { firmLocationRouter } from "../firmModule/firmLocation/firmLocation.route";
+import { firmViewRouter } from "../firmModule/View/view.router";
 
 
 const firmRoute = Router();
@@ -45,6 +46,10 @@ const moduleRoutes = [
     path: '/firmLocation',
     route: firmLocationRouter,
   },
+  {
+      path: '/',
+      route: firmViewRouter,
+    },
  
 
 ];

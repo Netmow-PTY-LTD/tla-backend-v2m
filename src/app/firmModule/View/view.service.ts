@@ -16,16 +16,19 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
   // Step 1: Find firm profile by slug
   const firmProfile = await FirmProfile.findOne({
     slug,
-    // If you have a deletedAt field in FirmProfile, keep this filter; otherwise, remove it
     deletedAt: null,
   })
     .populate({
       path: 'contactInfo.country',
-      select: 'name',
+      select: 'name slug -_id',
     })
     .populate({
       path: 'contactInfo.city',
-      select: 'name',
+      select: 'name  region -_id',
+    })
+    .populate({
+      path: 'contactInfo.zipCode',
+      select: 'zipcode postalCode countryCode latitude longitude -_id',
     })
     .lean();
 
@@ -50,13 +53,21 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
 
   const certification = await FirmLicense.find({
     firmProfileId: firmProfile._id,
-  });
+  })
+    .select('licenseNumber issuedBy additionalNote validUntil type  certificationId -_id')
+    .populate({
+      path: 'certificationId',
+      select: 'certificationName  -_id',
+    });
+
+
   const media = await FirmMedia.findOne({
     firmProfileId: firmProfile._id,
-  }).select('-_id photos videos');
+  }).select('-_id photos videos bannerImage');
+
   const location = await FirmLocationModel.findOne({
     firmProfileId: firmProfile._id,
-  });
+  }).select('name address -_id')
 
 
   // Compose a complete, frontend-friendly response

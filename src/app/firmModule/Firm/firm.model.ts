@@ -71,7 +71,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
   },
-  { timestamps: true },
+  { timestamps: true ,versionKey: false},
 );
 
 

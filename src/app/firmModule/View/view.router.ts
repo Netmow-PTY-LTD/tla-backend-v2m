@@ -17,4 +17,4 @@ router.get(
 
 
 
-export const viewRouter = router;
+export const firmViewRouter = router;
