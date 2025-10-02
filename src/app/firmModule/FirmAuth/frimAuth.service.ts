@@ -890,8 +890,7 @@ export const updateCurrentUser = async (
     // 2️ Handle file upload (profile image/logo)
     if (file?.buffer) {
         const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
-        if (!payload.profile) payload.profile = {};
-        payload.profile.image = logoUrl;
+        payload.image = logoUrl;
     }
 
     // 3️ Update core FirmUser fields: name, phone, email, password, status
@@ -909,26 +908,25 @@ export const updateCurrentUser = async (
 
     // 4️ Update role profile fields only
     let updatedProfile = null;
-    if (payload.profile) {
-        const Model = profileModelMap[user.profileModel];
-        if (!Model) throw new AppError(HTTP_STATUS.BAD_REQUEST, "Profile model not found");
+    console.log({ payload })
+    const Model = profileModelMap[user.profileModel];
+    if (!Model) throw new AppError(HTTP_STATUS.BAD_REQUEST, "Profile model not found");
 
-        // Remove user-only fields from profile payload
-        const { email, password, status, ...profilePayload } = payload;
+    // Remove user-only fields from profile payload
+    const { email, password, status, ...profilePayload } = payload;
 
-        updatedProfile = await Model.findByIdAndUpdate(
-            user.profile,
-            {
-                $set: {
-                    ...profilePayload,
-                    updatedBy: new Types.ObjectId(userId),
-                },
+    updatedProfile = await Model.findByIdAndUpdate(
+        user.profile,
+        {
+            $set: {
+                ...profilePayload,
+                updatedBy: new Types.ObjectId(userId),
             },
-            { new: true }
-        );
+        },
+        { new: true }
+    );
 
-        if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
-    }
+    if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
 
     // 5️ Return merged result
     return {

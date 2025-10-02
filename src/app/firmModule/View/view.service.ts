@@ -57,7 +57,7 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
     .select('licenseNumber issuedBy additionalNote validUntil type  certificationId -_id')
     .populate({
       path: 'certificationId',
-      select: 'certificationName  -_id',
+      select: 'certificationName logo  -_id',
     });
 
 
