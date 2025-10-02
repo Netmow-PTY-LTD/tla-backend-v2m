@@ -20,7 +20,7 @@ import mongoose, { Document } from 'mongoose';
 import Experience from './experience.model';
 import Faq from './faq.model';
 import Agreement from './agreement.model';
-import QueryBuilder from '../../builder/QueryBuilder';
+
 
 /**
  * @desc   Retrieves all users from the database, including their associated profile data.

@@ -4,6 +4,7 @@ export interface IFirmProfile extends Document {
   // Firm details
   userId: Types.ObjectId;
   firmName: string;
+  slug: string;
   logo?: string;
   registrationNumber?: string;
   vatTaxId?: string;
