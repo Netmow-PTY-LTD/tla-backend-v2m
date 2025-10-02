@@ -13,7 +13,6 @@ const getAllSubscriptionsFromDB = async (query: Record<string, any>) => {
   const pageQuery = new QueryBuilder(SubscriptionModel.find({}), query).search([
     "name",
     "slug",
-    "features",
     "description"
   ]).filter().sort().paginate().fields();
   const data = await pageQuery.modelQuery;
