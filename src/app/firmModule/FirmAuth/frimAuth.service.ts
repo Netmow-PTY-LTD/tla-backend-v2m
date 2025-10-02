@@ -807,6 +807,8 @@ const getUserInfoFromDB = async (userId: string) => {
 
 
 
+
+
 // Export service
 export const firmAuthService = {
     firmRegisterUserIntoDB,
