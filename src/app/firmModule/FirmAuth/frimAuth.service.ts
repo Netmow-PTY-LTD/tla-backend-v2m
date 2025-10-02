@@ -19,6 +19,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IFirmLoginUser } from "./frimAuth.interface";
 import { FirmLicense } from "../FirmWiseCertLicense/cirtificateLicese.model";
 import { sendNotFoundResponse } from "../../errors/custom.error";
+import AdminProfile from "../Admin/admin.model";
 
 
 
@@ -135,12 +136,27 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
             { session }
         );
 
+        const [newAdmin] = await AdminProfile.create(
+            [
+                {
+                    userId: newUser._id,
+                    firmProfileId: new mongoose.Types.ObjectId(), // temporary, will update after FirmProfile creation
+                    fullName: userData.name,
+                    designation: 'Admin',
+                    phone: userData.phone ?? '',
+                    createdBy: newUser._id
+
+
+                },
+            ],
+            { session }
+        );
+
         // 3) create FirmProfile (matches your schema)
         const [newProfile] = await FirmProfile.create(
             [
                 {
                     // Firm details
-                    userId: newUser._id,
                     firmName: firmData.firmName,
                     registrationNumber: firmData.registrationNumber,
                     yearEstablished: firmData.yearEstablished,

@@ -2,7 +2,6 @@ import { Document, Schema, Types } from 'mongoose';
 
 export interface IFirmProfile extends Document {
   // Firm details
-  userId: Types.ObjectId;
   firmName: string;
   slug: string;
   logo?: string;

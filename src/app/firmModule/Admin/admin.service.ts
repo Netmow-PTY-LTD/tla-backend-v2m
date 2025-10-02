@@ -207,6 +207,7 @@ const createAdminUserIntoDB = async (userId: string, payload: AdminRegisterPaylo
     const [newUser] = await FirmUser.create(
       [
         {
+          name: fullName,
           email,
           password,
           role,
