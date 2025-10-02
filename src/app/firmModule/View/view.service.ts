@@ -17,7 +17,7 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
   const firmProfile = await FirmProfile.findOne({
     slug,
     deletedAt: null,
-  })
+  }).select('firmName registrationNumber yearEstablished legalFocusAreas contactInfo companySize  description vatTaxId yearsInBusiness slug ')
     .populate({
       path: 'contactInfo.country',
       select: 'name slug -_id',
@@ -67,7 +67,10 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
 
   const location = await FirmLocationModel.findOne({
     firmProfileId: firmProfile._id,
-  }).select('name address -_id')
+  }).select('name address -_id').populate({
+      path: 'address',
+      select: 'zipcode postalCode countryCode latitude longitude -_id',
+    });
 
 
   // Compose a complete, frontend-friendly response
