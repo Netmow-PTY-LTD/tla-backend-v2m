@@ -7,7 +7,6 @@ import mongoose from 'mongoose';
 const firmProfileSchema = new Schema<IFirmProfile>(
   {
     // Firm details
-    userId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     firmName: { type: String, required: true, trim: true },
     slug: {
       type: String,
