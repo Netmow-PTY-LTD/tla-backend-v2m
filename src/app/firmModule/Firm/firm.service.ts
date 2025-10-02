@@ -140,9 +140,6 @@ export const deleteFirm = async (id: string) => {
       throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm not found');
     }
 
-    // 2️ Delete associated FirmUser
-    await FirmUser.findByIdAndDelete(firm.userId, { session });
-
     // 3️ Delete the FirmProfile
     await FirmProfile.findByIdAndDelete(id, { session });
 
@@ -169,7 +166,7 @@ const getFirmInfoFromDB = async (userId: string) => {
     return sendNotFoundResponse("User not found");
   }
 
- 
+
 
 
   return await FirmProfile.findById(user.firmProfileId)

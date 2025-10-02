@@ -65,12 +65,12 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
     firmProfileId: firmProfile._id,
   }).select('-_id photos videos bannerImage');
 
-  const location = await FirmLocationModel.findOne({
+  const location = await FirmLocationModel.find({
     firmProfileId: firmProfile._id,
   }).select('name address -_id').populate({
-      path: 'address',
-      select: 'zipcode postalCode countryCode latitude longitude -_id',
-    });
+    path: 'address',
+    select: 'zipcode postalCode countryCode latitude longitude -_id',
+  });
 
 
   // Compose a complete, frontend-friendly response
@@ -78,7 +78,7 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
     ...firmProfile,
     certification: certification || [],
     media: media || { photos: [], videos: [] },
-    location: location || null,
+    location: location || [],
     lawyers: []
   };
 };

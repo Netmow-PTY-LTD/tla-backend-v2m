@@ -21,6 +21,7 @@ export type FirmPhoneVerificationStatus =
 export const Firm_USER_ROLE = {
   ADMIN: 'admin',
   STAFF: 'staff',
+  LAWYER: 'lawyer',
 } as const;
 
 export type FirmUserRole = (typeof Firm_USER_ROLE)[keyof typeof Firm_USER_ROLE];
