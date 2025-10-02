@@ -14,7 +14,6 @@ const getAllEliteProSubscriptionsFromDB = async (query: Record<string, any>) => 
   const pageQuery = new QueryBuilder(EliteProSubscriptionModel.find({}), query).search([
     "name",
     "slug",
-    "features",
     "description"
   ]).filter().sort().paginate().fields();
   const data = await pageQuery.modelQuery;

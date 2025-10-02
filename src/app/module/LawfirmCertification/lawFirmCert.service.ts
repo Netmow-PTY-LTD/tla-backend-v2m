@@ -11,8 +11,9 @@ const getAllLawFirmCertificationsFromDB = async (query: {
   search?: string;
   page?: number;
   limit?: number;
+  sort?: string;
 }) => {
-  const { countryId, type, search, page = 1, limit = 10 } = query;
+  const { countryId, type, search, page = 1, limit = 10, sort } = query;
 
   const filter: Record<string, any> = {};
 
@@ -77,7 +78,21 @@ const getAllLawFirmCertificationsFromDB = async (query: {
 
   // Pagination
   const skip = (page - 1) * limit;
-  const certifications = await certQuery.skip(skip).limit(limit).exec();
+
+  //  Sorting logic (dynamic)
+  let sortBy: string;
+  const sortParam = sort?.toLowerCase();
+
+  if (sortParam === 'asc') {
+    sortBy = 'createdAt'; // ascending createdAt
+  } else if (sortParam === 'desc') {
+    sortBy = '-createdAt'; // descending createdAt
+  } else {
+    // allow "field,-otherField" style input
+    sortBy = sortParam?.split(',')?.join(' ') || '-createdAt';
+  }
+
+  const certifications = await certQuery.skip(skip).limit(limit).sort(sortBy).exec();
 
   return {
     data: certifications,
@@ -89,6 +104,9 @@ const getAllLawFirmCertificationsFromDB = async (query: {
     },
   };
 };
+
+
+
 
 const createLawFirmCertification = async (payload: any) => {
   const result = await LawFirmCertification.create(payload);
