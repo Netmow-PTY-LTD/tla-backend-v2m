@@ -1,5 +1,6 @@
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { AppError } from "../../errors/error";
+import { TUploadedFile } from "../../interface/file.interface";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { firmAuthService } from "./frimAuth.service";
@@ -40,12 +41,31 @@ const userInfo = catchAsync(async (req, res) => {
 
   const userId = req.user.userId
 
+
   const user = await firmAuthService.getUserInfoFromDB(userId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Firm userInfo get  successfully.",
+    data: user,
+  });
+});
+
+const updateCurrentUserInfo = catchAsync(async (req, res) => {
+
+  const userId = req.user.userId
+  const payload = req.body;
+  const file = req.file;
+
+
+
+  const user = await firmAuthService.updateCurrentUser(userId, payload, file as TUploadedFile);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Firm userInfo updated successfully.",
     data: user,
   });
 });
@@ -365,5 +385,6 @@ export const firmAuthController = {
   sendOtp,
   verifyOtp,
   changeEmail,
-  userInfo
+  userInfo,
+  updateCurrentUserInfo
 };

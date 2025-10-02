@@ -20,6 +20,9 @@ import { IFirmLoginUser } from "./frimAuth.interface";
 import { FirmLicense } from "../FirmWiseCertLicense/cirtificateLicese.model";
 import { sendNotFoundResponse } from "../../errors/custom.error";
 import AdminProfile from "../Admin/admin.model";
+import StaffProfile from "../Staff/staff.model";
+import { TUploadedFile } from "../../interface/file.interface";
+import { uploadToSpaces } from "../../config/upload";
 
 
 
@@ -792,7 +795,7 @@ const changeEmail = async (userId: string, newEmail: string) => {
 const getUserInfoFromDB = async (userId: string) => {
     validateObjectId(userId, 'User');
     // Find user
-    const user = await FirmUser.findById(userId).select('+password +profileModel').populate('profile').lean();
+    const user = await FirmUser.findById(userId).select('+password +profileModel -name -phone').populate('profile').lean();
 
     if (!user) {
         return sendNotFoundResponse('user not found');
@@ -807,10 +810,107 @@ const getUserInfoFromDB = async (userId: string) => {
 };
 
 
+// const updateCurrentUser = async (
+//     userId: string,
+//     payload: { user?: any; profile?: any },
+//     file: TUploadedFile
+// ) => {
+//     const user = await FirmUser.findById(userId);
+
+
+//     if (!user) throw new Error("User not found");
+
+
+//     // ✅ handle file upload if present
+//     if (file) {
+//         const fileBuffer = file.buffer;
+//         const originalName = file.originalname;
+
+//         // upload to Spaces and get public URL
+//         const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
+//         profile.image = logoUrl;
+//     }
+
+
+
+//     // Update user core data
+//     if (payload.user) {
+//         await FirmUser.findByIdAndUpdate(userId, payload.user);
+//     }
+
+
+//     // Update role profile
+//     if (payload.profile) {
+//         switch (user.profileModel) {
+//             case "AdminProfile":
+//                 await AdminProfile.findByIdAndUpdate(user.profile, payload.profile);
+//                 break;
+//             case "StaffProfile":
+//                 await StaffProfile.findByIdAndUpdate(user.profile, payload.profile);
+//                 break;
+
+//         }
+//     }
+
+//     // Return merged result
+//     return await FirmUser.findById(userId).populate("profile");
+// };
 
 
 
 // Export service
+const updateCurrentUser = async (
+    userId: string,
+    payload: { user?: any; profile?: any },
+    file: TUploadedFile
+) => {
+    const user = await FirmUser.findById(userId);
+
+    if (!user) throw new Error("User not found");
+
+    // ✅ handle file upload if present
+    if (file) {
+        const fileBuffer = file.buffer;
+        const originalName = file.originalname;
+
+        // upload to Spaces and get public URL
+        if (!fileBuffer) {
+            throw new Error("File buffer is undefined");
+        }
+        const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
+        if (payload.profile) {
+            payload.profile.image = logoUrl;
+        }
+    }
+
+    // Update user core data
+    if (payload.user) {
+        await FirmUser.findByIdAndUpdate(userId, payload.user);
+    }
+
+    // Update role profile
+    if (payload.profile) {
+        switch (user.profileModel) {
+            case "AdminProfile":
+                await AdminProfile.findByIdAndUpdate(user.profile, payload.profile);
+                break;
+            case "StaffProfile":
+                await StaffProfile.findByIdAndUpdate(user.profile, payload.profile);
+                break;
+
+        }
+    }
+
+    // Return merged result
+    return await FirmUser.findById(userId).populate("profile");
+};
+
+
+
+
+
+
+
 export const firmAuthService = {
     firmRegisterUserIntoDB,
     loginUserIntoDB,
@@ -825,5 +925,6 @@ export const firmAuthService = {
     sendOtp,
     verifyOtp,
     changeEmail,
-    getUserInfoFromDB
+    getUserInfoFromDB,
+    updateCurrentUser
 };
