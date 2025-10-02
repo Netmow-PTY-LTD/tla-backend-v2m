@@ -181,7 +181,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
         //  Assign profileId correctly (ObjectId)
         newUser.firmProfileId = newProfile._id as Types.ObjectId
-        newUser.profile = newProfile._id as Types.ObjectId
+        newUser.profile = newAdmin._id as Types.ObjectId
         await newUser.save({ session });
 
 
