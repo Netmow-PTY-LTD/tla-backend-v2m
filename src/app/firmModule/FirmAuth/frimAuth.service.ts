@@ -840,11 +840,11 @@ export const updateCurrentUser = async (
 
     try {
         // 1️ Fetch user
-        const user = await FirmUser.findById(userId).select("+password").session(session);
+        const user = await FirmUser.findById(userId).select("+password +profileModel").session(session);
         if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
         // 2️ Update core FirmUser fields
-        if (payload.name) user.name = payload.name;
+        if (payload.name) user.name = payload.fullName;
         if (payload.phone) user.phone = payload.phone;
         if (payload.email) user.email = payload.email;
         if (payload.password) {
@@ -880,7 +880,7 @@ export const updateCurrentUser = async (
         }
 
         // Remove user-only fields from profile payload
-        const { name, phone, email, password, status, ...profilePayload } = payload;
+        const { email, password, status, ...profilePayload } = payload;
 
         // Update profile
         const updatedProfile = await Model.findByIdAndUpdate(
