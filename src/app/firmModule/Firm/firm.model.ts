@@ -1,5 +1,7 @@
 import { Schema, model } from 'mongoose';
 import { IFirmProfile } from './firm.interface';
+import slugify from 'slugify';
+import mongoose from 'mongoose';
 
 //   model
 const firmProfileSchema = new Schema<IFirmProfile>(
@@ -7,6 +9,10 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     // Firm details
     userId: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     firmName: { type: String, required: true, trim: true },
+    slug: {
+      type: String,
+      trim: true,
+    },
     logo: { type: String },
     registrationNumber: { type: String },
     vatTaxId: { type: String },
@@ -67,6 +73,69 @@ const firmProfileSchema = new Schema<IFirmProfile>(
   },
   { timestamps: true },
 );
+
+
+
+
+
+
+
+// 🔁 Pre-save hook to generate unique slug
+
+// Pre-save hook to generate unique slug from firmName
+firmProfileSchema.pre('save', async function (next) {
+  if (!this.isModified('firmName')) return next();
+
+  const baseSlug = slugify(this.firmName, { lower: true, strict: true });
+  let slug = baseSlug;
+  let count = 0;
+
+  // Ensure uniqueness
+  while (await mongoose.models.FirmProfile.exists({ slug })) {
+    count++;
+    slug = `${baseSlug}-${count}`;
+  }
+
+  this.slug = slug;
+  next();
+});
+
+
+firmProfileSchema.pre('findOneAndUpdate', async function (next) {
+  const update = this.getUpdate();
+
+  if (update && !Array.isArray(update) && 'firmName' in update) {
+    // Get the current document
+    const existing = await this.model.findOne(this.getQuery()).select('firmName');
+
+    // Only update slug if firmName is actually changing
+    if (existing && update.firmName !== existing.firmName) {
+      const baseSlug = slugify(update.firmName, { lower: true, strict: true });
+      let slug = baseSlug;
+      let count = 0;
+
+      while (await mongoose.models.FirmProfile.exists({ slug })) {
+        count++;
+        slug = `${baseSlug}-${count}`;
+      }
+
+      // Preserve existing update and just update slug
+      this.setUpdate({ ...update, slug });
+    }
+  }
+  next();
+});
+
+
+
+
+
+
+
+
+
+
+
 
 export const FirmProfile = model<IFirmProfile>(
   'FirmProfile',
