@@ -792,49 +792,32 @@ const changeEmail = async (userId: string, newEmail: string) => {
 
 
 
+
 const getUserInfoFromDB = async (userId: string) => {
     validateObjectId(userId, 'User');
-    // Find user
-    const user = await FirmUser.findById(userId).select('+password +profileModel -name -phone').populate('profile').lean();
+
+    // 1️ Fetch user with profile populated
+    const user = await FirmUser.findById(userId)
+        .select('+password +profileModel -name -phone')
+        .populate('profile')
+        .lean();
 
     if (!user) {
-        return sendNotFoundResponse('user not found');
+        return sendNotFoundResponse('User not found');
     }
 
-
-    // Type assertion to allow property deletion
+    // 2️ Remove sensitive fields
     delete (user as any).password;
-    delete (user as any).profileModel;
+    //     delete (user as any).profileModel;
+
+    // 3️ Merge profile fields into top-level user object
+    if (user.profile) {
+        Object.assign(user, user.profile); // copy all profile fields into user
+        delete (user as any).profile; // safe delete
+    }
 
     return user;
 };
-
-
-// const getUserInfoFromDB = async (userId: string) => {
-//     validateObjectId(userId, 'User');
-
-//     // 1️⃣ Fetch user with profile populated
-//     const user = await FirmUser.findById(userId)
-//         .select('+password +profileModel')
-//         .populate('profile')
-//         .lean();
-
-//     if (!user) {
-//         return sendNotFoundResponse('User not found');
-//     }
-
-//     // 2️⃣ Remove sensitive fields
-//     delete (user as any).password;
-//     //     delete (user as any).profileModel;
-
-//     // 3️⃣ Merge profile fields into top-level user object
-//     if (user.profile) {
-//         Object.assign(user, user.profile); // copy all profile fields into user
-//         delete user?.profile; // remove nested profile
-//     }
-
-//     return user;
-// };
 
 
 

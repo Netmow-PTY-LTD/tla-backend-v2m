@@ -17,7 +17,7 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
   const firmProfile = await FirmProfile.findOne({
     slug,
     deletedAt: null,
-  }).select('firmName registrationNumber yearEstablished legalFocusAreas contactInfo companySize  description vatTaxId yearsInBusiness slug ')
+  }).select('firmName registrationNumber yearEstablished legalFocusAreas contactInfo companySize logo  description vatTaxId yearsInBusiness slug ')
     .populate({
       path: 'contactInfo.country',
       select: 'name slug -_id',
