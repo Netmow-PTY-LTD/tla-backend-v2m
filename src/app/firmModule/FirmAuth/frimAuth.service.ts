@@ -22,7 +22,8 @@ import { sendNotFoundResponse } from "../../errors/custom.error";
 import AdminProfile from "../Admin/admin.model";
 import StaffProfile from "../Staff/staff.model";
 import { TUploadedFile } from "../../interface/file.interface";
-import { uploadToSpaces } from "../../config/upload";
+import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
+import { FOLDERS } from "../../constant";
 
 
 
@@ -791,8 +792,6 @@ const changeEmail = async (userId: string, newEmail: string) => {
 
 
 
-
-
 const getUserInfoFromDB = async (userId: string) => {
     validateObjectId(userId, 'User');
 
@@ -824,117 +823,95 @@ const getUserInfoFromDB = async (userId: string) => {
 
 
 
-// // Export service
-// const updateCurrentUser = async (
-//     userId: string,
-//     payload: { user?: any; profile?: any },
-//     file: TUploadedFile
-// ) => {
-//     const user = await FirmUser.findById(userId);
-
-//     if (!user) throw new Error("User not found");
-
-//     // ✅ handle file upload if present
-//     if (file) {
-//         const fileBuffer = file.buffer;
-//         const originalName = file.originalname;
-
-//         // upload to Spaces and get public URL
-//         if (!fileBuffer) {
-//             throw new Error("File buffer is undefined");
-//         }
-//         const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-//         if (payload.profile) {
-//             payload.profile.image = logoUrl;
-//         }
-//     }
-
-//     // Update user core data
-//     if (payload.user) {
-//         await FirmUser.findByIdAndUpdate(userId, payload.user);
-//     }
-
-//     // Update role profile
-//     if (payload.profile) {
-//         switch (user.profileModel) {
-//             case "AdminProfile":
-//                 await AdminProfile.findByIdAndUpdate(user.profile, payload.profile);
-//                 break;
-//             case "StaffProfile":
-//                 await StaffProfile.findByIdAndUpdate(user.profile, payload.profile);
-//                 break;
-
-//         }
-//     }
-
-//     // Return merged result
-//     return await FirmUser.findById(userId).populate("profile");
-// };
-
-
 const profileModelMap: Record<string, any> = {
     AdminProfile,
     StaffProfile,
     // Add more roles here
 };
 
+
 export const updateCurrentUser = async (
     userId: string,
     payload: any,
     file?: TUploadedFile
 ) => {
-    // 1️ Fetch user with password for potential password update
-    const user = await FirmUser.findById(userId).select("+password");
-    if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    // 2️ Handle file upload (profile image/logo)
-    if (file?.buffer) {
-        const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
-        payload.image = logoUrl;
-    }
+    try {
+        // 1️ Fetch user
+        const user = await FirmUser.findById(userId).select("+password").session(session);
+        if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
-    // 3️ Update core FirmUser fields: name, phone, email, password, status
-    if (payload.name) user.name = payload.name;
-    if (payload.phone) user.phone = payload.phone;
-    if (payload.email) user.email = payload.email;
-    if (payload.password) {
-        user.password = payload.password; // pre-save hook hashes it
-        user.needsPasswordChange = true;
-        user.passwordChangedAt = new Date();
-    }
-    if (payload.status) user.accountStatus = payload.status;
+        // 2️ Update core FirmUser fields
+        if (payload.name) user.name = payload.name;
+        if (payload.phone) user.phone = payload.phone;
+        if (payload.email) user.email = payload.email;
+        if (payload.password) {
+            user.password = payload.password; // pre-save hook hashes it
+            user.needsPasswordChange = true;
+            user.passwordChangedAt = new Date();
+        }
+        if (payload.status) user.accountStatus = payload.status;
 
-    await user.save(); // triggers password hashing if updated
+        await user.save({ session });
 
-    // 4️ Update role profile fields only
-    let updatedProfile = null;
-    console.log({ payload })
-    const Model = profileModelMap[user.profileModel];
-    if (!Model) throw new AppError(HTTP_STATUS.BAD_REQUEST, "Profile model not found");
+        // 3️ Update role-specific profile
+        const Model = profileModelMap[user.profileModel];
+        if (!Model) throw new AppError(HTTP_STATUS.BAD_REQUEST, "Profile model not found");
 
-    // Remove user-only fields from profile payload
-    const { email, password, status, ...profilePayload } = payload;
+        const profile = await Model.findById(user.profile).session(session);
+        if (!profile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
 
-    updatedProfile = await Model.findByIdAndUpdate(
-        user.profile,
-        {
-            $set: {
-                ...profilePayload,
-                updatedBy: new Types.ObjectId(userId),
+        // Handle profile image update
+        if (file?.buffer) {
+            // Delete previous image if exists
+            if (profile.image) {
+                try {
+                    await deleteFromSpace(profile.image);
+                } catch (err) {
+                    console.warn(`Failed to delete previous profile image: ${err}`);
+                }
+            }
+
+            // Upload new image
+            const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId, FOLDERS.PROFILES);
+            payload.image = logoUrl;
+        }
+
+        // Remove user-only fields from profile payload
+        const { name, phone, email, password, status, ...profilePayload } = payload;
+
+        // Update profile
+        const updatedProfile = await Model.findByIdAndUpdate(
+            user.profile,
+            {
+                $set: {
+                    ...profilePayload,
+                    updatedBy: new Types.ObjectId(userId),
+                },
             },
-        },
-        { new: true }
-    );
+            { new: true, session }
+        );
 
-    if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
+        if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
 
-    // 5️ Return merged result
-    return {
-        user,
-        profile: updatedProfile,
-    };
+        // 4️ Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        return {
+            user,
+            profile: updatedProfile,
+        };
+    } catch (error) {
+        // Rollback transaction on any error
+        await session.abortTransaction();
+        session.endSession();
+
+        throw error; // propagate error to caller
+    }
 };
-
 
 
 
