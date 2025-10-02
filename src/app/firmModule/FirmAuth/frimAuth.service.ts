@@ -229,7 +229,6 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
 
 
-
 //  AUTH RELATED API
 
 
@@ -772,25 +771,6 @@ const changeEmail = async (userId: string, newEmail: string) => {
 };
 
 
-// const getUserInfoFromDB = async (userId: string) => {
-//     // Find user
-//     const user = await FirmUser.findById(userId).lean();
-//     if (!user) {
-//         throw new Error("User not found");
-//     }
-
-//     // If the user role is "FIRM", attach the firm profile
-//     if (user.role === Firm_USER_ROLE.ADMIN) {
-//         const firmProfile = await FirmProfile.findOne({ userId: userId }).lean();
-//         return {
-//             ...user,
-//             firmProfile: firmProfile || null, // attach profile if exists
-//         };
-//     }
-
-//     // Otherwise, return only user info
-//     return user;
-// };
 
 
 const getUserInfoFromDB = async (userId: string) => {

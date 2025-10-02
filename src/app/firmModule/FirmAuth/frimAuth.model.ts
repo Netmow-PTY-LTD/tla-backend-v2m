@@ -90,11 +90,7 @@ const firmUserSchema = new mongoose.Schema(
       type: Schema.Types.ObjectId,
       refPath: 'profileModel',
     },
-    profileModel: {
-      type: String,
-      enum: ['FirmProfile', 'StaffProfile'],
-      select: false, // hide from queries by default
-    },
+    profileModel: { type: String, enum: ['AdminProfile', 'StaffProfile', 'LawyerProfile'], select: false }
 
   },
   {
@@ -162,14 +158,17 @@ firmUserSchema.pre('save', async function (next) {
   if (!user.profileModel) {
     switch (user.role) {
       case Firm_USER_ROLE.ADMIN:
-        user.profileModel = 'FirmProfile';
+        user.profileModel = 'AdminProfile';
         break;
       case Firm_USER_ROLE.STAFF:
         user.profileModel = 'StaffProfile';
         break;
+      case Firm_USER_ROLE.LAWYER:
+        user.profileModel = 'LawyerProfile';
+        break;
       default:
-        // fallback to FirmProfile if role is invalid or unknown
-        user.profileModel = 'FirmProfile';
+        // fallback to AdminProfile if role is invalid or unknown
+        user.profileModel = 'AdminProfile';
     }
   }
 
