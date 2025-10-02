@@ -128,7 +128,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
                     email: userData.email,
                     password: userData.password,
                     role: Firm_USER_ROLE.ADMIN,
-                    phone:userData.phone?? ''
+                    phone: userData.phone ?? ''
 
                 },
             ],
@@ -796,11 +796,16 @@ const changeEmail = async (userId: string, newEmail: string) => {
 const getUserInfoFromDB = async (userId: string) => {
     validateObjectId(userId, 'User');
     // Find user
-    const user = await FirmUser.findById(userId).populate('profile').lean();
-   
+    const user = await FirmUser.findById(userId).select('+password +profileModel').populate('profile').lean();
+
     if (!user) {
         return sendNotFoundResponse('user not found');
     }
+
+
+    // Type assertion to allow property deletion
+    delete (user as any).password;
+    delete (user as any).profileModel;
 
     return user;
 };
