@@ -90,33 +90,91 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
 
 
 
-const checkFirmName = async (firmName: string, countryId: string) => {
-  const normalizedName = firmName.toLowerCase();
+// const checkFirmName = async (firmName: string, countryId: string) => {
+//   const normalizedName = firmName.toLowerCase();
 
+//   const existingFirm = await FirmProfile.findOne({
+//     firmNameLower: normalizedName,
+//     'contactInfo.country': countryId,
+//     deletedAt: null,
+//   })
+//     .select('firmName slug')
+//     .lean();
+
+//   if (existingFirm) {
+//     return {
+//       success: false,
+//       message: `This firm name "${firmName}" is already registered in this country.`,
+//       data: {
+//         firmName: existingFirm.firmName,
+//         slug: existingFirm.slug,
+//       },
+//     };
+//   }
+
+//   return {
+//     success: true,
+//     message: 'Firm name is available.',
+//     data: null,
+//   };
+// };
+
+
+
+
+
+type FirmCacheValue = {
+  success: boolean;
+  message: string;
+  data: any;
+  timestamp: number; // for TTL
+};
+
+// TTL in milliseconds
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Map cache
+const firmNameCache = new Map<string, FirmCacheValue>();
+
+export const checkFirmName = async (firmName: string, countryId: string) => {
+  const normalizedName = firmName.toLowerCase();
+  const cacheKey = `${countryId}:${normalizedName}`;
+
+  //  1. Check cache first
+  const cached = firmNameCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached;
+  }
+
+  //  2. Query DB if not in cache or expired
   const existingFirm = await FirmProfile.findOne({
     firmNameLower: normalizedName,
     'contactInfo.country': countryId,
-    deletedAt: null,
   })
     .select('firmName slug')
     .lean();
 
-  if (existingFirm) {
-    return {
-      success: false,
-      message: `This firm name "${firmName}" is already registered in this country.`,
-      data: {
-        firmName: existingFirm.firmName,
-        slug: existingFirm.slug,
-      },
-    };
-  }
+  const result = existingFirm
+    ? {
+        success: false,
+        message: `This firm name "${firmName}" is already registered in this country.`,
+        data: {
+          firmName: existingFirm.firmName,
+          slug: existingFirm.slug,
+        },
+        timestamp: Date.now(),
+      }
+    : {
+        success: true,
+        message: 'Firm name is available.',
+        data: null,
+        timestamp: Date.now(),
+      };
 
-  return {
-    success: true,
-    message: 'Firm name is available.',
-    data: null,
-  };
+  //  3. Store in cache
+  firmNameCache.set(cacheKey, result);
+
+  return result;
 };
 
 

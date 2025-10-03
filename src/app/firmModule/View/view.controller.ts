@@ -38,28 +38,18 @@ const getSingleFirmProfileBySlug = catchAsync(async (req, res) => {
 
 
 const checkFirmName = catchAsync(async (req, res) => {
-  const timer = startQueryTimer();
+  // const timer = startQueryTimer();
   const { countryId, firmName } = req.body;
 
   const result = await viewService.checkFirmName(firmName, countryId);
-  const queryTime = timer.endQueryTimer();
+  // const queryTime = timer.endQueryTimer();
 
-  if (!result.success) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: false,
-      message: result.message,
-      queryTime,
-      data: result.data || null,
-    });
-  }
-
-  sendResponse(res, {
+  return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
-    success: true,
+    success: result.success,
     message: result.message,
-    queryTime,
-    data: null,
+    // queryTime,
+    data: result.success ? null : result.data || null,
   });
 });
 
