@@ -23,10 +23,12 @@ export default {
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
   client_url: process.env.CLIENT_SITE_URL,
-  firm_client_url: process.env.FIRM_CLIENT_SITE_URL,
   do_spaces_access_key: process.env.DO_SPACES_ACCESS_KEY,
   do_spaces_secret_key: process.env.DO_SPACES_SECRET_KEY,
   do_spaces_region: process.env.DO_SPACES_REGION,
   do_spaces_endpoint: process.env.DO_SPACES_ENDPOINT, 
   do_spaces_bucket: process.env.DO_SPACES_BUCKET,
+  firm_reset_pass_ui_link: process.env.FIRM_RESET_PASS_UI_LINK,
+  firm_client_url: process.env.FIRM_CLIENT_URL,
+
 };
