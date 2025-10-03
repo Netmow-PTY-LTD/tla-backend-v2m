@@ -36,6 +36,10 @@ export interface IFirmUser extends Document {
   emailChangeTokenExpires?: Date;
   firmProfileId: Types.ObjectId;
   profile: Types.ObjectId;
+  permissions: { pageId: Types.ObjectId; permission: boolean }[]
+  createdAt?: Date;
+  updatedAt?: Date;
+  //  Add the missing field here
   profileModel: string; // Add this line
 }
 
