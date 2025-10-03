@@ -90,18 +90,17 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
 
 
 
+const checkFirmName = async (firmName: string, countryId: string) => {
+  const normalizedName = firmName.toLowerCase();
 
- const checkFirmName = async (firmName: string, countryId: string) => {
-  // Step 1: Search for existing firm in same country
   const existingFirm = await FirmProfile.findOne({
-    firmName: { $regex: new RegExp(`^${firmName}$`, 'i') }, // case-insensitive match
+    firmNameLower: normalizedName,
     'contactInfo.country': countryId,
     deletedAt: null,
   })
     .select('firmName slug')
     .lean();
 
-  // Step 2: Return result
   if (existingFirm) {
     return {
       success: false,
@@ -116,6 +115,7 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
   return {
     success: true,
     message: 'Firm name is available.',
+    data: null,
   };
 };
 

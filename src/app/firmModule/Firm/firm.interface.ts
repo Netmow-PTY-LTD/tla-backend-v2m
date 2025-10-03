@@ -3,6 +3,7 @@ import { Document, Schema, Types } from 'mongoose';
 export interface IFirmProfile extends Document {
   // Firm details
   firmName: string;
+  firmNameLower: string;
   slug: string;
   logo?: string;
   registrationNumber?: string;
