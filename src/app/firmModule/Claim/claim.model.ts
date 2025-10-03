@@ -22,7 +22,7 @@ const ClaimSchema = new Schema<IClaim>(
       minlength: 2,
       maxlength: 200,
     },
-    email: {
+    lawFirmEmail: {
       type: String,
       required: true,
       lowercase: true,
@@ -47,7 +47,34 @@ const ClaimSchema = new Schema<IClaim>(
         message: "One or more known admin emails are invalid.",
       },
     },
+    claimerName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 200,
+    },
+    claimerEmail: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      match: emailRegex,
+    },
+    claimerRole: {
+      type: String,
+      required: true,
+      trim: true,
 
+
+    },
+    issueDescription: {
+      type: String,
+      required: true,
+      trim: true,
+
+    },
+    proofOwnFiles: [{ type: String, trim: true }],
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "needs_more_info"],

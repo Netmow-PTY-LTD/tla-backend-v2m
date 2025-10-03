@@ -3,6 +3,7 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { claimService } from "./claim.service";
+import { TUploadedFile } from "../../interface/file.interface";
 
 
 
@@ -10,6 +11,7 @@ import { claimService } from "./claim.service";
 const createClaimRequest = catchAsync(async (req, res) => {
   // Validate body
   const payload = req.body;
+  const files = req.files as TUploadedFile[] | undefined;
 
   // Attach request metadata if you store it
   const meta = {
@@ -17,7 +19,7 @@ const createClaimRequest = catchAsync(async (req, res) => {
     userAgent: req.get("user-agent") ?? undefined,
   };
 
-  const claim = await claimService.createClaimIntoDB(payload, meta);
+  const claim = await claimService.createClaimIntoDB(payload, meta, files);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,

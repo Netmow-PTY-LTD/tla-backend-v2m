@@ -1,7 +1,6 @@
 
 import { Types } from "mongoose";
 import { FirmLicense } from "./cirtificateLicese.model";
-import { FirmProfile } from "../Firm/firm.model";
 import { IFirmLicense } from "./cirtificateLicese.interface";
 import FirmUser from "../FirmAuth/frimAuth.model";
 import { sendNotFoundResponse } from "../../errors/custom.error";
