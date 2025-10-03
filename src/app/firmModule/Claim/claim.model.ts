@@ -4,16 +4,16 @@ import { IClaim } from "./claim.interface";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 const urlRegex = /^(https?:\/\/)[^\s/$.?#].[^\s]*$/i;
-const isoCountryRegex = /^[A-Z]{2}$/; // e.g., AU, US
+
 
 const ClaimSchema = new Schema<IClaim>(
   {
     country: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
       uppercase: true,
       trim: true,
-      match: isoCountryRegex,
+      ref: "Country",
     },
     lawFirmName: {
       type: String,
@@ -22,7 +22,7 @@ const ClaimSchema = new Schema<IClaim>(
       minlength: 2,
       maxlength: 200,
     },
-    email: {
+    lawFirmEmail: {
       type: String,
       required: true,
       lowercase: true,
@@ -47,7 +47,34 @@ const ClaimSchema = new Schema<IClaim>(
         message: "One or more known admin emails are invalid.",
       },
     },
+    claimerName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 200,
+    },
+    claimerEmail: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      match: emailRegex,
+    },
+    claimerRole: {
+      type: String,
+      required: true,
+      trim: true,
 
+
+    },
+    issueDescription: {
+      type: String,
+      required: true,
+      trim: true,
+
+    },
+    proofOwnFiles: [{ type: String, trim: true }],
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "needs_more_info"],
