@@ -18,6 +18,12 @@ router.post(
   viewController.checkFirmName
 );
 
+  
+router.get(
+  '/public/firm/by-search',
+  viewController.getAllFirm
+);
+
 
 
 

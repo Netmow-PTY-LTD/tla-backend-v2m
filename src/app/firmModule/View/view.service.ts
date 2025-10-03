@@ -1,3 +1,4 @@
+import { validateObjectId } from "../../utils/validateObjectId";
 import { IFirmProfile } from "../Firm/firm.interface";
 import { FirmProfile } from "../Firm/firm.model";
 import { IFirmUser } from "../FirmAuth/frimAuth.interface";
@@ -180,10 +181,100 @@ export const checkFirmName = async (firmName: string, countryId: string) => {
 
 
 
+interface GetFirmQuery {
+  countryId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+ const getAllFirmFromDB = async (query: GetFirmQuery) => {
+  const { countryId, search, page = 1, limit = 10 } = query;
+
+  const filter: Record<string, any> = {};
+
+  if (countryId) {
+    validateObjectId(countryId, "Country");
+    filter['contactInfo.country'] = countryId;
+  }
+
+  let firmQuery = FirmProfile.find(filter)
+    .select('firmName slug contactInfo')
+    .populate({ path: 'contactInfo.country', select: 'name slug' })
+    .populate({ path: 'contactInfo.city', select: 'name region' })
+    .populate({ path: 'contactInfo.zipCode', select: 'zipcode postalCode' });
+
+  if (search && search.trim()) {
+    const trimmedSearch = search.trim();
+
+    // Exact match first
+    const exactMatch = await FirmProfile.find({
+      ...filter,
+      firmNameLower: trimmedSearch.toLowerCase(),
+    })
+      .select('firmName slug contactInfo')
+      .populate({ path: 'contactInfo.country', select: 'name slug' })
+      .populate({ path: 'contactInfo.city', select: 'name region' })
+      .populate({ path: 'contactInfo.zipCode', select: 'zipcode postalCode' })
+      .lean();
+
+    if (exactMatch.length > 0) {
+      return {
+        data: exactMatch,
+        meta: {
+          total: exactMatch.length,
+          page: 1,
+          limit: exactMatch.length,
+          totalPage: 1,
+        },
+      };
+    }
+
+    // Partial match
+    firmQuery = FirmProfile.find({
+      ...filter,
+      firmName: { $regex: trimmedSearch, $options: 'i' },
+    })
+      .select('firmName slug contactInfo')
+      .populate({ path: 'contactInfo.country', select: 'name slug' })
+      .populate({ path: 'contactInfo.city', select: 'name region' })
+      .populate({ path: 'contactInfo.zipCode', select: 'zipcode postalCode' });
+  }
+
+  // Count total for pagination
+  const total = await FirmProfile.countDocuments(
+    search && search.trim()
+      ? { ...filter, firmName: { $regex: search.trim(), $options: 'i' } }
+      : filter
+  );
+
+  // Apply pagination
+  const skip = (page - 1) * limit;
+  const firms = await firmQuery.skip(skip).limit(limit).lean();
+
+  return {
+    data: firms,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
+};
+
+
+
+
+
+
+
+
 
 export const viewService = {
   getSingleFirmProfileBySlug,
-  checkFirmName
-};
-
+  checkFirmName,
+ getAllFirmFromDB
+};  
+ 
 

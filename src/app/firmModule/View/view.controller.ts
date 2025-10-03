@@ -57,9 +57,34 @@ const checkFirmName = catchAsync(async (req, res) => {
 
 
 
+const getAllFirm = catchAsync(async (req, res) => {
+  const query = req.query;
+  const result = await viewService.getAllFirmFromDB(query);
+
+  if (!result.data?.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Firm not found.',
+      data: [],
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All firms are retrieved successfully',
+    pagination: result.meta,
+    data: result.data,
+  });
+});
+
+
+
 export const viewController = {
 
   getSingleFirmProfileBySlug,
-  checkFirmName
+  checkFirmName,
+  getAllFirm
 
 };
