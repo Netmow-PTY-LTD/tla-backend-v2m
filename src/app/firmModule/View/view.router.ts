@@ -13,6 +13,12 @@ router.get(
 
 
 
+router.post(
+  '/public/check-firm-name',
+  viewController.checkFirmName
+);
+
+
 
 
 
