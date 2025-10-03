@@ -9,6 +9,7 @@ import { FirmMediaRoutes } from "../firmModule/media/media.route";
 import { firmLocationRouter } from "../firmModule/firmLocation/firmLocation.route";
 import { firmViewRouter } from "../firmModule/View/view.router";
 import { adminRoutes } from "../firmModule/Admin/admin.route";
+import { firmSettingsRouter } from "../firmModule/Settings/settings.route";
 
 
 const firmRoute = Router();
@@ -50,6 +51,10 @@ const moduleRoutes = [
   {
     path: '/admin',
     route: adminRoutes,
+  },
+  {
+    path: '/settings',
+    route: firmSettingsRouter,
   },
   {
       path: '/',
