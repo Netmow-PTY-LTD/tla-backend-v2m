@@ -802,6 +802,7 @@ const getUserInfoFromDB = async (userId: string) => {
             path: "profile",
             select: "-_id -createdAt -updatedAt", // select only needed profile fields
         })
+        .populate("permissions")
         .lean();
 
     if (!user) {
