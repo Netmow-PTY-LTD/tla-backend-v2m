@@ -110,13 +110,13 @@ export const createFirm = async (payload: any) => {
 
 //  List
 const listFirms = async () => {
-  return await FirmProfile.find().populate('firmUser createdBy updatedBy');
+  return await FirmProfile.find().populate('createdBy updatedBy');
 };
 
 //  Get by ID
 const getFirmById = async (id: string) => {
   return await FirmProfile.findById(id).populate(
-    'userId createdBy updatedBy',
+    'createdBy updatedBy',
   );
 };
 

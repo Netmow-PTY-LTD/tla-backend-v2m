@@ -8,6 +8,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
   {
     // Firm details
     firmName: { type: String, required: true, trim: true },
+    firmNameLower: { type: String, required: true },
     slug: {
       type: String,
       trim: true,
@@ -70,7 +71,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
   },
-  { timestamps: true ,versionKey: false},
+  { timestamps: true, versionKey: false },
 );
 
 
@@ -84,6 +85,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
 // Pre-save hook to generate unique slug from firmName
 firmProfileSchema.pre('save', async function (next) {
   if (!this.isModified('firmName')) return next();
+  this.firmNameLower = this.firmName.toLowerCase();
 
   const baseSlug = slugify(this.firmName, { lower: true, strict: true });
   let slug = baseSlug;
@@ -104,6 +106,7 @@ firmProfileSchema.pre('findOneAndUpdate', async function (next) {
   const update = this.getUpdate();
 
   if (update && !Array.isArray(update) && 'firmName' in update) {
+    update.firmNameLower = update.firmName.toLowerCase();
     // Get the current document
     const existing = await this.model.findOne(this.getQuery()).select('firmName');
 
@@ -131,7 +134,10 @@ firmProfileSchema.pre('findOneAndUpdate', async function (next) {
 
 
 
-
+firmProfileSchema.index(
+  { firmNameLower: 1, 'contactInfo.country': 1 },
+  { unique: true, }
+);
 
 
 
