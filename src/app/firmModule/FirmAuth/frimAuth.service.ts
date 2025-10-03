@@ -457,7 +457,7 @@ const forgetPassword = async (userEmail: string) => {
     );
 
     // Construct the reset password UI link containing the token
-    const resetUILink = `${config.client_url}/reset-password?email=${user.email}&token=${resetToken}`;
+    const resetUILink = `${config.firm_client_url}/reset-password?email=${user.email}&token=${resetToken}`;
 
     // Prepare email content for password reset
     const restEmailData = {
@@ -647,7 +647,7 @@ const resendVerificationEmail = async (email: string) => {
     await user.save();
 
     // Prepare email
-    const emailVerificationUrl = `${config.client_url}/verify-email?code=${accessToken}`;
+    const emailVerificationUrl = `${config.firm_client_url}/verify-email?code=${accessToken}`;
     await sendEmail({
         to: user.email,
         subject: 'Verify your account – TheLawApp',
