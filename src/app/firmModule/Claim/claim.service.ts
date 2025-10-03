@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { AppError } from "../../errors/error";
 import { ClaimStatus, IClaim } from "./claim.interface";
 import { Claim } from "./claim.model";
@@ -6,7 +6,7 @@ import { HTTP_STATUS } from "../../constant/httpStatus";
 
 
 export interface CreateClaimPayload {
-  country: string;                 // ISO-2, e.g. AU
+  country: Types.ObjectId;              // ISO-2, e.g. AU
   lawFirmName: string;
   email: string;
   lawFirmRegistrationNumber?: string;
@@ -19,7 +19,8 @@ const normalizeEmails = (arr?: string[]) =>
     .filter((v) => typeof v === "string" && v.trim())
     .map((v) => v.toLowerCase().trim());
 
-const normalizeCountry = (c: string) => c.trim().toUpperCase();
+
+
 
 const createClaimIntoDB = async (
   payload: CreateClaimPayload,
@@ -30,12 +31,13 @@ const createClaimIntoDB = async (
 
   try {
     // Normalize
-    const country = normalizeCountry(payload.country);
+
+
     const knownAdminEmails = normalizeEmails(payload.knownAdminEmails);
 
     // Prevent obvious duplicates: same firm name + email + country with pending/needs_more_info
     const existing = await Claim.findOne({
-      country,
+      country: payload.country,
       lawFirmName: payload.lawFirmName.trim(),
       email: payload.email.toLowerCase().trim(),
       status: { $in: ["pending", "needs_more_info"] },
@@ -51,7 +53,7 @@ const createClaimIntoDB = async (
     const created = await Claim.create(
       [
         {
-          country,
+          country: payload.country,
           lawFirmName: payload.lawFirmName.trim(),
           email: payload.email.toLowerCase().trim(),
           lawFirmRegistrationNumber: payload.lawFirmRegistrationNumber?.trim(),

@@ -4,16 +4,16 @@ import { IClaim } from "./claim.interface";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 const urlRegex = /^(https?:\/\/)[^\s/$.?#].[^\s]*$/i;
-const isoCountryRegex = /^[A-Z]{2}$/; // e.g., AU, US
+
 
 const ClaimSchema = new Schema<IClaim>(
   {
     country: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
       uppercase: true,
       trim: true,
-      match: isoCountryRegex,
+      ref: "Country",
     },
     lawFirmName: {
       type: String,

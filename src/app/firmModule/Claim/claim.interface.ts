@@ -5,7 +5,7 @@ export type ClaimStatus = "pending" | "approved" | "rejected" | "needs_more_info
 export interface IClaim {
   _id: Types.ObjectId;
 
-  country: string;
+  country: Types.ObjectId;
   lawFirmName: string;
   email: string;
   lawFirmRegistrationNumber?: string;
