@@ -1,4 +1,5 @@
 import { HTTP_STATUS } from '../../constant/httpStatus';
+import { TUploadedFile } from '../../interface/file.interface';
 import catchAsync from '../../utils/catchAsync';
 import { startQueryTimer } from '../../utils/queryTimer';
 import sendResponse from '../../utils/sendResponse';
@@ -81,10 +82,40 @@ const getAllFirm = catchAsync(async (req, res) => {
 
 
 
+
+const createClaimRequest = catchAsync(async (req, res) => {
+  // Validate body
+  const payload = req.body;
+  const files = req.files as TUploadedFile[] | undefined;
+
+  // Attach request metadata if you store it
+  const meta = {
+    requesterIp: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+  };
+
+  const claim = await viewService.createClaimIntoDB(payload, meta, files);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: "Claim submitted successfully.",
+    data: claim,
+  });
+});
+
+
+
+
+
+
+
+
 export const viewController = {
 
   getSingleFirmProfileBySlug,
   checkFirmName,
-  getAllFirm
+  getAllFirm,
+  createClaimRequest
 
 };
