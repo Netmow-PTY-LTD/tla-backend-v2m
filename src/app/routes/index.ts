@@ -19,10 +19,11 @@ import { ratingRouter } from '../module/Rating/rating.routes';
 import { profileVisitorRouter } from '../module/VisitorTracker/profileVisitor.routes';
 import { adminRouter } from '../module/Admin/admin.routes';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.route';
-import {  lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
+import { lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
 import { subscriptionRoutes } from '../module/Subscription/subscription.route';
 import { eliteProSubscriptionRouter } from '../module/EliteProSubscriptions/EliteProSubs.route';
 import { pageRouter } from '../module/Pages/page.route';
+import { claimRouter } from '../module/Claim/claim.route';
 
 const router = Router();
 
@@ -121,9 +122,14 @@ const moduleRoutes = [
     route: pageRouter,
   },
   {
+    path: '/claims',
+    route: claimRouter,
+  },
+  {
     path: '/',
     route: viewRouter,
   },
+
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

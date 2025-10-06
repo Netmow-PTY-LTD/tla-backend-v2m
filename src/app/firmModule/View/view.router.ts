@@ -1,5 +1,6 @@
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import { viewController } from './view.controller';
+import { upload } from '../../config/upload';
 
 
 
@@ -26,6 +27,10 @@ router.get(
 
 
 
+router.post("/public/claim", upload.array("proofOwnFiles"), (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+}, viewController.createClaimRequest);
 
 
 
