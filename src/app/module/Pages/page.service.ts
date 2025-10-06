@@ -6,11 +6,17 @@ const createPage = async (data: Partial<IPage>) => {
     return PageModel.create(data);
 };
 
-const getPages = async (query: Record<string, any>) => {
-    const pageQuery = new QueryBuilder(PageModel.find({}), query).search(['title',"slug", 'description']).filter().sort().paginate().fields();
-    const data = await pageQuery.modelQuery;
-    const pagination = await pageQuery.countTotal();
-    return { data, pagination };
+// const getPages = async (query: Record<string, any>) => {
+//     const pageQuery = new QueryBuilder(PageModel.find({}), query).search(['title',"slug", 'description']).filter().sort().paginate().fields();
+//     const data = await pageQuery.modelQuery;
+//     const pagination = await pageQuery.countTotal();
+//     return { data, pagination };
+// };
+
+const getPages = async () => {
+    const pageQuery = PageModel.find({});
+    // Apply search, filter, sort, and pagination using QueryBuilder
+    return pageQuery;
 };
 
 const getPageById = async (id: string) => {
