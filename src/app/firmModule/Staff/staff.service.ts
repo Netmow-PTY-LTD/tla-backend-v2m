@@ -66,46 +66,131 @@ const getStaffById = async (staffUserId: string) => {
 };
 
 
-const updateStaff = async (userId: string, staffUserId: string, payload: any) => {
+// const updateStaff = async (userId: string, staffUserId: string, payload: any) => {
 
+//   const user = await FirmUser.findById(staffUserId).select("+password");
+//   if (!user) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
+//   }
+
+//   const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).populate("userId");
+//   if (!staffProfile) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff not found");
+//   }
+
+//   if (payload.email) {
+//     user.email = payload.email;
+//   }
+
+//   if (payload.password) {
+//     user.password = payload.password; // will be auto-hashed by pre-save hook
+//     user.needsPasswordChange = true; // optional: force user to login again
+//     user.passwordChangedAt = new Date();
+//   }
+
+//   if (payload.email) {
+//     user.accountStatus = payload.status;
+//   }
+
+
+//   await user.save();
+
+//   // 3️ Remove fields meant for FirmUser from StaffProfile update payload
+//   const { email, password, status, ...profilePayload } = payload;
+
+//   // 4️ Update StaffProfile fields
+//   const updatedProfile = await StaffProfile.findOneAndUpdate(
+//     { _id: staffProfile?._id },
+//     {
+//       $set: {
+//         ...profilePayload,
+//         updatedBy: new Types.ObjectId(userId) // ensure ObjectId type
+//       }
+//     },
+//     { new: true }
+//   );
+
+//   if (!updatedProfile) {
+//     throw new AppError(
+//       HTTP_STATUS.NOT_FOUND,
+//       "Staff profile not found "
+//     );
+//   }
+
+//   return {
+//     staffProfile: updatedProfile,
+//     user,
+//   };
+// };
+
+
+
+
+
+const updateStaff = async (
+  userId: string,
+  staffUserId: string,
+  payload: any
+) => {
+  // 1️⃣ Fetch FirmUser
   const user = await FirmUser.findById(staffUserId).select("+password");
   if (!user) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
   }
 
+  // 2️⃣ Fetch StaffProfile
   const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).populate("userId");
   if (!staffProfile) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff not found");
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found");
   }
 
+  // 3️⃣ Update FirmUser fields
   if (payload.email) {
     user.email = payload.email;
   }
 
   if (payload.password) {
-    user.password = payload.password; // will be auto-hashed by pre-save hook
-    user.needsPasswordChange = true; // optional: force user to login again
+    user.password = payload.password; // auto-hashed by pre-save hook
+    user.needsPasswordChange = true;
     user.passwordChangedAt = new Date();
   }
 
-  if (payload.email) {
+  if (payload.status) {
     user.accountStatus = payload.status;
   }
 
+  // 4️⃣ Assign permissions directly (validate pageIds)
+  if (payload.permissions && Array.isArray(payload.permissions)) {
+    const pageIds = payload.permissions.map((p: { pageId: Types.ObjectId }) => p.pageId);
+    const validPages = await PageModel.find({ _id: { $in: pageIds } });
+    if (validPages.length !== pageIds.length) {
+      throw new AppError(
+        HTTP_STATUS.BAD_REQUEST,
+        "One or more pageIds are invalid."
+      );
+    }
+
+    user.permissions = payload.permissions.map((perm: { pageId: Types.ObjectId; permission: boolean }) => ({
+      pageId: perm.pageId,
+      permission: perm.permission,
+    }));
+
+    // populate permissions for frontend
+    await user.populate("permissions.pageId", "title slug");
+  }
 
   await user.save();
 
-  // 3️ Remove fields meant for FirmUser from StaffProfile update payload
-  const { email, password, status, ...profilePayload } = payload;
+  // 5️⃣ Update StaffProfile fields (excluding FirmUser-specific fields)
+  const { email, password, status, permissions, ...profilePayload } = payload;
 
-  // 4️ Update StaffProfile fields
   const updatedProfile = await StaffProfile.findOneAndUpdate(
-    { _id: staffProfile?._id },
+    { _id: staffProfile._id },
     {
       $set: {
         ...profilePayload,
-        updatedBy: new Types.ObjectId(userId) // ensure ObjectId type
-      }
+        updatedBy: new Types.ObjectId(userId),
+      },
     },
     { new: true }
   );
@@ -113,7 +198,7 @@ const updateStaff = async (userId: string, staffUserId: string, payload: any) =>
   if (!updatedProfile) {
     throw new AppError(
       HTTP_STATUS.NOT_FOUND,
-      "Staff profile not found "
+      "Staff profile not found"
     );
   }
 
@@ -122,7 +207,6 @@ const updateStaff = async (userId: string, staffUserId: string, payload: any) =>
     user,
   };
 };
-
 
 
 const deleteStaff = async (staffUserId: string) => {
