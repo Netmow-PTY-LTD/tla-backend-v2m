@@ -12,6 +12,7 @@ import ProfilePhotos from '../User/profilePhotos';
 import ProfileSocialMedia from '../User/profileSocialMedia';
 import ProfileCustomService from '../User/profileServiceCoustom.model';
 import { calculateLawyerBadge } from '../User/user.utils';
+import { FirmProfile } from '../../firmModule/Firm/firm.model';
 
 
 
@@ -353,7 +354,55 @@ const getPublicUserProfileBySlug = async (slug: string) => {
 };
 
 
+// company profile list
+interface CompanyProfileQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  countryId?: string;
+  ZipCodeId?: string;
+  cityId?: string;
+}
 
+const getAllPublicCompanyProfilesIntoDB = async (query: CompanyProfileQuery) => {
+  const { page = 1, limit = 10, search, countryId, ZipCodeId, cityId } = query;
+
+  const filter: Record<string, any> = { deletedAt: null };
+
+  if (countryId) filter["contactInfo.country"] = countryId;
+  if (cityId) filter["contactInfo.city"] = cityId;
+  if (ZipCodeId) filter["contactInfo.zipCode"] = ZipCodeId;
+  if (search) filter.firmName = { $regex: search.trim(), $options: "i" };
+
+  const skip = (page - 1) * limit;
+
+  const companiesQuery = FirmProfile.find(filter)
+    .populate([
+      { path: "contactInfo.country", select: "name" },
+      { path: "contactInfo.city", select: "name region" },
+      { path: "contactInfo.zipCode", select: "zipcode postalCode" },
+      
+    ]).select('firmName logo contactInfo companySize')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const [companies, total] = await Promise.all([
+    companiesQuery,
+    FirmProfile.countDocuments(filter),
+  ]);
+
+  return {
+    data: companies,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
+};
 
 
 export const viewService = {
@@ -362,6 +411,7 @@ export const viewService = {
   getAllPublicUserProfilesIntoDB,
   getPublicUserProfileById,
   getPublicUserProfileBySlug,
+  getAllPublicCompanyProfilesIntoDB,
 };
 
 
