@@ -16,6 +16,7 @@ import { createLeadService } from './lawyerRegister.utils';
 import { LocationType } from '../LeadSettings/UserWiseLocation.constant';
 import { sendEmail } from '../../emails/email.service';
 import Service from '../Service/service.model';
+import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 
 
 // const lawyerRegisterUserIntoDB = async (payload: IUser) => {
@@ -327,13 +328,25 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     // compnay profile map create
 
     if (companyInfo?.companyTeam) {
-      const companyProfileMapData = {
-        ...companyInfo,
-        contactEmail: userData.email,
-        userProfileId: newProfile._id,
-      };
 
-      await CompanyProfile.create([companyProfileMapData], { session });
+
+      // const companyProfileMapData = {
+      //   ...companyInfo,
+      //   contactEmail: userData.email,
+      //   userProfileId: newProfile._id,
+      // };
+
+      // await CompanyProfile.create([companyProfileMapData], { session });
+
+      await LawyerRequestAsMember.create([{
+        firmProfileId: companyInfo?.companyName,
+        lawyerId: newProfile._id,
+        status: 'pending',
+        message: `Lawyer ${newUser.email} requested to join this firm as a member.`,
+      }], { session });
+
+
+
     }
 
     // lawyer service map create

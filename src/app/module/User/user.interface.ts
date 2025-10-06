@@ -42,5 +42,11 @@ export interface IUserProfile {
   //  rating
   totalRatings?: number,
   avgRating?: number
+
+  //   firm related fields
+  firmProfileId?: Types.ObjectId | null; // the firm the lawyer belongs to
+  firmMembershipStatus: 'none' | 'pending' | 'approved' | 'rejected' | 'left';
+  joinedAt?: Date | null;
+  
   deletedAt?: Date | null;
 }
