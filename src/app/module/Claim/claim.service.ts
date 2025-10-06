@@ -113,7 +113,7 @@ const createClaimIntoDB = async (
 
 
 const listClaims = async (query: Record<string, any>) => {
-  const pageQuery = new QueryBuilder(Claim.find({}), query).search(claimSearchableFields).filter().sort().paginate().fields();
+  const pageQuery = new QueryBuilder(Claim.find({}).populate('country'), query).search(claimSearchableFields).filter().sort().paginate().fields().;
   const data = await pageQuery.modelQuery;
   const pagination = await pageQuery.countTotal();
   return { data, pagination };

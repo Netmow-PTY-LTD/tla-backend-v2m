@@ -5,15 +5,25 @@ import catchAsync from '../../utils/catchAsync';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 
 // Get all pages (with optional pagination)
+// const getPagesController = catchAsync(async (req, res) => {
+//     // Optional: pagination params
+//     const result = await pageService.getPages(req.query);
+//     return sendResponse(res, {
+//         statusCode: HTTP_STATUS.OK,
+//         success: true,
+//         message: 'Pages retrieved successfully',
+//         pagination: result.pagination,
+//         data: result.data,
+//     });
+// });
 const getPagesController = catchAsync(async (req, res) => {
     // Optional: pagination params
-    const result = await pageService.getPages(req.query);
+    const result = await pageService.getPages();
     return sendResponse(res, {
         statusCode: HTTP_STATUS.OK,
         success: true,
         message: 'Pages retrieved successfully',
-        pagination: result.pagination,
-        data: result.data,
+        data: result,
     });
 });
 
