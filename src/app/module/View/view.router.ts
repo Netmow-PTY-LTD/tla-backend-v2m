@@ -60,6 +60,11 @@ router.get(
 
 
 
+//   company public api
+
+router.get('/public/firm/list', viewController.getAllCompanyProfilesList);
+
+
 
 
 
