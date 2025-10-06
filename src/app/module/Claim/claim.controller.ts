@@ -29,16 +29,25 @@ const createClaimRequest = catchAsync(async (req, res) => {
   });
 });
 
-// Optional list (for admin dashboards)
+
+
+
 const listClaims = catchAsync(async (req, res) => {
-  const claims = await claimService.listClaims({ status: req.query.status as any });
+
+  const claims = await claimService.listClaims(req.query);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Claims fetched.",
-    data: claims,
+    pagination: claims.pagination,
+    data: claims.data,
   });
+
 });
+
+
+
+
 
 // Optional status update (approve/reject/etc.)
 const updateClaimStatus = catchAsync(async (req, res) => {
