@@ -6,6 +6,8 @@ import { HTTP_STATUS } from "../../constant/httpStatus";
 import { TUploadedFile } from "../../interface/file.interface";
 import { uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
+import QueryBuilder from "../../builder/QueryBuilder";
+import { claimSearchableFields } from "./claim.constant";
 
 
 
@@ -107,12 +109,20 @@ const createClaimIntoDB = async (
 
 
 
-// -------- Optional helpers for admin dashboards --------
-const listClaims = async (filter: { status?: ClaimStatus }) => {
-  const q: any = {};
-  if (filter.status) q.status = filter.status;
-  return Claim.find(q).sort({ createdAt: -1 });
+
+
+
+const listClaims = async (query: Record<string, any>) => {
+  const pageQuery = new QueryBuilder(Claim.find({}), query).search(claimSearchableFields).filter().sort().paginate().fields();
+  const data = await pageQuery.modelQuery;
+  const pagination = await pageQuery.countTotal();
+  return { data, pagination };
 };
+
+
+
+
+
 
 const updateClaimStatus = async (
   claimId: string,
