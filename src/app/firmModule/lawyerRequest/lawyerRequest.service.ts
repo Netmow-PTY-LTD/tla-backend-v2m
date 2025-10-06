@@ -30,17 +30,6 @@ const getLawyerRequestById = async (id: string, userId: string) => {
 
 
 
-// const updateLawyerRequest = async (id: string, userId: string, payload: Partial<ILawyerRequestAsMember>) => {
-//   const user = await FirmUser.findById(userId).select('firmProfileId');
-//   if (!user) return sendNotFoundResponse("User not found");
-//   return await LawyerRequestAsMember.findOneAndUpdate(
-//     { _id: id, firmProfileId: user.firmProfileId },
-//     { $set: payload },
-//     { new: true }
-//   );
-
-// };
-
 
 
 const updateLawyerRequest = async (
@@ -48,6 +37,8 @@ const updateLawyerRequest = async (
     userId: string,
     payload: Partial<ILawyerRequestAsMember>
 ) => {
+
+
     const user = await FirmUser.findById(userId).select('firmProfileId');
     if (!user) return sendNotFoundResponse("User not found");
 
