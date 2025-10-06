@@ -12,13 +12,13 @@ const createLawyerRequest = async (userId: string, payload: Partial<ILawyerReque
 const listLawyerRequests = async (userId: string) => {
   const user = await FirmUser.findById(userId).select('firmProfileId');
   if (!user) return sendNotFoundResponse("User not found");
-  return await LawyerRequestAsMember.find({ firmProfileId: user.firmProfileId });
+  return await LawyerRequestAsMember.find({ firmProfileId: user.firmProfileId }).populate('lawyerId');
 };
 
 const getLawyerRequestById = async (id: string, userId: string) => {
   const user = await FirmUser.findById(userId).select('firmProfileId');
   if (!user) return sendNotFoundResponse("User not found");
-  return await LawyerRequestAsMember.findOne({ _id: id, firmProfileId: user.firmProfileId });
+  return await LawyerRequestAsMember.findOne({ _id: id, firmProfileId: user.firmProfileId }).populate('lawyerId').populate('firmProfileId');
 };
 
 const updateLawyerRequest = async (id: string, userId: string, payload: Partial<ILawyerRequestAsMember>) => {
