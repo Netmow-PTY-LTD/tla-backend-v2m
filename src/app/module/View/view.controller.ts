@@ -136,7 +136,7 @@ const getAllCompanyProfilesList = catchAsync(async (req, res) => {
 
   if (!result.data.length) {
     return sendResponse(res, {
-      statusCode: HTTP_STATUS.NOT_FOUND,
+      statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'Company Profiles not found.',
       queryTime,
