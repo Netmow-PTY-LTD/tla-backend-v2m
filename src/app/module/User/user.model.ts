@@ -109,14 +109,12 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: Number,
       default: 0,
     },
-
-    
-  //   firm related fields
+    //   firm related fields
     firmProfileId: { type: mongoose.Schema.Types.ObjectId, ref: 'FirmProfile', default: null },
-    firmMembershipStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected', 'left'], default: 'none' },
+    firmMembershipStatus: { type: String, enum: ['pending', 'approved', 'rejected', 'cancelled', 'left'], default: 'pending' },
     joinedAt: { type: Date, default: null },
 
-
+    leftAt: { type: Date, default: null },
 
 
     deletedAt: {

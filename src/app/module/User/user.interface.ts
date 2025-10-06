@@ -45,8 +45,9 @@ export interface IUserProfile {
 
   //   firm related fields
   firmProfileId?: Types.ObjectId | null; // the firm the lawyer belongs to
-  firmMembershipStatus: 'none' | 'pending' | 'approved' | 'rejected' | 'left';
+  firmMembershipStatus:  "pending" | "approved" | "rejected" | "left" | "cancelled";
   joinedAt?: Date | null;
-  
+  leftAt?: Date | null;
+
   deletedAt?: Date | null;
 }

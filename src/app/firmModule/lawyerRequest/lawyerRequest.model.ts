@@ -3,7 +3,7 @@ import { Schema, model, Types, Document } from 'mongoose';
 export interface ILawyerRequestAsMember extends Document {
   firmProfileId: Types.ObjectId; // Reference to LawFirm profile
   lawyerId: Types.ObjectId; // Reference to Lawyer user profile
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'left';
   message?: string; // Lawyer’s message to the firm
   reviewedBy?: Types.ObjectId; // Admin or firm user who reviewed
   reviewedAt?: Date;
@@ -29,7 +29,7 @@ const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
     },
     status: {
       type: String,
-      enum: ['pending', 'approved', 'rejected', 'cancelled'],
+      enum: ['pending', 'approved', 'rejected', 'cancelled', 'left'],
       default: 'pending',
     },
     message: {

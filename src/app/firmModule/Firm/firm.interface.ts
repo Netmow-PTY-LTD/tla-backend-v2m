@@ -52,7 +52,7 @@ export interface IFirmProfile extends Document {
     billingContact?: string;
     defaultCurrency: string;
   };
-
+ lawyers: Types.ObjectId[]; // references to lawyer's profiles
   // Permissions
   createdBy: Schema.Types.ObjectId;
   updatedBy?: Schema.Types.ObjectId;
