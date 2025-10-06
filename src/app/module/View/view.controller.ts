@@ -128,6 +128,33 @@ const getSingleUserProfileBySlug = catchAsync(async (req, res) => {
 });
 
 
+// get all company profiles
+const getAllCompanyProfilesList = catchAsync(async (req, res) => {
+  const timer = startQueryTimer();
+  const result = await viewService.getAllPublicCompanyProfilesIntoDB(req.query);
+  const queryTime = timer.endQueryTimer();
+
+  if (!result.data.length) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Company Profiles not found.',
+      queryTime,
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Company Profiles retrieved successfully.',
+    queryTime,
+    pagination: result.meta,
+    data: result.data,
+  });
+});
+
+
 
 export const viewController = {
   getSingleServiceWiseQuestion,
@@ -135,5 +162,6 @@ export const viewController = {
   getAllUserProfile,
   getSingleUserProfileById,
   getSingleUserProfileBySlug,
+  getAllCompanyProfilesList
   
 };

@@ -67,6 +67,13 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       currency: { type: String },
       notes: { type: String },
     },
+    lawyers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'UserProfile', // reference to lawyer's profile
+      },
+    ],
+
     // Permissions
     createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
