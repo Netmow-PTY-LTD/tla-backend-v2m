@@ -80,7 +80,7 @@ const firmUserSchema = new mongoose.Schema(
     emailChangeTokenExpires: { type: Date },
     permissions: [
       {
-        pageId: { type: Schema.Types.ObjectId, ref: "Page", required: true },
+        pageId: { type: Schema.Types.ObjectId, ref: "Page" },
         permission: { type: Boolean, default: false },
 
       },

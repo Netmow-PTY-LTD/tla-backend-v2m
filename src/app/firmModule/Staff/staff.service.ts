@@ -8,6 +8,7 @@ import FirmUser from '../FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import StaffProfile from './staff.model';
+import PageModel from '../../module/Pages/page.model';
 
 
 export const getStaffList = async (userId: string) => {
@@ -87,7 +88,7 @@ const updateStaff = async (userId: string, staffUserId: string, payload: any) =>
     user.passwordChangedAt = new Date();
   }
 
-    if (payload.email) {
+  if (payload.email) {
     user.accountStatus = payload.status;
   }
 
@@ -95,7 +96,7 @@ const updateStaff = async (userId: string, staffUserId: string, payload: any) =>
   await user.save();
 
   // 3️ Remove fields meant for FirmUser from StaffProfile update payload
-  const { email, password,status, ...profilePayload } = payload;
+  const { email, password, status, ...profilePayload } = payload;
 
   // 4️ Update StaffProfile fields
   const updatedProfile = await StaffProfile.findOneAndUpdate(
@@ -177,7 +178,7 @@ interface StaffRegisterPayload {
   designation?: string;
   phone?: string;
   firmProfileId: Types.ObjectId; // optional
-  permissions?: Types.ObjectId[]; // optional
+  permissions?: { pageId: Types.ObjectId; permission: boolean }[];
   role?: string;
   image?: string;
   status: "active" | "inactive"; // optional
@@ -217,7 +218,6 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
           email,
           password,
           role,
-          // permissions: permissions || [],
           accountStatus: status
         },
       ],
@@ -244,6 +244,31 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
     newUser.firmProfileId = firmProfileId as Types.ObjectId
     newUser.profile = newProfile._id as Types.ObjectId
     await newUser.save({ session });
+
+
+    // 4️⃣ Assign permissions directly (no service)
+    if (permissions && Array.isArray(permissions) && permissions.length > 0) {
+      const pageIds = permissions.map((p) => p.pageId);
+      const validPages = await PageModel.find({ _id: { $in: pageIds } });
+      if (validPages.length !== pageIds.length) {
+        throw new AppError(
+          HTTP_STATUS.BAD_REQUEST,
+          "One or more pageIds are invalid."
+        );
+      }
+
+      newUser.permissions = permissions.map((perm) => ({
+        pageId: perm.pageId,
+        permission: perm.permission,
+      }));
+    }
+
+    await newUser.save({ session });
+
+    // 5️⃣ Populate permissions with page info for frontend
+    if (newUser.permissions && newUser.permissions.length > 0) {
+      await newUser.populate("permissions.pageId", "title slug");
+    }
 
 
     // 5️⃣ Generate JWT token
