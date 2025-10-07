@@ -12,7 +12,7 @@ export const createFirmLicenseInDB = async (
     data: {
         certificationId: string;
         licenseNumber: string;
-        issuedBy: string;
+        // issuedBy: string;
         additionalNote: string;
         validUntil: Date;
     }
