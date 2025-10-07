@@ -300,7 +300,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
       path: 'serviceIds',
       model: 'Service', // or whatever your actual model name is
     },
-  });
+  }).populate('firmProfileId');
 
   if (!userData || !userData.profile || typeof userData.profile === 'string') {
     return sendNotFoundResponse('user profile data not found');
