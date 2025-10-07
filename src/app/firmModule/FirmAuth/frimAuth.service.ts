@@ -832,15 +832,23 @@ const getUserInfoFromDB = async (userId: string) => {
 
     // 2️ Remove sensitive fields
     delete (user as any).password;
-    //     delete (user as any).profileModel;
-
     // 3️ Merge profile fields into top-level user object
-    if (user.profile) {
-        Object.assign(user, user.profile); // copy all profile fields into user
-        delete (user as any).profile; // safe delete
+    if (user.profile && typeof user.profile === "object" && !Array.isArray(user.profile)) {
+        const profileData = user.profile as Record<string, any>; // ✅ tell TS it's an object
+
+        // Merge only non-conflicting fields
+        Object.keys(profileData).forEach((key) => {
+            if (!(key in user)) {
+                (user as any)[key] = profileData[key];
+            }
+        });
+
+        // Keep firmProfileId reference intact
+        delete (user as any).profile;
     }
 
     return user;
+    
 };
 
 
