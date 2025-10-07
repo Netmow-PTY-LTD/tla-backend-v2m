@@ -38,7 +38,7 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
     .populate({
       path: 'contactInfo.zipCode',
       select: 'zipcode postalCode countryCode latitude longitude -_id',
-    })
+    }).populate('lawyers') // user refs
     .lean();
 
   if (!firmProfile) return null;
@@ -88,45 +88,11 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
     certification: certification || [],
     media: media || { photos: [], videos: [] },
     location: location || [],
-    lawyers: []
+    // lawyers: []
   };
 };
 
 
-
-
-
-
-
-
-// const checkFirmName = async (firmName: string, countryId: string) => {
-//   const normalizedName = firmName.toLowerCase();
-
-//   const existingFirm = await FirmProfile.findOne({
-//     firmNameLower: normalizedName,
-//     'contactInfo.country': countryId,
-//     deletedAt: null,
-//   })
-//     .select('firmName slug')
-//     .lean();
-
-//   if (existingFirm) {
-//     return {
-//       success: false,
-//       message: `This firm name "${firmName}" is already registered in this country.`,
-//       data: {
-//         firmName: existingFirm.firmName,
-//         slug: existingFirm.slug,
-//       },
-//     };
-//   }
-
-//   return {
-//     success: true,
-//     message: 'Firm name is available.',
-//     data: null,
-//   };
-// };
 
 
 
