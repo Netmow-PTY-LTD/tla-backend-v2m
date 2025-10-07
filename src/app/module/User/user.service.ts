@@ -302,7 +302,14 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
           path: 'serviceIds',
           model: 'Service', // or whatever your actual model name is
         },
-        { path: 'firmProfileId', model: 'FirmProfile' },
+        // { path: 'firmProfileId', model: 'FirmProfile' },
+        {
+          path: 'firmProfileId',
+          model: 'FirmProfile',
+          populate: {
+            path: 'contactInfo.country contactInfo.city contactInfo.zipCode',
+          },
+        },
       ],
     })
 
