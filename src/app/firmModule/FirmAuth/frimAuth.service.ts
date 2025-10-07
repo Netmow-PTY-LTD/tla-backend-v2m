@@ -801,6 +801,13 @@ const getUserInfoFromDB = async (userId: string) => {
         .populate({
             path: "profile",
             select: "-_id -createdAt -updatedAt", // select only needed profile fields
+           populate: {
+               path: "firmProfileId",
+               model: "FirmProfile",
+               populate: {
+                   path: "contactInfo.country contactInfo.city contactInfo.zipCode",
+               },
+           },
         })
         .populate("permissions")
         .lean();
