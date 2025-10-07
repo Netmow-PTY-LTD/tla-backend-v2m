@@ -29,6 +29,11 @@ const ClaimSchema = new Schema<IClaim>(
       trim: true,
       match: emailRegex,
     },
+    lawFirmPhone: {
+      type: String,
+      trim: true,
+     
+    },
     lawFirmRegistrationNumber: {
       type: String,
       trim: true,

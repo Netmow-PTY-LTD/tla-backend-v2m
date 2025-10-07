@@ -7,6 +7,7 @@ export interface IClaim {
   country: Types.ObjectId; // reference to Country
   lawFirmName: string;
   lawFirmEmail: string;
+  lawFirmPhone?: string;
   lawFirmRegistrationNumber?: string;
   website?: string;
   knownAdminEmails: string[];

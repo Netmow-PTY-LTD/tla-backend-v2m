@@ -17,6 +17,7 @@ interface CreateClaimPayload {
   country: Types.ObjectId;
   lawFirmName: string;
   lawFirmEmail: string; // updated to match your schema
+  lawFirmPhone?: string; // updated to match your schema
   lawFirmRegistrationNumber?: string;
   website?: string;
   knownAdminEmails?: string[];
@@ -78,6 +79,7 @@ const createClaimIntoDB = async (
           country: payload.country,
           lawFirmName: normalizedFirmName,
           lawFirmEmail: normalizedLawFirmEmail,
+          lawFirmPhone: payload.lawFirmPhone?.trim(),
           lawFirmRegistrationNumber: payload.lawFirmRegistrationNumber?.trim(),
           website: payload.website?.trim(),
           knownAdminEmails,
