@@ -107,12 +107,12 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
         if (
 
             !licenseData?.licenseNumber ||
-            !licenseData?.issuedBy ||
+            // !licenseData?.issuedBy ||
             !licenseData?.validUntil
         ) {
             throw new AppError(
                 HTTP_STATUS.BAD_REQUEST,
-                "License details are required (licenseType, licenseNumber, issuedBy, validUntil)."
+                "License details are required (licenseType, licenseNumber,  validUntil)."
             );
         }
 
@@ -194,7 +194,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
                     firmProfileId: newProfile._id,
                     certificationId: licenseData?.certificationId,
                     licenseNumber: licenseData?.licenseNumber,
-                    issuedBy: licenseData?.issuedBy,
+                    // issuedBy: licenseData?.issuedBy,
                     type: licenseData?.type,
                     additionalNote: licenseData?.additionalNote ?? "",
                     validUntil: normalizeValidUntil(licenseData?.validUntil),
