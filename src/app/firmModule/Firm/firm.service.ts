@@ -170,7 +170,13 @@ const getFirmInfoFromDB = async (userId: string) => {
 
 
   return await FirmProfile.findById(user.firmProfileId)
-    .populate('lawyers') // user refs
+    .populate({
+      path:'lawyers',
+      populate: {
+        path: 'serviceIds',
+        model: 'Service', // or whatever your actual model name is
+      }
+    }) // user refs
     .populate('createdBy updatedBy') // user refs
     .populate('contactInfo.country') // country ref
     .populate('contactInfo.city') // city ref
