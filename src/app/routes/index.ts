@@ -24,6 +24,7 @@ import { subscriptionRoutes } from '../module/Subscription/subscription.route';
 import { eliteProSubscriptionRouter } from '../module/EliteProSubscriptions/EliteProSubs.route';
 import { pageRouter } from '../module/Pages/page.route';
 import { claimRouter } from '../module/Claim/claim.route';
+import { testimonialRoutes } from '../module/Testimonial/testimonial.route';
 
 const router = Router();
 
@@ -124,6 +125,10 @@ const moduleRoutes = [
   {
     path: '/claims',
     route: claimRouter,
+  },
+  {
+    path: '/testimonials',
+    route: testimonialRoutes,
   },
   {
     path: '/',
