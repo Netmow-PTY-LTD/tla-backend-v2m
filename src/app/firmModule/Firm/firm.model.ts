@@ -8,7 +8,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
   {
     // Firm details
     firmName: { type: String, required: true, trim: true },
-    firmNameLower: { type: String, required: true },
+    firmNameLower: { type: String },
     slug: {
       type: String,
       trim: true,
