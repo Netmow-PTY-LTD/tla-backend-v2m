@@ -38,7 +38,10 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
     .populate({
       path: 'contactInfo.zipCode',
       select: 'zipcode postalCode countryCode latitude longitude -_id',
-    }).populate('lawyers') // user refs
+    }).populate({
+      path: 'lawyers',
+      populate: { path: "serviceIds" ,model:"Service" }
+    }) // user refs
     .lean();
 
   if (!firmProfile) return null;
@@ -131,20 +134,20 @@ export const checkFirmName = async (firmName: string, countryId: string) => {
 
   const result = existingFirm
     ? {
-        success: false,
-        message: `This firm name "${firmName}" is already registered in this country.`,
-        data: {
-          firmName: existingFirm.firmName,
-          slug: existingFirm.slug,
-        },
-        timestamp: Date.now(),
-      }
+      success: false,
+      message: `This firm name "${firmName}" is already registered in this country.`,
+      data: {
+        firmName: existingFirm.firmName,
+        slug: existingFirm.slug,
+      },
+      timestamp: Date.now(),
+    }
     : {
-        success: true,
-        message: 'Firm name is available.',
-        data: null,
-        timestamp: Date.now(),
-      };
+      success: true,
+      message: 'Firm name is available.',
+      data: null,
+      timestamp: Date.now(),
+    };
 
   //  3. Store in cache
   firmNameCache.set(cacheKey, result);
@@ -162,7 +165,7 @@ interface GetFirmQuery {
   limit?: number;
 }
 
- const getAllFirmFromDB = async (query: GetFirmQuery) => {
+const getAllFirmFromDB = async (query: GetFirmQuery) => {
   const { countryId, search, page = 1, limit = 10 } = query;
 
   const filter: Record<string, any> = {};
@@ -342,8 +345,8 @@ const createClaimIntoDB = async (
 export const viewService = {
   getSingleFirmProfileBySlug,
   checkFirmName,
- getAllFirmFromDB,
- createClaimIntoDB
-};  
- 
+  getAllFirmFromDB,
+  createClaimIntoDB
+};
+
 
