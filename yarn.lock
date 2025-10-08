@@ -565,6 +565,19 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
+"@envisim/geojson-utils@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@envisim/geojson-utils/-/geojson-utils-0.1.2.tgz#330db62b0a744f332ef8cabc951eb6d67c1389cd"
+  integrity sha512-6+LQ0LWR8exNIsDlgzLeFN+Sh/qcLXgZ9zJDAtL5SR8ePoeBgM8wCo59KAIuhA893KdOiaufMYbEb0k5O4q3nw==
+  dependencies:
+    "@envisim/utils" "^0.2.0"
+    geographiclib-geodesic "^2.1.1"
+
+"@envisim/utils@^0.2.0":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@envisim/utils/-/utils-0.2.1.tgz#483d51dd01a9152852d37041dccb4b282b6ee8bc"
+  integrity sha512-0QgDIBBBNhCu3GRM7EgaY3G1mEnTi5hhTVpTySQjwqu6rqEmiwksWaUOjTmsVQ7N3OzwFCirOxHdM121iob0zQ==
+
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.7.0":
   version "4.7.0"
   resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.7.0.tgz"
@@ -2312,6 +2325,11 @@ function-bind@^1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz"
   integrity sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==
+
+geographiclib-geodesic@^2.1.1:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/geographiclib-geodesic/-/geographiclib-geodesic-2.2.0.tgz#aa4eebfa798d4c80f8a2c3e28cbb76ecc3295622"
+  integrity sha512-cIedo9VTYb0DFufodgibDmVfsWe9EASqb/kUByl09xc6PZYvLvlc89BHCThtGTPf2OII/zWJGxsR3Uz6O7QOVw==
 
 get-intrinsic@^1.2.5, get-intrinsic@^1.2.6, get-intrinsic@^1.3.0:
   version "1.3.0"
