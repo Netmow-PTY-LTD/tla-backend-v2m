@@ -35,6 +35,7 @@ const updateProfile = catchAsync(async (req, res) => {
     fileMap[file.fieldname].push(file);
   });
 
+
   let userProfileResult = null;
   let companyProfileResult = null;
   let profilePhotosResult = null;
@@ -54,14 +55,28 @@ const updateProfile = catchAsync(async (req, res) => {
     );
   }
 
+  // if (parsedData?.companyInfo) {
+  //   companyProfileResult =
+  //     await CompanyProfileService.updateCompanyProfileIntoDB(
+  //       userId,
+  //       parsedData.companyInfo,
+  //       fileMap['companyLogo']?.[0],
+  //     );
+  // }
+
+
   if (parsedData?.companyInfo) {
+
+    console.log("parsedData?.companyInfo",parsedData?.companyInfo);
     companyProfileResult =
-      await CompanyProfileService.updateCompanyProfileIntoDB(
+      await CompanyProfileService.firmRequestAsMember(
         userId,
         parsedData.companyInfo,
-        fileMap['companyLogo']?.[0],
+
       );
   }
+
+
 
   if (parsedData?.photos) {
     profilePhotosResult = await ProfilePhotosService.updateProfilePhotosIntoDB(
@@ -316,7 +331,7 @@ export const updateDefaultProfile = catchAsync(async (req, res) => {
       statusCode: HTTP_STATUS.OK,
       success: false,
       message: 'No file provided',
-      data:null
+      data: null
     });
   }
 

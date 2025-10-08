@@ -48,6 +48,7 @@ export interface IUserProfile {
   firmMembershipStatus:  "pending" | "approved" | "rejected" | "left" | "cancelled";
   joinedAt?: Date | null;
   leftAt?: Date | null;
+  isFirmMemberRequest: boolean;
 
   deletedAt?: Date | null;
 }
