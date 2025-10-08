@@ -116,6 +116,10 @@ const userProfileSchema = new Schema<IUserProfile>(
 
     leftAt: { type: Date, default: null },
 
+    isFirmMemberRequest: {
+      type: Boolean,
+      default: false,
+    },
 
     deletedAt: {
       type: Date,

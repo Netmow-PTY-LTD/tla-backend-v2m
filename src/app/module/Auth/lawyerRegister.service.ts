@@ -346,6 +346,9 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       }], { session });
 
 
+      newProfile.isFirmMemberRequest = true;
+      await newProfile.save({ session });
+
 
     }
 
