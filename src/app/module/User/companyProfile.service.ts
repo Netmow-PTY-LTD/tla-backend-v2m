@@ -8,6 +8,8 @@ import ZipCode from '../Country/zipcode.model';
 import { ICompanyProfile } from './companyProfile.interface';
 import CompanyProfile from './companyProfile.model';
 import UserProfile from './user.model';
+import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
+import { Types } from 'mongoose';
 
 const updateCompanyProfileIntoDB = async (
   userId: string,
@@ -91,6 +93,66 @@ const updateCompanyProfileIntoDB = async (
   return updatedCompanyProfile;
 };
 
+interface FirmRequestPayload {
+  firmProfileId: string;
+  message?: string;
+}
+
+export const firmRequestAsMember = async (
+  userId: string,
+  payload: FirmRequestPayload
+) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 🧩 Step 1: Get user profile inside transaction
+    const userProfile = await UserProfile.findOne({ user: userId })
+      .populate<{ user: { email: string } }>('user')
+      .session(session);
+
+    if (!userProfile) {
+      await session.abortTransaction();
+      session.endSession();
+      return null;
+    }
+
+    // 🧩 Step 2: Create membership request
+    const newRequest = await LawyerRequestAsMember.create(
+      [
+        {
+          firmProfileId: new Types.ObjectId(payload.firmProfileId),
+          lawyerId: userProfile._id,
+          status: 'pending',
+          message:
+            payload.message ||
+            `Lawyer ${userProfile.user?.email ?? 'unknown'} requested to join this firm as a member.`,
+          isActive: true,
+        },
+      ],
+      { session }
+    );
+
+    // 🧩 Step 3: Update user profile to mark request flag
+    userProfile.isFirmMemberRequest = true;
+    await userProfile.save({ session });
+
+    // ✅ Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Return the created request (newRequest is an array from .create)
+    return newRequest[0];
+  } catch (error) {
+    console.error('Error in firmRequestAsMember:', error);
+    await session.abortTransaction();
+    session.endSession();
+    throw error; // Rethrow to handle at controller level
+  }
+};
+
+
 export const CompanyProfileService = {
   updateCompanyProfileIntoDB,
+  firmRequestAsMember,
 };
