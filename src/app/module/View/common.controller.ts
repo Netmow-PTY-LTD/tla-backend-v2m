@@ -1,5 +1,6 @@
 //  contact lawyer
 
+import { request } from "http";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
@@ -256,6 +257,20 @@ const countryWiseServiceWiseLead = catchAsync(async (req, res) => {
 
 
 
+//  lawyer cancel membership request
+const lawyerCancelMembershipRequest = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const firmProfileId = req.body.firmProfileId; // optional, in case lawyer is part of multiple firms
+
+  const result = await commonService.lawyerCancelMembershipRequest(userId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Lawyer membership cancellation request processed successfully.',
+    data: result,
+  });
+});
 
 
 export const commonController = {
@@ -267,6 +282,7 @@ export const commonController = {
   updateLeadContactRequestStatus,
   getSingleLeadContactRequests,
   countryWiseServiceWiseLead,
+  lawyerCancelMembershipRequest
 
 
 };
