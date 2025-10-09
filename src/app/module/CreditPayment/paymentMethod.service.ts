@@ -382,128 +382,113 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 // create subscription
-const createSubscription = async (
-  userId: string,
-  payload: { planId: string; email: string }
-
-
-) => {
-
-  // planId = Stripe Price ID
-
-  const { planId, email } = payload;
-  // Retrieve or create a Stripe customer
-  const customer = await getOrCreateCustomer(userId, email);
-
-  // Validate the plan ID
-  if (!planId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Plan ID is required');
-  }
-
-  // Create the subscription
-  const subscription = await stripe.subscriptions.create({
-    customer: customer.id,
-    items: [{ price: planId }],    // it will be change next time - added new logic 
-    payment_behavior: 'default_incomplete',
-    expand: ['latest_invoice.payment_intent'],
-  });
-
-  // Return the client secret for the payment intent
-  return {
-    success: true,
-    message: 'Subscription created successfully',
-    data: {
-      clientSecret: subscription.latest_invoice &&
-        typeof subscription.latest_invoice === 'object' &&
-        'payment_intent' in subscription.latest_invoice
-        ? (subscription.latest_invoice.payment_intent as Stripe.PaymentIntent)?.client_secret
-        : undefined,
-      subscriptionId: subscription.id,
-    }
-  };
-};
-
-// interface CreateSubscriptionPayload {
-//   planId: string; // Stripe Price ID
-//   email: string;
-// }
-
-// export const createSubscription = async (
+// const createSubscription = async (
 //   userId: string,
-//   payload: CreateSubscriptionPayload
-// ) => {
-//   const { planId, email } = payload;
+//   payload: { planId: string; email: string }
 
-//   // 1️ Retrieve or create Stripe customer
+
+// ) => {
+
+//   // planId = Stripe Price ID
+
+//   const { planId, email } = payload;
+//   // Retrieve or create a Stripe customer
 //   const customer = await getOrCreateCustomer(userId, email);
 
+//   // Validate the plan ID
 //   if (!planId) {
-//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Plan ID is required");
+//     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Plan ID is required');
 //   }
 
-//   // 2️ Create Stripe subscription
+//   // Create the subscription
 //   const subscription = await stripe.subscriptions.create({
 //     customer: customer.id,
-//     items: [{ price: planId }], // your plan price ID
-//     payment_behavior: "default_incomplete",
-//     expand: ["latest_invoice.payment_intent"],
+//     items: [{ price: planId }],    // it will be change next time - added new logic 
+//     payment_behavior: 'default_incomplete',
+//     expand: ['latest_invoice.payment_intent'],
 //   });
 
-//   // 3️ Determine subscription period start/end
-//   const periodStart =
-//     subscription.items.data[0].price.recurring?.interval
-//       ? new Date(subscription.current_period_start * 1000)
-//       : undefined;
-//   const periodEnd =
-//     subscription.items.data[0].price.recurring?.interval
-//       ? new Date(subscription.current_period_end * 1000)
-//       : undefined;
-
-//   // 4️ Find the subscription package in DB
-//   const subscriptionPackage = await SubscriptionPackage.findOne({ stripePriceId: planId });
-//   if (!subscriptionPackage) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Subscription package not found");
-//   }
-
-//   // 5️⃣ Save subscription to MongoDB
-//   const userSubscription = await UserSubscription.create({
-//     userId: new mongoose.Types.ObjectId(userId),
-//     subscriptionPackageId: subscriptionPackage._id,
-//     stripeSubscriptionId: subscription.id,
-//     status: subscription.status as any,
-//     subscriptionPeriodStart: periodStart,
-//     subscriptionPeriodEnd: periodEnd,
-//     autoRenew: true,
-//   });
-
-//   // 6️⃣ Return client secret and subscription info
-//   const clientSecret =
-//     subscription.latest_invoice &&
-//     typeof subscription.latest_invoice === "object" &&
-//     "payment_intent" in subscription.latest_invoice
-//       ? (subscription.latest_invoice.payment_intent as stripe.PaymentIntent)?.client_secret
-//       : undefined;
-
+//   // Return the client secret for the payment intent
 //   return {
 //     success: true,
-//     message: "Subscription created successfully",
+//     message: 'Subscription created successfully',
 //     data: {
-//       clientSecret,
+//       clientSecret: subscription.latest_invoice &&
+//         typeof subscription.latest_invoice === 'object' &&
+//         'payment_intent' in subscription.latest_invoice
+//         ? (subscription.latest_invoice.payment_intent as Stripe.PaymentIntent)?.client_secret
+//         : undefined,
 //       subscriptionId: subscription.id,
-//       mongoSubscriptionId: userSubscription._id, // MongoDB ID
-//     },
+//     }
 //   };
 // };
 
 
 
+const createSubscription = async (userId: string, payload: { subscriptionPackageId: string, email: string, autoRenew?: boolean }) => {
+  const { subscriptionPackageId, email, autoRenew } = payload;
+
+  // 1️ Get subscription package from DB
+  const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
+  if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
+    throw new Error("Invalid subscription package");
+  }
+
+  // 2️ Get or create Stripe customer
+  const userProfile = await UserProfile.findById(userId);
+  if (!userProfile) throw new Error("User not found");
+
+  let stripeCustomerId = userProfile.stripeCustomerId;
+  if (!stripeCustomerId) {
+    const customer = await stripe.customers.create({ email, metadata: { userId } });
+    stripeCustomerId = customer.id;
+    userProfile.stripeCustomerId = stripeCustomerId;
+    await userProfile.save();
+  }
+
+  // 3️ Create Stripe subscription
+  const subscription = await stripe.subscriptions.create({
+    customer: stripeCustomerId,
+    items: [{ price: subscriptionPackage.stripePriceId }],
+    payment_behavior: 'default_incomplete',
+    expand: ['latest_invoice.payment_intent'],
+    metadata: {
+      userId,
+      subscriptionPackageId: (subscriptionPackage._id as mongoose.Types.ObjectId).toString(),
+    },
+  }) as Stripe.Subscription;
+
+  // 4️ Save UserSubscription in DB
+  const userSub = await UserSubscription.create({
+    userId,
+    subscriptionPackageId: subscriptionPackage._id,
+    stripeSubscriptionId: subscription.id,
+    status: subscription.status as any,
+    subscriptionPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
+    subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
+    autoRenew: autoRenew ?? true,
+  });
+
+
+  return {
+    success: true,
+    subscriptionId: subscription.id,
+    clientSecret: typeof subscription.latest_invoice === 'object' && subscription.latest_invoice !== null
+      && 'payment_intent' in subscription.latest_invoice
+      && typeof (subscription.latest_invoice as any).payment_intent === 'object'
+      ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent).client_secret
+      : undefined,
+  };
+};
 
 
 
-//  subscription cancel manually
+
+
+
 const cancelSubscription = async (userId: string) => {
 
-    // 1️⃣ Find user profile
+  // 1️⃣ Find user profile
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile || !userProfile.subscriptionId) {
