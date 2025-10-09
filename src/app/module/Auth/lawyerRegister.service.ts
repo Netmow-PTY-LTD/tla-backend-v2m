@@ -338,15 +338,16 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
       // await CompanyProfile.create([companyProfileMapData], { session });
 
-      await LawyerRequestAsMember.create([{
+    const [lawyerRequest] = await LawyerRequestAsMember.create([{
         firmProfileId: companyInfo?.companyName,
         lawyerId: newProfile._id,
         status: 'pending',
         message: `Lawyer ${newUser.email} requested to join this firm as a member.`,
+        isActive: true,
       }], { session });
 
-
       newProfile.isFirmMemberRequest = true;
+      newProfile.activeFirmRequestId = lawyerRequest._id as Types.ObjectId;
       await newProfile.save({ session });
 
 
