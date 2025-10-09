@@ -26,7 +26,9 @@ export interface IUserLocationServiceMap {
   userProfileId: Types.ObjectId;
   locationGroupId?: Types.ObjectId;
   locationType: LocationType;
-  rangeInKm?:number;
+  travelmode?: string;
+  traveltime?: string;
+  rangeInKm?: number;
   serviceIds: Types.ObjectId[];
 }
 
