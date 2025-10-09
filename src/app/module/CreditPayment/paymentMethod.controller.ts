@@ -85,6 +85,20 @@ const createSubscription = catchAsync(async (req, res) => {
 });
 
 
+//  subscription cancel
+const cancelSubscription = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const result = await paymentMethodService.cancelSubscription(userId);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
+
 
 const purchaseCredits = catchAsync(async (req, res) => {
   const userId = req.user.userId;
@@ -97,12 +111,18 @@ const purchaseCredits = catchAsync(async (req, res) => {
   });
 });
 
+
+
+
+
+
 export const paymentMethodController = {
   getPaymentMethods,
   addPaymentMethod,
   createSetupIntent,
   purchaseCredits,
   removePaymentMethod,
-  createSubscription
+  createSubscription,
+  cancelSubscription
 
 };

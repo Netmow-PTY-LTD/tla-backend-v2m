@@ -86,6 +86,13 @@ router.post(
 );
 
 
+//  subscription cancel
+router.delete(
+  '/cancel-subscription',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  paymentMethodController.cancelSubscription,
+);
+
 
 // Transaction history
 router.get(

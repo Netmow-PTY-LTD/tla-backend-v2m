@@ -20,7 +20,7 @@ import { profileVisitorRouter } from '../module/VisitorTracker/profileVisitor.ro
 import { adminRouter } from '../module/Admin/admin.routes';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.route';
 import { lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
-import { subscriptionRoutes } from '../module/Subscription/subscription.route';
+import { subscriptionPackRoutes} from '../module/SubscriptionPackage/subscriptionPack.route';
 import { eliteProSubscriptionRouter } from '../module/EliteProSubscriptions/EliteProSubs.route';
 import { pageRouter } from '../module/Pages/page.route';
 import { claimRouter } from '../module/Claim/claim.route';
@@ -111,8 +111,8 @@ const moduleRoutes = [
     route: lawFirmCertRouter,
   },
   {
-    path: '/subscriptions',
-    route: subscriptionRoutes,
+    path: '/subscriptions-packages',
+    route: subscriptionPackRoutes,
   },
   {
     path: '/elite-pro-subscriptions',

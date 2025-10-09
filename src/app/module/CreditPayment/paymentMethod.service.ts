@@ -15,6 +15,7 @@ import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
 import { isVerifiedLawyer } from '../User/user.utils';
+import Subscription from './subscriptions.model';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -420,6 +421,59 @@ const createSubscription = async (
 
 
 
+//  subscription cancel manually
+const cancelSubscription = async (userId: string) => {
+
+    // 1️⃣ Find user profile
+  const userProfile = await UserProfile.findOne({ user: userId });
+
+  if (!userProfile || !userProfile.subscriptionId) {
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      'No active subscription found for this user'
+    );
+  }
+
+
+  // Find the user's active subscription from your database
+  const subscription = await Subscription.findOne({ userId, status: 'active' });
+
+  if (!subscription) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
+  }
+
+  // Cancel the subscription with Stripe
+  await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+
+  userProfile.isElitePro = false;
+  userProfile.subscriptionId = null;
+  userProfile.subscriptionPeriodStart = null;
+  userProfile.subscriptionPeriodEnd = null;
+  await userProfile.save();
+
+  console.log(`🔻 User ${userId} subscription cancelled manually`);
+
+  // Update the subscription status in your database
+  subscription.status = 'canceled';
+  await subscription.save();
+
+  return {
+    success: true,
+    message: 'Subscription canceled successfully',
+    data: {
+      subscriptionId: subscription.id,
+    },
+  };
+};
+
+
+
+
+
+
+
+
+
 
 
 
@@ -433,4 +487,5 @@ export const paymentMethodService = {
   purchaseCredits,
   removePaymentMethod,
   createSubscription,
+  cancelSubscription
 };
