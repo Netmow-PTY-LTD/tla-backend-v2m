@@ -25,12 +25,7 @@ router.patch(
   creditPaymentController.updateCreditPackages,
 );
 
-// Purchase credits
-// router.post(
-//   '/purchase',
-//   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-//   creditPaymentController.purchaseCredits,
-// );
+
 
 router.post(
   '/purchase',
@@ -75,11 +70,29 @@ router.delete(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   paymentMethodController.removePaymentMethod,
 );
+
+//   setup intent 
 router.post(
   '/setup-intent',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   paymentMethodController.createSetupIntent,
 );
+
+// setup subscription
+router.post(
+  '/create-subscription',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  paymentMethodController.createSubscription,
+);
+
+
+//  subscription cancel
+router.delete(
+  '/cancel-subscription',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  paymentMethodController.cancelSubscription,
+);
+
 
 // Transaction history
 router.get(
@@ -99,6 +112,9 @@ router.get(
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   creditPaymentController.getNextCreditOffer,
 );
+
+
+
 
 router.post(
   '/spendCredits',

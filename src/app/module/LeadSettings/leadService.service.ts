@@ -11,7 +11,7 @@ import {
 import LeadService from './leadService.model';
 import { validateObjectId } from '../../utils/validateObjectId';
 import ServiceWiseQuestion from '../Question/question.model';
-import { UserLocationServiceMap } from './UserLocationServiceMap.model';
+import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';

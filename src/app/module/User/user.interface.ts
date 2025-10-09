@@ -35,7 +35,18 @@ export interface IUserProfile {
   // new field
   businessName?: string;
   credits: number;
+
   billingAddress?: IBillingAddress;
+
+  // Stripe identifiers (safe)
+  stripeCustomerId?: string | null;
+  subscriptionId?: string | null;
+
+  // Subscription state
+  isElitePro?: boolean;
+  subscriptionPeriodStart?: Date | null;
+  subscriptionPeriodEnd?: Date | null;
+
   paymentMethods: Types.ObjectId[];
   autoTopUp?: boolean;
   serviceIds?: Types.ObjectId[];
@@ -45,7 +56,7 @@ export interface IUserProfile {
 
   //   firm related fields
   firmProfileId?: Types.ObjectId | null; // the firm the lawyer belongs to
-  firmMembershipStatus:  "pending" | "approved" | "rejected" | "left" | "cancelled";
+  firmMembershipStatus: "pending" | "approved" | "rejected" | "left" | "cancelled";
   joinedAt?: Date | null;
   leftAt?: Date | null;
   isFirmMemberRequest: boolean;
