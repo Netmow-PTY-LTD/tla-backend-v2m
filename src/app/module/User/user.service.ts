@@ -470,3 +470,4 @@ export const UserProfileService = {
   softDeleteUserIntoDB,
   updateDefaultProfileIntoDB
 };
+

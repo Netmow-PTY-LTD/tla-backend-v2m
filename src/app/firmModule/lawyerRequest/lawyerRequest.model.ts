@@ -69,11 +69,7 @@ const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
   }
 );
 
-// Optional compound index to prevent duplicate pending requests
-lawyerRequestAsMemberSchema.index(
-  { firmProfileId: 1, lawyerId: 1, status: 1 },
-  { unique: true, partialFilterExpression: { status: 'pending' } }
-);
+
 
 
 export const LawyerRequestAsMember = model<ILawyerRequestAsMember>(
