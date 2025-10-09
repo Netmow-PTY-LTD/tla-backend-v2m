@@ -25,6 +25,7 @@ import { eliteProSubscriptionRouter } from '../module/EliteProSubscriptions/Elit
 import { pageRouter } from '../module/Pages/page.route';
 import { claimRouter } from '../module/Claim/claim.route';
 import { testimonialRoutes } from '../module/Testimonial/testimonial.route';
+import { userLocationServiceMapRouter } from '../module/UserLocationServiceMap/userLocationServiceMap.route';
 
 const router = Router();
 
@@ -129,6 +130,10 @@ const moduleRoutes = [
   {
     path: '/testimonials',
     route: testimonialRoutes,
+  },
+  {
+    path: '/user-location-service-map',
+    route: userLocationServiceMapRouter,
   },
   {
     path: '/',

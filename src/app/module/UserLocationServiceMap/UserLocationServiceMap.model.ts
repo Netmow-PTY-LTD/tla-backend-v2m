@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import {
   IUserLocationServiceMap,
   LocationType,
-} from './leadService.interface';
+} from '../LeadSettings/leadService.interface';
 
 
 /* 
