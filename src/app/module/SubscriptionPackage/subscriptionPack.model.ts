@@ -39,6 +39,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     name: { type: String, required: true, trim: true, maxlength: 150 },
     slug: { type: String,  trim: true, lowercase: true, unique: true },
     price: { type: PriceSchema, required: true },
+
     billingCycle: {
       type: String,
       enum: ["monthly", "yearly", "weekly", "one_time"],

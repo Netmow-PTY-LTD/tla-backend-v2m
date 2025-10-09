@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Stripe requires raw body for signature verification
 router.post(
-    '/webhook/stripe',
+    '/webhooks/stripe',
     express.raw({ type: 'application/json' }), // 👈 important!
     (req, res, next) => {
         Promise.resolve(stripeWebhookHandler(req, res))
