@@ -383,6 +383,9 @@ const createSubscription = async (
 
 
 ) => {
+
+  // planId = Stripe Price ID
+
   const { planId, email } = payload;
   // Retrieve or create a Stripe customer
   const customer = await getOrCreateCustomer(userId, email);

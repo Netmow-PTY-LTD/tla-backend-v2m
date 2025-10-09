@@ -1,12 +1,15 @@
+
 import Stripe from 'stripe';
-
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
-
 import { Request, Response } from 'express';
+import UserProfile from '../User/user.model';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  // apiVersion: '2024-06-20',
+});
 
 export const stripeWebhookHandler = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string;
+
   let event: Stripe.Event;
 
   try {
@@ -16,57 +19,88 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    return res.status(400).send(`Webhook Error: ${(err as Error).message}`);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error('❌ Webhook signature verification failed:', errorMessage);
+    return res.status(400).send(`Webhook Error: ${errorMessage}`);
   }
 
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      // Your existing purchaseCredits logic handles this
-      break;
+  try {
+    switch (event.type) {
+      /**
+       * 🔹 PAYMENT INTENT SUCCESS (One-time payments / credits)
+       * You already handle this elsewhere, so just leave it.
+       */
+      case 'payment_intent.succeeded': {
+        console.log('✅ Payment Intent succeeded');
+        break;
+      }
 
-    case 'invoice.payment_succeeded':
-      const invoice = event.data.object as Stripe.Invoice;
-      const subscriptionId = (invoice as any).subscription as string | undefined;
-      const userId = invoice.metadata?.userId;
+      /**
+       * 🔹 SUBSCRIPTION PAYMENT SUCCESS
+       * This event is fired when a subscription invoice is successfully paid.
+       */
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = (invoice as any).subscription as string | undefined;
+        const userId = invoice.metadata?.userId;
 
+        console.log(`💰 Subscription Payment Success for User: ${userId}`);
 
-//   there logic is invoice payment success then update user profile isElitePro to true
+        if (userId && subscriptionId) {
+          const userProfile = await UserProfile.findOne({ user: userId });
 
-    //   if (userId) {
-    //     const userProfile = await UserProfile.findOne({ user: userId });
-    //     if (userProfile) {
-    //       userProfile.isElitePro = true;
-    //       userProfile.subscriptionId = subscriptionId;
-    //       await userProfile.save();
-    //     }
-    //   }
+          if (userProfile) {
+            userProfile.isElitePro = true;
+            userProfile.subscriptionId = subscriptionId;
 
+            // Optional: Store subscription start/end
+            if (invoice.lines?.data?.[0]?.period) {
+              userProfile.subscriptionPeriodStart = new Date(
+                invoice.lines.data[0].period.start * 1000
+              );
+              userProfile.subscriptionPeriodEnd = new Date(
+                invoice.lines.data[0].period.end * 1000
+              );
+            }
 
+            await userProfile.save();
+            console.log(`✅ User ${userId} upgraded to Elite Pro`);
+          }
+        }
+        break;
+      }
 
-      break;
+      /**
+       * 🔹 SUBSCRIPTION CANCELLED / EXPIRED / DELETED
+       * This event is fired when a user cancels or Stripe cancels a subscription.
+       */
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log(`❌ Subscription Cancelled: ${subscription.id}`);
 
-    case 'customer.subscription.deleted':
-      const subscription = event.data.object as Stripe.Subscription;
+        const subUser = await UserProfile.findOne({
+          subscriptionId: subscription.id,
+        });
 
+        if (subUser) {
+          subUser.isElitePro = false;
+          subUser.subscriptionId = null;
+          subUser.subscriptionPeriodStart = null;
+          subUser.subscriptionPeriodEnd = null;
+          await subUser.save();
 
-    //    there logic if subscription is deleted then update user profile isElitePro to false
+          console.log(`🔻 User ${subUser.user} downgraded from Elite Pro`);
+        }
+        break;
+      }
 
+      default:
+        console.log(`⚙️ Unhandled event type: ${event.type}`);
+    }
 
-
-    //   const subUser = await UserProfile.findOne({ subscriptionId: subscription.id });
-    //   if (subUser) {
-    //     subUser.isElitePro = false;
-    //     subUser.subscriptionId = null;
-    //     await subUser.save();
-    //   }
-
-
-
-      break;
-
-    default:
-      console.log('Unhandled event', event.type);
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('🚨 Error processing webhook:', error);
+    res.status(500).send('Webhook handler failed');
   }
-
-  res.status(200).send('OK');
 };

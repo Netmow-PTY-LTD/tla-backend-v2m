@@ -90,6 +90,18 @@ const userProfileSchema = new Schema<IUserProfile>(
       isVatRegistered: Boolean,
       vatNumber: String,
     },
+
+
+    // Stripe identifiers (safe)
+    stripeCustomerId: { type: String, default: null },
+    subscriptionId: { type: String, default: null },
+
+    // Subscription state
+    isElitePro: { type: Boolean, default: false },
+    subscriptionPeriodStart: { type: Date, default: null },
+    subscriptionPeriodEnd: { type: Date, default: null },
+
+    //payment refference
     paymentMethods: [{ type: Schema.Types.ObjectId, ref: 'PaymentMethod' }],
     autoTopUp: { type: Boolean, default: false },
     serviceIds: [
