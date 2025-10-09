@@ -16,10 +16,16 @@ import mongoose from 'mongoose';
 import catchAsync from './app/utils/catchAsync';
 
 import firmRoute from './app/routes/firmRoute';
+import { paymentRoutes } from './app/module/Payment/payment.route';
 
 
 // Create Express app
 const app: Application = express();
+
+//  payment method
+
+// ⚠️ IMPORTANT: Do not use express.json() before webhook route!
+app.use('/api/payment', paymentRoutes);
 
 // Middlewares
 app.use(express.json());
