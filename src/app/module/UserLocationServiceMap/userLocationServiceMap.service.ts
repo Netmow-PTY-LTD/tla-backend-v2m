@@ -12,7 +12,7 @@ export const createUserLocationServiceMap = async (
     userId: string | undefined,
   payload: Partial<IUserLocationServiceMap>
 ) => {
-     const userProfile= await UserProfile.findOne({ userId: userId }).select('_id');
+     const userProfile= await UserProfile.findOne({ user: userId }).select('_id');
 
     if(!userProfile) {
         throw new Error('User profile not found');
@@ -26,7 +26,7 @@ export const createUserLocationServiceMap = async (
  */
 export const getAllUserLocationServiceMaps = async (userId: string | undefined) => {
 
-    const userProfile= await UserProfile.findOne({ userId: userId }).select('_id');
+    const userProfile= await UserProfile.findOne({ user: userId }).select('_id');
 
     if(!userProfile) {
         throw new Error('User profile not found');
@@ -56,7 +56,7 @@ export const updateUserLocationServiceMapById = async (
 
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
 
-  
+
   const doc = await UserLocationServiceMap.findByIdAndUpdate(id, payload, { new: true });
   return doc;
 };
