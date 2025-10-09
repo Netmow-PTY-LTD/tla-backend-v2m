@@ -310,6 +310,11 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
             path: 'contactInfo.country contactInfo.city contactInfo.zipCode',
           },
         },
+        {
+          path: 'activeFirmRequestId',
+          model: 'LawyerRequestAsMember',
+          populate: { path: 'firmProfileId' ,select: 'firmName'},
+        },
       ],
     })
 
@@ -465,3 +470,4 @@ export const UserProfileService = {
   softDeleteUserIntoDB,
   updateDefaultProfileIntoDB
 };
+

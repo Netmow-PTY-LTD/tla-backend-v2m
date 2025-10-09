@@ -112,10 +112,14 @@ const userProfileSchema = new Schema<IUserProfile>(
     //   firm related fields
     firmProfileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile', default: null },
     firmMembershipStatus: { type: String, enum: ['pending', 'approved', 'rejected', 'cancelled', 'left'], default: 'pending' },
+
     joinedAt: { type: Date, default: null },
-
     leftAt: { type: Date, default: null },
-
+    activeFirmRequestId: {
+      type: Schema.Types.ObjectId,
+      ref: 'LawyerRequestAsMember',
+      default: null,
+    },
     isFirmMemberRequest: {
       type: Boolean,
       default: false,

@@ -118,7 +118,7 @@ export const firmRequestAsMember = async (
     }
 
     // 🧩 Step 2: Create membership request
-    const newRequest = await LawyerRequestAsMember.create(
+    const [newRequest] = await LawyerRequestAsMember.create(
       [
         {
           firmProfileId: new Types.ObjectId(payload.firmProfileId),
@@ -135,14 +135,15 @@ export const firmRequestAsMember = async (
 
     // 🧩 Step 3: Update user profile to mark request flag
     userProfile.isFirmMemberRequest = true;
+    userProfile.activeFirmRequestId = newRequest._id as Types.ObjectId;
     await userProfile.save({ session });
 
     // ✅ Commit the transaction
     await session.commitTransaction();
     session.endSession();
 
-    // Return the created request (newRequest is an array from .create)
-    return newRequest[0];
+    // Return the created request (newRequest is the created document)
+    return newRequest;
   } catch (error) {
     console.error('Error in firmRequestAsMember:', error);
     await session.abortTransaction();
