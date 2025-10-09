@@ -49,6 +49,7 @@ export interface IUserProfile {
   joinedAt?: Date | null;
   leftAt?: Date | null;
   isFirmMemberRequest: boolean;
+  activeFirmRequestId: Types.ObjectId | null;
 
   deletedAt?: Date | null;
 }

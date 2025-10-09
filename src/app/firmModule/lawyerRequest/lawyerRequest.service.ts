@@ -29,9 +29,6 @@ const getLawyerRequestById = async (id: string, userId: string) => {
 
 
 
-
-
-
 const updateLawyerRequest = async (
     id: string,
     userId: string,
@@ -49,7 +46,7 @@ const updateLawyerRequest = async (
     // Update the lawyer request
     const updatedRequest = await LawyerRequestAsMember.findOneAndUpdate(
         { _id: id, firmProfileId: user.firmProfileId },
-        { $set: payload },
+        { $set: { ...payload, reviewedBy: userId, reviewedAt: new Date() } },
         { new: true }
     );
 
@@ -63,6 +60,7 @@ const updateLawyerRequest = async (
             lawyerProfileUpdate.firmProfileId = user.firmProfileId;
             lawyerProfileUpdate.firmMembershipStatus = 'approved';
             lawyerProfileUpdate.joinedAt = new Date();
+            lawyerProfileUpdate.isFirmMemberRequest = false;
 
             // Add lawyer to firm's list (prevent duplicates)
             firmUpdate.$addToSet = { lawyers: request.lawyerId };
@@ -70,6 +68,8 @@ const updateLawyerRequest = async (
             lawyerProfileUpdate.firmProfileId = null;
             lawyerProfileUpdate.firmMembershipStatus = payload.status;
             lawyerProfileUpdate.joinedAt = null;
+
+
 
             // Remove lawyer from firm's list if exists
             firmUpdate.$pull = { lawyers: request.lawyerId };
@@ -86,6 +86,10 @@ const updateLawyerRequest = async (
 
     return updatedRequest;
 };
+
+
+
+
 
 
 
