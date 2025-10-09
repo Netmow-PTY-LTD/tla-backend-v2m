@@ -57,7 +57,7 @@ const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
     },
     cancelBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'UserProfile',
     },
     cancelAt: {
       type: Date,

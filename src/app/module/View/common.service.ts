@@ -1034,11 +1034,13 @@ const lawyerCancelMembershipRequest = async (
 ) => {
 
 
+  const lawyerProfile= await UserProfile.findOne({ user: lawyerUserId });
+  if (!lawyerProfile) return sendNotFoundResponse("Lawyer profile not found");
 
   // --- Find request owned by this lawyer ---
   const request = await LawyerRequestAsMember.findOne({
     firmProfileId: new Types.ObjectId(firmProfileId),
-    lawyerId: lawyerUserId,
+    lawyerId:  lawyerProfile._id,
     isActive: true,
   });
 
@@ -1053,7 +1055,7 @@ const lawyerCancelMembershipRequest = async (
 
   // --- Update request status to 'cancelled' ---
   request.status = "cancelled";
-  request.cancelBy = new Types.ObjectId(lawyerUserId);
+  request.cancelBy = new mongoose.Types.ObjectId(lawyerProfile?._id);
   request.cancelAt = new Date();
   request.isActive = false;
   await request.save();
@@ -1068,9 +1070,6 @@ const lawyerCancelMembershipRequest = async (
       isFirmMemberRequest: false,
     },
   });
-
-
-
 
 
 

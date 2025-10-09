@@ -262,7 +262,7 @@ const lawyerCancelMembershipRequest = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const firmProfileId = req.body.firmProfileId; // optional, in case lawyer is part of multiple firms
 
-  const result = await commonService.lawyerCancelMembershipRequest(userId);
+  const result = await commonService.lawyerCancelMembershipRequest(userId, firmProfileId);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
