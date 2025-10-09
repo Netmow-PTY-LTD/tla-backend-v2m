@@ -109,7 +109,6 @@
 
 import Stripe from 'stripe';
 import { Request, Response } from 'express';
-import UserProfile from '../User/user.model';
 import UserSubscription from '../CreditPayment/subscriptions.model';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
