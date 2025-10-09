@@ -68,7 +68,7 @@ router.get('/public/firm/list', viewController.getAllCompanyProfilesList);
 
 
 //   lawyer cancel membership request
-router.post('/lawyer/cancel-membership-request', auth(USER_ROLE.USER), commonController.lawyerCancelMembershipRequest);
+router.post('/lawyer/cancel-membership-request', auth(USER_ROLE.USER ,USER_ROLE.ADMIN), commonController.lawyerCancelMembershipRequest);
 
 
 
