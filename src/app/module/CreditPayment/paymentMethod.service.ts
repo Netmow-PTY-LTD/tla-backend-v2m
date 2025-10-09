@@ -16,6 +16,10 @@ import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
 import { isVerifiedLawyer } from '../User/user.utils';
 import Subscription from './subscriptions.model';
+import UserSubscription from './subscriptions.model';
+import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
+import mongoose from 'mongoose';
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -419,6 +423,81 @@ const createSubscription = async (
   };
 };
 
+// interface CreateSubscriptionPayload {
+//   planId: string; // Stripe Price ID
+//   email: string;
+// }
+
+// export const createSubscription = async (
+//   userId: string,
+//   payload: CreateSubscriptionPayload
+// ) => {
+//   const { planId, email } = payload;
+
+//   // 1️ Retrieve or create Stripe customer
+//   const customer = await getOrCreateCustomer(userId, email);
+
+//   if (!planId) {
+//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Plan ID is required");
+//   }
+
+//   // 2️ Create Stripe subscription
+//   const subscription = await stripe.subscriptions.create({
+//     customer: customer.id,
+//     items: [{ price: planId }], // your plan price ID
+//     payment_behavior: "default_incomplete",
+//     expand: ["latest_invoice.payment_intent"],
+//   });
+
+//   // 3️ Determine subscription period start/end
+//   const periodStart =
+//     subscription.items.data[0].price.recurring?.interval
+//       ? new Date(subscription.current_period_start * 1000)
+//       : undefined;
+//   const periodEnd =
+//     subscription.items.data[0].price.recurring?.interval
+//       ? new Date(subscription.current_period_end * 1000)
+//       : undefined;
+
+//   // 4️ Find the subscription package in DB
+//   const subscriptionPackage = await SubscriptionPackage.findOne({ stripePriceId: planId });
+//   if (!subscriptionPackage) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Subscription package not found");
+//   }
+
+//   // 5️⃣ Save subscription to MongoDB
+//   const userSubscription = await UserSubscription.create({
+//     userId: new mongoose.Types.ObjectId(userId),
+//     subscriptionPackageId: subscriptionPackage._id,
+//     stripeSubscriptionId: subscription.id,
+//     status: subscription.status as any,
+//     subscriptionPeriodStart: periodStart,
+//     subscriptionPeriodEnd: periodEnd,
+//     autoRenew: true,
+//   });
+
+//   // 6️⃣ Return client secret and subscription info
+//   const clientSecret =
+//     subscription.latest_invoice &&
+//     typeof subscription.latest_invoice === "object" &&
+//     "payment_intent" in subscription.latest_invoice
+//       ? (subscription.latest_invoice.payment_intent as stripe.PaymentIntent)?.client_secret
+//       : undefined;
+
+//   return {
+//     success: true,
+//     message: "Subscription created successfully",
+//     data: {
+//       clientSecret,
+//       subscriptionId: subscription.id,
+//       mongoSubscriptionId: userSubscription._id, // MongoDB ID
+//     },
+//   };
+// };
+
+
+
+
 
 
 //  subscription cancel manually
@@ -436,7 +515,7 @@ const cancelSubscription = async (userId: string) => {
 
 
   // Find the user's active subscription from your database
-  const subscription = await Subscription.findOne({ userId, status: 'active' });
+  const subscription = await UserSubscription.findOne({ userId, status: 'active' });
 
   if (!subscription) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
