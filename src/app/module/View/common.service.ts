@@ -17,6 +17,9 @@ import { AppError } from '../../errors/error';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { USER_STATUS } from '../Auth/auth.constant';
 import { IUser } from '../Auth/auth.interface';
+import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
+import { sendNotFoundResponse } from '../../errors/custom.error';
+import { FirmProfile } from '../../firmModule/Firm/firm.model';
 // import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
@@ -1021,6 +1024,77 @@ const countryWiseServiceWiseLeadFromDB = async ({
 };
 
 
+
+
+
+
+const lawyerCancelMembershipRequest = async (
+  lawyerUserId: string,
+  firmProfileId: string
+) => {
+
+
+  const lawyerProfile= await UserProfile.findOne({ user: lawyerUserId });
+  if (!lawyerProfile) return sendNotFoundResponse("Lawyer profile not found");
+
+  // --- Find request owned by this lawyer ---
+  const request = await LawyerRequestAsMember.findOne({
+    firmProfileId: new Types.ObjectId(firmProfileId),
+    lawyerId:  lawyerProfile._id,
+    isActive: true,
+  });
+
+  if (!request) return sendNotFoundResponse("Lawyer request not found or already cancelled");
+
+  // --- Check if it's still cancellable ---  
+  if (["approved", "rejected", "cancelled", "left"].includes(request.status)) {
+    return (
+      `You cannot cancel a request that is already ${request.status}`
+    );
+  }
+
+  // --- Update request status to 'cancelled' ---
+  request.status = "cancelled";
+  request.cancelBy = new mongoose.Types.ObjectId(lawyerProfile?._id);
+  request.cancelAt = new Date();
+  request.isActive = false;
+  await request.save();
+
+  // --- Update lawyer profile ---
+  await UserProfile.findByIdAndUpdate(request.lawyerId, {
+    $set: {
+      firmProfileId: null,
+      activeFirmRequestId: null,
+      firmMembershipStatus: "cancelled",
+      joinedAt: null,
+      isFirmMemberRequest: false,
+    },
+  });
+
+
+
+  // --- Remove from firm's lawyer list if already linked ---
+  await FirmProfile.findByIdAndUpdate(request.firmProfileId, {
+    $pull: { lawyers: request.lawyerId },
+  });
+
+  // --- Return updated request ---
+  const updatedRequest = await LawyerRequestAsMember.findById(request._id)
+    .populate("firmProfileId", "firmName")
+    .populate("lawyerId", "name email");
+
+  return updatedRequest;
+};
+
+
+
+
+
+
+
+
+
+
 export const commonService = {
   createLawyerResponseAndSpendCredit,
   getChatHistoryFromDB,
@@ -1030,5 +1104,6 @@ export const commonService = {
   getLeadContactRequestsForUser,
   getSingleLeadContactRequestsForUser,
   countryWiseServiceWiseLeadFromDB,
- 
+  lawyerCancelMembershipRequest
+
 };

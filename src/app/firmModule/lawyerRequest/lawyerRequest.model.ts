@@ -11,6 +11,8 @@ export interface ILawyerRequestAsMember extends Document {
   isActive: boolean; // Soft delete / archive
   createdAt: Date;
   updatedAt: Date;
+  cancelBy?: Types.ObjectId; // Reference to User who canceled the request
+  cancelAt?: Date; // Timestamp when the request was canceled
 }
 
 const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
@@ -39,7 +41,7 @@ const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
     },
     reviewedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'FirmUser', 
     },
     reviewedAt: {
       type: Date,
@@ -53,6 +55,13 @@ const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
       type: Boolean,
       default: true,
     },
+    cancelBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'UserProfile',
+    },
+    cancelAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true, // adds createdAt & updatedAt
@@ -60,11 +69,8 @@ const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
   }
 );
 
-// Optional compound index to prevent duplicate pending requests
-lawyerRequestAsMemberSchema.index(
-  { firmProfileId: 1, lawyerId: 1, status: 1 },
-  { unique: true, partialFilterExpression: { status: 'pending' } }
-);
+
+
 
 export const LawyerRequestAsMember = model<ILawyerRequestAsMember>(
   'LawyerRequestAsMember',
