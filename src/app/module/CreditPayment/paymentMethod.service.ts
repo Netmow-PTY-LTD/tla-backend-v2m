@@ -152,59 +152,13 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   };
 };
 
-// Get or create a Stripe customer using email
-const getOrCreateCustomer = async (
-  userId: string,
-  email: string,
-): Promise<Stripe.Customer> => {
-  const customers = await stripe.customers.list({ email, limit: 1 });
 
-  if (customers.data.length > 0) {
-    return customers.data[0];
-  }
 
-  // Get billing address from DB
-  const userProfile = await UserProfile.findOne({ user: userId }).select(
-    'billingAddress',
-  );
-  const billing = userProfile?.billingAddress;
 
-  return await stripe.customers.create({
-    email,
-    name: billing?.contactName,
-    phone: billing?.phoneNumber,
-    address: billing
-      ? {
-        line1: billing.addressLine1,
-        line2: billing.addressLine2 || undefined,
-        city: billing.city,
-        postal_code: billing.postcode,
-        country: 'AUD', // You can customize by user country
-      }
-      : undefined,
-    metadata: {
-      userId,
-      vatRegistered: billing?.isVatRegistered ? 'yes' : 'no',
-      vatNumber: billing?.vatNumber || '',
-    },
-  });
-};
 
-const createSetupIntent = async (userId: string, email: string) => {
-  const customer = await getOrCreateCustomer(userId, email);
-  const setupIntent = await stripe.setupIntents.create({
-    customer: customer.id,
-    usage: 'off_session',
-    metadata: {
-      userId, // Again, good practice for tracking
-    },
-  });
 
-  return {
-    clientSecret: setupIntent.client_secret,
-    customerId: customer.id,
-  };
-};
+
+
 
 // purchaseCredits with create Payment intent
 
@@ -295,6 +249,7 @@ const purchaseCredits = async (
     },
   });
 
+
   if (paymentIntent.status !== 'succeeded') {
     return { success: false, message: 'Payment failed', data: paymentIntent };
   }
@@ -354,10 +309,125 @@ const purchaseCredits = async (
   };
 };
 
+
+
+//   customer management
+
+
+// Get or create a Stripe customer using email
+const getOrCreateCustomer = async (
+  userId: string,
+  email: string,
+): Promise<Stripe.Customer> => {
+  const customers = await stripe.customers.list({ email, limit: 1 });
+
+  if (customers.data.length > 0) {
+    return customers.data[0];
+  }
+
+  // Get billing address from DB
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    'billingAddress',
+  );
+  const billing = userProfile?.billingAddress;
+
+  return await stripe.customers.create({
+    email,
+    name: billing?.contactName,
+    phone: billing?.phoneNumber,
+    address: billing
+      ? {
+        line1: billing.addressLine1,
+        line2: billing.addressLine2 || undefined,
+        city: billing.city,
+        postal_code: billing.postcode,
+        country: 'AUD', // You can customize by user country
+      }
+      : undefined,
+    metadata: {
+      userId,
+      vatRegistered: billing?.isVatRegistered ? 'yes' : 'no',
+      vatNumber: billing?.vatNumber || '',
+    },
+  });
+};
+
+
+
+//   payment intent
+
+const createSetupIntent = async (userId: string, email: string) => {
+
+  const customer = await getOrCreateCustomer(userId, email);
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customer.id,
+    usage: 'off_session',
+    metadata: {
+      userId, // Again, good practice for tracking
+    },
+  });
+
+  return {
+    clientSecret: setupIntent.client_secret,
+    customerId: customer.id,
+  };
+};
+
+
+
+
+// create subscription
+const createSubscription = async (
+  userId: string,
+  payload: { planId: string; email: string }
+
+
+) => {
+  const { planId, email } = payload;
+  // Retrieve or create a Stripe customer
+  const customer = await getOrCreateCustomer(userId, email);
+
+  // Validate the plan ID
+  if (!planId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Plan ID is required');
+  }
+
+  // Create the subscription
+  const subscription = await stripe.subscriptions.create({
+    customer: customer.id,
+    items: [{ price: planId }],    // it will be change next time - added new logic 
+    payment_behavior: 'default_incomplete',
+    expand: ['latest_invoice.payment_intent'],
+  });
+
+  // Return the client secret for the payment intent
+  return {
+    success: true,
+    message: 'Subscription created successfully',
+    data: {
+      clientSecret: subscription.latest_invoice &&
+        typeof subscription.latest_invoice === 'object' &&
+        'payment_intent' in subscription.latest_invoice
+        ? (subscription.latest_invoice.payment_intent as Stripe.PaymentIntent)?.client_secret
+        : undefined,
+      subscriptionId: subscription.id,
+    }
+  };
+};
+
+
+
+
+
+
+
+
+
 export const paymentMethodService = {
   getPaymentMethods,
   addPaymentMethod,
   createSetupIntent,
   purchaseCredits,
   removePaymentMethod,
+  createSubscription,
 };
