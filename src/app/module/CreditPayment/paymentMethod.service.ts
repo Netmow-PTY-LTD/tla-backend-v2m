@@ -15,6 +15,11 @@ import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
 import { isVerifiedLawyer } from '../User/user.utils';
+import Subscription from './subscriptions.model';
+import UserSubscription from './subscriptions.model';
+import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
+import mongoose from 'mongoose';
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -152,59 +157,13 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   };
 };
 
-// Get or create a Stripe customer using email
-const getOrCreateCustomer = async (
-  userId: string,
-  email: string,
-): Promise<Stripe.Customer> => {
-  const customers = await stripe.customers.list({ email, limit: 1 });
 
-  if (customers.data.length > 0) {
-    return customers.data[0];
-  }
 
-  // Get billing address from DB
-  const userProfile = await UserProfile.findOne({ user: userId }).select(
-    'billingAddress',
-  );
-  const billing = userProfile?.billingAddress;
 
-  return await stripe.customers.create({
-    email,
-    name: billing?.contactName,
-    phone: billing?.phoneNumber,
-    address: billing
-      ? {
-        line1: billing.addressLine1,
-        line2: billing.addressLine2 || undefined,
-        city: billing.city,
-        postal_code: billing.postcode,
-        country: 'AUD', // You can customize by user country
-      }
-      : undefined,
-    metadata: {
-      userId,
-      vatRegistered: billing?.isVatRegistered ? 'yes' : 'no',
-      vatNumber: billing?.vatNumber || '',
-    },
-  });
-};
 
-const createSetupIntent = async (userId: string, email: string) => {
-  const customer = await getOrCreateCustomer(userId, email);
-  const setupIntent = await stripe.setupIntents.create({
-    customer: customer.id,
-    usage: 'off_session',
-    metadata: {
-      userId, // Again, good practice for tracking
-    },
-  });
 
-  return {
-    clientSecret: setupIntent.client_secret,
-    customerId: customer.id,
-  };
-};
+
+
 
 // purchaseCredits with create Payment intent
 
@@ -295,6 +254,7 @@ const purchaseCredits = async (
     },
   });
 
+
   if (paymentIntent.status !== 'succeeded') {
     return { success: false, message: 'Payment failed', data: paymentIntent };
   }
@@ -354,10 +314,257 @@ const purchaseCredits = async (
   };
 };
 
+
+
+//   customer management
+
+
+// Get or create a Stripe customer using email
+const getOrCreateCustomer = async (
+  userId: string,
+  email: string,
+): Promise<Stripe.Customer> => {
+  const customers = await stripe.customers.list({ email, limit: 1 });
+
+  if (customers.data.length > 0) {
+    return customers.data[0];
+  }
+
+  // Get billing address from DB
+  const userProfile = await UserProfile.findOne({ user: userId }).select(
+    'billingAddress',
+  );
+  const billing = userProfile?.billingAddress;
+
+  return await stripe.customers.create({
+    email,
+    name: billing?.contactName,
+    phone: billing?.phoneNumber,
+    address: billing
+      ? {
+        line1: billing.addressLine1,
+        line2: billing.addressLine2 || undefined,
+        city: billing.city,
+        postal_code: billing.postcode,
+        country: 'AUD', // You can customize by user country
+      }
+      : undefined,
+    metadata: {
+      userId,
+      vatRegistered: billing?.isVatRegistered ? 'yes' : 'no',
+      vatNumber: billing?.vatNumber || '',
+    },
+  });
+};
+
+
+
+//   payment intent
+
+const createSetupIntent = async (userId: string, email: string) => {
+
+  const customer = await getOrCreateCustomer(userId, email);
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customer.id,
+    usage: 'off_session',
+    metadata: {
+      userId, // Again, good practice for tracking
+    },
+  });
+
+  return {
+    clientSecret: setupIntent.client_secret,
+    customerId: customer.id,
+  };
+};
+
+
+
+
+// create subscription
+const createSubscription = async (
+  userId: string,
+  payload: { planId: string; email: string }
+
+
+) => {
+
+  // planId = Stripe Price ID
+
+  const { planId, email } = payload;
+  // Retrieve or create a Stripe customer
+  const customer = await getOrCreateCustomer(userId, email);
+
+  // Validate the plan ID
+  if (!planId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Plan ID is required');
+  }
+
+  // Create the subscription
+  const subscription = await stripe.subscriptions.create({
+    customer: customer.id,
+    items: [{ price: planId }],    // it will be change next time - added new logic 
+    payment_behavior: 'default_incomplete',
+    expand: ['latest_invoice.payment_intent'],
+  });
+
+  // Return the client secret for the payment intent
+  return {
+    success: true,
+    message: 'Subscription created successfully',
+    data: {
+      clientSecret: subscription.latest_invoice &&
+        typeof subscription.latest_invoice === 'object' &&
+        'payment_intent' in subscription.latest_invoice
+        ? (subscription.latest_invoice.payment_intent as Stripe.PaymentIntent)?.client_secret
+        : undefined,
+      subscriptionId: subscription.id,
+    }
+  };
+};
+
+// interface CreateSubscriptionPayload {
+//   planId: string; // Stripe Price ID
+//   email: string;
+// }
+
+// export const createSubscription = async (
+//   userId: string,
+//   payload: CreateSubscriptionPayload
+// ) => {
+//   const { planId, email } = payload;
+
+//   // 1️ Retrieve or create Stripe customer
+//   const customer = await getOrCreateCustomer(userId, email);
+
+//   if (!planId) {
+//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Plan ID is required");
+//   }
+
+//   // 2️ Create Stripe subscription
+//   const subscription = await stripe.subscriptions.create({
+//     customer: customer.id,
+//     items: [{ price: planId }], // your plan price ID
+//     payment_behavior: "default_incomplete",
+//     expand: ["latest_invoice.payment_intent"],
+//   });
+
+//   // 3️ Determine subscription period start/end
+//   const periodStart =
+//     subscription.items.data[0].price.recurring?.interval
+//       ? new Date(subscription.current_period_start * 1000)
+//       : undefined;
+//   const periodEnd =
+//     subscription.items.data[0].price.recurring?.interval
+//       ? new Date(subscription.current_period_end * 1000)
+//       : undefined;
+
+//   // 4️ Find the subscription package in DB
+//   const subscriptionPackage = await SubscriptionPackage.findOne({ stripePriceId: planId });
+//   if (!subscriptionPackage) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Subscription package not found");
+//   }
+
+//   // 5️⃣ Save subscription to MongoDB
+//   const userSubscription = await UserSubscription.create({
+//     userId: new mongoose.Types.ObjectId(userId),
+//     subscriptionPackageId: subscriptionPackage._id,
+//     stripeSubscriptionId: subscription.id,
+//     status: subscription.status as any,
+//     subscriptionPeriodStart: periodStart,
+//     subscriptionPeriodEnd: periodEnd,
+//     autoRenew: true,
+//   });
+
+//   // 6️⃣ Return client secret and subscription info
+//   const clientSecret =
+//     subscription.latest_invoice &&
+//     typeof subscription.latest_invoice === "object" &&
+//     "payment_intent" in subscription.latest_invoice
+//       ? (subscription.latest_invoice.payment_intent as stripe.PaymentIntent)?.client_secret
+//       : undefined;
+
+//   return {
+//     success: true,
+//     message: "Subscription created successfully",
+//     data: {
+//       clientSecret,
+//       subscriptionId: subscription.id,
+//       mongoSubscriptionId: userSubscription._id, // MongoDB ID
+//     },
+//   };
+// };
+
+
+
+
+
+
+//  subscription cancel manually
+const cancelSubscription = async (userId: string) => {
+
+    // 1️⃣ Find user profile
+  const userProfile = await UserProfile.findOne({ user: userId });
+
+  if (!userProfile || !userProfile.subscriptionId) {
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      'No active subscription found for this user'
+    );
+  }
+
+
+  // Find the user's active subscription from your database
+  const subscription = await UserSubscription.findOne({ userId, status: 'active' });
+
+  if (!subscription) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
+  }
+
+  // Cancel the subscription with Stripe
+  await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+
+  userProfile.isElitePro = false;
+  userProfile.subscriptionId = null;
+  userProfile.subscriptionPeriodStart = null;
+  userProfile.subscriptionPeriodEnd = null;
+  await userProfile.save();
+
+  console.log(`🔻 User ${userId} subscription cancelled manually`);
+
+  // Update the subscription status in your database
+  subscription.status = 'canceled';
+  await subscription.save();
+
+  return {
+    success: true,
+    message: 'Subscription canceled successfully',
+    data: {
+      subscriptionId: subscription.id,
+    },
+  };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const paymentMethodService = {
   getPaymentMethods,
   addPaymentMethod,
   createSetupIntent,
   purchaseCredits,
   removePaymentMethod,
+  createSubscription,
+  cancelSubscription
 };

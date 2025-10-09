@@ -2,7 +2,8 @@ import mongoose, { Schema } from 'mongoose';
 import {
   IUserLocationServiceMap,
   LocationType,
-} from './leadService.interface';
+} from '../LeadSettings/leadService.interface';
+
 
 /* 
 under this interface  model will be changeable just use if for test case
@@ -29,6 +30,12 @@ const userLocationServiceMapSchema = new Schema<IUserLocationServiceMap>(
       type: Number,
       default: 0,
     },
+    traveltime: {
+      type: String
+    },
+    travelmode: {
+      type: String
+    },
     serviceIds: [
       {
         type: Schema.Types.ObjectId,
@@ -39,6 +46,7 @@ const userLocationServiceMapSchema = new Schema<IUserLocationServiceMap>(
   },
   { timestamps: true, versionKey: false },
 );
+
 
 export const UserLocationServiceMap = mongoose.model<IUserLocationServiceMap>(
   'UserLocationServiceMap',

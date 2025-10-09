@@ -105,7 +105,7 @@ SubscriptionSchema.pre<ISubscription>("save", function (next) {
 SubscriptionSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate() as any;
   if (update.name) {
-    update.slug = SubscriptionModel.generateSlug(update.name);
+    update.slug = SubscriptionPackage.generateSlug(update.name);
     this.setUpdate(update);
   }
   next();
@@ -119,9 +119,9 @@ interface SubscriptionModel extends Model<ISubscription> {
   generateSlug(name: string): string;
 }
 
-const SubscriptionModel = mongoose.model<ISubscription, SubscriptionModel>(
-  "Subscription",
+const SubscriptionPackage = mongoose.model<ISubscription, SubscriptionModel>(
+  "SubscriptionPackage",
   SubscriptionSchema
 );
 
-export default SubscriptionModel;
+export default SubscriptionPackage;
