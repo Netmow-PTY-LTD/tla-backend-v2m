@@ -75,7 +75,7 @@ const createSubscriptionIntoDB = async (
 
 
 const getAllSubscriptionsFromDB = async (query: Record<string, any>) => {
-  const pageQuery = new QueryBuilder(SubscriptionPackage.find({}), query)
+  const pageQuery = new QueryBuilder(SubscriptionPackage.find({isActive: true}), query)
     .search(SUBSCRIPTION_FIELDS.SEARCHABLE)
     .filter()
     .sort()
@@ -154,7 +154,46 @@ const updateSubscriptionIntoDB = async (
 
 
 const deleteSubscriptionFromDB = async (id: string) => {
-  return SubscriptionPackage.findByIdAndDelete(id);
+  if (!id) throw new Error("Subscription ID is required");
+
+  // 1️⃣ Find the existing subscription package
+  const existing = await SubscriptionPackage.findById(id);
+  if (!existing) throw new Error("Subscription package not found");
+
+  // 2️⃣ Deactivate (archive) from Stripe
+  try {
+    if (existing.stripeProductId) {
+      // List all related prices for this product
+      const prices = await stripe.prices.list({
+        product: existing.stripeProductId,
+        limit: 100,
+      });
+
+      // Deactivate all active prices
+      for (const price of prices.data) {
+        if (price.active) {
+          await stripe.prices.update(price.id, { active: false });
+        }
+      }
+
+      // Archive the Stripe product
+      await stripe.products.update(existing.stripeProductId, { active: false });
+    }
+  } catch (err) {
+    console.error("Error archiving product on Stripe:", err);
+    throw new Error("Failed to archive subscription package on Stripe");
+  }
+
+  // 3️⃣ Soft delete in MongoDB
+  existing.isActive = false;
+  existing.deletedAt = new Date();
+  await existing.save();
+
+  return {
+    success: true,
+    message: "Subscription package archived successfully",
+    data: existing,
+  };
 };
 
 

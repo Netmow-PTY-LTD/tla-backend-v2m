@@ -61,7 +61,7 @@ const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackag
 
 const getAllEliteProSubscriptionsFromDB = async (query: Record<string, any>) => {
 
-  const pageQuery = new QueryBuilder(EliteProPackageModel.find({}), query).search([
+  const pageQuery = new QueryBuilder(EliteProPackageModel.find({isActive: true}), query).search([
     "name",
     "slug",
     "description"
@@ -134,9 +134,54 @@ const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEl
 
 };
 
+
+
+
+
+
 const deleteEliteProSubscriptionFromDB = async (id: string) => {
-  return EliteProPackageModel.findByIdAndDelete(id);
+  if (!id) throw new Error("Elite pro ID is required");
+
+  // 1️⃣ Find existing package
+  const existing = await EliteProPackageModel.findById(id);
+  if (!existing) throw new Error("Elite pro not found");
+
+  // 2️⃣ Deactivate on Stripe (Product + Prices)
+  try {
+    if (existing.stripeProductId) {
+      // Get all related Stripe prices
+      const prices = await stripe.prices.list({
+        product: existing.stripeProductId,
+        limit: 100,
+      });
+
+      // Deactivate all active prices
+      for (const price of prices.data) {
+        if (price.active) {
+          await stripe.prices.update(price.id, { active: false });
+        }
+      }
+
+      // Archive the product on Stripe
+      await stripe.products.update(existing.stripeProductId, { active: false });
+    }
+  } catch (err) {
+    console.error("Error archiving Stripe product:", err);
+    throw new Error("Failed to archive subscription on Stripe");
+  }
+
+  // 3️⃣ Soft delete in MongoDB (mark inactive)
+  existing.isActive = false;
+  existing.deletedAt = new Date();
+  await existing.save();
+
+  return {
+    success: true,
+    message: "Subscription package archived successfully",
+    data: existing,
+  };
 };
+
 
 export const eliteProSubscriptionService = {
   createEliteProSubscriptionIntoDB,

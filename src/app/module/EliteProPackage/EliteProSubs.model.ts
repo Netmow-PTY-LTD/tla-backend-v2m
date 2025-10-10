@@ -21,6 +21,7 @@ export interface IEliteProPackage extends Document {
   stripeProductId: string;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 
   // virtuals
   priceFormatted?: string;
@@ -51,6 +52,7 @@ const EliteProPackageSchema = new Schema<IEliteProPackage>(
     isActive: { type: Boolean, default: true },
     stripePriceId: { type: String, default: null },
     stripeProductId: { type: String, required: true },
+    deletedAt: { type: Date, default: null },
   },
   {
     timestamps: true,
