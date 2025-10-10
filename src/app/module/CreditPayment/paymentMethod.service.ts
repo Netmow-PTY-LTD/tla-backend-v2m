@@ -380,7 +380,7 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 
-const createSubscription = async (
+export const createSubscription = async (
   userId: string,
   email: string,
   payload: { subscriptionPackageId: string; autoRenew?: boolean }
@@ -399,43 +399,63 @@ const createSubscription = async (
 
   let stripeCustomerId = userProfile.stripeCustomerId;
   if (!stripeCustomerId) {
-    const customer = await stripe.customers.create({
-      email,
-      metadata: { userId },
-    });
+    const customer = await getOrCreateCustomer(userId, email);
     stripeCustomerId = customer.id;
     userProfile.stripeCustomerId = stripeCustomerId;
     await userProfile.save();
   }
 
-  // 3️⃣ Check for saved payment method
+  // 3️⃣ Check for default saved payment method
   const savedPaymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
   });
 
-  // 4️⃣ Create Stripe subscription
+  // 4️⃣ If user has no payment method → return response to frontend
+  if (!savedPaymentMethod) {
+    return {
+      success: false,
+      message: "No default payment method found. Please add a payment method before subscribing.",
+      data: {
+        requiresPaymentMethod: true,
+      },
+    };
+  }
+
+  // 5️⃣ Attach payment method to the customer (if not already)
+  if (savedPaymentMethod?.paymentMethodId) {
+    try {
+      await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
+        customer: stripeCustomerId,
+      });
+    } catch (err: any) {
+      // Ignore "already attached" errors
+      if (!err.message.includes("already attached")) {
+        console.error("⚠️ PaymentMethod attach error:", err.message);
+        throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
+      }
+    }
+  }
+
+  // 6️⃣ Create Stripe subscription
   const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
     items: [{ price: subscriptionPackage.stripePriceId }],
     metadata: { userId, subscriptionPackageId },
-    expand: ['latest_invoice.payment_intent'],
+    collection_method: "charge_automatically", // ensures PaymentIntent is created
+    payment_behavior: "default_incomplete", // allows client confirmation if needed
+    expand: ["latest_invoice.payment_intent"], // so we get client_secret
   };
 
-  // If user has card → attach directly (off_session payment)
   if (savedPaymentMethod?.paymentMethodId) {
     subscriptionParams.default_payment_method = savedPaymentMethod.paymentMethodId;
-    subscriptionParams.payment_behavior = 'default_incomplete';
-  } else {
-    // Otherwise user must confirm payment manually
-    subscriptionParams.payment_behavior = 'default_incomplete';
   }
 
-  const subscription = (await stripe.subscriptions.create(subscriptionParams)) as Stripe.Subscription;
+  const subscription = await stripe.subscriptions.create(subscriptionParams);
 
-  // 5️⃣ Save subscription in DB
-  const userSub = await UserSubscription.create({
+  // 7️⃣ Save subscription in DB
+  await UserSubscription.create({
     userId,
     subscriptionPackageId: subscriptionPackage._id,
     stripeSubscriptionId: subscription.id,
@@ -445,23 +465,23 @@ const createSubscription = async (
     autoRenew: autoRenew ?? true,
   });
 
+  // 8️⃣ Extract client_secret from PaymentIntent
+  const clientSecret =
+    typeof subscription.latest_invoice === "object" &&
+      subscription.latest_invoice !== null &&
+      "payment_intent" in subscription.latest_invoice &&
+      typeof (subscription.latest_invoice as any).payment_intent === "object"
+      ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent)
+        .client_secret
+      : undefined;
 
-  // 6️⃣ Return response
+  // 9️⃣ Return response
   return {
     success: true,
-    message: savedPaymentMethod
-      ? 'Subscription created and charged automatically'
-      : 'Subscription created — confirm payment on client',
+    message: "Subscription created successfully",
     data: {
       subscriptionId: subscription.id,
-      clientSecret:
-        typeof subscription.latest_invoice === 'object' &&
-        subscription.latest_invoice !== null &&
-        'payment_intent' in subscription.latest_invoice &&
-        typeof (subscription.latest_invoice as any).payment_intent === 'object'
-          ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent)
-              .client_secret
-          : undefined,
+      clientSecret,
     },
   };
 };
@@ -470,6 +490,97 @@ const createSubscription = async (
 
 
 
+//  2
+// const createSubscription = async (
+//   userId: string,
+//   email: string,
+//   payload: { subscriptionPackageId: string; autoRenew?: boolean }
+// ) => {
+//   const { subscriptionPackageId, autoRenew } = payload;
+
+//   // 1️⃣ Get subscription package
+//   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
+//   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
+//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid subscription package");
+//   }
+
+//   // 2️⃣ Get user profile & Stripe customer
+//   const userProfile = await UserProfile.findOne({ user: userId });
+//   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+
+//   let stripeCustomerId = userProfile.stripeCustomerId;
+//   if (!stripeCustomerId) {
+//     const customer = await stripe.customers.create({
+//       email,
+//       metadata: { userId },
+//     });
+//     stripeCustomerId = customer.id;
+//     userProfile.stripeCustomerId = stripeCustomerId;
+//     await userProfile.save();
+//   }
+
+//   // 3️⃣ Check for saved payment method
+//   const savedPaymentMethod = await PaymentMethod.findOne({
+//     userProfileId: userProfile._id,
+//     isDefault: true,
+//     isActive: true,
+//   });
+
+//   // 4️⃣ Create Stripe subscription
+//   const subscriptionParams: Stripe.SubscriptionCreateParams = {
+//     customer: stripeCustomerId,
+//     items: [{ price: subscriptionPackage.stripePriceId }],
+//     metadata: { userId, subscriptionPackageId },
+//     expand: ['latest_invoice.payment_intent'],
+//   };
+
+//   // If user has card → attach directly (off_session payment)
+//   if (savedPaymentMethod?.paymentMethodId) {
+//     subscriptionParams.default_payment_method = savedPaymentMethod.paymentMethodId;
+//     subscriptionParams.payment_behavior = 'default_incomplete';
+//   } else {
+//     // Otherwise user must confirm payment manually
+//     subscriptionParams.payment_behavior = 'default_incomplete';
+//   }
+
+//   const subscription = (await stripe.subscriptions.create(subscriptionParams)) as Stripe.Subscription;
+
+//   // 5️⃣ Save subscription in DB
+//   const userSub = await UserSubscription.create({
+//     userId,
+//     subscriptionPackageId: subscriptionPackage._id,
+//     stripeSubscriptionId: subscription.id,
+//     status: subscription.status as any,
+//     subscriptionPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
+//     subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
+//     autoRenew: autoRenew ?? true,
+//   });
+
+
+//   // 6️⃣ Return response
+//   return {
+//     success: true,
+//     message: savedPaymentMethod
+//       ? 'Subscription created and charged automatically'
+//       : 'Subscription created — confirm payment on client',
+//     data: {
+//       subscriptionId: subscription.id,
+//       clientSecret:
+//         typeof subscription.latest_invoice === 'object' &&
+//         subscription.latest_invoice !== null &&
+//         'payment_intent' in subscription.latest_invoice &&
+//         typeof (subscription.latest_invoice as any).payment_intent === 'object'
+//           ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent)
+//               .client_secret
+//           : undefined,
+//     },
+//   };
+// };
+
+
+
+
+//  1
 // const createSubscription = async (userId: string,email: string, payload: { subscriptionPackageId: string,  autoRenew?: boolean }) => {
 //   const { subscriptionPackageId, autoRenew } = payload;
 
