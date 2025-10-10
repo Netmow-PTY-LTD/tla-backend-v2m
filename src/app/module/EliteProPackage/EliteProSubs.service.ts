@@ -1,8 +1,8 @@
-// services/subscription.service.ts
+// services/eliteProSubscription.service.ts
 
 import Stripe from "stripe";
 import QueryBuilder from "../../builder/QueryBuilder";
-import SubscriptionPackage, { ISubscription } from "./subscriptionPack.model";
+import EliteProPackageModel, { IEliteProPackage } from "./EliteProSubs.model";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -10,36 +10,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 
 
 
-const SUBSCRIPTION_FIELDS = {
-  SEARCHABLE: ["name", "slug", "description"],
-};
+const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackage>) => {
 
-const SUBSCRIPTION_OPTIONS = {
-  NEW: { new: true, runValidators: true },
-};
-
-
-
-
-const createSubscriptionIntoDB = async (
-  payload: Partial<ISubscription>
-) => {
   if (!payload.name || !payload.price?.amount || !payload.price?.currency || !payload.billingCycle) {
-    throw new Error("Missing required subscription fields: name, price, currency, billingCycle");
+    throw new Error("Missing required elite pro fields: name, price, currency, billingCycle");
   }
 
   // 1️ Create Stripe Product
   const stripeProduct = await stripe.products.create({
     name: payload.name,
-    description: payload.description || `${payload.name} subscription plan`,
+    description: payload.description || `${payload.name} elite pro plan`,
   });
 
-  // // 2️ Determine Stripe interval for recurring payment
-  // let interval: "month" | "year" | undefined = undefined;
-  // if (payload.billingCycle === "monthly") interval = "month";
-  // else if (payload.billingCycle === "yearly") interval = "year";
 
-    // 2️⃣ Determine Stripe interval for recurring payment
+
+  // 2️⃣ Determine Stripe interval for recurring payment
   let interval: "week" | "month" | "year" | undefined = undefined;
   switch (payload.billingCycle) {
     case "weekly":
@@ -53,6 +38,8 @@ const createSubscriptionIntoDB = async (
       break;
   }
 
+
+
   // 3️ Create Stripe Price
   const stripePrice = await stripe.prices.create({
     product: stripeProduct.id,
@@ -62,55 +49,48 @@ const createSubscriptionIntoDB = async (
   });
 
   // 4️ Save subscription in DB with stripePriceId
-  const subscription = await SubscriptionPackage.create({
+  const elipropackage = await EliteProPackageModel.create({
     ...payload,
     stripePriceId: stripePrice.id,
     stripeProductId: stripeProduct.id,
   });
 
-  return subscription;
+
+
+
+  return elipropackage;
 };
 
+const getAllEliteProSubscriptionsFromDB = async (query: Record<string, any>) => {
 
-
-
-const getAllSubscriptionsFromDB = async (query: Record<string, any>) => {
-  const pageQuery = new QueryBuilder(SubscriptionPackage.find({isActive: true}), query)
-    .search(SUBSCRIPTION_FIELDS.SEARCHABLE)
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
+  const pageQuery = new QueryBuilder(EliteProPackageModel.find({isActive: true}), query).search([
+    "name",
+    "slug",
+    "description"
+  ]).filter().sort().paginate().fields();
   const data = await pageQuery.modelQuery;
   const pagination = await pageQuery.countTotal();
+
   return { data, pagination };
 };
 
-const getSubscriptionByIdFromDB = async (id: string) => {
-  return SubscriptionPackage.findById(id);
+const getEliteProSubscriptionByIdFromDB = async (id: string) => {
+  return EliteProPackageModel.findById(id);
 };
 
+const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEliteProPackage>) => {
 
-// const updateSubscriptionIntoDB = async (id: string, payload: Partial<ISubscription>) => {
-//   return SubscriptionPackage.findByIdAndUpdate(id, payload, SUBSCRIPTION_OPTIONS.NEW);
-// };
-
-
-const updateSubscriptionIntoDB = async (
-  id: string,
-  payload: Partial<ISubscription>
-) => {
   if (!id) throw new Error("Subscription ID is required");
 
-  const existing = await SubscriptionPackage.findById(id);
+  const existing = await EliteProPackageModel.findById(id);
   if (!existing) throw new Error("Subscription not found");
 
   let stripePriceId: string | undefined;
 
   // Only create new Stripe Price if billingCycle, amount, or currency changed
   if (
-    payload.billingCycle || 
-    payload.price?.amount !== undefined || 
+    payload.billingCycle ||
+    payload.price?.amount !== undefined ||
     payload.price?.currency
   ) {
     let interval: "week" | "month" | "year" | undefined;
@@ -139,7 +119,7 @@ const updateSubscriptionIntoDB = async (
   }
 
   // Update subscription package in DB
-  const updatedSubscription = await SubscriptionPackage.findByIdAndUpdate(
+  const elipropackage = await EliteProPackageModel.findByIdAndUpdate(
     id,
     {
       ...payload,
@@ -148,22 +128,26 @@ const updateSubscriptionIntoDB = async (
     { new: true } // return updated document
   );
 
-  return updatedSubscription;
+  return elipropackage;
+
+
+
 };
 
 
 
-const deleteSubscriptionFromDB = async (id: string) => {
-  if (!id) throw new Error("Subscription ID is required");
 
-  // 1️⃣ Find the existing subscription package
-  const existing = await SubscriptionPackage.findById(id);
-  if (!existing) throw new Error("Subscription package not found");
+const deleteEliteProSubscriptionFromDB = async (id: string) => {
+  if (!id) throw new Error("Elite pro ID is required");
 
-  // 2️⃣ Deactivate (archive) from Stripe
+  // 1️⃣ Find existing package
+  const existing = await EliteProPackageModel.findById(id);
+  if (!existing) throw new Error("Elite pro not found");
+
+  // 2️⃣ Deactivate on Stripe (Product + Prices)
   try {
     if (existing.stripeProductId) {
-      // List all related prices for this product
+      // Get all related Stripe prices
       const prices = await stripe.prices.list({
         product: existing.stripeProductId,
         limit: 100,
@@ -176,31 +160,31 @@ const deleteSubscriptionFromDB = async (id: string) => {
         }
       }
 
-      // Archive the Stripe product
+      // Archive the product on Stripe
       await stripe.products.update(existing.stripeProductId, { active: false });
     }
   } catch (err) {
-    console.error("Error archiving product on Stripe:", err);
-    throw new Error("Failed to archive subscription package on Stripe");
+    console.error("Error archiving Stripe product:", err);
+    throw new Error("Failed to archive subscription on Stripe");
   }
 
-  // 3️⃣ Soft delete in MongoDB
+  // 3️⃣ Soft delete in MongoDB (mark inactive)
   existing.isActive = false;
   existing.deletedAt = new Date();
   await existing.save();
 
   return {
     success: true,
-    message: "Subscription package archived successfully",
+    message: "Elite Pro archived successfully",
     data: existing,
   };
 };
 
 
-export const subscriptionPackageService = {
-  createSubscriptionIntoDB,
-  getAllSubscriptionsFromDB,
-  getSubscriptionByIdFromDB,
-  updateSubscriptionIntoDB,
-  deleteSubscriptionFromDB,
+export const eliteProSubscriptionService = {
+  createEliteProSubscriptionIntoDB,
+  getAllEliteProSubscriptionsFromDB,
+  getEliteProSubscriptionByIdFromDB,
+  updateEliteProSubscriptionIntoDB,
+  deleteEliteProSubscriptionFromDB,
 };

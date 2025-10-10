@@ -1,7 +1,8 @@
 
+
 // import Stripe from 'stripe';
 // import { Request, Response } from 'express';
-// import UserProfile from '../User/user.model';
+// import UserSubscription from '../CreditPayment/subscriptions.model';
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 //   // apiVersion: '2024-06-20',
@@ -30,69 +31,39 @@
 //        * 🔹 PAYMENT INTENT SUCCESS (One-time payments / credits)
 //        * You already handle this elsewhere, so just leave it.
 //        */
-//       case 'payment_intent.succeeded': {
-//         console.log('✅ Payment Intent succeeded');
-//         break;
-//       }
-
-//       /**
-//        * 🔹 SUBSCRIPTION PAYMENT SUCCESS
-//        * This event is fired when a subscription invoice is successfully paid.
-//        */
 //       case 'invoice.payment_succeeded': {
 //         const invoice = event.data.object as Stripe.Invoice;
-//         const subscriptionId = (invoice as any).subscription as string | undefined;
 //         const userId = invoice.metadata?.userId;
+//         const subscriptionPackageId = invoice.metadata?.subscriptionPackageId;
+//         const subscriptionId = (invoice as any).subscription as string;
 
-//         console.log(`💰 Subscription Payment Success for User: ${userId}`);
+//         if (!userId || !subscriptionPackageId || !subscriptionId) break;
 
-//         if (userId && subscriptionId) {
-//           const userProfile = await UserProfile.findOne({ user: userId });
+//         const userSub = await UserSubscription.findOne({ stripeSubscriptionId: subscriptionId });
+//         if (!userSub) return;
 
-//           if (userProfile) {
-//             userProfile.isElitePro = true;
-//             userProfile.subscriptionId = subscriptionId;
-
-//             // Optional: Store subscription start/end
-//             if (invoice.lines?.data?.[0]?.period) {
-//               userProfile.subscriptionPeriodStart = new Date(
-//                 invoice.lines.data[0].period.start * 1000
-//               );
-//               userProfile.subscriptionPeriodEnd = new Date(
-//                 invoice.lines.data[0].period.end * 1000
-//               );
-//             }
-
-//             await userProfile.save();
-//             console.log(`✅ User ${userId} upgraded to Elite Pro`);
-//           }
-//         }
+//         userSub.status = 'active';
+//         userSub.subscriptionPeriodStart = new Date(invoice.lines.data[0].period.start * 1000);
+//         userSub.subscriptionPeriodEnd = new Date(invoice.lines.data[0].period.end * 1000);
+//         await userSub.save();
+//         console.log(`User ${userId} subscription active`);
 //         break;
 //       }
 
-//       /**
-//        * 🔹 SUBSCRIPTION CANCELLED / EXPIRED / DELETED
-//        * This event is fired when a user cancels or Stripe cancels a subscription.
-//        */
 //       case 'customer.subscription.deleted': {
 //         const subscription = event.data.object as Stripe.Subscription;
-//         console.log(`❌ Subscription Cancelled: ${subscription.id}`);
+//         const userSub = await UserSubscription.findOne({ stripeSubscriptionId: subscription.id });
+//         if (!userSub) break;
 
-//         const subUser = await UserProfile.findOne({
-//           subscriptionId: subscription.id,
-//         });
+//         userSub.status = 'canceled';
+//         userSub.subscriptionPeriodStart = undefined;
+//         userSub.subscriptionPeriodEnd = undefined;
+//         await userSub.save();
 
-//         if (subUser) {
-//           subUser.isElitePro = false;
-//           subUser.subscriptionId = null;
-//           subUser.subscriptionPeriodStart = null;
-//           subUser.subscriptionPeriodEnd = null;
-//           await subUser.save();
-
-//           console.log(`🔻 User ${subUser.user} downgraded from Elite Pro`);
-//         }
+//         console.log(`User ${userSub.userId} subscription canceled`);
 //         break;
 //       }
+
 
 //       default:
 //         console.log(`⚙️ Unhandled event type: ${event.type}`);
@@ -107,9 +78,15 @@
 
 
 
+
 import Stripe from 'stripe';
 import { Request, Response } from 'express';
+import { SubscriptionType } from '../CreditPayment/paymentMethod.service';
+import EliteProUserSubscription from '../CreditPayment/EliteProUserSubscription';
 import UserSubscription from '../CreditPayment/subscriptions.model';
+import UserProfile from '../User/user.model';
+
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2024-06-20',
@@ -134,6 +111,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
   try {
     switch (event.type) {
+
       /**
        * 🔹 PAYMENT INTENT SUCCESS (One-time payments / credits)
        * You already handle this elsewhere, so just leave it.
@@ -141,25 +119,48 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         const userId = invoice.metadata?.userId;
-        const subscriptionPackageId = invoice.metadata?.subscriptionPackageId;
+        const packageId = invoice.metadata?.packageId;
+        const type = invoice.metadata?.type as SubscriptionType;
         const subscriptionId = (invoice as any).subscription as string;
 
-        if (!userId || !subscriptionPackageId || !subscriptionId) break;
+        if (!userId || !packageId || !subscriptionId || !type) break;
 
-        const userSub = await UserSubscription.findOne({ stripeSubscriptionId: subscriptionId });
-        if (!userSub) return;
+        const userSub =
+          type === SubscriptionType.ELITE_PRO
+            ? await EliteProUserSubscription.findOne({ stripeSubscriptionId: subscriptionId })
+            : await UserSubscription.findOne({ stripeSubscriptionId: subscriptionId });
+
+        if (!userSub) break;
 
         userSub.status = 'active';
         userSub.subscriptionPeriodStart = new Date(invoice.lines.data[0].period.start * 1000);
         userSub.subscriptionPeriodEnd = new Date(invoice.lines.data[0].period.end * 1000);
         await userSub.save();
-        console.log(`User ${userId} subscription active`);
+
+        console.log(`User ${userId} ${type} subscription active`);
+
+        // Update user profile periods
+        const userProfile = await UserProfile.findOne({ user: userId });
+        if (userProfile) {
+          userProfile.subscriptionPeriodStart = userSub.subscriptionPeriodStart;
+          userProfile.subscriptionPeriodEnd = userSub.subscriptionPeriodEnd;
+          await userProfile.save();
+        }
+
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        const userSub = await UserSubscription.findOne({ stripeSubscriptionId: subscription.id });
+        const type = subscription.metadata?.type as SubscriptionType;
+
+        if (!type) break;
+
+        const userSub =
+          type === SubscriptionType.ELITE_PRO
+            ? await EliteProUserSubscription.findOne({ stripeSubscriptionId: subscription.id })
+            : await UserSubscription.findOne({ stripeSubscriptionId: subscription.id });
+
         if (!userSub) break;
 
         userSub.status = 'canceled';
@@ -167,10 +168,23 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         userSub.subscriptionPeriodEnd = undefined;
         await userSub.save();
 
-        console.log(`User ${userSub.userId} subscription canceled`);
+        // Update user profile
+        const userProfile = await UserProfile.findOne({ user: userSub.userId });
+        if (userProfile) {
+          if (type === SubscriptionType.ELITE_PRO) {
+            userProfile.isElitePro = false;
+            userProfile.eliteProSubscriptionId = null;
+          } else {
+            userProfile.subscriptionId = null;
+          }
+          userProfile.subscriptionPeriodStart = null;
+          userProfile.subscriptionPeriodEnd = null;
+          await userProfile.save();
+        }
+
+        console.log(`User ${userSub.userId} ${type} subscription canceled`);
         break;
       }
-
 
       default:
         console.log(`⚙️ Unhandled event type: ${event.type}`);
@@ -182,5 +196,3 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
     res.status(500).send('Webhook handler failed');
   }
 };
-
-
