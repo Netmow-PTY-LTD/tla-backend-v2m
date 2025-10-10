@@ -302,7 +302,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
           path: 'serviceIds',
           model: 'Service', // or whatever your actual model name is
         },
-        // { path: 'firmProfileId', model: 'FirmProfile' },
+ 
         {
           path: 'firmProfileId',
           model: 'FirmProfile',
@@ -314,6 +314,11 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
           path: 'activeFirmRequestId',
           model: 'LawyerRequestAsMember',
           populate: { path: 'firmProfileId' ,select: 'firmName'},
+        },
+        {
+          path: 'subscriptionId',
+          model: 'UserSubscription',
+          populate: { path: 'subscriptionPackageId' },
         },
       ],
     })
