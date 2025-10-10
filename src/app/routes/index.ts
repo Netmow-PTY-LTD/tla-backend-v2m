@@ -21,7 +21,7 @@ import { adminRouter } from '../module/Admin/admin.routes';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.route';
 import { lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
 import { subscriptionPackRoutes} from '../module/SubscriptionPackage/subscriptionPack.route';
-import { eliteProSubscriptionRouter } from '../module/EliteProSubscriptions/EliteProSubs.route';
+import { eliteProSubscriptionRouter } from '../module/EliteProPackage/EliteProSubs.route';
 import { pageRouter } from '../module/Pages/page.route';
 import { claimRouter } from '../module/Claim/claim.route';
 import { testimonialRoutes } from '../module/Testimonial/testimonial.route';
@@ -116,7 +116,7 @@ const moduleRoutes = [
     route: subscriptionPackRoutes,
   },
   {
-    path: '/elite-pro-subscriptions',
+    path: '/elite-pro-package',
     route: eliteProSubscriptionRouter,
   },
   {
