@@ -380,85 +380,61 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 
-
-// create subscription
-// const createSubscription = async (
-//   userId: string,
-//   payload: { planId: string; email: string }
-
-
-// ) => {
-
-//   // planId = Stripe Price ID
-
-//   const { planId, email } = payload;
-//   // Retrieve or create a Stripe customer
-//   const customer = await getOrCreateCustomer(userId, email);
-
-//   // Validate the plan ID
-//   if (!planId) {
-//     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Plan ID is required');
-//   }
-
-//   // Create the subscription
-//   const subscription = await stripe.subscriptions.create({
-//     customer: customer.id,
-//     items: [{ price: planId }],    // it will be change next time - added new logic 
-//     payment_behavior: 'default_incomplete',
-//     expand: ['latest_invoice.payment_intent'],
-//   });
-
-//   // Return the client secret for the payment intent
-//   return {
-//     success: true,
-//     message: 'Subscription created successfully',
-//     data: {
-//       clientSecret: subscription.latest_invoice &&
-//         typeof subscription.latest_invoice === 'object' &&
-//         'payment_intent' in subscription.latest_invoice
-//         ? (subscription.latest_invoice.payment_intent as Stripe.PaymentIntent)?.client_secret
-//         : undefined,
-//       subscriptionId: subscription.id,
-//     }
-//   };
-// };
-
-
-
-const createSubscription = async (userId: string,email: string, payload: { subscriptionPackageId: string,  autoRenew?: boolean }) => {
+const createSubscription = async (
+  userId: string,
+  email: string,
+  payload: { subscriptionPackageId: string; autoRenew?: boolean }
+) => {
   const { subscriptionPackageId, autoRenew } = payload;
 
-  // 1️ Get subscription package from DB
+  // 1️⃣ Get subscription package
   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
-    throw new Error("Invalid subscription package");
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid subscription package");
   }
 
-  // 2️ Get or create Stripe customer
-  const userProfile = await UserProfile.findById(userId);
-  if (!userProfile) throw new Error("User not found");
+  // 2️⃣ Get user profile & Stripe customer
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
   let stripeCustomerId = userProfile.stripeCustomerId;
   if (!stripeCustomerId) {
-    const customer = await stripe.customers.create({ email, metadata: { userId } });
+    const customer = await stripe.customers.create({
+      email,
+      metadata: { userId },
+    });
     stripeCustomerId = customer.id;
     userProfile.stripeCustomerId = stripeCustomerId;
     await userProfile.save();
   }
 
-  // 3️ Create Stripe subscription
-  const subscription = await stripe.subscriptions.create({
+  // 3️⃣ Check for saved payment method
+  const savedPaymentMethod = await PaymentMethod.findOne({
+    userProfileId: userProfile._id,
+    isDefault: true,
+    isActive: true,
+  });
+
+  // 4️⃣ Create Stripe subscription
+  const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
     items: [{ price: subscriptionPackage.stripePriceId }],
-    payment_behavior: 'default_incomplete',
+    metadata: { userId, subscriptionPackageId },
     expand: ['latest_invoice.payment_intent'],
-    metadata: {
-      userId,
-      subscriptionPackageId: (subscriptionPackage._id as mongoose.Types.ObjectId).toString(),
-    },
-  }) as Stripe.Subscription;
+  };
 
-  // 4️ Save UserSubscription in DB
+  // If user has card → attach directly (off_session payment)
+  if (savedPaymentMethod?.paymentMethodId) {
+    subscriptionParams.default_payment_method = savedPaymentMethod.paymentMethodId;
+    subscriptionParams.payment_behavior = 'default_incomplete';
+  } else {
+    // Otherwise user must confirm payment manually
+    subscriptionParams.payment_behavior = 'default_incomplete';
+  }
+
+  const subscription = (await stripe.subscriptions.create(subscriptionParams)) as Stripe.Subscription;
+
+  // 5️⃣ Save subscription in DB
   const userSub = await UserSubscription.create({
     userId,
     subscriptionPackageId: subscriptionPackage._id,
@@ -470,25 +446,94 @@ const createSubscription = async (userId: string,email: string, payload: { subsc
   });
 
 
-
+  // 6️⃣ Return response
   return {
     success: true,
-    message: 'Subscription created successfully',
+    message: savedPaymentMethod
+      ? 'Subscription created and charged automatically'
+      : 'Subscription created — confirm payment on client',
     data: {
       subscriptionId: subscription.id,
-      clientSecret: typeof subscription.latest_invoice === 'object' && subscription.latest_invoice !== null
-        && 'payment_intent' in subscription.latest_invoice
-        && typeof (subscription.latest_invoice as any).payment_intent === 'object'
-        ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent).client_secret
-        : undefined,
-    }
-  }
-
-
-
-
-
+      clientSecret:
+        typeof subscription.latest_invoice === 'object' &&
+        subscription.latest_invoice !== null &&
+        'payment_intent' in subscription.latest_invoice &&
+        typeof (subscription.latest_invoice as any).payment_intent === 'object'
+          ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent)
+              .client_secret
+          : undefined,
+    },
+  };
 };
+
+
+
+
+
+// const createSubscription = async (userId: string,email: string, payload: { subscriptionPackageId: string,  autoRenew?: boolean }) => {
+//   const { subscriptionPackageId, autoRenew } = payload;
+
+//   // 1️ Get subscription package from DB
+//   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
+//   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
+//     throw new Error("Invalid subscription package");
+//   }
+
+//   // 2️ Get or create Stripe customer
+//   const userProfile = await UserProfile.findById(userId);
+//   if (!userProfile) throw new Error("User not found");
+
+//   let stripeCustomerId = userProfile.stripeCustomerId;
+//   if (!stripeCustomerId) {
+//     const customer = await stripe.customers.create({ email, metadata: { userId } });
+//     stripeCustomerId = customer.id;
+//     userProfile.stripeCustomerId = stripeCustomerId;
+//     await userProfile.save();
+//   }
+
+//   // 3️ Create Stripe subscription
+//   const subscription = await stripe.subscriptions.create({
+//     customer: stripeCustomerId,
+//     items: [{ price: subscriptionPackage.stripePriceId }],
+//     payment_behavior: 'default_incomplete',
+//     expand: ['latest_invoice.payment_intent'],
+//     metadata: {
+//       userId,
+//       subscriptionPackageId: (subscriptionPackage._id as mongoose.Types.ObjectId).toString(),
+//     },
+//   }) as Stripe.Subscription;
+
+//   // 4️ Save UserSubscription in DB
+//   const userSub = await UserSubscription.create({
+//     userId,
+//     subscriptionPackageId: subscriptionPackage._id,
+//     stripeSubscriptionId: subscription.id,
+//     status: subscription.status as any,
+//     subscriptionPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
+//     subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
+//     autoRenew: autoRenew ?? true,
+//   });
+
+
+
+//   return {
+//     success: true,
+//     message: 'Subscription created successfully',
+//     data: {
+//       subscriptionId: subscription.id,
+//       clientSecret: typeof subscription.latest_invoice === 'object' && subscription.latest_invoice !== null
+//         && 'payment_intent' in subscription.latest_invoice
+//         && typeof (subscription.latest_invoice as any).payment_intent === 'object'
+//         ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent).client_secret
+//         : undefined,
+//     }
+//   }
+
+
+
+
+
+// };
 
 
 
