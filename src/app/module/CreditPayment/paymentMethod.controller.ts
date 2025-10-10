@@ -73,8 +73,9 @@ const createSetupIntent = catchAsync(async (req, res) => {
 
 // create subscription setup
 const createSubscription = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
-  const result = await paymentMethodService.createSubscription(userId, req.body);
+  const user = req.user;
+
+  const result = await paymentMethodService.createSubscription(user.userId, req.body);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

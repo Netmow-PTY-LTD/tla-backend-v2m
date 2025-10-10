@@ -40,7 +40,7 @@ export interface IUserProfile {
 
   // Stripe identifiers (safe)
   stripeCustomerId?: string | null;
-  subscriptionId?: string | null;
+  subscriptionId: Types.ObjectId | null;
 
   // Subscription state
   isElitePro?: boolean;
