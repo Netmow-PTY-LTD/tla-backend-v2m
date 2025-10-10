@@ -18,6 +18,8 @@ import { isVerifiedLawyer } from '../User/user.utils';
 import UserSubscription from './subscriptions.model';
 import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
 import mongoose from 'mongoose';
+import EliteProPackageModel from '../EliteProPackage/EliteProSubs.model';
+import EliteProUserSubscription from './EliteProUserSubscription';
 
 
 
@@ -379,9 +381,13 @@ const createSetupIntent = async (userId: string, email: string) => {
 };
 
 
-//  const createSubscription = async (
+
+
+
+
+// const createSubscription = async (
 //   userId: string,
-//   payload: { subscriptionPackageId: string; autoRenew?: boolean }
+//   payload: {  subscriptionPackageId: string; autoRenew?: boolean }
 // ) => {
 //   const { subscriptionPackageId, autoRenew } = payload;
 
@@ -402,7 +408,6 @@ const createSetupIntent = async (userId: string, email: string) => {
 //     isActive: true,
 //   });
 
-//   // 4️ If no payment method → return response to frontend
 //   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
 //     return {
 //       success: false,
@@ -413,41 +418,115 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 //   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
 
-//   // 5️ Attach payment method to the customer if not already attached
+//   // 4️ Attach payment method to the customer if not attached
 //   try {
 //     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
 //       customer: stripeCustomerId,
 //     });
 //   } catch (err: any) {
-//     // Ignore "already attached" errors
 //     if (!err.message.includes("already attached")) {
 //       console.error("⚠️ PaymentMethod attach error:", err.message);
 //       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
 //     }
 //   }
 
-//   // 6️ Create Stripe subscription
+//   // 5️ Create subscription
 //   const subscription = await stripe.subscriptions.create({
 //     customer: stripeCustomerId,
 //     items: [{ price: subscriptionPackage.stripePriceId }],
 //     metadata: { userId, subscriptionPackageId },
 //     collection_method: "charge_automatically",
-//     // payment_behavior: "default_incomplete",
-//     payment_behavior: "error_if_incomplete", // ✅ immediately charge
+//     payment_behavior: "allow_incomplete", // allow backend confirmation
 //     default_payment_method: savedPaymentMethod.paymentMethodId,
 //     expand: ["latest_invoice.payment_intent"],
 //   });
 
-//   // 7️ Save subscription in DB
+//   // 6️ Attempt to pay invoice off-session (backend)
+//   const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent }) | undefined;
+//   let paymentSucceeded = false;
+
+//   if (latestInvoice && latestInvoice.payment_intent) {
+//     const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+
+//     if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
+//       try {
+//         const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
+//           payment_method: savedPaymentMethod.paymentMethodId,
+//         });
+//         if (confirmed.status === "succeeded") paymentSucceeded = true;
+//       } catch (err: any) {
+//         console.error("⚠️ Payment failed:", err.message);
+//         return {
+//           success: false,
+//           message: "Payment failed: " + err.message,
+//           data: { requiresPaymentMethod: true },
+//         };
+//       }
+//     } else if (paymentIntent.status === "succeeded") {
+//       paymentSucceeded = true;
+//     }
+//   } else {
+//     paymentSucceeded = true; // no payment needed
+//   }
+
+//   if (!paymentSucceeded) {
+//     return {
+//       success: false,
+//       message: "Payment could not be completed. Please check your card.",
+//       data: { requiresPaymentMethod: true },
+//     };
+//   }
+
+//   // console.log({ subscription });
+
+
+// // console.log({ start: subscription.start_date, end:latestInvoice?.period_end });
+
+
+// //    const subscriptionPeriodStart= subscription.start_date
+// //       ? new Date(subscription.start_date * 1000)
+// //       : latestInvoice?.period_start
+// //         ? new Date(latestInvoice.period_start * 1000)
+// //         : undefined;
+// //     const subscriptionPeriodEnd= latestInvoice?.period_end
+// //       ? new Date(latestInvoice.period_end * 1000)
+// //       : undefined;
+
+// //       console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
+
+// // Ensure latestInvoice exists
+
+// // Grab the first line item (Stripe usually has one per subscription item)
+// const invoiceLine = latestInvoice?.lines?.data[0];
+
+// // Extract start and end dates safely
+// const subscriptionPeriodStart = invoiceLine?.period?.start
+//   ? new Date(invoiceLine.period.start * 1000)
+//   : subscription.start_date
+//     ? new Date(subscription.start_date * 1000)
+//     : undefined;
+
+// const subscriptionPeriodEnd = invoiceLine?.period?.end
+//   ? new Date(invoiceLine.period.end * 1000)
+//   : undefined;
+
+// console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
+
+
+
+
+//   // 7️⃣ Save subscription in DB
 //   const subscriptionRecord = await UserSubscription.create({
 //     userId,
 //     subscriptionPackageId: subscriptionPackage._id,
 //     stripeSubscriptionId: subscription.id,
-//     status: subscription.status as any,
-//     subscriptionPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
-//     subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
+//     status: "active",
+//     subscriptionPeriodStart,
+//     subscriptionPeriodEnd,
 //     autoRenew: autoRenew ?? true,
 //   });
+
+
 
 //   userProfile.isElitePro = true;
 //   userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
@@ -455,28 +534,11 @@ const createSetupIntent = async (userId: string, email: string) => {
 //   userProfile.subscriptionPeriodEnd = subscriptionRecord.subscriptionPeriodEnd;
 //   await userProfile.save();
 
-
-//   // 8️ Extract client_secret
-//   // const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
-//   const clientSecret = typeof subscription.latest_invoice === 'object' &&
-//     subscription.latest_invoice !== null &&
-//     'payment_intent' in subscription.latest_invoice &&
-//     typeof (subscription.latest_invoice as any).payment_intent === 'object'
-//     ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent)
-//       .client_secret
-//     : undefined;
-
-
-
-
-
-//   // 9️⃣ Return response
 //   return {
 //     success: true,
-//     message: "Subscription created successfully",
+//     message: "Subscription created and charged successfully",
 //     data: {
 //       subscriptionId: subscription.id,
-//       clientSecret,
 //     },
 //   };
 // };
@@ -484,16 +546,28 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 
+
+// Define unique subscription types
+export enum SubscriptionType {
+  SUBSCRIPTION = "subscription",
+  ELITE_PRO = "elitePro",
+}
+
+
 const createSubscription = async (
   userId: string,
-  payload: { subscriptionPackageId: string; autoRenew?: boolean }
+  payload: { type: SubscriptionType; packageId: string; autoRenew?: boolean }
 ) => {
-  const { subscriptionPackageId, autoRenew } = payload;
+  const { type, packageId, autoRenew } = payload;
 
   // 1️ Get subscription package
-  const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
+  const subscriptionPackage =
+    type === SubscriptionType.SUBSCRIPTION
+      ? await SubscriptionPackage.findById(packageId)
+      : await EliteProPackageModel.findById(packageId);
+
   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid subscription package");
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid package");
   }
 
   // 2️ Get user profile
@@ -533,7 +607,7 @@ const createSubscription = async (
   const subscription = await stripe.subscriptions.create({
     customer: stripeCustomerId,
     items: [{ price: subscriptionPackage.stripePriceId }],
-    metadata: { userId, subscriptionPackageId },
+    metadata: { userId, packageId, type },
     collection_method: "charge_automatically",
     payment_behavior: "allow_incomplete", // allow backend confirmation
     default_payment_method: savedPaymentMethod.paymentMethodId,
@@ -576,66 +650,68 @@ const createSubscription = async (
     };
   }
 
-  // console.log({ subscription });
 
 
-// console.log({ start: subscription.start_date, end:latestInvoice?.period_end });
+  // Grab the first line item (Stripe usually has one per subscription item)
+  const invoiceLine = latestInvoice?.lines?.data[0];
 
+  // Extract start and end dates safely
+  const subscriptionPeriodStart = invoiceLine?.period?.start
+    ? new Date(invoiceLine.period.start * 1000)
+    : subscription.start_date
+      ? new Date(subscription.start_date * 1000)
+      : undefined;
 
-//    const subscriptionPeriodStart= subscription.start_date
-//       ? new Date(subscription.start_date * 1000)
-//       : latestInvoice?.period_start
-//         ? new Date(latestInvoice.period_start * 1000)
-//         : undefined;
-//     const subscriptionPeriodEnd= latestInvoice?.period_end
-//       ? new Date(latestInvoice.period_end * 1000)
-//       : undefined;
-
-//       console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
-
-// Ensure latestInvoice exists
-
-// Grab the first line item (Stripe usually has one per subscription item)
-const invoiceLine = latestInvoice?.lines?.data[0];
-
-// Extract start and end dates safely
-const subscriptionPeriodStart = invoiceLine?.period?.start
-  ? new Date(invoiceLine.period.start * 1000)
-  : subscription.start_date
-    ? new Date(subscription.start_date * 1000)
+  const subscriptionPeriodEnd = invoiceLine?.period?.end
+    ? new Date(invoiceLine.period.end * 1000)
     : undefined;
 
-const subscriptionPeriodEnd = invoiceLine?.period?.end
-  ? new Date(invoiceLine.period.end * 1000)
-  : undefined;
-
-console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
+  console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
 
 
 
+  // 7️ Save subscription in DB
+ 
+  let subscriptionRecord;
 
-  // 7️⃣ Save subscription in DB
-  const subscriptionRecord = await UserSubscription.create({
-    userId,
-    subscriptionPackageId: subscriptionPackage._id,
-    stripeSubscriptionId: subscription.id,
-    status: "active",
-    subscriptionPeriodStart,
-    subscriptionPeriodEnd,
-    autoRenew: autoRenew ?? true,
-  });
+  if (type === SubscriptionType.SUBSCRIPTION) {
+    subscriptionRecord = await UserSubscription.create({
+      userId,
+      subscriptionPackageId: subscriptionPackage._id,
+      stripeSubscriptionId: subscription.id,
+      status: "active",
+      subscriptionPeriodStart,
+      subscriptionPeriodEnd,
+      autoRenew: autoRenew ?? true,
+    });
 
-  
+    userProfile.isElitePro = false; // Not ElitePro
+    userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+    userProfile.subscriptionPeriodStart = subscriptionPeriodStart;
+    userProfile.subscriptionPeriodEnd = subscriptionPeriodEnd;
+  } else if (type === SubscriptionType.ELITE_PRO) {
+    subscriptionRecord = await EliteProUserSubscription.create({
+      userId,
+      eliteProPackageId: subscriptionPackage._id,
+      stripeSubscriptionId: subscription.id,
+      status: "active",
+      subscriptionPeriodStart,
+      subscriptionPeriodEnd,
+      autoRenew: autoRenew ?? true,
+    });
 
-  userProfile.isElitePro = true;
-  userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
-  userProfile.subscriptionPeriodStart = subscriptionRecord.subscriptionPeriodStart;
-  userProfile.subscriptionPeriodEnd = subscriptionRecord.subscriptionPeriodEnd;
+    userProfile.isElitePro = true;
+    userProfile.eliteProSubscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+    userProfile.subscriptionPeriodStart = subscriptionPeriodStart;
+    userProfile.subscriptionPeriodEnd = subscriptionPeriodEnd;
+  }
+
   await userProfile.save();
+
 
   return {
     success: true,
-    message: "Subscription created and charged successfully",
+    message: type === SubscriptionType.ELITE_PRO ? "Elite Pro subscription created and charged successfully" : "Subscription created and charged successfully",
     data: {
       subscriptionId: subscription.id,
     },
@@ -648,7 +724,7 @@ console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
 
 const cancelSubscription = async (userId: string) => {
 
-  // 1️⃣ Find user profile
+  // 1️ Find user profile
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile || !userProfile.subscriptionId) {

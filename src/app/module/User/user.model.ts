@@ -95,6 +95,7 @@ const userProfileSchema = new Schema<IUserProfile>(
     // Stripe identifiers (safe)
     stripeCustomerId: { type: String, default: null },
     subscriptionId: { type: Schema.Types.ObjectId, ref: 'UserSubscription', default: null },
+    eliteProSubscriptionId: { type: Schema.Types.ObjectId, ref: 'EliteProUserSubscription', default: null },
     // Subscription state
     isElitePro: { type: Boolean, default: false },
     subscriptionPeriodStart: { type: Date, default: null },
