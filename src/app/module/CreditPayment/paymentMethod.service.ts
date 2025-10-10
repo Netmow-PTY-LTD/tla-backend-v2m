@@ -15,11 +15,11 @@ import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
 import { isVerifiedLawyer } from '../User/user.utils';
-import UserSubscription from './subscriptions.model';
+import UserSubscription, { IUserSubscription } from './subscriptions.model';
 import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
 import mongoose from 'mongoose';
 import EliteProPackageModel from '../EliteProPackage/EliteProSubs.model';
-import EliteProUserSubscription from './EliteProUserSubscription';
+import EliteProUserSubscription, { IEliteProUserSubscription } from './EliteProUserSubscription';
 
 
 
@@ -722,50 +722,114 @@ const createSubscription = async (
 
 
 
-const cancelSubscription = async (userId: string) => {
+// const cancelSubscription = async (userId: string) => {
 
-  // 1️ Find user profile
+//   // 1️ Find user profile
+//   const userProfile = await UserProfile.findOne({ user: userId });
+
+//   if (!userProfile || !userProfile.subscriptionId) {
+//     throw new AppError(
+//       HTTP_STATUS.NOT_FOUND,
+//       'No active subscription found for this user'
+//     );
+//   }
+
+
+//   // Find the user's active subscription from your database
+//   const subscription = await UserSubscription.findOne({ userId, status: 'active' });
+
+//   if (!subscription) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
+//   }
+
+//   // Cancel the subscription with Stripe
+//   await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+
+//   userProfile.isElitePro = false;
+//   userProfile.subscriptionId = null;
+//   userProfile.subscriptionPeriodStart = null;
+//   userProfile.subscriptionPeriodEnd = null;
+//   await userProfile.save();
+
+//   console.log(`🔻 User ${userId} subscription cancelled manually`);
+
+//   // Update the subscription status in your database
+//   subscription.status = 'canceled';
+//   await subscription.save();
+
+//   return {
+//     success: true,
+//     message: 'Subscription canceled successfully',
+//     data: {
+//       subscriptionId: subscription.id,
+//     },
+//   };
+// };
+
+
+
+
+const cancelSubscription = async (userId: string) => {
+  // 1️⃣ Find user profile
   const userProfile = await UserProfile.findOne({ user: userId });
 
-  if (!userProfile || !userProfile.subscriptionId) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      'No active subscription found for this user'
-    );
+  if (!userProfile) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
   }
 
+  // Determine which subscription type the user currently has
+  let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
+  let type: SubscriptionType | null = null;
 
-  // Find the user's active subscription from your database
-  const subscription = await UserSubscription.findOne({ userId, status: 'active' });
+  if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
+    type = SubscriptionType.ELITE_PRO;
+    subscription = await EliteProUserSubscription.findOne({
+      _id: userProfile.eliteProSubscriptionId,
+      status: 'active',
+    });
+  } else if (userProfile.subscriptionId) {
+    type = SubscriptionType.SUBSCRIPTION;
+    subscription = await UserSubscription.findOne({
+      _id: userProfile.subscriptionId,
+      status: 'active',
+    });
+  }
 
   if (!subscription) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
   }
 
-  // Cancel the subscription with Stripe
+  // 2️⃣ Cancel the subscription with Stripe
   await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
 
-  userProfile.isElitePro = false;
-  userProfile.subscriptionId = null;
+  // 3️⃣ Update user profile
+  if (type === SubscriptionType.ELITE_PRO) {
+    userProfile.isElitePro = false;
+    userProfile.eliteProSubscriptionId = null;
+  } else {
+    userProfile.subscriptionId = null;
+  }
   userProfile.subscriptionPeriodStart = null;
   userProfile.subscriptionPeriodEnd = null;
+
   await userProfile.save();
 
-  console.log(`🔻 User ${userId} subscription cancelled manually`);
-
-  // Update the subscription status in your database
+  // 4️⃣ Update subscription status in DB
   subscription.status = 'canceled';
+  subscription.subscriptionPeriodStart = undefined;
+  subscription.subscriptionPeriodEnd = undefined;
   await subscription.save();
+
+  console.log(`🔻 User ${userId} ${type} subscription cancelled manually`);
 
   return {
     success: true,
-    message: 'Subscription canceled successfully',
+    message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Subscription'} canceled successfully`,
     data: {
-      subscriptionId: subscription.id,
+      subscriptionId: subscription._id,
     },
   };
 };
-
 
 
 
