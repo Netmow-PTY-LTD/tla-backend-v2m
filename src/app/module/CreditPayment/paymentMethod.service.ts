@@ -15,10 +15,10 @@ import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
 import { isVerifiedLawyer } from '../User/user.utils';
-import Subscription from './subscriptions.model';
 import UserSubscription from './subscriptions.model';
 import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
 import mongoose from 'mongoose';
+
 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -576,16 +576,56 @@ const createSubscription = async (
     };
   }
 
+  // console.log({ subscription });
+
+
+// console.log({ start: subscription.start_date, end:latestInvoice?.period_end });
+
+
+//    const subscriptionPeriodStart= subscription.start_date
+//       ? new Date(subscription.start_date * 1000)
+//       : latestInvoice?.period_start
+//         ? new Date(latestInvoice.period_start * 1000)
+//         : undefined;
+//     const subscriptionPeriodEnd= latestInvoice?.period_end
+//       ? new Date(latestInvoice.period_end * 1000)
+//       : undefined;
+
+//       console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
+
+// Ensure latestInvoice exists
+
+// Grab the first line item (Stripe usually has one per subscription item)
+const invoiceLine = latestInvoice?.lines?.data[0];
+
+// Extract start and end dates safely
+const subscriptionPeriodStart = invoiceLine?.period?.start
+  ? new Date(invoiceLine.period.start * 1000)
+  : subscription.start_date
+    ? new Date(subscription.start_date * 1000)
+    : undefined;
+
+const subscriptionPeriodEnd = invoiceLine?.period?.end
+  ? new Date(invoiceLine.period.end * 1000)
+  : undefined;
+
+console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
+
+
+
+
   // 7️⃣ Save subscription in DB
   const subscriptionRecord = await UserSubscription.create({
     userId,
     subscriptionPackageId: subscriptionPackage._id,
     stripeSubscriptionId: subscription.id,
     status: "active",
-    subscriptionPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
-    subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
+    subscriptionPeriodStart,
+    subscriptionPeriodEnd,
     autoRenew: autoRenew ?? true,
   });
+
+  
 
   userProfile.isElitePro = true;
   userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
