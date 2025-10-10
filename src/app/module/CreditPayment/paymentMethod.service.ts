@@ -379,30 +379,134 @@ const createSetupIntent = async (userId: string, email: string) => {
 };
 
 
-export const createSubscription = async (
+//  const createSubscription = async (
+//   userId: string,
+//   payload: { subscriptionPackageId: string; autoRenew?: boolean }
+// ) => {
+//   const { subscriptionPackageId, autoRenew } = payload;
+
+//   // 1️ Get subscription package
+//   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
+//   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
+//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid subscription package");
+//   }
+
+//   // 2️ Get user profile
+//   const userProfile = await UserProfile.findOne({ user: userId });
+//   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+
+//   // 3️ Get default saved payment method
+//   const savedPaymentMethod = await PaymentMethod.findOne({
+//     userProfileId: userProfile._id,
+//     isDefault: true,
+//     isActive: true,
+//   });
+
+//   // 4️ If no payment method → return response to frontend
+//   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
+//     return {
+//       success: false,
+//       message: "No default payment method found. Please add a payment method before subscribing.",
+//       data: { requiresPaymentMethod: true },
+//     };
+//   }
+
+//   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
+
+//   // 5️ Attach payment method to the customer if not already attached
+//   try {
+//     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
+//       customer: stripeCustomerId,
+//     });
+//   } catch (err: any) {
+//     // Ignore "already attached" errors
+//     if (!err.message.includes("already attached")) {
+//       console.error("⚠️ PaymentMethod attach error:", err.message);
+//       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
+//     }
+//   }
+
+//   // 6️ Create Stripe subscription
+//   const subscription = await stripe.subscriptions.create({
+//     customer: stripeCustomerId,
+//     items: [{ price: subscriptionPackage.stripePriceId }],
+//     metadata: { userId, subscriptionPackageId },
+//     collection_method: "charge_automatically",
+//     // payment_behavior: "default_incomplete",
+//     payment_behavior: "error_if_incomplete", // ✅ immediately charge
+//     default_payment_method: savedPaymentMethod.paymentMethodId,
+//     expand: ["latest_invoice.payment_intent"],
+//   });
+
+//   // 7️ Save subscription in DB
+//   const subscriptionRecord = await UserSubscription.create({
+//     userId,
+//     subscriptionPackageId: subscriptionPackage._id,
+//     stripeSubscriptionId: subscription.id,
+//     status: subscription.status as any,
+//     subscriptionPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
+//     subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
+//     autoRenew: autoRenew ?? true,
+//   });
+
+//   userProfile.isElitePro = true;
+//   userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+//   userProfile.subscriptionPeriodStart = subscriptionRecord.subscriptionPeriodStart;
+//   userProfile.subscriptionPeriodEnd = subscriptionRecord.subscriptionPeriodEnd;
+//   await userProfile.save();
+
+
+//   // 8️ Extract client_secret
+//   // const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
+//   const clientSecret = typeof subscription.latest_invoice === 'object' &&
+//     subscription.latest_invoice !== null &&
+//     'payment_intent' in subscription.latest_invoice &&
+//     typeof (subscription.latest_invoice as any).payment_intent === 'object'
+//     ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent)
+//       .client_secret
+//     : undefined;
+
+
+
+
+
+//   // 9️⃣ Return response
+//   return {
+//     success: true,
+//     message: "Subscription created successfully",
+//     data: {
+//       subscriptionId: subscription.id,
+//       clientSecret,
+//     },
+//   };
+// };
+
+
+
+
+const createSubscription = async (
   userId: string,
   payload: { subscriptionPackageId: string; autoRenew?: boolean }
 ) => {
   const { subscriptionPackageId, autoRenew } = payload;
 
-  // 1️ Get subscription package
+  // 1️⃣ Get subscription package
   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid subscription package");
   }
 
-  // 2️ Get user profile
+  // 2️⃣ Get user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
-  // 3️ Get default saved payment method
+  // 3️⃣ Get default saved payment method
   const savedPaymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
   });
 
-  // 4️ If no payment method → return response to frontend
   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
     return {
       success: false,
@@ -413,37 +517,71 @@ export const createSubscription = async (
 
   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
 
-  // 5️ Attach payment method to the customer if not already attached
+  // 4️⃣ Attach payment method to the customer if not attached
   try {
     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
       customer: stripeCustomerId,
     });
   } catch (err: any) {
-    // Ignore "already attached" errors
     if (!err.message.includes("already attached")) {
       console.error("⚠️ PaymentMethod attach error:", err.message);
       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
     }
   }
 
-  // 6️ Create Stripe subscription
+  // 5️⃣ Create subscription
   const subscription = await stripe.subscriptions.create({
     customer: stripeCustomerId,
     items: [{ price: subscriptionPackage.stripePriceId }],
     metadata: { userId, subscriptionPackageId },
     collection_method: "charge_automatically",
-    // payment_behavior: "default_incomplete",
-    payment_behavior: "error_if_incomplete", // ✅ immediately charge
+    payment_behavior: "allow_incomplete", // allow backend confirmation
     default_payment_method: savedPaymentMethod.paymentMethodId,
     expand: ["latest_invoice.payment_intent"],
   });
 
-  // 7️ Save subscription in DB
+  // 6️⃣ Attempt to pay invoice off-session (backend)
+  const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent }) | undefined;
+  let paymentSucceeded = false;
+
+  if (latestInvoice && latestInvoice.payment_intent) {
+    const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+
+    if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
+      try {
+        const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
+          payment_method: savedPaymentMethod.paymentMethodId,
+        });
+        if (confirmed.status === "succeeded") paymentSucceeded = true;
+      } catch (err: any) {
+        console.error("⚠️ Payment failed:", err.message);
+        return {
+          success: false,
+          message: "Payment failed: " + err.message,
+          data: { requiresPaymentMethod: true },
+        };
+      }
+    } else if (paymentIntent.status === "succeeded") {
+      paymentSucceeded = true;
+    }
+  } else {
+    paymentSucceeded = true; // no payment needed
+  }
+
+  if (!paymentSucceeded) {
+    return {
+      success: false,
+      message: "Payment could not be completed. Please check your card.",
+      data: { requiresPaymentMethod: true },
+    };
+  }
+
+  // 7️⃣ Save subscription in DB
   const subscriptionRecord = await UserSubscription.create({
     userId,
     subscriptionPackageId: subscriptionPackage._id,
     stripeSubscriptionId: subscription.id,
-    status: subscription.status as any,
+    status: "active",
     subscriptionPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
     subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
     autoRenew: autoRenew ?? true,
@@ -455,33 +593,14 @@ export const createSubscription = async (
   userProfile.subscriptionPeriodEnd = subscriptionRecord.subscriptionPeriodEnd;
   await userProfile.save();
 
-
-  // 8️ Extract client_secret
-  // const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
-  const clientSecret = typeof subscription.latest_invoice === 'object' &&
-    subscription.latest_invoice !== null &&
-    'payment_intent' in subscription.latest_invoice &&
-    typeof (subscription.latest_invoice as any).payment_intent === 'object'
-    ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent)
-      .client_secret
-    : undefined;
-
-
-
-
-
-  // 9️⃣ Return response
   return {
     success: true,
-    message: "Subscription created successfully",
+    message: "Subscription created and charged successfully",
     data: {
       subscriptionId: subscription.id,
-      clientSecret,
     },
   };
 };
-
-
 
 
 
@@ -530,8 +649,6 @@ const cancelSubscription = async (userId: string) => {
     },
   };
 };
-
-
 
 
 
