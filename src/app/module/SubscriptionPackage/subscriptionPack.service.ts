@@ -18,10 +18,7 @@ const SUBSCRIPTION_OPTIONS = {
   NEW: { new: true, runValidators: true },
 };
 
-// const createSubscriptionIntoDB = async (payload: Partial<ISubscription>) => {
-//   const subscription = await SubscriptionPackage.create(payload);
-//   return subscription;
-// };
+
 
 
 const createSubscriptionIntoDB = async (
@@ -37,10 +34,24 @@ const createSubscriptionIntoDB = async (
     description: payload.description || `${payload.name} subscription plan`,
   });
 
-  // 2️ Determine Stripe interval for recurring payment
-  let interval: "month" | "year" | undefined = undefined;
-  if (payload.billingCycle === "monthly") interval = "month";
-  else if (payload.billingCycle === "yearly") interval = "year";
+  // // 2️ Determine Stripe interval for recurring payment
+  // let interval: "month" | "year" | undefined = undefined;
+  // if (payload.billingCycle === "monthly") interval = "month";
+  // else if (payload.billingCycle === "yearly") interval = "year";
+
+    // 2️⃣ Determine Stripe interval for recurring payment
+  let interval: "week" | "month" | "year" | undefined = undefined;
+  switch (payload.billingCycle) {
+    case "weekly":
+      interval = "week";
+      break;
+    case "monthly":
+      interval = "month";
+      break;
+    case "yearly":
+      interval = "year";
+      break;
+  }
 
   // 3️ Create Stripe Price
   const stripePrice = await stripe.prices.create({
