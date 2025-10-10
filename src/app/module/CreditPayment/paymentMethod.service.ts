@@ -470,15 +470,24 @@ const createSubscription = async (userId: string, payload: { subscriptionPackage
   });
 
 
+
   return {
     success: true,
-    subscriptionId: subscription.id,
-    clientSecret: typeof subscription.latest_invoice === 'object' && subscription.latest_invoice !== null
-      && 'payment_intent' in subscription.latest_invoice
-      && typeof (subscription.latest_invoice as any).payment_intent === 'object'
-      ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent).client_secret
-      : undefined,
-  };
+    message: 'Subscription created successfully',
+    data: {
+      subscriptionId: subscription.id,
+      clientSecret: typeof subscription.latest_invoice === 'object' && subscription.latest_invoice !== null
+        && 'payment_intent' in subscription.latest_invoice
+        && typeof (subscription.latest_invoice as any).payment_intent === 'object'
+        ? ((subscription.latest_invoice as any).payment_intent as Stripe.PaymentIntent).client_secret
+        : undefined,
+    }
+  }
+
+
+
+
+
 };
 
 
