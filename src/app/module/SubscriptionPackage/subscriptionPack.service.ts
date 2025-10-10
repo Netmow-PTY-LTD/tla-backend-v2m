@@ -65,6 +65,7 @@ const createSubscriptionIntoDB = async (
   const subscription = await SubscriptionPackage.create({
     ...payload,
     stripePriceId: stripePrice.id,
+    stripeProductId: stripeProduct.id,
   });
 
   return subscription;
@@ -89,9 +90,68 @@ const getSubscriptionByIdFromDB = async (id: string) => {
   return SubscriptionPackage.findById(id);
 };
 
-const updateSubscriptionIntoDB = async (id: string, payload: Partial<ISubscription>) => {
-  return SubscriptionPackage.findByIdAndUpdate(id, payload, SUBSCRIPTION_OPTIONS.NEW);
+
+// const updateSubscriptionIntoDB = async (id: string, payload: Partial<ISubscription>) => {
+//   return SubscriptionPackage.findByIdAndUpdate(id, payload, SUBSCRIPTION_OPTIONS.NEW);
+// };
+
+
+const updateSubscriptionIntoDB = async (
+  id: string,
+  payload: Partial<ISubscription>
+) => {
+  if (!id) throw new Error("Subscription ID is required");
+
+  const existing = await SubscriptionPackage.findById(id);
+  if (!existing) throw new Error("Subscription not found");
+
+  let stripePriceId: string | undefined;
+
+  // Only create new Stripe Price if billingCycle, amount, or currency changed
+  if (
+    payload.billingCycle || 
+    payload.price?.amount !== undefined || 
+    payload.price?.currency
+  ) {
+    let interval: "week" | "month" | "year" | undefined;
+
+    switch (payload.billingCycle || existing.billingCycle) {
+      case "weekly":
+        interval = "week";
+        break;
+      case "monthly":
+        interval = "month";
+        break;
+      case "yearly":
+        interval = "year";
+        break;
+    }
+
+    // Create a new Stripe Price for the existing product
+    const stripePrice = await stripe.prices.create({
+      product: existing.stripeProductId, // use existing product
+      unit_amount: payload.price?.amount || existing.price.amount,
+      currency: (payload.price?.currency || existing.price.currency).toLowerCase(),
+      recurring: interval ? { interval } : undefined,
+    });
+
+    stripePriceId = stripePrice.id;
+  }
+
+  // Update subscription package in DB
+  const updatedSubscription = await SubscriptionPackage.findByIdAndUpdate(
+    id,
+    {
+      ...payload,
+      ...(stripePriceId ? { stripePriceId } : {}),
+    },
+    { new: true } // return updated document
+  );
+
+  return updatedSubscription;
 };
+
+
 
 const deleteSubscriptionFromDB = async (id: string) => {
   return SubscriptionPackage.findByIdAndDelete(id);

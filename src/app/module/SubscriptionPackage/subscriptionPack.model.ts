@@ -17,7 +17,8 @@ export interface ISubscription extends Document {
   features: string[];
   description?: string;
   isActive: boolean;
-  stripePriceId?: string; // optional: link to Stripe price if you use Stripe
+  stripePriceId: string; // optional: link to Stripe price if you use Stripe
+  stripeProductId: string; // optional: link to Stripe product if you use Stripe
   createdAt: Date;
   updatedAt: Date;
 
@@ -37,7 +38,7 @@ const PriceSchema = new Schema<IPrice>(
 const SubscriptionSchema = new Schema<ISubscription>(
   {
     name: { type: String, required: true, trim: true, maxlength: 150 },
-    slug: { type: String,  trim: true, lowercase: true, unique: true },
+    slug: { type: String, trim: true, lowercase: true, unique: true },
     price: { type: PriceSchema, required: true },
 
     billingCycle: {
@@ -50,6 +51,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     description: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
     stripePriceId: { type: String, default: null },
+    stripeProductId: { type: String, required: true }, // <- add this
   },
   {
     timestamps: true,
