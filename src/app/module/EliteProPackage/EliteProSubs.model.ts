@@ -17,7 +17,8 @@ export interface IEliteProPackage extends Document {
   features: string[];
   description?: string;
   isActive: boolean;
-  stripePriceId?: string;
+  stripePriceId: string | null;
+  stripeProductId: string;
   createdAt: Date;
   updatedAt: Date;
 
@@ -49,6 +50,7 @@ const EliteProPackageSchema = new Schema<IEliteProPackage>(
     description: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
     stripePriceId: { type: String, default: null },
+    stripeProductId: { type: String, required: true },
   },
   {
     timestamps: true,
