@@ -21,6 +21,7 @@ export interface ISubscription extends Document {
   stripeProductId: string; // optional: link to Stripe product if you use Stripe
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 
   // virtuals
   priceFormatted?: string;
@@ -52,6 +53,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     isActive: { type: Boolean, default: true },
     stripePriceId: { type: String, default: null },
     stripeProductId: { type: String, required: true }, // <- add this
+     deletedAt: { type: Date, default: null },
   },
   {
     timestamps: true,

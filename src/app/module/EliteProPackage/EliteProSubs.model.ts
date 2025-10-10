@@ -9,7 +9,7 @@ export interface IPrice {
   currency: string; // ISO 4217, e.g. "USD", "EUR", "BDT"
 }
 
-export interface IEliteProSubscription extends Document {
+export interface IEliteProPackage extends Document {
   name: string;
   slug: string;
   price: IPrice;
@@ -17,9 +17,11 @@ export interface IEliteProSubscription extends Document {
   features: string[];
   description?: string;
   isActive: boolean;
-  stripePriceId?: string;
+  stripePriceId: string | null;
+  stripeProductId: string;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 
   // virtuals
   priceFormatted?: string;
@@ -34,7 +36,7 @@ const PriceSchema = new Schema<IPrice>(
   { _id: false }
 );
 
-const EliteProSubscriptionSchema = new Schema<IEliteProSubscription>(
+const EliteProPackageSchema = new Schema<IEliteProPackage>(
   {
     name: { type: String, required: true, trim: true, maxlength: 150 },
     slug: { type: String, trim: true, lowercase: true, unique: true },
@@ -49,6 +51,8 @@ const EliteProSubscriptionSchema = new Schema<IEliteProSubscription>(
     description: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
     stripePriceId: { type: String, default: null },
+    stripeProductId: { type: String, required: true },
+    deletedAt: { type: Date, default: null },
   },
   {
     timestamps: true,
@@ -59,16 +63,16 @@ const EliteProSubscriptionSchema = new Schema<IEliteProSubscription>(
 );
 
 // Indexes
-EliteProSubscriptionSchema.index({ slug: 1 });
+EliteProPackageSchema.index({ slug: 1 });
 
 // Virtual: price as float in major currency units (e.g. 1250 -> 12.50)
-EliteProSubscriptionSchema.virtual("priceFloat").get(function (this: IEliteProSubscription) {
+EliteProPackageSchema.virtual("priceFloat").get(function (this: IEliteProPackage) {
   if (!this.price) return 0;
   return this.price.amount / 100;
 });
 
 // Virtual: formatted price using Intl
-EliteProSubscriptionSchema.virtual("priceFormatted").get(function (this: IEliteProSubscription) {
+EliteProPackageSchema.virtual("priceFormatted").get(function (this: IEliteProPackage) {
   try {
     const major = (this.price?.amount ?? 0) / 100;
     const currency = this.price?.currency ?? "USD";
@@ -79,7 +83,7 @@ EliteProSubscriptionSchema.virtual("priceFormatted").get(function (this: IEliteP
 });
 
 // Helper static method to create safe slug from name
-EliteProSubscriptionSchema.statics.generateSlug = function (name: string) {
+EliteProPackageSchema.statics.generateSlug = function (name: string) {
   return String(name)
     .trim()
     .toLowerCase()
@@ -88,7 +92,7 @@ EliteProSubscriptionSchema.statics.generateSlug = function (name: string) {
 };
 
 // Pre-save for .save()
-EliteProSubscriptionSchema.pre<IEliteProSubscription>("save", function (next) {
+EliteProPackageSchema.pre<IEliteProPackage>("save", function (next) {
   if (this.isModified("name")) {
     // @ts-ignore
     this.slug = (this.constructor as any).generateSlug(this.name);
@@ -97,22 +101,22 @@ EliteProSubscriptionSchema.pre<IEliteProSubscription>("save", function (next) {
 });
 
 // Pre-update for findOneAndUpdate / findByIdAndUpdate
-EliteProSubscriptionSchema.pre("findOneAndUpdate", function (next) {
+EliteProPackageSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate() as any;
   if (update.name) {
-    update.slug = EliteProSubscriptionModel.generateSlug(update.name);
+    update.slug = EliteProPackageModel.generateSlug(update.name);
     this.setUpdate(update);
   }
   next();
 });
 
-interface EliteProSubscriptionModel extends Model<IEliteProSubscription> {
+interface EliteProSubscriptionModel extends Model<IEliteProPackage> {
   generateSlug(name: string): string;
 }
 
-const EliteProSubscriptionModel = mongoose.model<IEliteProSubscription, EliteProSubscriptionModel>(
-  "EliteProSubscription",
-  EliteProSubscriptionSchema
+const EliteProPackageModel = mongoose.model<IEliteProPackage, EliteProSubscriptionModel>(
+  "EliteProPackage",
+  EliteProPackageSchema
 );
 
-export default EliteProSubscriptionModel;
+export default EliteProPackageModel;
