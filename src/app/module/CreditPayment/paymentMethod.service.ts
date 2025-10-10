@@ -432,13 +432,14 @@ export const createSubscription = async (
     items: [{ price: subscriptionPackage.stripePriceId }],
     metadata: { userId, subscriptionPackageId },
     collection_method: "charge_automatically",
-    payment_behavior: "default_incomplete",
+    // payment_behavior: "default_incomplete",
+    payment_behavior: "error_if_incomplete", // ✅ immediately charge
     default_payment_method: savedPaymentMethod.paymentMethodId,
     expand: ["latest_invoice.payment_intent"],
   });
 
   // 7️ Save subscription in DB
-  await UserSubscription.create({
+  const subscriptionRecord = await UserSubscription.create({
     userId,
     subscriptionPackageId: subscriptionPackage._id,
     stripeSubscriptionId: subscription.id,
@@ -447,6 +448,13 @@ export const createSubscription = async (
     subscriptionPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
     autoRenew: autoRenew ?? true,
   });
+
+  userProfile.isElitePro = true;
+  userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+  userProfile.subscriptionPeriodStart = subscriptionRecord.subscriptionPeriodStart;
+  userProfile.subscriptionPeriodEnd = subscriptionRecord.subscriptionPeriodEnd;
+  await userProfile.save();
+
 
   // 8️ Extract client_secret
   // const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
