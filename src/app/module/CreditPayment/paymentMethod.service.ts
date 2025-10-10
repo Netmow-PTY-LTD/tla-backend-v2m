@@ -425,8 +425,8 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 
-const createSubscription = async (userId: string, payload: { subscriptionPackageId: string, email: string, autoRenew?: boolean }) => {
-  const { subscriptionPackageId, email, autoRenew } = payload;
+const createSubscription = async (userId: string,email: string, payload: { subscriptionPackageId: string,  autoRenew?: boolean }) => {
+  const { subscriptionPackageId, autoRenew } = payload;
 
   // 1️ Get subscription package from DB
   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
