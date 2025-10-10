@@ -490,17 +490,17 @@ const createSubscription = async (
 ) => {
   const { subscriptionPackageId, autoRenew } = payload;
 
-  // 1️⃣ Get subscription package
+  // 1️ Get subscription package
   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid subscription package");
   }
 
-  // 2️⃣ Get user profile
+  // 2️ Get user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
-  // 3️⃣ Get default saved payment method
+  // 3️ Get default saved payment method
   const savedPaymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
@@ -517,7 +517,7 @@ const createSubscription = async (
 
   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
 
-  // 4️⃣ Attach payment method to the customer if not attached
+  // 4️ Attach payment method to the customer if not attached
   try {
     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
       customer: stripeCustomerId,
@@ -529,7 +529,7 @@ const createSubscription = async (
     }
   }
 
-  // 5️⃣ Create subscription
+  // 5️ Create subscription
   const subscription = await stripe.subscriptions.create({
     customer: stripeCustomerId,
     items: [{ price: subscriptionPackage.stripePriceId }],
@@ -540,7 +540,7 @@ const createSubscription = async (
     expand: ["latest_invoice.payment_intent"],
   });
 
-  // 6️⃣ Attempt to pay invoice off-session (backend)
+  // 6️ Attempt to pay invoice off-session (backend)
   const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent }) | undefined;
   let paymentSucceeded = false;
 

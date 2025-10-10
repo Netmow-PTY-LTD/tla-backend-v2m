@@ -38,6 +38,8 @@ const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackag
       break;
   }
 
+
+
   // 3️ Create Stripe Price
   const stripePrice = await stripe.prices.create({
     product: stripeProduct.id,
@@ -130,11 +132,7 @@ const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEl
 
 
 
-
-
 };
-
-
 
 
 
@@ -177,7 +175,7 @@ const deleteEliteProSubscriptionFromDB = async (id: string) => {
 
   return {
     success: true,
-    message: "Subscription package archived successfully",
+    message: "Elite Pro archived successfully",
     data: existing,
   };
 };
