@@ -34,61 +34,61 @@ const getCreditPackages = async () => {
   return await CreditPackage.find({ isActive: true });
 };
 
-const purchaseCredits = async (
-  userId: string,
-  {
-    packageId,
-    couponCode,
-    autoTopUp,
-  }: { packageId: string; couponCode: string; autoTopUp: boolean },
-) => {
-  validateObjectId(packageId, 'credit package ID');
+// const purchaseCredits = async (
+//   userId: string,
+//   {
+//     packageId,
+//     couponCode,
+//     autoTopUp,
+//   }: { packageId: string; couponCode: string; autoTopUp: boolean },
+// ) => {
+//   validateObjectId(packageId, 'credit package ID');
 
-  const creditPackage = await CreditPackage.findById(packageId);
-  if (!creditPackage) {
-    return sendNotFoundResponse('Credit package not found');
-  }
+//   const creditPackage = await CreditPackage.findById(packageId);
+//   if (!creditPackage) {
+//     return sendNotFoundResponse('Credit package not found');
+//   }
 
-  let discount = 0;
-  if (couponCode) {
-    const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-    if (
-      coupon &&
-      typeof coupon.maxUses === 'number' &&
-      coupon.currentUses < coupon.maxUses
-    ) {
-      discount = coupon.discountPercentage;
-      coupon.currentUses += 1;
-      await coupon.save();
-    }
-  }
+//   let discount = 0;
+//   if (couponCode) {
+//     const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+//     if (
+//       coupon &&
+//       typeof coupon.maxUses === 'number' &&
+//       coupon.currentUses < coupon.maxUses
+//     ) {
+//       discount = coupon.discountPercentage;
+//       coupon.currentUses += 1;
+//       await coupon.save();
+//     }
+//   }
 
-  const finalPrice = creditPackage.price * (1 - discount / 100);
+//   const finalPrice = creditPackage.price * (1 - discount / 100);
 
-  const transaction = await Transaction.create({
-    userId,
-    type: 'purchase',
-    creditPackageId: packageId,
-    credit: creditPackage.credit,
-    amountPaid: finalPrice,
-    status: 'completed',
-    couponCode,
-    discountApplied: discount,
-  });
+//   const transaction = await Transaction.create({
+//     userId,
+//     type: 'purchase',
+//     creditPackageId: packageId,
+//     credit: creditPackage.credit,
+//     amountPaid: finalPrice,
+//     status: 'completed',
+//     couponCode,
+//     discountApplied: discount,
+//   });
 
-  const user = await UserProfile.findOne({ user: userId });
-  if (!user) {
-    return sendNotFoundResponse('User not found');
-  }
-  user.credits += creditPackage.credit;
-  user.autoTopUp = autoTopUp || false;
-  await user.save();
+//   const user = await UserProfile.findOne({ user: userId });
+//   if (!user) {
+//     return sendNotFoundResponse('User not found');
+//   }
+//   user.credits += creditPackage.credit;
+//   user.autoTopUp = autoTopUp || false;
+//   await user.save();
 
-  return {
-    newBalance: user.credits,
-    transactionId: transaction._id,
-  };
-};
+//   return {
+//     newBalance: user.credits,
+//     transactionId: transaction._id,
+//   };
+// };
 
 const applyCoupon = async (
   couponCode: string,
@@ -320,7 +320,7 @@ const findNextCreditOffer = async (userId: string) => {
 
 export const CreditPaymentService = {
   getCreditPackages,
-  purchaseCredits,
+  // purchaseCredits,
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
