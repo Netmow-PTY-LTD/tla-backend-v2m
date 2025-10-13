@@ -186,18 +186,9 @@ const getTransactionHistory = async (userId: string) => {
   return transactionHistory;
 };
 
-// const getAllTransactionHistory = async () => {
-//   const transactionHistory = await Transaction.find({})
-//     .sort({ createdAt: -1 })
-//     .populate({
-//       path: 'userId',
-//       populate: {
-//         path: 'profile'
-//       }
-//     })
-//     .populate('creditPackageId');
-//   return transactionHistory
-// };
+
+
+
 
 const getAllTransactionHistory = async (query: Record<string, any>) => {
   const page = Math.max(1, parseInt(query.page as string, 10) || 1);

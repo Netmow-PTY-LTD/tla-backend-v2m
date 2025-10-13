@@ -1,39 +1,66 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
+import { SubscriptionType } from './paymentMethod.service';
 const Schema = mongoose.Schema;
 
-const transactionSchema = new Schema(
-  {
-    transactionId: {
-      type: String,
-      unique: true,
-      required: false,
-    },
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    type: {
-      type: String,
-      enum: ['purchase', 'refund', 'usage'],
-      required: true,
-    },
-    creditPackageId: { type: Schema.Types.ObjectId, ref: 'CreditPackage' },
-    credit: { type: Number, required: true },
-    amountPaid: { type: Number }, // in base currency (e.g., pence/cents)
-    currency: { type: String, default: 'usd' },
-    status: {
-      type: String,
-      enum: ['pending', 'completed', 'failed'],
-      default: 'pending',
-    },
-    invoiceId: { type: String },
-    couponCode: { type: String },
-    discountApplied: { type: Number, default: 0 },
-    stripePaymentIntentId: { type: String }, // added here
-  },
-  {
-    timestamps: true,
-  },
-);
+// const transactionSchema = new Schema(
+//   {
+//     transactionId: {
+//       type: String,
+//       unique: true,
+//       required: false,
+//     },
+//     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+//     type: {
+//       type: String,
+//       enum: ['purchase', 'refund', 'usage'],
+//       required: true,
+//     },
+//     creditPackageId: { type: Schema.Types.ObjectId, ref: 'CreditPackage' },
+//     credit: { type: Number, required: true },
+//     amountPaid: { type: Number }, // in base currency (e.g., pence/cents)
+//     currency: { type: String, default: 'usd' },
+//     status: {
+//       type: String,
+//       enum: ['pending', 'completed', 'failed'],
+//       default: 'pending',
+//     },
+//     invoiceId: { type: String },
+//     couponCode: { type: String },
+//     discountApplied: { type: Number, default: 0 },
+//     stripePaymentIntentId: { type: String }, // added here
+//   },
+//   {
+//     timestamps: true,
+//   },
+// );
 
 // Pre-save hook to generate transactionId automatically
+
+const transactionSchema = new Schema({
+
+  transactionId: {
+    type: String,
+    unique: true,
+    required: false,
+  },
+  userId: { type: Types.ObjectId, ref: 'User', required: true },
+  type: { type: String, enum: ['purchase', 'subscription'], required: true },
+  creditPackageId: { type: Types.ObjectId, ref: 'CreditPackage' },
+  subscriptionId: { type: Types.ObjectId, refPath: 'subscriptionType' },
+  subscriptionType: { type: String, enum: Object.values(SubscriptionType) },
+  credit: { type: Number },
+  amountPaid: { type: Number, required: true },
+  currency: { type: String, default: 'usd' },
+  status: { type: String, enum: ['completed', 'failed'], default: 'completed' },
+  invoiceId: { type: String },
+  couponCode: { type: String },
+  discountApplied: { type: Number },
+  stripePaymentIntentId: { type: String },
+  stripeInvoiceId: { type: String },
+  stripeChargeId: { type: String },
+}, { timestamps: true });
+
+
 transactionSchema.pre('save', function (next) {
   if (!this.transactionId) {
     const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
