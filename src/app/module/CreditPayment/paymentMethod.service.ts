@@ -756,6 +756,88 @@ const createSubscription = async (
 
 
 
+export const cancelSubscription = async (userId: string) => {
+  // 1️ Fetch user profile
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+  }
+
+  // 2️ Identify active subscription type
+  let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
+  let type: SubscriptionType | null = null;
+
+  if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
+    type = SubscriptionType.ELITE_PRO;
+    subscription = await EliteProUserSubscription.findOne({
+      _id: userProfile.eliteProSubscriptionId,
+      status: "active",
+    });
+  } else if (userProfile.subscriptionId) {
+    type = SubscriptionType.SUBSCRIPTION;
+    subscription = await UserSubscription.findOne({
+      _id: userProfile.subscriptionId,
+      status: "active",
+    });
+  }
+
+  if (!subscription || !type) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription found");
+  }
+
+  // 3️ Cancel the subscription on Stripe
+  try {
+    await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+  } catch (error: any) {
+    throw new AppError(
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      `Failed to cancel subscription on Stripe: ${error.message}`
+    );
+  }
+
+  // 4️ Update local records in MongoDB
+  if (type === SubscriptionType.ELITE_PRO) {
+    userProfile.isElitePro = false;
+    userProfile.eliteProSubscriptionId = null;
+    userProfile.eliteProPeriodStart = null;
+    userProfile.eliteProPeriodEnd = null;
+    await userProfile.save();
+
+    subscription.status = "canceled";
+    if ("eliteProPeriodStart" in subscription && "eliteProPeriodEnd" in subscription) {
+      (subscription as IEliteProUserSubscription).eliteProPeriodStart = undefined;
+      (subscription as IEliteProUserSubscription).eliteProPeriodEnd = undefined;
+    }
+    await subscription.save();
+  } else if (type === SubscriptionType.SUBSCRIPTION) {
+    userProfile.subscriptionId = null;
+    userProfile.subscriptionPeriodStart = null;
+    userProfile.subscriptionPeriodEnd = null;
+    await userProfile.save();
+
+    subscription.status = "canceled";
+    (subscription as IUserSubscription).subscriptionPeriodStart = undefined;
+    (subscription as IUserSubscription).subscriptionPeriodEnd = undefined;
+    await subscription.save();
+  }
+
+  // 5️ Log for debugging / audit trail
+  console.info(
+    `🔻 [Subscription Canceled] User: ${userId}, Type: ${type}, Subscription ID: ${subscription._id}`
+  );
+
+  // 6️ Return standard response
+  return {
+    success: true,
+    message: `${type === SubscriptionType.ELITE_PRO ? "Elite Pro" : "Standard"} subscription canceled successfully.`,
+    data: {
+      subscriptionId: subscription._id,
+      type,
+    },
+  };
+};
+
+
 
 
 // const cancelSubscription = async (userId: string) => {
@@ -889,86 +971,6 @@ const createSubscription = async (
 
 
 
-export const cancelSubscription = async (userId: string) => {
-  // 1️ Fetch user profile
-  const userProfile = await UserProfile.findOne({ user: userId });
-  if (!userProfile) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
-  }
-
-  // 2️ Identify active subscription type
-  let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
-  let type: SubscriptionType | null = null;
-
-  if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
-    type = SubscriptionType.ELITE_PRO;
-    subscription = await EliteProUserSubscription.findOne({
-      _id: userProfile.eliteProSubscriptionId,
-      status: "active",
-    });
-  } else if (userProfile.subscriptionId) {
-    type = SubscriptionType.SUBSCRIPTION;
-    subscription = await UserSubscription.findOne({
-      _id: userProfile.subscriptionId,
-      status: "active",
-    });
-  }
-
-  if (!subscription || !type) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription found");
-  }
-
-  // 3️ Cancel the subscription on Stripe
-  try {
-    await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
-  } catch (error: any) {
-    throw new AppError(
-      HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      `Failed to cancel subscription on Stripe: ${error.message}`
-    );
-  }
-
-  // 4️ Update local records in MongoDB
-  if (type === SubscriptionType.ELITE_PRO) {
-    userProfile.isElitePro = false;
-    userProfile.eliteProSubscriptionId = null;
-    userProfile.eliteProPeriodStart = null;
-    userProfile.eliteProPeriodEnd = null;
-    await userProfile.save();
-
-    subscription.status = "canceled";
-    if ("eliteProPeriodStart" in subscription && "eliteProPeriodEnd" in subscription) {
-      (subscription as IEliteProUserSubscription).eliteProPeriodStart = undefined;
-      (subscription as IEliteProUserSubscription).eliteProPeriodEnd = undefined;
-    }
-    await subscription.save();
-  } else if (type === SubscriptionType.SUBSCRIPTION) {
-    userProfile.subscriptionId = null;
-    userProfile.subscriptionPeriodStart = null;
-    userProfile.subscriptionPeriodEnd = null;
-    await userProfile.save();
-
-    subscription.status = "canceled";
-    (subscription as IUserSubscription).subscriptionPeriodStart = undefined;
-    (subscription as IUserSubscription).subscriptionPeriodEnd = undefined;
-    await subscription.save();
-  }
-
-  // 5️ Log for debugging / audit trail
-  console.info(
-    `🔻 [Subscription Canceled] User: ${userId}, Type: ${type}, Subscription ID: ${subscription._id}`
-  );
-
-  // 6️ Return standard response
-  return {
-    success: true,
-    message: `${type === SubscriptionType.ELITE_PRO ? "Elite Pro" : "Standard"} subscription canceled successfully.`,
-    data: {
-      subscriptionId: subscription._id,
-      type,
-    },
-  };
-};
 
 
 
