@@ -320,6 +320,11 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
           model: 'UserSubscription',
           populate: { path: 'subscriptionPackageId' },
         },
+        {
+          path: 'eliteProSubscriptionId',
+          model: 'EliteProUserSubscription',
+          populate: { path: 'eliteProPackageId' },
+        },
       ],
     })
 
