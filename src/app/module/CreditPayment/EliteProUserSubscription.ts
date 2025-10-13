@@ -7,7 +7,8 @@ export type EliteProSubscriptionStatus =
   | "incomplete"
   | "incomplete_expired"
   | "trialing"
-  | "unpaid";
+  | "unpaid"
+  | "payment_failed";
 
 export interface IEliteProUserSubscription extends Document {
   userId: Types.ObjectId; // Reference to UserProfile
@@ -28,7 +29,7 @@ const EliteProUserSubscriptionSchema = new Schema<IEliteProUserSubscription>(
     stripeSubscriptionId: { type: String, required: true },
     status: {
       type: String,
-      enum: ["active", "canceled", "past_due", "incomplete", "incomplete_expired", "trialing", "unpaid"],
+      enum: ["active", "canceled", "past_due", "incomplete", "incomplete_expired", "trialing", "unpaid","payment_failed"],
       default: "active",
     },
     eliteProPeriodStart: { type: Date },

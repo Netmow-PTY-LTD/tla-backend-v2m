@@ -202,7 +202,6 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
             userProfile.eliteProPeriodStart = (subscriptionRecord as IEliteProUserSubscription).eliteProPeriodStart;
             userProfile.eliteProPeriodEnd = (subscriptionRecord as IEliteProUserSubscription).eliteProPeriodEnd;
           } else {
-            userProfile.isElitePro = false;
             userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
             userProfile.subscriptionPeriodStart = (subscriptionRecord as IUserSubscription).subscriptionPeriodStart;
             userProfile.subscriptionPeriodEnd = (subscriptionRecord as IUserSubscription).subscriptionPeriodEnd;
@@ -213,6 +212,53 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         console.log(`✅ User ${userId} ${type} subscription active`);
         break;
       }
+
+
+     // ---------------------------------
+      // Payment failed
+      // ---------------------------------
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const userId = invoice.metadata?.userId;
+        const type = invoice.metadata?.type as SubscriptionType;
+        const subscriptionId = (invoice as any).subscription as string;
+
+        if (!userId || !type || !subscriptionId) break;
+
+        const subscriptionRecord =
+          type === SubscriptionType.ELITE_PRO
+            ? await EliteProUserSubscription.findOne({ stripeSubscriptionId: subscriptionId })
+            : await UserSubscription.findOne({ stripeSubscriptionId: subscriptionId });
+
+        if (!subscriptionRecord) break;
+
+        // Mark subscription as payment_failed
+        if (type === SubscriptionType.ELITE_PRO) {
+          const eliteSub = subscriptionRecord as IEliteProUserSubscription;
+          eliteSub.status = 'payment_failed';
+          await eliteSub.save();
+        } else {
+          const normalSub = subscriptionRecord as IUserSubscription;
+          normalSub.status = 'payment_failed';
+          await normalSub.save();
+        }
+
+        // Update user profile
+        const userProfile = await UserProfile.findOne({ user: userId });
+        if (userProfile) {
+          if (type === SubscriptionType.ELITE_PRO) {
+            userProfile.isElitePro = false;
+          } else {
+            userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId; // optional: keep record but mark failed
+          }
+          await userProfile.save();
+        }
+
+        console.log(`❌ User ${userId} ${type} subscription payment failed`);
+        break;
+      }
+
+
 
       // ---------------------------------
       // Subscription canceled/deleted
@@ -263,6 +309,10 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         console.log(`🔻 User ${subscriptionRecord.userId} ${type} subscription canceled`);
         break;
       }
+
+
+
+
 
       default:
         console.log(`⚙️ Unhandled event type: ${event.type}`);
