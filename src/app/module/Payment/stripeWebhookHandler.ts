@@ -160,6 +160,11 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         const type = invoice.metadata?.type as SubscriptionType;
         const subscriptionId = (invoice as any).subscription as string;
 
+        console.log('💰 Invoice payment succeeded from web hook:', {
+          userId,
+          type,
+          subscriptionId,
+        });
         if (!userId || !type || !subscriptionId) break;
 
         // Fetch the subscription record

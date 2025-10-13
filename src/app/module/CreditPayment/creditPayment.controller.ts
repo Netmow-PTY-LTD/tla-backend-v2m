@@ -38,16 +38,17 @@ const updateCreditPackages = catchAsync(async (req, res) => {
   });
 });
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-const purchaseCredits = catchAsync(async (req, res) => {
-  const userId = req.user.id;
-  const result = await CreditPaymentService.purchaseCredits(userId, req.body);
-  return sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Credits purchased successfully',
-    data: result,
-  });
-});
+
+// const purchaseCredits = catchAsync(async (req, res) => {
+//   const userId = req.user.id;
+//   const result = await CreditPaymentService.purchaseCredits(userId, req.body);
+//   return sendResponse(res, {
+//     statusCode: HTTP_STATUS.OK,
+//     success: true,
+//     message: 'Credits purchased successfully',
+//     data: result,
+//   });
+// });
 
 const applyCoupon = catchAsync(async (req, res) => {
   const result = await CreditPaymentService.applyCoupon(req.body.couponCode);
@@ -113,15 +114,7 @@ const getTransactionHistory = catchAsync(async (req, res) => {
   });
 });
 
-// const getAllTransactionHistory = catchAsync(async (req, res) => {
-//   const result = await CreditPaymentService.getAllTransactionHistory();
-//   return sendResponse(res, {
-//     statusCode: HTTP_STATUS.OK,
-//     success: true,
-//     message: 'Transaction history fetched',
-//     data: result,
-//   });
-// });
+
 const getAllTransactionHistory = catchAsync(async (req, res) => {
   const result = await CreditPaymentService.getAllTransactionHistory(req.query);
   return sendResponse(res, {
