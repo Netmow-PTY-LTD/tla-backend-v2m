@@ -20,7 +20,6 @@ import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
 import mongoose from 'mongoose';
 import EliteProPackageModel from '../EliteProPackage/EliteProSubs.model';
 import EliteProUserSubscription, { IEliteProUserSubscription } from './EliteProUserSubscription';
-import { el } from '@faker-js/faker/.';
 
 
 
@@ -41,6 +40,8 @@ const getPaymentMethods = async (userId: string) => {
 
   return result;
 };
+
+
 
 const removePaymentMethod = async (userId: string, paymentMethodId: string) => {
   const userProfile = await UserProfile.findOne({ user: userId });
@@ -159,9 +160,6 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     data: savedCard,
   };
 };
-
-
-
 
 
 
@@ -385,176 +383,11 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 
-
-// const createSubscription = async (
-//   userId: string,
-//   payload: {  subscriptionPackageId: string; autoRenew?: boolean }
-// ) => {
-//   const { subscriptionPackageId, autoRenew } = payload;
-
-//   // 1️ Get subscription package
-//   const subscriptionPackage = await SubscriptionPackage.findById(subscriptionPackageId);
-//   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
-//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid subscription package");
-//   }
-
-//   // 2️ Get user profile
-//   const userProfile = await UserProfile.findOne({ user: userId });
-//   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
-
-//   // 3️ Get default saved payment method
-//   const savedPaymentMethod = await PaymentMethod.findOne({
-//     userProfileId: userProfile._id,
-//     isDefault: true,
-//     isActive: true,
-//   });
-
-//   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
-//     return {
-//       success: false,
-//       message: "No default payment method found. Please add a payment method before subscribing.",
-//       data: { requiresPaymentMethod: true },
-//     };
-//   }
-
-//   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
-
-//   // 4️ Attach payment method to the customer if not attached
-//   try {
-//     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
-//       customer: stripeCustomerId,
-//     });
-//   } catch (err: any) {
-//     if (!err.message.includes("already attached")) {
-//       console.error("⚠️ PaymentMethod attach error:", err.message);
-//       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
-//     }
-//   }
-
-//   // 5️ Create subscription
-//   const subscription = await stripe.subscriptions.create({
-//     customer: stripeCustomerId,
-//     items: [{ price: subscriptionPackage.stripePriceId }],
-//     metadata: { userId, subscriptionPackageId },
-//     collection_method: "charge_automatically",
-//     payment_behavior: "allow_incomplete", // allow backend confirmation
-//     default_payment_method: savedPaymentMethod.paymentMethodId,
-//     expand: ["latest_invoice.payment_intent"],
-//   });
-
-//   // 6️ Attempt to pay invoice off-session (backend)
-//   const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent }) | undefined;
-//   let paymentSucceeded = false;
-
-//   if (latestInvoice && latestInvoice.payment_intent) {
-//     const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
-
-//     if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
-//       try {
-//         const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
-//           payment_method: savedPaymentMethod.paymentMethodId,
-//         });
-//         if (confirmed.status === "succeeded") paymentSucceeded = true;
-//       } catch (err: any) {
-//         console.error("⚠️ Payment failed:", err.message);
-//         return {
-//           success: false,
-//           message: "Payment failed: " + err.message,
-//           data: { requiresPaymentMethod: true },
-//         };
-//       }
-//     } else if (paymentIntent.status === "succeeded") {
-//       paymentSucceeded = true;
-//     }
-//   } else {
-//     paymentSucceeded = true; // no payment needed
-//   }
-
-//   if (!paymentSucceeded) {
-//     return {
-//       success: false,
-//       message: "Payment could not be completed. Please check your card.",
-//       data: { requiresPaymentMethod: true },
-//     };
-//   }
-
-//   // console.log({ subscription });
-
-
-// // console.log({ start: subscription.start_date, end:latestInvoice?.period_end });
-
-
-// //    const subscriptionPeriodStart= subscription.start_date
-// //       ? new Date(subscription.start_date * 1000)
-// //       : latestInvoice?.period_start
-// //         ? new Date(latestInvoice.period_start * 1000)
-// //         : undefined;
-// //     const subscriptionPeriodEnd= latestInvoice?.period_end
-// //       ? new Date(latestInvoice.period_end * 1000)
-// //       : undefined;
-
-// //       console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
-
-// // Ensure latestInvoice exists
-
-// // Grab the first line item (Stripe usually has one per subscription item)
-// const invoiceLine = latestInvoice?.lines?.data[0];
-
-// // Extract start and end dates safely
-// const subscriptionPeriodStart = invoiceLine?.period?.start
-//   ? new Date(invoiceLine.period.start * 1000)
-//   : subscription.start_date
-//     ? new Date(subscription.start_date * 1000)
-//     : undefined;
-
-// const subscriptionPeriodEnd = invoiceLine?.period?.end
-//   ? new Date(invoiceLine.period.end * 1000)
-//   : undefined;
-
-// console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
-
-
-
-
-//   // 7️⃣ Save subscription in DB
-//   const subscriptionRecord = await UserSubscription.create({
-//     userId,
-//     subscriptionPackageId: subscriptionPackage._id,
-//     stripeSubscriptionId: subscription.id,
-//     status: "active",
-//     subscriptionPeriodStart,
-//     subscriptionPeriodEnd,
-//     autoRenew: autoRenew ?? true,
-//   });
-
-
-
-//   userProfile.isElitePro = true;
-//   userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
-//   userProfile.subscriptionPeriodStart = subscriptionRecord.subscriptionPeriodStart;
-//   userProfile.subscriptionPeriodEnd = subscriptionRecord.subscriptionPeriodEnd;
-//   await userProfile.save();
-
-//   return {
-//     success: true,
-//     message: "Subscription created and charged successfully",
-//     data: {
-//       subscriptionId: subscription.id,
-//     },
-//   };
-// };
-
-
-
-
-
-// Define unique subscription types
-
-
 export enum SubscriptionType {
   SUBSCRIPTION = "subscription",
   ELITE_PRO = "elitePro",
 }
+
 
 
 const createSubscription = async (
@@ -729,8 +562,8 @@ const createSubscription = async (
       eliteProPackageId: subscriptionPackage._id,
       stripeSubscriptionId: subscription.id,
       status: "active",
-      subscriptionPeriodStart,
-      subscriptionPeriodEnd,
+      eliteProPeriodStart: subscriptionPeriodStart,
+      eliteProPeriodEnd: subscriptionPeriodEnd,
       autoRenew: autoRenew ?? true,
     });
 
@@ -741,6 +574,23 @@ const createSubscription = async (
   }
 
   await userProfile.save();
+
+
+
+  await Transaction.create({
+    userId,
+    type: "subscription",
+    subscriptionId: subscriptionRecord?._id,
+    subscriptionType: type,
+    amountPaid: (latestInvoice?.amount_paid || 0) / 100,
+    currency: latestInvoice?.currency || "usd",
+    stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
+    stripeInvoiceId: latestInvoice?.id ?? null,
+    invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,
+    status: "completed",
+  });
+
+
 
 
   return {
@@ -755,88 +605,6 @@ const createSubscription = async (
 
 
 
-//  const cancelSubscription = async (userId: string, ) => {
-//   // 1️ Fetch user profile
-//   const userProfile = await UserProfile.findOne({ user: userId });
-//   if (!userProfile) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
-//   }
-
-//   // 2️ Identify active subscription type
-//   let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
-//   let type: SubscriptionType | null = null;
-
-//   if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
-//     type = SubscriptionType.ELITE_PRO;
-//     subscription = await EliteProUserSubscription.findOne({
-//       _id: userProfile.eliteProSubscriptionId,
-//       status: "active",
-//     });
-//   } else if (userProfile.subscriptionId) {
-//     type = SubscriptionType.SUBSCRIPTION;
-//     subscription = await UserSubscription.findOne({
-//       _id: userProfile.subscriptionId,
-//       status: "active",
-//     });
-//   }
-
-//   if (!subscription || !type) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription found");
-//   }
-
-//   // 3️ Cancel the subscription on Stripe
-//   try {
-//     await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
-//   } catch (error: any) {
-//     throw new AppError(
-//       HTTP_STATUS.INTERNAL_SERVER_ERROR,
-//       `Failed to cancel subscription on Stripe: ${error.message}`
-//     );
-//   }
-
-//   // 4️ Update local records in MongoDB
-//   if (type === SubscriptionType.ELITE_PRO) {
-//     userProfile.isElitePro = false;
-//     userProfile.eliteProSubscriptionId = null;
-//     userProfile.eliteProPeriodStart = null;
-//     userProfile.eliteProPeriodEnd = null;
-//     await userProfile.save();
-
-//     subscription.status = "canceled";
-//     if ("eliteProPeriodStart" in subscription && "eliteProPeriodEnd" in subscription) {
-//       (subscription as IEliteProUserSubscription).eliteProPeriodStart = undefined;
-//       (subscription as IEliteProUserSubscription).eliteProPeriodEnd = undefined;
-//     }
-//     await subscription.save();
-//   } else if (type === SubscriptionType.SUBSCRIPTION) {
-//     userProfile.subscriptionId = null;
-//     userProfile.subscriptionPeriodStart = null;
-//     userProfile.subscriptionPeriodEnd = null;
-//     await userProfile.save();
-
-//     subscription.status = "canceled";
-//     (subscription as IUserSubscription).subscriptionPeriodStart = undefined;
-//     (subscription as IUserSubscription).subscriptionPeriodEnd = undefined;
-//     await subscription.save();
-//   }
-
-//   // 5️ Log for debugging / audit trail
-//   console.info(
-//     `🔻 [Subscription Canceled] User: ${userId}, Type: ${type}, Subscription ID: ${subscription._id}`
-//   );
-
-//   // 6️ Return standard response
-//   return {
-//     success: true,
-//     message: `${type === SubscriptionType.ELITE_PRO ? "Elite Pro" : "Standard"} subscription canceled successfully.`,
-//     data: {
-//       subscriptionId: subscription._id,
-//       type,
-//     },
-//   };
-// };
-
-
 
 
 
@@ -848,7 +616,6 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
   // 2️ Fetch the active subscription based on type
   let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
 
-  console.log({ type, userProfile });
   if (type === SubscriptionType.ELITE_PRO) {
     if (!userProfile.eliteProSubscriptionId || !userProfile.isElitePro) {
       throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active Elite Pro subscription found');
@@ -921,147 +688,6 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
     },
   };
 };
-
-
-
-
-
-
-// const cancelSubscription = async (userId: string) => {
-
-//   // 1️ Find user profile
-//   const userProfile = await UserProfile.findOne({ user: userId });
-
-//   if (!userProfile || !userProfile.subscriptionId) {
-//     throw new AppError(
-//       HTTP_STATUS.NOT_FOUND,
-//       'No active subscription found for this user'
-//     );
-//   }
-
-
-//   // Find the user's active subscription from your database
-//   const subscription = await UserSubscription.findOne({ userId, status: 'active' });
-
-//   if (!subscription) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
-//   }
-
-//   // Cancel the subscription with Stripe
-//   await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
-
-//   userProfile.isElitePro = false;
-//   userProfile.subscriptionId = null;
-//   userProfile.subscriptionPeriodStart = null;
-//   userProfile.subscriptionPeriodEnd = null;
-//   await userProfile.save();
-
-//   console.log(`🔻 User ${userId} subscription cancelled manually`);
-
-//   // Update the subscription status in your database
-//   subscription.status = 'canceled';
-//   await subscription.save();
-
-//   return {
-//     success: true,
-//     message: 'Subscription canceled successfully',
-//     data: {
-//       subscriptionId: subscription.id,
-//     },
-//   };
-// };
-
-
-
-
-// const cancelSubscription = async (userId: string) => {
-//   // 1️⃣ Find user profile
-//   const userProfile = await UserProfile.findOne({ user: userId });
-
-//   if (!userProfile) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
-//   }
-
-//   // Determine which subscription type the user currently has
-//   let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
-//   let type: SubscriptionType | null = null;
-
-//   if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
-//     type = SubscriptionType.ELITE_PRO;
-//     subscription = await EliteProUserSubscription.findOne({
-//       _id: userProfile.eliteProSubscriptionId,
-//       status: 'active',
-//     });
-//   } else if (userProfile.subscriptionId) {
-//     type = SubscriptionType.SUBSCRIPTION;
-//     subscription = await UserSubscription.findOne({
-//       _id: userProfile.subscriptionId,
-//       status: 'active',
-//     });
-//   }
-
-//   if (!subscription) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
-//   }
-
-//   // 2️⃣ Cancel the subscription with Stripe
-//   await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
-
-//   // 3️⃣ Update user profile
-//   if (type === SubscriptionType.ELITE_PRO) {
-//     userProfile.isElitePro = false;
-//     userProfile.eliteProSubscriptionId = null;
-//     userProfile.eliteProPeriodStart = null;
-//     userProfile.eliteProPeriodEnd = null;
-//     await userProfile.save();
-
-
-
-//     subscription.status = 'canceled';
-//     if ('eliteProPeriodStart' in subscription && 'eliteProPeriodEnd' in subscription) {
-//       subscription.eliteProPeriodStart = undefined;
-//       subscription.eliteProPeriodEnd = undefined;
-//     }
-//     await subscription.save();
-
-//   } else {
-//     userProfile.subscriptionId = null;
-//     userProfile.subscriptionPeriodStart = null;
-//     userProfile.subscriptionPeriodEnd = null;
-//     await userProfile.save();
-
-//     subscription.status = 'canceled';
-//     if (type === SubscriptionType.SUBSCRIPTION) {
-//       (subscription as IUserSubscription).subscriptionPeriodStart = undefined;
-//       (subscription as IUserSubscription).subscriptionPeriodEnd = undefined;
-//     }
-//     await subscription.save();
-
-//   }
-
-
-
-
-
-//   console.log(`🔻 User ${userId} ${type} subscription cancelled manually`);
-
-//   return {
-//     success: true,
-//     message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Subscription'} canceled successfully`,
-//     data: {
-//       subscriptionId: subscription._id,
-//     },
-//   };
-// };
-
-
-
-
-
-
-
-
-
 
 
 
