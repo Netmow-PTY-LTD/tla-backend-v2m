@@ -8,6 +8,7 @@ import Coupon from './coupon.model';
 import CreditPackage from './creditPackage.model';
 import Transaction from './transaction.model';
 import PaymentMethod from './paymentMethod.model';
+import { SubscriptionType } from './paymentMethod.service';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -173,6 +174,7 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   return result;
 };
 
+
 const getTransactionHistory = async (userId: string) => {
   const transactionHistory = await Transaction.find({ userId })
     .sort({ createdAt: -1 })
@@ -183,6 +185,24 @@ const getTransactionHistory = async (userId: string) => {
       },
     })
     .populate('creditPackageId');
+
+  // Step 2: conditionally populate subscriptionId
+  for (const txn of transactionHistory) {
+    if (txn.subscriptionId) {
+      if (txn.subscriptionType === SubscriptionType.ELITE_PRO) {
+        await txn.populate({
+          path: 'subscriptionId',
+          populate: { path: 'eliteProPackageId', select: 'name price' },
+        });
+      } else if (txn.subscriptionType === SubscriptionType.SUBSCRIPTION) {
+        await txn.populate({
+          path: 'subscriptionId',
+          populate: { path: 'subscriptionPackageId', select: 'name price' },
+        });
+      }
+    }
+  }
+
   return transactionHistory;
 };
 
