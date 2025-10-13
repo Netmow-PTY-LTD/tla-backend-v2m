@@ -39,14 +39,17 @@ export interface IUserProfile {
   billingAddress?: IBillingAddress;
 
   // Stripe identifiers (safe)
-  stripeCustomerId?: string | null;
   subscriptionId: Types.ObjectId | null;
   eliteProSubscriptionId: Types.ObjectId | null;
 
-  // Subscription state
   isElitePro?: boolean;
+  // Regular subscription period
   subscriptionPeriodStart?: Date | null;
   subscriptionPeriodEnd?: Date | null;
+  // Elite Pro subscription period
+  eliteProPeriodStart?: Date | null;
+  eliteProPeriodEnd?: Date | null;
+
 
   paymentMethods: Types.ObjectId[];
   autoTopUp?: boolean;

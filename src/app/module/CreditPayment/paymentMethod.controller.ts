@@ -89,7 +89,7 @@ const createSubscription = catchAsync(async (req, res) => {
 //  subscription cancel
 const cancelSubscription = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const result = await paymentMethodService.cancelSubscription(userId);
+  const result = await paymentMethodService.cancelSubscription(userId, req.body.type);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

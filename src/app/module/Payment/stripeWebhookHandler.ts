@@ -2,7 +2,12 @@
 
 // import Stripe from 'stripe';
 // import { Request, Response } from 'express';
+// import { SubscriptionType } from '../CreditPayment/paymentMethod.service';
+// import EliteProUserSubscription from '../CreditPayment/EliteProUserSubscription';
 // import UserSubscription from '../CreditPayment/subscriptions.model';
+// import UserProfile from '../User/user.model';
+
+
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 //   // apiVersion: '2024-06-20',
@@ -27,6 +32,7 @@
 
 //   try {
 //     switch (event.type) {
+
 //       /**
 //        * 🔹 PAYMENT INTENT SUCCESS (One-time payments / credits)
 //        * You already handle this elsewhere, so just leave it.
@@ -34,25 +40,48 @@
 //       case 'invoice.payment_succeeded': {
 //         const invoice = event.data.object as Stripe.Invoice;
 //         const userId = invoice.metadata?.userId;
-//         const subscriptionPackageId = invoice.metadata?.subscriptionPackageId;
+//         const packageId = invoice.metadata?.packageId;
+//         const type = invoice.metadata?.type as SubscriptionType;
 //         const subscriptionId = (invoice as any).subscription as string;
 
-//         if (!userId || !subscriptionPackageId || !subscriptionId) break;
+//         if (!userId || !packageId || !subscriptionId || !type) break;
 
-//         const userSub = await UserSubscription.findOne({ stripeSubscriptionId: subscriptionId });
-//         if (!userSub) return;
+//         const userSub =
+//           type === SubscriptionType.ELITE_PRO
+//             ? await EliteProUserSubscription.findOne({ stripeSubscriptionId: subscriptionId })
+//             : await UserSubscription.findOne({ stripeSubscriptionId: subscriptionId });
+
+//         if (!userSub) break;
 
 //         userSub.status = 'active';
 //         userSub.subscriptionPeriodStart = new Date(invoice.lines.data[0].period.start * 1000);
 //         userSub.subscriptionPeriodEnd = new Date(invoice.lines.data[0].period.end * 1000);
 //         await userSub.save();
-//         console.log(`User ${userId} subscription active`);
+
+//         console.log(`User ${userId} ${type} subscription active`);
+
+//         // Update user profile periods
+//         const userProfile = await UserProfile.findOne({ user: userId });
+//         if (userProfile) {
+//           userProfile.subscriptionPeriodStart = userSub.subscriptionPeriodStart;
+//           userProfile.subscriptionPeriodEnd = userSub.subscriptionPeriodEnd;
+//           await userProfile.save();
+//         }
+
 //         break;
 //       }
 
 //       case 'customer.subscription.deleted': {
 //         const subscription = event.data.object as Stripe.Subscription;
-//         const userSub = await UserSubscription.findOne({ stripeSubscriptionId: subscription.id });
+//         const type = subscription.metadata?.type as SubscriptionType;
+
+//         if (!type) break;
+
+//         const userSub =
+//           type === SubscriptionType.ELITE_PRO
+//             ? await EliteProUserSubscription.findOne({ stripeSubscriptionId: subscription.id })
+//             : await UserSubscription.findOne({ stripeSubscriptionId: subscription.id });
+
 //         if (!userSub) break;
 
 //         userSub.status = 'canceled';
@@ -60,10 +89,23 @@
 //         userSub.subscriptionPeriodEnd = undefined;
 //         await userSub.save();
 
-//         console.log(`User ${userSub.userId} subscription canceled`);
+//         // Update user profile
+//         const userProfile = await UserProfile.findOne({ user: userSub.userId });
+//         if (userProfile) {
+//           if (type === SubscriptionType.ELITE_PRO) {
+//             userProfile.isElitePro = false;
+//             userProfile.eliteProSubscriptionId = null;
+//           } else {
+//             userProfile.subscriptionId = null;
+//           }
+//           userProfile.subscriptionPeriodStart = null;
+//           userProfile.subscriptionPeriodEnd = null;
+//           await userProfile.save();
+//         }
+
+//         console.log(`User ${userSub.userId} ${type} subscription canceled`);
 //         break;
 //       }
-
 
 //       default:
 //         console.log(`⚙️ Unhandled event type: ${event.type}`);
@@ -77,16 +119,13 @@
 // };
 
 
-
-
 import Stripe from 'stripe';
 import { Request, Response } from 'express';
 import { SubscriptionType } from '../CreditPayment/paymentMethod.service';
-import EliteProUserSubscription from '../CreditPayment/EliteProUserSubscription';
-import UserSubscription from '../CreditPayment/subscriptions.model';
+import EliteProUserSubscription, { IEliteProUserSubscription } from '../CreditPayment/EliteProUserSubscription';
+import UserSubscription, { IUserSubscription } from '../CreditPayment/subscriptions.model';
 import UserProfile from '../User/user.model';
-
-
+import mongoose, { mongo } from 'mongoose';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2024-06-20',
@@ -97,6 +136,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
   let event: Stripe.Event;
 
+  // 1️⃣ Verify webhook signature
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -111,78 +151,111 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
   try {
     switch (event.type) {
-
-      /**
-       * 🔹 PAYMENT INTENT SUCCESS (One-time payments / credits)
-       * You already handle this elsewhere, so just leave it.
-       */
+      // ---------------------------------
+      // Payment succeeded (subscription/invoice)
+      // ---------------------------------
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         const userId = invoice.metadata?.userId;
-        const packageId = invoice.metadata?.packageId;
         const type = invoice.metadata?.type as SubscriptionType;
         const subscriptionId = (invoice as any).subscription as string;
 
-        if (!userId || !packageId || !subscriptionId || !type) break;
+        if (!userId || !type || !subscriptionId) break;
 
-        const userSub =
+        // Fetch the subscription record
+        const subscriptionRecord =
           type === SubscriptionType.ELITE_PRO
             ? await EliteProUserSubscription.findOne({ stripeSubscriptionId: subscriptionId })
             : await UserSubscription.findOne({ stripeSubscriptionId: subscriptionId });
 
-        if (!userSub) break;
+        if (!subscriptionRecord) break;
 
-        userSub.status = 'active';
-        userSub.subscriptionPeriodStart = new Date(invoice.lines.data[0].period.start * 1000);
-        userSub.subscriptionPeriodEnd = new Date(invoice.lines.data[0].period.end * 1000);
-        await userSub.save();
+        const periodStart = invoice.lines.data[0].period.start * 1000;
+        const periodEnd = invoice.lines.data[0].period.end * 1000;
 
-        console.log(`User ${userId} ${type} subscription active`);
+        // Type narrowing
+        if (type === SubscriptionType.ELITE_PRO) {
+          const eliteSub = subscriptionRecord as IEliteProUserSubscription;
+          eliteSub.status = 'active';
+          eliteSub.eliteProPeriodStart = new Date(periodStart);
+          eliteSub.eliteProPeriodEnd = new Date(periodEnd);
+          await eliteSub.save();
+        } else {
+          const normalSub = subscriptionRecord as IUserSubscription;
+          normalSub.status = 'active';
+          normalSub.subscriptionPeriodStart = new Date(periodStart);
+          normalSub.subscriptionPeriodEnd = new Date(periodEnd);
+          await normalSub.save();
+        }
 
-        // Update user profile periods
+        // Update user profile
         const userProfile = await UserProfile.findOne({ user: userId });
         if (userProfile) {
-          userProfile.subscriptionPeriodStart = userSub.subscriptionPeriodStart;
-          userProfile.subscriptionPeriodEnd = userSub.subscriptionPeriodEnd;
+          if (type === SubscriptionType.ELITE_PRO) {
+            userProfile.isElitePro = true;
+            userProfile.eliteProSubscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+            userProfile.eliteProPeriodStart = (subscriptionRecord as IEliteProUserSubscription).eliteProPeriodStart;
+            userProfile.eliteProPeriodEnd = (subscriptionRecord as IEliteProUserSubscription).eliteProPeriodEnd;
+          } else {
+            userProfile.isElitePro = false;
+            userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+            userProfile.subscriptionPeriodStart = (subscriptionRecord as IUserSubscription).subscriptionPeriodStart;
+            userProfile.subscriptionPeriodEnd = (subscriptionRecord as IUserSubscription).subscriptionPeriodEnd;
+          }
           await userProfile.save();
         }
 
+        console.log(`✅ User ${userId} ${type} subscription active`);
         break;
       }
 
+      // ---------------------------------
+      // Subscription canceled/deleted
+      // ---------------------------------
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
         const type = subscription.metadata?.type as SubscriptionType;
-
         if (!type) break;
 
-        const userSub =
+        const subscriptionRecord =
           type === SubscriptionType.ELITE_PRO
             ? await EliteProUserSubscription.findOne({ stripeSubscriptionId: subscription.id })
             : await UserSubscription.findOne({ stripeSubscriptionId: subscription.id });
 
-        if (!userSub) break;
+        if (!subscriptionRecord) break;
 
-        userSub.status = 'canceled';
-        userSub.subscriptionPeriodStart = undefined;
-        userSub.subscriptionPeriodEnd = undefined;
-        await userSub.save();
+        // Cancel subscription
+        if (type === SubscriptionType.ELITE_PRO) {
+          const eliteSub = subscriptionRecord as IEliteProUserSubscription;
+          eliteSub.status = 'canceled';
+          eliteSub.eliteProPeriodStart = undefined;
+          eliteSub.eliteProPeriodEnd = undefined;
+          await eliteSub.save();
+        } else {
+          const normalSub = subscriptionRecord as IUserSubscription;
+          normalSub.status = 'canceled';
+          normalSub.subscriptionPeriodStart = undefined;
+          normalSub.subscriptionPeriodEnd = undefined;
+          await normalSub.save();
+        }
 
         // Update user profile
-        const userProfile = await UserProfile.findOne({ user: userSub.userId });
+        const userProfile = await UserProfile.findOne({ user: subscriptionRecord.userId });
         if (userProfile) {
           if (type === SubscriptionType.ELITE_PRO) {
             userProfile.isElitePro = false;
             userProfile.eliteProSubscriptionId = null;
+            userProfile.eliteProPeriodStart = null;
+            userProfile.eliteProPeriodEnd = null;
           } else {
             userProfile.subscriptionId = null;
+            userProfile.subscriptionPeriodStart = null;
+            userProfile.subscriptionPeriodEnd = null;
           }
-          userProfile.subscriptionPeriodStart = null;
-          userProfile.subscriptionPeriodEnd = null;
           await userProfile.save();
         }
 
-        console.log(`User ${userSub.userId} ${type} subscription canceled`);
+        console.log(`🔻 User ${subscriptionRecord.userId} ${type} subscription canceled`);
         break;
       }
 
