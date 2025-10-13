@@ -20,6 +20,7 @@ import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
 import mongoose from 'mongoose';
 import EliteProPackageModel from '../EliteProPackage/EliteProSubs.model';
 import EliteProUserSubscription, { IEliteProUserSubscription } from './EliteProUserSubscription';
+import { el } from '@faker-js/faker/.';
 
 
 
@@ -548,6 +549,8 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 // Define unique subscription types
+
+
 export enum SubscriptionType {
   SUBSCRIPTION = "subscription",
   ELITE_PRO = "elitePro",
@@ -573,6 +576,39 @@ const createSubscription = async (
   // 2️ Get user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+
+
+  //   check previous subscription of different type exists
+
+  if (
+    userProfile.isElitePro &&
+    type === SubscriptionType.SUBSCRIPTION &&
+    userProfile.eliteProSubscriptionId
+  ) {
+    return {
+      success: false,
+      message:
+        "You currently have an active Elite Pro subscription. Please cancel your Elite Pro plan before activating a regular subscription.",
+      data: {
+        requiresPreviousPackageCancel: true,
+        previousPackageType: SubscriptionType.ELITE_PRO,
+        previousPackageId: userProfile.eliteProSubscriptionId,
+      },
+    };
+  } else if (userProfile.subscriptionId && type === SubscriptionType.ELITE_PRO) {
+    return {
+      success: false,
+      message:
+        "You currently have an active subscription. Please cancel your current subscription before activating an Elite Pro plan.",
+      data: {
+        requiresPreviousPackageCancel: true,
+        previousPackageType: SubscriptionType.SUBSCRIPTION,
+        previousPackageId: userProfile.subscriptionId,
+      },
+    };
+  }
+
+
 
   // 3️ Get default saved payment method
   const savedPaymentMethod = await PaymentMethod.findOne({
@@ -671,7 +707,7 @@ const createSubscription = async (
 
 
   // 7️ Save subscription in DB
- 
+
   let subscriptionRecord;
 
   if (type === SubscriptionType.SUBSCRIPTION) {
