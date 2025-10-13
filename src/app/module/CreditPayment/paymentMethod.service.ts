@@ -574,6 +574,21 @@ const createSubscription = async (
 
   await userProfile.save();
 
+  // 9️ Record transaction cleanly
+  await Transaction.create({
+    userId,
+    type: "subscription",
+    subscriptionId: subscriptionRecord?._id,
+    subscriptionType: type,
+    amountPaid: (latestInvoice?.amount_paid || 0) / 100,
+    currency: latestInvoice?.currency || "usd",
+    stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
+    stripeInvoiceId: latestInvoice?.id ?? null,
+    status: "completed",
+  });
+
+
+
 
   return {
     success: true,
@@ -598,7 +613,6 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
   // 2️ Fetch the active subscription based on type
   let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
 
-  console.log({ type, userProfile });
   if (type === SubscriptionType.ELITE_PRO) {
     if (!userProfile.eliteProSubscriptionId || !userProfile.isElitePro) {
       throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active Elite Pro subscription found');
