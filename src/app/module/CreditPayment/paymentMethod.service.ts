@@ -386,6 +386,7 @@ const createSetupIntent = async (userId: string, email: string) => {
 export enum SubscriptionType {
   SUBSCRIPTION = "subscription",
   ELITE_PRO = "elitePro",
+
 }
 
 
@@ -607,7 +608,6 @@ const createSubscription = async (
 
 
 
-
 const cancelSubscription = async (userId: string, type: SubscriptionType) => {
   // 1️ Fetch user profile
   const userProfile = await UserProfile.findOne({ user: userId });
@@ -688,8 +688,6 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
     },
   };
 };
-
-
 
 
 
