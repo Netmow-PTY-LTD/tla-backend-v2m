@@ -389,6 +389,7 @@ export enum SubscriptionType {
 }
 
 
+
 const createSubscription = async (
   userId: string,
   payload: { type: SubscriptionType; packageId: string; autoRenew?: boolean }
@@ -574,7 +575,8 @@ const createSubscription = async (
 
   await userProfile.save();
 
-  // 9️ Record transaction cleanly
+
+
   await Transaction.create({
     userId,
     type: "subscription",
@@ -584,11 +586,12 @@ const createSubscription = async (
     currency: latestInvoice?.currency || "usd",
     stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
     stripeInvoiceId: latestInvoice?.id ?? null,
+    invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,
     status: "completed",
   });
 
 
-
+  
 
   return {
     success: true,

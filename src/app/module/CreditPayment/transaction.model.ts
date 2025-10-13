@@ -46,8 +46,12 @@ const transactionSchema = new Schema({
   userId: { type: Types.ObjectId, ref: 'User', required: true },
   type: { type: String, enum: ['purchase', 'subscription'], required: true },
   creditPackageId: { type: Types.ObjectId, ref: 'CreditPackage' },
-  subscriptionId: { type: Types.ObjectId, refPath: 'subscriptionType' },
+  subscriptionId: { type: Types.ObjectId, refPath: "subscriptionRefModel" },
   subscriptionType: { type: String, enum: Object.values(SubscriptionType) },
+  subscriptionRefModel: {
+    type: String,
+    enum: ["UserSubscription", "EliteProUserSubscription"],
+  },
   credit: { type: Number },
   amountPaid: { type: Number, required: true },
   currency: { type: String, default: 'usd' },
@@ -58,7 +62,9 @@ const transactionSchema = new Schema({
   stripePaymentIntentId: { type: String },
   stripeInvoiceId: { type: String },
   stripeChargeId: { type: String },
+  invoice_pdf_url: { type: String },
 }, { timestamps: true });
+
 
 
 transactionSchema.pre('save', function (next) {
@@ -69,5 +75,21 @@ transactionSchema.pre('save', function (next) {
   next();
 });
 
+
+
+
+
+// Automatically set `subscriptionRefModel` before saving
+transactionSchema.pre("validate", function (next) {
+  if (this.subscriptionType === SubscriptionType.ELITE_PRO) {
+    this.subscriptionRefModel = "EliteProUserSubscription";
+  } else {
+    this.subscriptionRefModel = "UserSubscription";
+  }
+  next();
+});
+
 const Transaction = mongoose.model('Transaction', transactionSchema);
 export default Transaction;
+
+
