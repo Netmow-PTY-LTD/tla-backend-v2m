@@ -580,33 +580,33 @@ const createSubscription = async (
 
   //   check previous subscription of different type exists
 
-  if (
-    userProfile.isElitePro &&
-    type === SubscriptionType.SUBSCRIPTION &&
-    userProfile.eliteProSubscriptionId
-  ) {
-    return {
-      success: false,
-      message:
-        "You currently have an active Elite Pro subscription. Please cancel your Elite Pro plan before activating a regular subscription.",
-      data: {
-        requiresPreviousPackageCancel: true,
-        previousPackageType: SubscriptionType.ELITE_PRO,
-        previousPackageId: userProfile.eliteProSubscriptionId,
-      },
-    };
-  } else if (userProfile.subscriptionId && type === SubscriptionType.ELITE_PRO) {
-    return {
-      success: false,
-      message:
-        "You currently have an active subscription. Please cancel your current subscription before activating an Elite Pro plan.",
-      data: {
-        requiresPreviousPackageCancel: true,
-        previousPackageType: SubscriptionType.SUBSCRIPTION,
-        previousPackageId: userProfile.subscriptionId,
-      },
-    };
-  }
+  // if (
+  //   userProfile.isElitePro &&
+  //   type === SubscriptionType.SUBSCRIPTION &&
+  //   userProfile.eliteProSubscriptionId
+  // ) {
+  //   return {
+  //     success: false,
+  //     message:
+  //       "You currently have an active Elite Pro subscription. Please cancel your Elite Pro plan before activating a regular subscription.",
+  //     data: {
+  //       requiresPreviousPackageCancel: true,
+  //       previousPackageType: SubscriptionType.ELITE_PRO,
+  //       previousPackageId: userProfile.eliteProSubscriptionId,
+  //     },
+  //   };
+  // } else if (userProfile.subscriptionId && type === SubscriptionType.ELITE_PRO) {
+  //   return {
+  //     success: false,
+  //     message:
+  //       "You currently have an active subscription. Please cancel your current subscription before activating an Elite Pro plan.",
+  //     data: {
+  //       requiresPreviousPackageCancel: true,
+  //       previousPackageType: SubscriptionType.SUBSCRIPTION,
+  //       previousPackageId: userProfile.subscriptionId,
+  //     },
+  //   };
+  // }
 
 
 
@@ -720,8 +720,6 @@ const createSubscription = async (
       subscriptionPeriodEnd,
       autoRenew: autoRenew ?? true,
     });
-
-    userProfile.isElitePro = false; // Not ElitePro
     userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
     userProfile.subscriptionPeriodStart = subscriptionPeriodStart;
     userProfile.subscriptionPeriodEnd = subscriptionPeriodEnd;
@@ -738,8 +736,8 @@ const createSubscription = async (
 
     userProfile.isElitePro = true;
     userProfile.eliteProSubscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
-    userProfile.subscriptionPeriodStart = subscriptionPeriodStart;
-    userProfile.subscriptionPeriodEnd = subscriptionPeriodEnd;
+    userProfile.eliteProPeriodStart = subscriptionPeriodStart;
+    userProfile.eliteProPeriodEnd = subscriptionPeriodEnd;
   }
 
   await userProfile.save();
@@ -753,6 +751,177 @@ const createSubscription = async (
     },
   };
 };
+
+
+
+
+//  const cancelSubscription = async (userId: string, ) => {
+//   // 1️ Fetch user profile
+//   const userProfile = await UserProfile.findOne({ user: userId });
+//   if (!userProfile) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+//   }
+
+//   // 2️ Identify active subscription type
+//   let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
+//   let type: SubscriptionType | null = null;
+
+//   if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
+//     type = SubscriptionType.ELITE_PRO;
+//     subscription = await EliteProUserSubscription.findOne({
+//       _id: userProfile.eliteProSubscriptionId,
+//       status: "active",
+//     });
+//   } else if (userProfile.subscriptionId) {
+//     type = SubscriptionType.SUBSCRIPTION;
+//     subscription = await UserSubscription.findOne({
+//       _id: userProfile.subscriptionId,
+//       status: "active",
+//     });
+//   }
+
+//   if (!subscription || !type) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription found");
+//   }
+
+//   // 3️ Cancel the subscription on Stripe
+//   try {
+//     await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+//   } catch (error: any) {
+//     throw new AppError(
+//       HTTP_STATUS.INTERNAL_SERVER_ERROR,
+//       `Failed to cancel subscription on Stripe: ${error.message}`
+//     );
+//   }
+
+//   // 4️ Update local records in MongoDB
+//   if (type === SubscriptionType.ELITE_PRO) {
+//     userProfile.isElitePro = false;
+//     userProfile.eliteProSubscriptionId = null;
+//     userProfile.eliteProPeriodStart = null;
+//     userProfile.eliteProPeriodEnd = null;
+//     await userProfile.save();
+
+//     subscription.status = "canceled";
+//     if ("eliteProPeriodStart" in subscription && "eliteProPeriodEnd" in subscription) {
+//       (subscription as IEliteProUserSubscription).eliteProPeriodStart = undefined;
+//       (subscription as IEliteProUserSubscription).eliteProPeriodEnd = undefined;
+//     }
+//     await subscription.save();
+//   } else if (type === SubscriptionType.SUBSCRIPTION) {
+//     userProfile.subscriptionId = null;
+//     userProfile.subscriptionPeriodStart = null;
+//     userProfile.subscriptionPeriodEnd = null;
+//     await userProfile.save();
+
+//     subscription.status = "canceled";
+//     (subscription as IUserSubscription).subscriptionPeriodStart = undefined;
+//     (subscription as IUserSubscription).subscriptionPeriodEnd = undefined;
+//     await subscription.save();
+//   }
+
+//   // 5️ Log for debugging / audit trail
+//   console.info(
+//     `🔻 [Subscription Canceled] User: ${userId}, Type: ${type}, Subscription ID: ${subscription._id}`
+//   );
+
+//   // 6️ Return standard response
+//   return {
+//     success: true,
+//     message: `${type === SubscriptionType.ELITE_PRO ? "Elite Pro" : "Standard"} subscription canceled successfully.`,
+//     data: {
+//       subscriptionId: subscription._id,
+//       type,
+//     },
+//   };
+// };
+
+
+
+
+
+const cancelSubscription = async (userId: string, type: SubscriptionType) => {
+  // 1️ Fetch user profile
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+
+  // 2️ Fetch the active subscription based on type
+  let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
+
+  console.log({ type, userProfile });
+  if (type === SubscriptionType.ELITE_PRO) {
+    if (!userProfile.eliteProSubscriptionId || !userProfile.isElitePro) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active Elite Pro subscription found');
+    }
+    subscription = await EliteProUserSubscription.findOne({
+      _id: userProfile.eliteProSubscriptionId,
+      status: 'active',
+    });
+  } else if (type === SubscriptionType.SUBSCRIPTION) {
+    if (!userProfile.subscriptionId) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
+    }
+    subscription = await UserSubscription.findOne({
+      _id: userProfile.subscriptionId,
+      status: 'active',
+    });
+  }
+
+  if (!subscription) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${type} subscription found`);
+  }
+
+  // 3️ Cancel the subscription on Stripe
+  try {
+    await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+  } catch (err: any) {
+    throw new AppError(
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      `Failed to cancel subscription on Stripe: ${err.message}`
+    );
+  }
+
+  // 4️ Update user profile & subscription locally
+  if (type === SubscriptionType.ELITE_PRO) {
+    userProfile.isElitePro = false;
+    userProfile.eliteProSubscriptionId = null;
+    userProfile.eliteProPeriodStart = null;
+    userProfile.eliteProPeriodEnd = null;
+    await userProfile.save();
+
+    const eliteSub = subscription as IEliteProUserSubscription;
+    eliteSub.status = 'canceled';
+    eliteSub.eliteProPeriodStart = undefined;
+    eliteSub.eliteProPeriodEnd = undefined;
+    await eliteSub.save();
+  } else if (type === SubscriptionType.SUBSCRIPTION) {
+    userProfile.subscriptionId = null;
+    userProfile.subscriptionPeriodStart = null;
+    userProfile.subscriptionPeriodEnd = null;
+    await userProfile.save();
+
+    const normalSub = subscription as IUserSubscription;
+    normalSub.status = 'canceled';
+    normalSub.subscriptionPeriodStart = undefined;
+    normalSub.subscriptionPeriodEnd = undefined;
+    await normalSub.save();
+  }
+
+  // 5️ Log & return
+  console.info(
+    `🔻 [Subscription Canceled] User: ${userId}, Type: ${type}, Subscription ID: ${subscription._id}`
+  );
+
+  return {
+    success: true,
+    message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Standard'} subscription canceled successfully`,
+    data: {
+      subscriptionId: subscription._id,
+      type,
+    },
+  };
+};
+
 
 
 
@@ -805,67 +974,90 @@ const createSubscription = async (
 
 
 
-const cancelSubscription = async (userId: string) => {
-  // 1️⃣ Find user profile
-  const userProfile = await UserProfile.findOne({ user: userId });
+// const cancelSubscription = async (userId: string) => {
+//   // 1️⃣ Find user profile
+//   const userProfile = await UserProfile.findOne({ user: userId });
 
-  if (!userProfile) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
-  }
+//   if (!userProfile) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+//   }
 
-  // Determine which subscription type the user currently has
-  let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
-  let type: SubscriptionType | null = null;
+//   // Determine which subscription type the user currently has
+//   let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
+//   let type: SubscriptionType | null = null;
 
-  if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
-    type = SubscriptionType.ELITE_PRO;
-    subscription = await EliteProUserSubscription.findOne({
-      _id: userProfile.eliteProSubscriptionId,
-      status: 'active',
-    });
-  } else if (userProfile.subscriptionId) {
-    type = SubscriptionType.SUBSCRIPTION;
-    subscription = await UserSubscription.findOne({
-      _id: userProfile.subscriptionId,
-      status: 'active',
-    });
-  }
+//   if (userProfile.isElitePro && userProfile.eliteProSubscriptionId) {
+//     type = SubscriptionType.ELITE_PRO;
+//     subscription = await EliteProUserSubscription.findOne({
+//       _id: userProfile.eliteProSubscriptionId,
+//       status: 'active',
+//     });
+//   } else if (userProfile.subscriptionId) {
+//     type = SubscriptionType.SUBSCRIPTION;
+//     subscription = await UserSubscription.findOne({
+//       _id: userProfile.subscriptionId,
+//       status: 'active',
+//     });
+//   }
 
-  if (!subscription) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
-  }
+//   if (!subscription) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
+//   }
 
-  // 2️⃣ Cancel the subscription with Stripe
-  await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+//   // 2️⃣ Cancel the subscription with Stripe
+//   await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
 
-  // 3️⃣ Update user profile
-  if (type === SubscriptionType.ELITE_PRO) {
-    userProfile.isElitePro = false;
-    userProfile.eliteProSubscriptionId = null;
-  } else {
-    userProfile.subscriptionId = null;
-  }
-  userProfile.subscriptionPeriodStart = null;
-  userProfile.subscriptionPeriodEnd = null;
+//   // 3️⃣ Update user profile
+//   if (type === SubscriptionType.ELITE_PRO) {
+//     userProfile.isElitePro = false;
+//     userProfile.eliteProSubscriptionId = null;
+//     userProfile.eliteProPeriodStart = null;
+//     userProfile.eliteProPeriodEnd = null;
+//     await userProfile.save();
 
-  await userProfile.save();
 
-  // 4️⃣ Update subscription status in DB
-  subscription.status = 'canceled';
-  subscription.subscriptionPeriodStart = undefined;
-  subscription.subscriptionPeriodEnd = undefined;
-  await subscription.save();
 
-  console.log(`🔻 User ${userId} ${type} subscription cancelled manually`);
+//     subscription.status = 'canceled';
+//     if ('eliteProPeriodStart' in subscription && 'eliteProPeriodEnd' in subscription) {
+//       subscription.eliteProPeriodStart = undefined;
+//       subscription.eliteProPeriodEnd = undefined;
+//     }
+//     await subscription.save();
 
-  return {
-    success: true,
-    message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Subscription'} canceled successfully`,
-    data: {
-      subscriptionId: subscription._id,
-    },
-  };
-};
+//   } else {
+//     userProfile.subscriptionId = null;
+//     userProfile.subscriptionPeriodStart = null;
+//     userProfile.subscriptionPeriodEnd = null;
+//     await userProfile.save();
+
+//     subscription.status = 'canceled';
+//     if (type === SubscriptionType.SUBSCRIPTION) {
+//       (subscription as IUserSubscription).subscriptionPeriodStart = undefined;
+//       (subscription as IUserSubscription).subscriptionPeriodEnd = undefined;
+//     }
+//     await subscription.save();
+
+//   }
+
+
+
+
+
+//   console.log(`🔻 User ${userId} ${type} subscription cancelled manually`);
+
+//   return {
+//     success: true,
+//     message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Subscription'} canceled successfully`,
+//     data: {
+//       subscriptionId: subscription._id,
+//     },
+//   };
+// };
+
+
+
+
+
 
 
 

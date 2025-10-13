@@ -93,13 +93,16 @@ const userProfileSchema = new Schema<IUserProfile>(
 
 
     // Stripe identifiers (safe)
-    stripeCustomerId: { type: String, default: null },
     subscriptionId: { type: Schema.Types.ObjectId, ref: 'UserSubscription', default: null },
     eliteProSubscriptionId: { type: Schema.Types.ObjectId, ref: 'EliteProUserSubscription', default: null },
-    // Subscription state
     isElitePro: { type: Boolean, default: false },
+  // Regular subscription period
     subscriptionPeriodStart: { type: Date, default: null },
     subscriptionPeriodEnd: { type: Date, default: null },
+
+    // Elite Pro subscription period
+    eliteProPeriodStart: { type: Date, default: null },
+    eliteProPeriodEnd: { type: Date, default: null },
 
     //payment refference
     paymentMethods: [{ type: Schema.Types.ObjectId, ref: 'PaymentMethod' }],
