@@ -192,12 +192,12 @@ const getTransactionHistory = async (userId: string) => {
       if (txn.subscriptionType === SubscriptionType.ELITE_PRO) {
         await txn.populate({
           path: 'subscriptionId',
-          populate: { path: 'eliteProPackageId', select: 'name price' },
+          populate: { path: 'eliteProPackageId',  },
         });
       } else if (txn.subscriptionType === SubscriptionType.SUBSCRIPTION) {
         await txn.populate({
           path: 'subscriptionId',
-          populate: { path: 'subscriptionPackageId', select: 'name price' },
+          populate: { path: 'subscriptionPackageId',  },
         });
       }
     }

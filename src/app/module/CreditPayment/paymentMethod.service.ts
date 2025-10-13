@@ -562,8 +562,8 @@ const createSubscription = async (
       eliteProPackageId: subscriptionPackage._id,
       stripeSubscriptionId: subscription.id,
       status: "active",
-      subscriptionPeriodStart,
-      subscriptionPeriodEnd,
+      eliteProPeriodStart: subscriptionPeriodStart,
+      eliteProPeriodEnd: subscriptionPeriodEnd,
       autoRenew: autoRenew ?? true,
     });
 
@@ -591,7 +591,7 @@ const createSubscription = async (
   });
 
 
-  
+
 
   return {
     success: true,
