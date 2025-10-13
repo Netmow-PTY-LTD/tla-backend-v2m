@@ -14,8 +14,8 @@ export interface IEliteProUserSubscription extends Document {
   eliteProPackageId: Types.ObjectId; // Reference to EliteProPackage
   stripeSubscriptionId: string; // Stripe subscription ID
   status: EliteProSubscriptionStatus;
-  subscriptionPeriodStart?: Date;
-  subscriptionPeriodEnd?: Date;
+  eliteProPeriodStart?: Date;
+  eliteProPeriodEnd?: Date;
   autoRenew?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -31,8 +31,8 @@ const EliteProUserSubscriptionSchema = new Schema<IEliteProUserSubscription>(
       enum: ["active", "canceled", "past_due", "incomplete", "incomplete_expired", "trialing", "unpaid"],
       default: "active",
     },
-    subscriptionPeriodStart: { type: Date },
-    subscriptionPeriodEnd: { type: Date },
+    eliteProPeriodStart: { type: Date },
+    eliteProPeriodEnd: { type: Date },
     autoRenew: { type: Boolean, default: true },
   },
   { timestamps: true }
