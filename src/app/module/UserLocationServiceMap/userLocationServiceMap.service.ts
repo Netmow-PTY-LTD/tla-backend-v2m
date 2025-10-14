@@ -8,7 +8,7 @@ import UserProfile from '../User/user.model';
 /**
  * Create a new user location service map
  */
-export const createUserLocationServiceMap = async (
+ const createUserLocationServiceMap = async (
     userId: string | undefined,
   payload: Partial<IUserLocationServiceMap>
 ) => {
@@ -24,7 +24,7 @@ export const createUserLocationServiceMap = async (
 /**
  * Get all maps for a user
  */
-export const getAllUserLocationServiceMaps = async (userId: string | undefined) => {
+ const getAllUserLocationServiceMaps = async (userId: string | undefined) => {
 
     const userProfile= await UserProfile.findOne({ user: userId }).select('_id');
 
@@ -39,7 +39,7 @@ export const getAllUserLocationServiceMaps = async (userId: string | undefined) 
 /**
  * Get single map by ID
  */
-export const getUserLocationServiceMapById = async (id: string) => {
+ const getUserLocationServiceMapById = async (id: string) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
   const doc = await UserLocationServiceMap.findById(id).populate('serviceIds locationGroupId');
   return doc;
@@ -48,7 +48,7 @@ export const getUserLocationServiceMapById = async (id: string) => {
 /**
  * Update map by ID
  */
-export const updateUserLocationServiceMapById = async (
+ const updateUserLocationServiceMapById = async (
   id: string,
   payload: Partial<IUserLocationServiceMap>
 ) => {
@@ -64,8 +64,18 @@ export const updateUserLocationServiceMapById = async (
 /**
  * Delete map by ID
  */
-export const deleteUserLocationServiceMapById = async (id: string) => {
+ const deleteUserLocationServiceMapById = async (id: string) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
   const doc = await UserLocationServiceMap.findByIdAndDelete(id);
   return doc;
+};
+
+
+
+export const userLocationServiceMapService = {
+  createMap: createUserLocationServiceMap,
+  getAllMaps: getAllUserLocationServiceMaps,
+  getMap: getUserLocationServiceMapById,
+  updateMap: updateUserLocationServiceMapById,
+  deleteMap: deleteUserLocationServiceMapById,
 };

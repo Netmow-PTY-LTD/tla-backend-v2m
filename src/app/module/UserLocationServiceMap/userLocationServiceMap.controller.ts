@@ -2,20 +2,15 @@
 import catchAsync from '../../utils/catchAsync';
 
 
-import {
-  createUserLocationServiceMap,
-  getAllUserLocationServiceMaps,
-  getUserLocationServiceMapById,
-  updateUserLocationServiceMapById,
-  deleteUserLocationServiceMapById
-} from './userLocationServiceMap.service';
+
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import sendResponse from '../../utils/sendResponse';
+import { userLocationServiceMapService } from './userLocationServiceMap.service';
 
 const createMap = catchAsync(async (req, res) => {
     const userId=req.user?.userId;
     console.log('User ID:', userId);
-  const result = await createUserLocationServiceMap(userId, req.body);
+  const result = await userLocationServiceMapService.createMap(userId, req.body);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -26,7 +21,7 @@ const createMap = catchAsync(async (req, res) => {
 
 const getAllMaps = catchAsync(async (req, res) => {
     const userId=req.user?.userId;
-  const result = await getAllUserLocationServiceMaps(userId);
+  const result = await userLocationServiceMapService.getAllMaps(userId);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -36,7 +31,7 @@ const getAllMaps = catchAsync(async (req, res) => {
 });
 
 const getMap = catchAsync(async (req, res) => {
-  const result = await getUserLocationServiceMapById(req.params.id);
+  const result = await userLocationServiceMapService.getMap(req.params.id);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: !!result,
@@ -46,7 +41,7 @@ const getMap = catchAsync(async (req, res) => {
 });
 
 const updateMap = catchAsync(async (req, res) => {
-  const result = await updateUserLocationServiceMapById(req.params.id, req.body);
+  const result = await userLocationServiceMapService.updateMap(req.params.id, req.body);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: !!result,
@@ -56,7 +51,7 @@ const updateMap = catchAsync(async (req, res) => {
 });
 
 const deleteMap = catchAsync(async (req, res) => {
-  const result = await deleteUserLocationServiceMapById(req.params.id);
+  const result = await userLocationServiceMapService.deleteMap(req.params.id);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: !!result,
@@ -72,3 +67,5 @@ export const userLocationServiceMapController = {
   updateMap,
   deleteMap,
 };
+
+
