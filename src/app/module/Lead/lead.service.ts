@@ -1048,7 +1048,49 @@ type PaginatedResult<T> = {
 
 
 // Helper: Filter leads by real travel time
-async function filterByTravelTime(origin: [number, number], leads: any[], maxMinutes: number, mode: 'driving' | 'walking' | 'transit') {
+// async function filterByTravelTime(origin: [number, number], leads: any[], maxMinutes: number, mode: 'driving' | 'walking' | 'transit') {
+//   if (!leads.length) return [];
+
+//   console.log('Filtering leads based on travel time...', { origin, maxMinutes, mode });
+
+//   const destinations = leads
+//     .map(lead => `${lead.locationId.latitude},${lead.locationId.longitude}`)
+//     .join('|');
+
+//   const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
+//     params: {
+//       origins: `${origin[1]},${origin[0]}`, // lat,lon
+//       destinations,
+//       mode,
+//       departure_time: 'now',
+//       key: process.env.GOOGLE_MAPS_API_KEY,
+//     },
+//   });
+
+//   console.log('Distance Matrix API response status:', response);
+//   const elements = response.data.rows[0].elements;
+
+//   const updatedLeads = leads
+//     .map((lead, i) => ({
+//       ...lead,
+//       travelDuration: elements[i].duration?.value, // seconds
+//       travelDistance: elements[i].distance?.value, // meters
+//     }))
+//     .filter(lead => lead.travelDuration && lead.travelDuration <= maxMinutes * 60)
+//     .sort((a, b) => a.travelDuration - b.travelDuration);
+
+
+//     console.log('Leads after travel time filtering:', updatedLeads);
+
+//     return updatedLeads;
+// }
+
+async function filterByTravelTime(
+  origin: [number, number],
+  leads: any[],
+  maxMinutes: number,
+  mode: 'driving' | 'walking' | 'transit'
+) {
   if (!leads.length) return [];
 
   console.log('Filtering leads based on travel time...', { origin, maxMinutes, mode });
@@ -1059,30 +1101,42 @@ async function filterByTravelTime(origin: [number, number], leads: any[], maxMin
 
   const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
     params: {
-      origins: `${origin[1]},${origin[0]}`, // lat,lon
+      origins: `${origin[0]},${origin[1]}`, // latitude,longitude
       destinations,
       mode,
       departure_time: 'now',
-      key: process.env.GOOGLE_API_KEY,
+      key: process.env.GOOGLE_MAPS_API_KEY,
     },
   });
 
-  const elements = response.data.rows[0].elements;
+  console.log('Distance Matrix API response:', response.data);
 
+  const elements = response.data.rows[0]?.elements || [];
+
+  console.log('Distance Matrix API elements:', elements);
   const updatedLeads = leads
-    .map((lead, i) => ({
-      ...lead,
-      travelDuration: elements[i].duration?.value, // seconds
-      travelDistance: elements[i].distance?.value, // meters
-    }))
+    .map((lead, i) => {
+      const element = elements[i];
+      if (!element || element.status !== 'OK') return null;
+
+      return {
+        ...lead,
+        travelDuration: element.duration?.value, // seconds
+        travelDistance: element.distance?.value, // meters
+      };
+    })
+    .filter(Boolean)
     .filter(lead => lead.travelDuration && lead.travelDuration <= maxMinutes * 60)
-    .sort((a, b) => a.travelDuration - b.travelDuration);
+    .sort((a, b) => (a!.travelDuration! - b!.travelDuration!));
 
+  console.log('Leads after travel time filtering:', updatedLeads);
 
-    console.log('Leads after travel time filtering:', updatedLeads);
-
-    return updatedLeads;
+  return updatedLeads as any[];
 }
+
+
+
+
 
 // Main function
 export const getAllLeadFromDB = async (
