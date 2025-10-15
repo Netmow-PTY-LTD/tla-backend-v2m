@@ -19,6 +19,10 @@ import { IUser } from '../Auth/auth.interface';
 import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
+import axios from 'axios';
+import { filterByTravelTime } from './lead.utils';
+import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
+
 
 
 const CreateLeadIntoDB = async (userId: string, payload: any) => {
@@ -689,9 +693,364 @@ type PaginatedResult<T> = {
 };
 
 
+//  ------------------------------------------- previous logic of get all lead for lawyer dashboard  ------------------------------------------
+
+// const getAllLeadFromDB = async (
+//   userId: string,
+//   filters: any = {},
+//   options: {
+//     page: number;
+//     limit: number;
+//     sortBy: string;
+//     sortOrder: 'asc' | 'desc';
+//   }
+// ): Promise<PaginatedResult<any>> => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds country');
+//   if (!userProfile) {
+//     return {
+//       data: [],
+//       pagination: { total: 0, page: options.page, limit: options.limit, totalPage: 0 },
+//     };
+//   }
 
 
-const getAllLeadFromDB = async (
+// // const coordinates= { coord: [151.2093, -33.8688], maxMinutes: 15, mode: 'driving', }; --- this  coridinates example
+
+// const coordinates=filters.coordinates || null;
+
+//   const page = options.page || 1;
+//   const limit = options.limit || 10;
+//   const skip = (page - 1) * limit;
+//   const sortField = options.sortBy || 'createdAt';
+//   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
+
+
+
+//   const matchStage: any = {
+
+//     countryId: new mongoose.Types.ObjectId(userProfile.country),
+//     userProfileId: { $ne: userProfile._id },
+//     responders: { $ne: userProfile._id },
+//     serviceId: { $in: userProfile.serviceIds },
+//     status: 'approved',
+
+//   };
+
+//   // Spotlight
+//   if (filters.spotlight?.length) {
+//     matchStage.leadPriority = { $in: filters.spotlight };
+//   }
+
+//   // Services
+//   if (filters.services?.length) {
+//     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+
+//   // Credits
+//   if (filters.credits?.length) {
+//     const creditConditions = filters.credits.map((range: string) => {
+//       switch (range) {
+//         case 'Free': return { credit: 0 };
+//         case '1-5 credits': return { credit: { $gte: 1, $lte: 5 } };
+//         case '5-10 credits': return { credit: { $gte: 5, $lte: 10 } };
+//         case '10-20 credits': return { credit: { $gte: 10, $lte: 20 } };
+//         case '20-30 credits': return { credit: { $gte: 20, $lte: 30 } };
+//         case '30-40 credits': return { credit: { $gte: 30, $lte: 40 } };
+//         case '40-50 credits': return { credit: { $gte: 40, $lte: 50 } };
+//         case '50-100 credits': return { credit: { $gte: 50, $lte: 100 } };
+//         default: return null;
+//       }
+//     }).filter(Boolean);
+//     if (creditConditions.length) {
+//       matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+//     }
+//   }
+
+//   // Location
+//   if (filters.location?.length) {
+//     matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+
+//   // Lead submission time filter
+//   if (filters.leadSubmission) {
+//     let startDate: Date | null = null;
+//     switch (filters.leadSubmission) {
+//       case 'last_1_hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
+//       case 'last_24_hours': startDate = new Date(); startDate.setHours(0, 0, 0, 0); break;
+//       case 'last_48_hours': startDate = new Date(); startDate.setDate(startDate.getDate() - 1); break;
+//       case 'last_3_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 3); break;
+//       case 'last_7_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 7); break;
+//       case 'last_14_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 14); break;
+//     }
+//     if (startDate) matchStage.createdAt = { $gte: startDate };
+//   }
+
+//   // Build pipeline with keyword filter AFTER lookup
+//   const aggregationPipeline: any[] = [
+//     { $match: matchStage },
+
+//     { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
+//     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
+
+//     {
+//       $lookup: { from: 'users', localField: 'userProfileId.user', foreignField: '_id', as: 'userProfileId.user' }
+//     },
+//     {
+//       $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true }
+//     },
+
+//     { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceId' } },
+//     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'locations', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
+//     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
+
+//     // //  ---------------------------- match current user and same country lead user -----------------
+//     // {
+//     //   $match: {
+//     //     'userProfileId.country': new mongoose.Types.ObjectId(userProfile.country)
+
+//     //   }
+//     // },
+//     // Keyword match here (AFTER we have userProfileId.name)
+//     ...(filters.keyword
+//       ? [{
+//         $match: {
+//           $or: [
+//             { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+//             { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+//           ]
+//         }
+//       }]
+//       : []),
+
+//     { $sort: { [sortField]: sortOrder } },
+
+//     // One DB call for data + total
+//     {
+//       $facet: {
+//         data: [
+//           { $skip: skip },
+//           { $limit: limit },
+//         ],
+//         totalCount: [
+//           { $count: 'total' }
+//         ],
+//         urgentCount: [
+//           { $match: { leadPriority: 'urgent' } },
+//           { $count: 'total' }
+//         ]
+//       }
+//     }
+//   ];
+
+//   const result = await Lead.aggregate(aggregationPipeline);
+
+//   const data = result[0]?.data || [];
+//   const total = result[0]?.totalCount[0]?.total || 0;
+//   const urgentCount = result[0]?.urgentCount[0]?.total || 0;
+
+//   return {
+//     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+//     data,
+//     leadCount: {
+//       urgent: urgentCount,
+//     }
+//   };
+// };
+
+
+
+
+//  ------------------------------------------  new logic of get all lead for lawyer dashboard  ----------------------------------
+
+
+// export const getAllLeadFromDB = async (
+//   userId: string,
+//   filters: any = {},
+//   options: {
+//     page: number;
+//     limit: number;
+//     sortBy: string;
+//     sortOrder: 'asc' | 'desc';
+//   }
+// ): Promise<any> => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds country');
+//   if (!userProfile) {
+//     return {
+//       data: [],
+//       pagination: { total: 0, page: options.page, limit: options.limit, totalPage: 0 },
+//       leadCount: {},
+//     };
+//   }
+
+//   const page = options.page || 1;
+//   const limit = options.limit || 10;
+//   const skip = (page - 1) * limit;
+//   const sortField = options.sortBy || 'createdAt';
+//   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
+//   // ----------------------- MATCH STAGE -----------------------
+//   const matchStage: any = {
+//     countryId: new mongoose.Types.ObjectId(userProfile.country),
+//     userProfileId: { $ne: userProfile._id },
+//     responders: { $ne: userProfile._id },
+//     serviceId: { $in: userProfile.serviceIds },
+//     status: 'approved',
+//   };
+
+
+//   // Spotlight
+//   if (filters.spotlight?.length) {
+//     matchStage.leadPriority = { $in: filters.spotlight };
+//   }
+
+//   // Services
+//   if (filters.services?.length) {
+//     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+
+//   // Credits
+//   if (filters.credits?.length) {
+//     const creditConditions = filters.credits.map((range: string) => {
+//       switch (range) {
+//         case 'Free': return { credit: 0 };
+//         case '1-5 credits': return { credit: { $gte: 1, $lte: 5 } };
+//         case '5-10 credits': return { credit: { $gte: 5, $lte: 10 } };
+//         case '10-20 credits': return { credit: { $gte: 10, $lte: 20 } };
+//         case '20-30 credits': return { credit: { $gte: 20, $lte: 30 } };
+//         case '30-40 credits': return { credit: { $gte: 30, $lte: 40 } };
+//         case '40-50 credits': return { credit: { $gte: 40, $lte: 50 } };
+//         case '50-100 credits': return { credit: { $gte: 50, $lte: 100 } };
+//         default: return null;
+//       }
+//     }).filter(Boolean);
+//     if (creditConditions.length) {
+//       matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+//     }
+//   }
+
+//   // Location IDs
+//   if (filters.location?.length) {
+//     matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+
+//   // Lead submission filter
+//   if (filters.leadSubmission) {
+//     let startDate: Date | null = null;
+//     switch (filters.leadSubmission) {
+//       case 'last_1_hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
+//       case 'last_24_hours': startDate = new Date(); startDate.setHours(0, 0, 0, 0); break;
+//       case 'last_48_hours': startDate = new Date(); startDate.setDate(startDate.getDate() - 1); break;
+//       case 'last_3_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 3); break;
+//       case 'last_7_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 7); break;
+//       case 'last_14_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 14); break;
+//     }
+//     if (startDate) matchStage.createdAt = { $gte: startDate };
+//   }
+
+//   // ----------------------- AGGREGATION PIPELINE -----------------------
+//   const aggregationPipeline: any[] = [];
+
+//   console.log('Filters received:', filters?.coordinates);
+//   // ----------------------- DYNAMIC COORDINATE FILTER -----------------------
+//   if (filters.coordinates) {
+//     const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
+
+//     // Approximate speed in meters per minute
+//     const speedMap: Record<string, number> = {
+//       driving: 600,   // ~36 km/h
+//       walking: 80,    // ~5 km/h
+//       transit: 400,   // ~24 km/h
+//     };
+//     const speed = speedMap[mode] || 600;
+//     const maxDistance = maxMinutes * speed; // meters
+
+//     aggregationPipeline.push({
+//       $geoNear: {
+//         near: { type: 'Point', coordinates: coord },
+//         distanceField: 'distanceFromOrigin',
+//         spherical: true,
+//         maxDistance,
+//         query: matchStage, // existing filters applied
+//       },
+//     });
+//   } else {
+//     aggregationPipeline.push({ $match: matchStage });
+//   }
+
+//   // ----------------------- LOOKUPS -----------------------
+//   aggregationPipeline.push(
+//     { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
+//     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'users', localField: 'userProfileId.user', foreignField: '_id', as: 'userProfileId.user' } },
+//     { $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceId' } },
+//     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
+//     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } }
+//   );
+
+//   // Keyword search
+//   if (filters.keyword) {
+//     aggregationPipeline.push({
+//       $match: {
+//         $or: [
+//           { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+//           { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+//         ],
+//       },
+//     });
+//   }
+
+//   // Sort
+//   if (filters.coordinates?.sortByDistance) {
+//     aggregationPipeline.push({ $sort: { distanceFromOrigin: 1 } });
+//   } else {
+//     aggregationPipeline.push({ $sort: { [sortField]: sortOrder } });
+//   }
+
+//   // Pagination + total counts
+//   aggregationPipeline.push({
+//     $facet: {
+//       data: [{ $skip: skip }, { $limit: limit }],
+//       totalCount: [{ $count: 'total' }],
+//       urgentCount: [{ $match: { leadPriority: 'urgent' } }, { $count: 'total' }],
+//     },
+//   });
+
+//   const result = await Lead.aggregate(aggregationPipeline);
+
+//   const data = result[0]?.data || [];
+//   const total = result[0]?.totalCount[0]?.total || 0;
+//   const urgentCount = result[0]?.urgentCount[0]?.total || 0;
+
+//   return {
+//     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+//     data,
+//     leadCount: { urgent: urgentCount },
+//   };
+// };
+
+
+
+
+
+//  -------------------------------------  realtime approximate speed in meters per minute filtering  ----------------------------------
+
+
+
+
+// Main function
+export const getAllLeadFromDB = async (
   userId: string,
   filters: any = {},
   options: {
@@ -700,15 +1059,15 @@ const getAllLeadFromDB = async (
     sortBy: string;
     sortOrder: 'asc' | 'desc';
   }
-): Promise<PaginatedResult<any>> => {
+): Promise<any> => {
   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds country');
   if (!userProfile) {
     return {
       data: [],
       pagination: { total: 0, page: options.page, limit: options.limit, totalPage: 0 },
+      leadCount: {},
     };
   }
-
 
   const page = options.page || 1;
   const limit = options.limit || 10;
@@ -716,23 +1075,41 @@ const getAllLeadFromDB = async (
   const sortField = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
 
+  const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
+
+  console.log('userLocationService:', userLocationService);
 
 
+  // Check if user has any 'nation_wide' location
+  const hasNationwide = userLocationService.some(
+    loc => loc.locationType === 'nation_wide'
+  );
 
+  // ----------------------- MATCH STAGE -----------------------
   const matchStage: any = {
-  
     countryId: new mongoose.Types.ObjectId(userProfile.country),
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
     serviceId: { $in: userProfile.serviceIds },
     status: 'approved',
-
   };
 
-  // Spotlight
-  if (filters.spotlight?.length) {
-    matchStage.leadPriority = { $in: filters.spotlight };
+  // If no nationwide, filter by specific locations
+  if (!hasNationwide) {
+    const locationIds = userLocationService
+      .map(loc => loc.locationGroupId)
+      .filter(Boolean)
+      .map((loc: any) => loc._id);
+
+    if (locationIds.length) {
+      matchStage.locationId = { $in: locationIds };
+    }
   }
+
+
+
+  // Spotlight
+  if (filters.spotlight?.length) matchStage.leadPriority = { $in: filters.spotlight };
 
   // Services
   if (filters.services?.length) {
@@ -754,17 +1131,15 @@ const getAllLeadFromDB = async (
         default: return null;
       }
     }).filter(Boolean);
-    if (creditConditions.length) {
-      matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
-    }
+    if (creditConditions.length) matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
   }
 
-  // Location
+  // Location IDs
   if (filters.location?.length) {
     matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };
   }
 
-  // Lead submission time filter
+  // Lead submission filter
   if (filters.leadSubmission) {
     let startDate: Date | null = null;
     switch (filters.leadSubmission) {
@@ -778,85 +1153,77 @@ const getAllLeadFromDB = async (
     if (startDate) matchStage.createdAt = { $gte: startDate };
   }
 
-  // Build pipeline with keyword filter AFTER lookup
+  // ----------------------- AGGREGATION PIPELINE -----------------------
   const aggregationPipeline: any[] = [
     { $match: matchStage },
+
+    // Lookups
+    { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
+    { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
 
     { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
 
-    {
-      $lookup: { from: 'users', localField: 'userProfileId.user', foreignField: '_id', as: 'userProfileId.user' }
-    },
-    {
-      $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true }
-    },
+    { $lookup: { from: 'users', localField: 'userProfileId.user', foreignField: '_id', as: 'userProfileId.user' } },
+    { $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true } },
 
     { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceId' } },
     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
 
-    { $lookup: { from: 'locations', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
-    { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
-
     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
-
-    // //  ---------------------------- match current user and same country lead user -----------------
-    // {
-    //   $match: {
-    //     'userProfileId.country': new mongoose.Types.ObjectId(userProfile.country)
-
-    //   }
-    // },
-    // Keyword match here (AFTER we have userProfileId.name)
-    ...(filters.keyword
-      ? [{
-        $match: {
-          $or: [
-            { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
-            { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
-          ]
-        }
-      }]
-      : []),
-
-    { $sort: { [sortField]: sortOrder } },
-
-    // One DB call for data + total
-    {
-      $facet: {
-        data: [
-          { $skip: skip },
-          { $limit: limit },
-        ],
-        totalCount: [
-          { $count: 'total' }
-        ],
-        urgentCount: [
-          { $match: { leadPriority: 'urgent' } },
-          { $count: 'total' }
-        ]
-      }
-    }
   ];
 
-  const result = await Lead.aggregate(aggregationPipeline);
+  // Keyword search
+  if (filters.keyword) {
+    aggregationPipeline.push({
+      $match: {
+        $or: [
+          { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+          { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+        ],
+      },
+    });
+  }
 
-  const data = result[0]?.data || [];
-  const total = result[0]?.totalCount[0]?.total || 0;
-  const urgentCount = result[0]?.urgentCount[0]?.total || 0;
+  // Execute initial aggregation
+  let leads = await Lead.aggregate(aggregationPipeline);
+
+  // ----------------------- DYNAMIC COORDINATE FILTER -----------------------
+  if (filters.coordinates) {
+    console.log('Filters received for coordinates:', filters.coordinates);
+    const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
+    leads = await filterByTravelTime(coord, leads, maxMinutes, mode);
+
+
+  }
+
+  // Pagination after travel time filtering
+  const total = leads.length;
+  const paginatedLeads = leads.slice(skip, skip + limit);
 
   return {
+    data: paginatedLeads,
     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
-    data,
-    leadCount: {
-      urgent: urgentCount,
-    }
+    leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
   };
 };
 
 
 
-//   ------------------ GET ALL MY LEAD -----------------------------
+
+// ------------------ GET ALL MY LEAD -----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
 const getMyAllLeadFromDB = async (
   userId: string,
   query: Record<string, unknown>,
@@ -872,7 +1239,7 @@ const getMyAllLeadFromDB = async (
   const leadQuery = new QueryBuilder(
     Lead.find({
       userProfileId: userProfile?._id,
-     
+
       // serviceId: { $in: userProfile.serviceIds },
     })
       .populate({
@@ -933,7 +1300,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     {
       $match: {
         leadId: new mongoose.Types.ObjectId(leadId),
-      
+
       },
     },
     {
@@ -1106,9 +1473,9 @@ const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
 
 const deleteLeadFromDB = async (id: string) => {
   validateObjectId(id, 'Case');
- 
 
-  const result = await Lead.findByIdAndDelete( id);
+
+  const result = await Lead.findByIdAndDelete(id);
   return result;
 };
 

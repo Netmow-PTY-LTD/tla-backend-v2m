@@ -142,6 +142,7 @@ const getAllLead = catchAsync(async (req, res) => {
     location: parsedKeyword.location || '',
     services: parsedKeyword.services || [],
     credits: parsedKeyword.credits || [],
+    coordinates: parsedKeyword.coordinates || null,
     // You can add more fields here if needed
   };
 
