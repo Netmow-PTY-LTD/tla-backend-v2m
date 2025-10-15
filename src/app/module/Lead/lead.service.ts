@@ -21,6 +21,7 @@ import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 import axios from 'axios';
 import { filterByTravelTime } from './lead.utils';
+import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 
 
 
@@ -1074,6 +1075,15 @@ export const getAllLeadFromDB = async (
   const sortField = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
 
+  const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
+
+  console.log('userLocationService:', userLocationService);
+
+
+  // Check if user has any 'nation_wide' location
+  const hasNationwide = userLocationService.some(
+    loc => loc.locationType === 'nation_wide'
+  );
 
   // ----------------------- MATCH STAGE -----------------------
   const matchStage: any = {
@@ -1083,6 +1093,20 @@ export const getAllLeadFromDB = async (
     serviceId: { $in: userProfile.serviceIds },
     status: 'approved',
   };
+
+  // If no nationwide, filter by specific locations
+  if (!hasNationwide) {
+    const locationIds = userLocationService
+      .map(loc => loc.locationGroupId)
+      .filter(Boolean)
+      .map((loc: any) => loc._id);
+
+    if (locationIds.length) {
+      matchStage.locationId = { $in: locationIds };
+    }
+  }
+
+
 
   // Spotlight
   if (filters.spotlight?.length) matchStage.leadPriority = { $in: filters.spotlight };
