@@ -30,5 +30,6 @@ export default {
   do_spaces_bucket: process.env.DO_SPACES_BUCKET,
   firm_reset_pass_ui_link: process.env.FIRM_RESET_PASS_UI_LINK,
   firm_client_url: process.env.FIRM_CLIENT_URL,
+  google_maps_api_key: process.env.GOOGLE_MAPS_API_KEY,
 
 };

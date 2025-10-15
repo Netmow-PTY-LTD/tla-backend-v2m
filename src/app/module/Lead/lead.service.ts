@@ -20,6 +20,7 @@ import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 import axios from 'axios';
+import { filterByTravelTime } from './lead.utils';
 
 
 
@@ -691,7 +692,7 @@ type PaginatedResult<T> = {
 };
 
 
-
+//  ------------------------------------------- previous logic of get all lead for lawyer dashboard  ------------------------------------------
 
 // const getAllLeadFromDB = async (
 //   userId: string,
@@ -726,7 +727,7 @@ type PaginatedResult<T> = {
 
 
 //   const matchStage: any = {
-  
+
 //     countryId: new mongoose.Types.ObjectId(userProfile.country),
 //     userProfileId: { $ne: userProfile._id },
 //     responders: { $ne: userProfile._id },
@@ -863,7 +864,7 @@ type PaginatedResult<T> = {
 
 
 
-//   new logic of get all lead for lawyer dashboard
+//  ------------------------------------------  new logic of get all lead for lawyer dashboard  ----------------------------------
 
 
 // export const getAllLeadFromDB = async (
@@ -1042,98 +1043,7 @@ type PaginatedResult<T> = {
 
 
 
-
-
-//   realtime approximate speed in meters per minute filtering 
-
-
-// Helper: Filter leads by real travel time
-// async function filterByTravelTime(origin: [number, number], leads: any[], maxMinutes: number, mode: 'driving' | 'walking' | 'transit') {
-//   if (!leads.length) return [];
-
-//   console.log('Filtering leads based on travel time...', { origin, maxMinutes, mode });
-
-//   const destinations = leads
-//     .map(lead => `${lead.locationId.latitude},${lead.locationId.longitude}`)
-//     .join('|');
-
-//   const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-//     params: {
-//       origins: `${origin[1]},${origin[0]}`, // lat,lon
-//       destinations,
-//       mode,
-//       departure_time: 'now',
-//       key: process.env.GOOGLE_MAPS_API_KEY,
-//     },
-//   });
-
-//   console.log('Distance Matrix API response status:', response);
-//   const elements = response.data.rows[0].elements;
-
-//   const updatedLeads = leads
-//     .map((lead, i) => ({
-//       ...lead,
-//       travelDuration: elements[i].duration?.value, // seconds
-//       travelDistance: elements[i].distance?.value, // meters
-//     }))
-//     .filter(lead => lead.travelDuration && lead.travelDuration <= maxMinutes * 60)
-//     .sort((a, b) => a.travelDuration - b.travelDuration);
-
-
-//     console.log('Leads after travel time filtering:', updatedLeads);
-
-//     return updatedLeads;
-// }
-
-async function filterByTravelTime(
-  origin: [number, number],
-  leads: any[],
-  maxMinutes: number,
-  mode: 'driving' | 'walking' | 'transit'
-) {
-  if (!leads.length) return [];
-
-  console.log('Filtering leads based on travel time...', { origin, maxMinutes, mode });
-
-  const destinations = leads
-    .map(lead => `${lead.locationId.latitude},${lead.locationId.longitude}`)
-    .join('|');
-
-  const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-    params: {
-      origins: `${origin[0]},${origin[1]}`, // latitude,longitude
-      destinations,
-      mode,
-      departure_time: 'now',
-      key: process.env.GOOGLE_MAPS_API_KEY,
-    },
-  });
-
-  console.log('Distance Matrix API response:', response.data);
-
-  const elements = response.data.rows[0]?.elements || [];
-
-  console.log('Distance Matrix API elements:', elements);
-  const updatedLeads = leads
-    .map((lead, i) => {
-      const element = elements[i];
-      if (!element || element.status !== 'OK') return null;
-
-      return {
-        ...lead,
-        travelDuration: element.duration?.value, // seconds
-        travelDistance: element.distance?.value, // meters
-      };
-    })
-    .filter(Boolean)
-    .filter(lead => lead.travelDuration && lead.travelDuration <= maxMinutes * 60)
-    .sort((a, b) => (a!.travelDuration! - b!.travelDuration!));
-
-  console.log('Leads after travel time filtering:', updatedLeads);
-
-  return updatedLeads as any[];
-}
-
+//  -------------------------------------  realtime approximate speed in meters per minute filtering  ----------------------------------
 
 
 
@@ -1163,6 +1073,7 @@ export const getAllLeadFromDB = async (
   const skip = (page - 1) * limit;
   const sortField = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
 
   // ----------------------- MATCH STAGE -----------------------
   const matchStage: any = {
@@ -1255,7 +1166,6 @@ export const getAllLeadFromDB = async (
 
   // ----------------------- DYNAMIC COORDINATE FILTER -----------------------
   if (filters.coordinates) {
-
     console.log('Filters received for coordinates:', filters.coordinates);
     const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
     leads = await filterByTravelTime(coord, leads, maxMinutes, mode);
@@ -1277,19 +1187,12 @@ export const getAllLeadFromDB = async (
 
 
 
+// ------------------ GET ALL MY LEAD -----------------------------
 
 
 
 
 
-
-
-  // ------------------ GET ALL MY LEAD -----------------------------
-
-
-
-
-   
 
 
 
@@ -1312,7 +1215,7 @@ const getMyAllLeadFromDB = async (
   const leadQuery = new QueryBuilder(
     Lead.find({
       userProfileId: userProfile?._id,
-     
+
       // serviceId: { $in: userProfile.serviceIds },
     })
       .populate({
@@ -1373,7 +1276,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
     {
       $match: {
         leadId: new mongoose.Types.ObjectId(leadId),
-      
+
       },
     },
     {
@@ -1546,9 +1449,9 @@ const updateLeadIntoDB = async (id: string, payload: Partial<ILead>) => {
 
 const deleteLeadFromDB = async (id: string) => {
   validateObjectId(id, 'Case');
- 
 
-  const result = await Lead.findByIdAndDelete( id);
+
+  const result = await Lead.findByIdAndDelete(id);
   return result;
 };
 
