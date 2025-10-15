@@ -37,7 +37,18 @@ const zipCodeSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-   
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
+    },
+
   },
   {
     versionKey: false,
@@ -58,6 +69,12 @@ const zipCodeSchema = new mongoose.Schema(
 zipCodeSchema.statics.isZipCodeExists = async function (id: string) {
   return await ZipCode.findById(id);
 };
+
+
+
+zipCodeSchema.index({ location: '2dsphere' });
+
+
 
 const ZipCode = mongoose.model<IZipCode, ZipCodeModel>(
   'ZipCode',
