@@ -34,7 +34,9 @@ const userLocationServiceMapSchema = new Schema<IUserLocationServiceMap>(
       type: String
     },
     travelmode: {
-      type: String
+      type: String,
+      enum: ['driving', 'walking', 'transit'],
+      default: 'driving',
     },
     serviceIds: [
       {
