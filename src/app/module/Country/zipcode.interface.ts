@@ -7,8 +7,14 @@ export interface IZipCode {
   countryId: Types.ObjectId;
   zipCodeType: string;
   countryCode?: string;
-  longitude?: string;
-  latitude?: string;
+  // longitude: string;
+  // latitude: string;
+  latitude: number;
+  longitude: number;
+  location?: {
+    type: 'Point';
+    coordinates: [number, number]; // [lng, lat]
+  };
 }
 
 export interface ZipCodeModel extends Model<IZipCode> {
