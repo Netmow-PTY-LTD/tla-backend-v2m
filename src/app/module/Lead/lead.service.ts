@@ -1077,7 +1077,8 @@ export const getAllLeadFromDB = async (
 
   const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
 
-  console.log('userLocationService:', userLocationService);
+
+  
 
 
   // Check if user has any 'nation_wide' location
@@ -1085,14 +1086,44 @@ export const getAllLeadFromDB = async (
     loc => loc.locationType === 'nation_wide'
   );
 
+
+  // Collect all service IDs from user's location mappings
+  // const locationServiceIds = [
+  //   ...new Set(
+  //     userLocationService
+  //       .flatMap((loc) => loc.serviceIds || [])
+  //       .map((id) => id.toString())
+  //   ),
+  // ];
+
+
+
+  const locationServiceIds = userLocationService.flatMap((loc) => loc.serviceIds || [])
+    .map((id) => id.toString())
+
   // ----------------------- MATCH STAGE -----------------------
   const matchStage: any = {
     countryId: new mongoose.Types.ObjectId(userProfile.country),
     userProfileId: { $ne: userProfile._id },
     responders: { $ne: userProfile._id },
-    serviceId: { $in: userProfile.serviceIds },
+    // serviceId: { $in: userProfile.serviceIds },
     status: 'approved',
   };
+
+
+
+  // ✅ Only include leads for services that exist in user’s locationServiceIds
+  if (locationServiceIds.length > 0) {
+    matchStage.serviceId = {
+      $in: locationServiceIds.map((id) => new mongoose.Types.ObjectId(id)),
+    };
+  } else {
+    // ❌ If user has no serviceIds in their location mappings, skip showing leads
+    matchStage._id = { $exists: false }; // This ensures no leads are matched
+  }
+
+
+
 
   // If no nationwide, filter by specific locations
   if (!hasNationwide) {
