@@ -951,6 +951,7 @@ export const getAllLeadFromDB = async (
   // ----------------------- AGGREGATION PIPELINE -----------------------
   const aggregationPipeline: any[] = [];
 
+  console.log('Filters received:', filters?.coordinates);
   // ----------------------- DYNAMIC COORDINATE FILTER -----------------------
   if (filters.coordinates) {
     const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
