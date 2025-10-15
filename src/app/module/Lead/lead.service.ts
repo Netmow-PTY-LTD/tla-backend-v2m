@@ -1078,7 +1078,7 @@ type PaginatedResult<T> = {
 //   const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
 
 
-  
+
 
 
 //   // Check if user has any 'nation_wide' location
@@ -1262,7 +1262,8 @@ export const getAllLeadFromDB = async (
   const page = options.page || 1;
   const limit = options.limit || 10;
   const skip = (page - 1) * limit;
-
+  const sortField = options.sortBy || 'createdAt';
+  const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
   const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id });
 
@@ -1286,38 +1287,38 @@ export const getAllLeadFromDB = async (
 
 
 
-// Build separate conditions
-const conditions: any[] = [];
+  // Build separate conditions
+  const conditions: any[] = [];
 
-// 1 Nationwide condition
-if (nationwideServiceIds.length > 0) {
-  conditions.push({
-    serviceId: { $in: nationwideServiceIds },
-    // nationwide ignores locationId
-  });
-}
-
-// 2 Specific locations condition
-if (specificServiceIds.length > 0) {
-  const locationIds = specificMappings
-    .map(loc => loc.locationGroupId)
-    .filter(Boolean)
-    .map((loc: any) => loc._id);
-
-  if (locationIds.length > 0) {
+  // 1 Nationwide condition
+  if (nationwideServiceIds.length > 0) {
     conditions.push({
-      serviceId: { $in: specificServiceIds },
-      locationId: { $in: locationIds },
+      serviceId: { $in: nationwideServiceIds },
+      // nationwide ignores locationId
     });
   }
-}
 
-// 3 No service mappings → return empty
-if (conditions.length === 0) {
-  matchStage._id = { $exists: false };
-} else {
-  matchStage.$or = conditions;
-}
+  // 2 Specific locations condition
+  if (specificServiceIds.length > 0) {
+    const locationIds = specificMappings
+      .map(loc => loc.locationGroupId)
+      .filter(Boolean)
+      .map((loc: any) => loc._id);
+
+    if (locationIds.length > 0) {
+      conditions.push({
+        serviceId: { $in: specificServiceIds },
+        locationId: { $in: locationIds },
+      });
+    }
+  }
+
+  // 3 No service mappings → return empty
+  if (conditions.length === 0) {
+    matchStage._id = { $exists: false };
+  } else {
+    matchStage.$or = conditions;
+  }
 
 
 
@@ -1368,6 +1369,8 @@ if (conditions.length === 0) {
   const aggregationPipeline: any[] = [
     { $match: matchStage },
 
+    // Apply sorting
+    { $sort: { [sortField]: sortOrder } }, // <- Add this line
     // Lookups
     { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
