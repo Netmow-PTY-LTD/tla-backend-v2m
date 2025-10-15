@@ -29,15 +29,28 @@ const zipCodeSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    latitude: {
-      type: String,
-      trim: true
+    // latitude: {
+    //   type: String,
+    //   trim: true
+    // },
+    // longitude: {
+    //   type: String,
+    //   trim: true
+    // },
+    latitude: { type: Number, required: true },
+    longitude: { type: Number, required: true },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
     },
-    longitude: {
-      type: String,
-      trim: true
-    },
-   
+
   },
   {
     versionKey: false,
@@ -55,9 +68,56 @@ const zipCodeSchema = new mongoose.Schema(
   },
 );
 
-zipCodeSchema.statics.isZipCodeExists = async function (id: string) {
-  return await ZipCode.findById(id);
-};
+
+
+
+/* ---------- Middleware ---------- */
+
+//  Pre-save hook for single create or update (save)
+zipCodeSchema.pre('save', function (next) {
+  if (this.isModified('latitude') || this.isModified('longitude')) {
+    const lat = Number(this.latitude);
+    const lon = Number(this.longitude);
+    this.location = { type: 'Point', coordinates: [lon, lat] };
+  }
+  next();
+});
+
+//  Pre 'findOneAndUpdate' for updates via findOneAndUpdate()
+zipCodeSchema.pre('findOneAndUpdate', function (next) {
+  const update: any = this.getUpdate();
+
+  // If latitude/longitude provided in update — sync location
+  if (update.latitude !== undefined && update.longitude !== undefined) {
+    update.location = {
+      type: 'Point',
+      coordinates: [update.longitude, update.latitude],
+    };
+    this.setUpdate(update);
+  }
+
+  next();
+});
+
+//  Pre 'insertMany' for bulk inserts
+zipCodeSchema.pre('insertMany', function (next, docs: any[]) {
+  for (const doc of docs) {
+    if (doc.latitude && doc.longitude) {
+      doc.location = {
+        type: 'Point',
+        coordinates: [doc.longitude, doc.latitude],
+      };
+    }
+  }
+  next();
+});
+
+
+
+
+zipCodeSchema.index({ location: '2dsphere' });
+
+
 
 const ZipCode = mongoose.model<IZipCode, ZipCodeModel>(
   'ZipCode',
@@ -65,3 +125,5 @@ const ZipCode = mongoose.model<IZipCode, ZipCodeModel>(
 );
 
 export default ZipCode;
+
+
