@@ -2,35 +2,14 @@
 import mongoose, { Model } from 'mongoose';
 import { Types } from 'mongoose';
 
-export enum LocationType {
-  NATION_WIDE = 'nation_wide',
-  DISTANCE_WISE = 'distance_wise',
-  TRAVEL_TIME = 'travel_time',
-  DRAW_ON_AREA = 'draw_on_area',
-}
 
-// export interface ILocation {
-//   _id: mongoose.Types.ObjectId | string;
-//   locationGroupId: mongoose.Types.ObjectId;
-//   locationType: string;
-//   SelectedLocationId: mongoose.Types.ObjectId;
-// }
+
 
 export type IUpdateLeadServiceAnswers = {
   questionId: mongoose.Types.ObjectId; // ObjectId string
   selectedOptionIds: mongoose.Types.ObjectId[]; // Array of ObjectId strings
 };
 
-export interface IUserLocationServiceMap {
-  _id?: Types.ObjectId;
-  userProfileId: Types.ObjectId;
-  locationGroupId?: Types.ObjectId;
-  locationType: LocationType;
-  travelmode?: string;
-  traveltime?: string;
-  rangeInKm?: number;
-  serviceIds: Types.ObjectId[];
-}
 
 export interface ILeadService {
   userProfileId: Types.ObjectId;
