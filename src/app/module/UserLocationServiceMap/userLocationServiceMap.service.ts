@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 
-import { IUserLocationServiceMap } from '../LeadSettings/leadService.interface';
+
 import { UserLocationServiceMap } from './UserLocationServiceMap.model';
 import User from '../Auth/auth.model';
 import UserProfile from '../User/user.model';
+import { IUserLocationServiceMap } from './userLocationServiceMap.interface';
 
 /**
  * Create a new user location service map

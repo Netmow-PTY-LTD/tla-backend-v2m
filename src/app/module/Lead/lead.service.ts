@@ -22,7 +22,8 @@ import ZipCode from '../Country/zipcode.model';
 import axios from 'axios';
 import { filterByTravelTime } from './lead.utils';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
-import { LocationType } from '../LeadSettings/leadService.interface';
+import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
+
 
 
 

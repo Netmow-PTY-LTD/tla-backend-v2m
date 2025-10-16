@@ -1,8 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
-import {
-  IUserLocationServiceMap,
-  LocationType,
-} from '../LeadSettings/leadService.interface';
+import { IUserLocationServiceMap, LocationType } from './userLocationServiceMap.interface';
+
 
 
 /* 

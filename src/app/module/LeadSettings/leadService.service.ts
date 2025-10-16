@@ -6,7 +6,6 @@ import UserProfile from '../User/user.model';
 import {
   ILeadService,
   IUpdateLeadServiceAnswers,
-  IUserLocationServiceMap,
 } from './leadService.interface';
 import LeadService from './leadService.model';
 import { validateObjectId } from '../../utils/validateObjectId';
@@ -15,6 +14,7 @@ import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationSe
 
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
+import { IUserLocationServiceMap } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 
 const createLeadService = async (
   userId: string,
