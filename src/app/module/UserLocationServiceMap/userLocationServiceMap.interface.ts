@@ -1,4 +1,5 @@
-import { Types } from 'mongoose';
+import { PopulatedDoc, Types } from 'mongoose';
+import { IZipCode } from '../Country/zipcode.interface';
 
 
 
@@ -18,7 +19,8 @@ export enum LocationType {
 export type IUserLocationServiceMap = {
     _id?: Types.ObjectId;
     userProfileId: Types.ObjectId; // Reference to UserProfile
-    locationGroupId?: Types.ObjectId | null; // Reference to ZipCode (optional)
+    // 👇 PopulatedDoc means it’s either an ObjectId or a populated IZipCode
+    locationGroupId?: PopulatedDoc<IZipCode> | null;
     locationType: LocationType; // specific | nation_wide
     rangeInKm?: number; // Default 0
     traveltime?: string; // e.g. "15min"
@@ -27,3 +29,5 @@ export type IUserLocationServiceMap = {
     createdAt?: Date;
     updatedAt?: Date;
 };
+
+

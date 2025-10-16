@@ -1458,19 +1458,48 @@ export const getAllLeadFromDB = async (
   let maxMinutes = 15;
   let mode: 'driving' | 'walking' | 'transit' = 'driving';
 
-  const travelLoc = userLocationService.find(loc => loc.locationType === LocationType.TRAVEL_TIME && loc.locationGroupId?.location?.coordinates?.length === 2);
+  // const travelLoc = userLocationService.find(loc => loc.locationType === LocationType.TRAVEL_TIME && loc.locationGroupId?.location?.coordinates?.length === 2);
+
+  // if (travelLoc) {
+  //   defaultOrigin = [
+  //     travelLoc.locationGroupId?.location?.coordinates?.[1], // latitude
+  //     travelLoc.locationGroupId?.location?.coordinates?.[0], // longitude
+  //   ];
+  //   if (travelLoc.traveltime) {
+  //     const mins = parseInt(travelLoc.traveltime, 10);
+  //     if (!isNaN(mins)) maxMinutes = mins;
+  //   }
+  //   if (travelLoc.travelmode) mode = travelLoc.travelmode as 'driving' | 'walking' | 'transit';
+  // }
+
+
+  const travelLoc = userLocationService.find(
+    (loc) =>
+      loc.locationType === LocationType.TRAVEL_TIME &&
+      (loc.locationGroupId as any)?.location?.coordinates?.length === 2
+  );
 
   if (travelLoc) {
-    defaultOrigin = [
-      travelLoc.locationGroupId?.location?.coordinates?.[1], // latitude
-      travelLoc.locationGroupId?.location?.coordinates?.[0], // longitude
-    ];
+    const coordinates = (travelLoc.locationGroupId as any)?.location?.coordinates;
+
+    if (Array.isArray(coordinates) && coordinates.length === 2) {
+      defaultOrigin = [coordinates[1], coordinates[0]]; // lat, lng
+    }
+
     if (travelLoc.traveltime) {
       const mins = parseInt(travelLoc.traveltime, 10);
       if (!isNaN(mins)) maxMinutes = mins;
     }
-    if (travelLoc.travelmode) mode = travelLoc.travelmode as 'driving' | 'walking' | 'transit';
+
+    if (travelLoc.travelmode) {
+      mode = travelLoc.travelmode;
+    }
   }
+
+
+
+
+
 
   if (filters.coordinates || defaultOrigin) {
     const origin = filters.coordinates?.coord || defaultOrigin;
