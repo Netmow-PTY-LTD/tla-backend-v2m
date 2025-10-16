@@ -1111,6 +1111,13 @@ type PaginatedResult<T> = {
 //   const drawOnAreaServiceIds = locationServiceByType[LocationType.DRAW_ON_AREA];
 
 
+//   console.log('Service IDs by Location Type:', {
+//     nationwideServiceIds,
+//     distanceWiseServiceIds,
+//     travelTimeServiceIds,
+//     drawOnAreaServiceIds,
+//   });
+
 
 
 //   // // ----------------------- MATCH STAGE -----------------------
@@ -1340,6 +1347,14 @@ export const getAllLeadFromDB = async (
   const distanceWiseServiceIds = locationServiceByType[LocationType.DISTANCE_WISE];
   const travelTimeServiceIds = locationServiceByType[LocationType.TRAVEL_TIME];
   const drawOnAreaServiceIds = locationServiceByType[LocationType.DRAW_ON_AREA];
+
+
+  console.log('Location-Service Mapping:', {
+    nationwideServiceIds,
+    distanceWiseServiceIds,
+    travelTimeServiceIds,
+    drawOnAreaServiceIds,
+  });
 
   // ----------------------- BUILD MATCH CONDITIONS -----------------------
   const matchStage: any = {
