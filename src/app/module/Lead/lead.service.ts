@@ -1588,7 +1588,10 @@ export const getAllLeadFromDB = async (
     userLocationService.map(async (loc) => {
       if (loc.locationType === "nation_wide") {
         const leads = await Lead.find({
-          serviceId: { $in: loc.serviceIds }
+          serviceId: { $in: loc.serviceIds },
+          userProfileId: { $ne: userProfile._id },
+          status: 'approved',
+          responders: { $ne: userProfile._id },
         }).populate("userProfileId").sort({ createdAt: 1 });  // Adjust sort field if necessary
 
 
@@ -1599,7 +1602,10 @@ export const getAllLeadFromDB = async (
 
       if (loc.locationType === "travel_time") {
         const leads = await Lead.find({
-          serviceId: { $in: loc.serviceIds }
+          serviceId: { $in: loc.serviceIds },
+          userProfileId: { $ne: userProfile._id },
+          status: 'approved',
+          responders: { $ne: userProfile._id },
         }).populate("userProfileId").populate('locationId').sort({ createdAt: 1 });  // Adjust sort field if necessary
 
 
@@ -1617,14 +1623,17 @@ export const getAllLeadFromDB = async (
 
       if (loc.locationType === "distance_wise") {
         const leads = await Lead.find({
-          serviceId: { $in: loc.serviceIds }
+          serviceId: { $in: loc.serviceIds },
+          userProfileId: { $ne: userProfile._id },
+          status: 'approved',
+          responders: { $ne: userProfile._id },
         }).populate("userProfileId").populate('locationId').sort({ createdAt: 1 });  // Adjust sort field if necessary
 
         console.log('Distance-wise leads before filtering:', leads.length);
 
 
         const maxDistanceKm = loc.rangeInKm ?? 15;
-        const filteredLeads =  filterByDistanceKm((loc.locationGroupId as any)?.location?.coordinates, leads, maxDistanceKm);
+        const filteredLeads = filterByDistanceKm((loc.locationGroupId as any)?.location?.coordinates, leads, maxDistanceKm);
 
 
         globalLeads.push(...filteredLeads);
@@ -1846,7 +1855,7 @@ export const getAllLeadFromDB = async (
 
 //   if (travelLoc) {
 //     const coordinates = (travelLoc.locationGroupId as any)?.location?.coordinates;
- 
+
 //     defaultOrigin = [coordinates[1], coordinates[0]]; // lat, lng
 //     if (travelLoc.traveltime) maxMinutes = parseInt(travelLoc.traveltime, 10);
 //     if (travelLoc.travelmode) mode = travelLoc.travelmode;
