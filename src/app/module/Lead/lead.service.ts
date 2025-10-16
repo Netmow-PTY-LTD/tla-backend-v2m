@@ -20,7 +20,7 @@ import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 import axios from 'axios';
-import { filterByTravelTime } from './lead.utils';
+import { filterByDistanceKm, filterByTravelTime } from './lead.utils';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 import { serviceService } from '../Service/service.service';
@@ -1624,7 +1624,12 @@ export const getAllLeadFromDB = async (
           serviceId: { $in: loc.serviceIds }
         }).populate("userProfileId").sort({ createdAt: 1 });  // Adjust sort field if necessary
 
-        globalLeads.push(...leads);
+
+
+        const maxDistanceKm = loc.rangeInKm ? parseInt(loc.rangeInKm, 10) : 15;
+        const filteredLeads = await filterByDistanceKm(loc.locationGroupId?.location?.coordinates, leads, maxDistanceKm);
+
+        globalLeads.push(...filteredLeads);
         console.log('Global leads length:', globalLeads.length);
         // Optionally, you can log the leads for debugging
         // console.log("Distance-wise leads:", leads);

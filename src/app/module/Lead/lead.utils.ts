@@ -135,3 +135,52 @@ export async function filterByTravelTime(
 
 
 
+
+export function filterByDistanceKm(
+  origin: [number, number], // [lng, lat]
+  leads: any[],
+  maxDistanceKm: number
+) {
+  if (!leads?.length) return [];
+
+  const [originLng, originLat] = origin;
+  const R = 6371; // Earth radius in km
+
+  // Function to calculate distance between two coordinates
+  const getDistanceKm = (coord1: [number, number], coord2: [number, number]) => {
+    const [lon1, lat1] = coord1;
+    const [lon2, lat2] = coord2;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  };
+
+  // ✅ Calculate distance for each lead
+  const enrichedLeads = leads.map((lead) => {
+    const { latitude, longitude } = lead.locationId;
+    const distanceKm = getDistanceKm([originLng, originLat], [longitude, latitude]);
+
+    return {
+      ...(lead.toObject ? lead.toObject() : lead),
+      distanceInfo: {
+        distanceText: `${distanceKm.toFixed(2)} km`,
+        distanceValue: distanceKm,
+        calculatedAt: new Date().toISOString(),
+      },
+    };
+  });
+
+  // ✅ Filter leads within maxDistanceKm
+  const filteredLeads = enrichedLeads.filter(l => l.distanceInfo.distanceValue <= maxDistanceKm);
+
+  // ✅ Optional debug info
+  console.log(`Total leads: ${enrichedLeads.length}, Within ${maxDistanceKm} km: ${filteredLeads.length}`);
+
+  return filteredLeads;
+}
+
