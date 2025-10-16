@@ -1607,38 +1607,35 @@ export const getAllLeadFromDB = async (
         const maxMinutes = loc.traveltime ? parseInt(loc.traveltime, 10) : 15;
         const mode = loc.travelmode ? loc.travelmode as 'driving' | 'walking' | 'transit' : 'driving';
 
-        console.log('locationGroupId:', loc.locationGroupId.location.coordinates);
         const filteredLeads = await filterByTravelTime(loc.locationGroupId?.location?.coordinates, leads, maxMinutes, mode);
 
 
 
-        console.log('Filtered leads count:', filteredLeads.length);
-        console.log('Filtered leads count:', filteredLeads);
         globalLeads.push(...filteredLeads);
-        // Optionally, you can log the leads for debugging
-        // console.log("Travel time leads:", leads);
+  
       }
 
       if (loc.locationType === "distance_wise") {
         const leads = await Lead.find({
           serviceId: { $in: loc.serviceIds }
-        }).populate("userProfileId").sort({ createdAt: 1 });  // Adjust sort field if necessary
+        }).populate("userProfileId").populate('locationId').sort({ createdAt: 1 });  // Adjust sort field if necessary
+
+        console.log('Distance-wise leads before filtering:', leads.length);
 
 
-
-        const maxDistanceKm = loc.rangeInKm ? parseInt(loc.rangeInKm, 10) : 15;
-        const filteredLeads = await filterByDistanceKm(loc.locationGroupId?.location?.coordinates, leads, maxDistanceKm);
+        const maxDistanceKm = loc.rangeInKm ?? 15;
+        const filteredLeads =  filterByDistanceKm(loc.locationGroupId?.location?.coordinates, leads, maxDistanceKm);
+        
 
         globalLeads.push(...filteredLeads);
-        console.log('Global leads length:', globalLeads.length);
-        // Optionally, you can log the leads for debugging
-        // console.log("Distance-wise leads:", leads);
+     
+ 
       }
     })
   );
 
-  // After all leads are processed
-  console.log('Total global leads:', globalLeads.length);
+
+
 
 
 
@@ -1652,6 +1649,9 @@ export const getAllLeadFromDB = async (
     leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
   };
 };
+
+
+
 
 
 

@@ -120,7 +120,7 @@ export async function filterByTravelTime(
     };
   }).filter(Boolean);
 
-  console.log('Merged leads with travel info:', mergedLeads);
+
 
 
   // ✅ Filter only leads within allowed travel time
@@ -165,7 +165,10 @@ export function filterByDistanceKm(
     const { latitude, longitude } = lead.locationId;
     const distanceKm = getDistanceKm([originLng, originLat], [longitude, latitude]);
 
-    return {
+
+
+
+   const result= {
       ...(lead.toObject ? lead.toObject() : lead),
       distanceInfo: {
         distanceText: `${distanceKm.toFixed(2)} km`,
@@ -173,13 +176,16 @@ export function filterByDistanceKm(
         calculatedAt: new Date().toISOString(),
       },
     };
+
+    console.log('result', result);
+     return result;
   });
 
-  // ✅ Filter leads within maxDistanceKm
+  //  Filter leads within maxDistanceKm
   const filteredLeads = enrichedLeads.filter(l => l.distanceInfo.distanceValue <= maxDistanceKm);
 
-  // ✅ Optional debug info
-  console.log(`Total leads: ${enrichedLeads.length}, Within ${maxDistanceKm} km: ${filteredLeads.length}`);
+  //  Optional debug info
+  // console.log(`Total leads: ${enrichedLeads.length}, Within ${maxDistanceKm} km: ${filteredLeads.length}`);
 
   return filteredLeads;
 }
