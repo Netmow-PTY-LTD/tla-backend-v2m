@@ -364,6 +364,7 @@ const deleteLeadService = async (userId: string, serviceId: string) => {
         throw new Error('No lead service entries found for this service.');
       }
 
+
       // 3. Remove serviceId from userProfile.serviceIds array
       await UserProfile.updateOne(
         { _id: userProfile._id },
@@ -372,12 +373,25 @@ const deleteLeadService = async (userId: string, serviceId: string) => {
       );
 
       // 4. Remove serviceId from UserLocationServiceMap.serviceIds array
-      await UserLocationServiceMap.findOneAndUpdate(
+      // const updateResult = await UserLocationServiceMap.findOneAndUpdate(
+      //     { userProfileId: userProfile._id },
+      //     { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
+      //     { session },
+      //   );
+
+      // 4️ Remove serviceId from ALL UserLocationServiceMap documents for this user
+      const updateResult = await UserLocationServiceMap.updateMany(
         { userProfileId: userProfile._id },
         { $pull: { serviceIds: new mongoose.Types.ObjectId(serviceId) } },
-        { session },
+        { session }
       );
+
+      console.log('UserLocationServiceMap update result:', updateResult);
     });
+
+
+
+
 
     return {
       message: `Deleted ${deleteResult.deletedCount} lead service record(s) and removed serviceId from user profile.`,
