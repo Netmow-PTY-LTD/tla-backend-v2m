@@ -1,4 +1,6 @@
 import mongoose, { Schema } from "mongoose";
+import { Document } from "mongoose";
+
 
 export interface ProfileVisitorDoc extends Document {
   visitorId: mongoose.Types.ObjectId;
