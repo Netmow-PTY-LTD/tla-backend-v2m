@@ -1358,7 +1358,7 @@ export const getAllLeadFromDB = async (
   if (distanceWiseServiceIds.length > 0) {
     const locationIds = userLocationService
       .filter(loc => loc.locationType === LocationType.DISTANCE_WISE)
-      .map(loc => loc.locationGroupId?._id)
+      .map(loc => (loc.locationGroupId as any)?._id as Types.ObjectId)
       .filter(Boolean);
     if (locationIds.length > 0) conditions.push({ serviceId: { $in: distanceWiseServiceIds }, locationId: { $in: locationIds } });
   }
@@ -1367,7 +1367,7 @@ export const getAllLeadFromDB = async (
   if (travelTimeServiceIds.length > 0) {
     const locationIds = userLocationService
       .filter(loc => loc.locationType === LocationType.TRAVEL_TIME)
-      .map(loc => loc.locationGroupId?._id)
+      .map(loc => (loc.locationGroupId as any)?._id as Types.ObjectId)
       .filter(Boolean);
     if (locationIds.length > 0) conditions.push({ serviceId: { $in: travelTimeServiceIds }, locationId: { $in: locationIds } });
   }
@@ -1376,7 +1376,7 @@ export const getAllLeadFromDB = async (
   if (drawOnAreaServiceIds.length > 0) {
     const locationIds = userLocationService
       .filter(loc => loc.locationType === LocationType.DRAW_ON_AREA)
-      .map(loc => loc.locationGroupId?._id)
+      .map(loc => (loc.locationGroupId as any)?._id as Types.ObjectId)
       .filter(Boolean);
     if (locationIds.length > 0) conditions.push({ serviceId: { $in: drawOnAreaServiceIds }, locationId: { $in: locationIds } });
   }

@@ -20,7 +20,7 @@ export type IUserLocationServiceMap = {
     _id?: Types.ObjectId;
     userProfileId: Types.ObjectId; // Reference to UserProfile
     // 👇 PopulatedDoc means it’s either an ObjectId or a populated IZipCode
-    locationGroupId?: PopulatedDoc<IZipCode> | null;
+    locationGroupId?: PopulatedDoc<IZipCode> | Types.ObjectId | string | null; // ✅ added Types.ObjectId | string
     locationType: LocationType; // specific | nation_wide
     rangeInKm?: number; // Default 0
     traveltime?: string; // e.g. "15min"
