@@ -735,6 +735,14 @@ const getLawyerSuggestionsFromDB = async (
       },
     },
 
+    //  Add Elite Pro priority
+    {
+      $addFields: {
+        eliteProPriority: { $cond: [{ $eq: ['$profile.isElitePro', true] }, 1, 0] },
+      },
+    },
+
+
     // Hide unwanted fields
     {
       $project: {
@@ -753,7 +761,13 @@ const getLawyerSuggestionsFromDB = async (
     // },
 
     // 6. Sorting
-    { $sort: sortOption },
+    // { $sort: sortOption },
+    {
+      $sort: {
+        eliteProPriority: -1, // Elite Pro first
+        ...sortOption,
+      },
+    },
     // 7. Facet for paginated data and total count
     {
       $facet: {
@@ -763,7 +777,7 @@ const getLawyerSuggestionsFromDB = async (
     },
   ];
 
-  const result = await User.aggregate(pipeline);
+  const result = await User.aggregate(pipeline as any);
 
   const lawyers = result[0]?.paginatedData || [];
   const totalCount = result[0]?.totalCount[0]?.count || 0;
@@ -1034,13 +1048,13 @@ const lawyerCancelMembershipRequest = async (
 ) => {
 
 
-  const lawyerProfile= await UserProfile.findOne({ user: lawyerUserId });
+  const lawyerProfile = await UserProfile.findOne({ user: lawyerUserId });
   if (!lawyerProfile) return sendNotFoundResponse("Lawyer profile not found");
 
   // --- Find request owned by this lawyer ---
   const request = await LawyerRequestAsMember.findOne({
     firmProfileId: new Types.ObjectId(firmProfileId),
-    lawyerId:  lawyerProfile._id,
+    lawyerId: lawyerProfile._id,
     isActive: true,
   });
 
