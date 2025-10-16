@@ -1592,7 +1592,7 @@ export const getAllLeadFromDB = async (
           userProfileId: { $ne: userProfile._id },
           status: 'approved',
           responders: { $ne: userProfile._id },
-        }).populate("userProfileId").sort({ createdAt: 1 });  // Adjust sort field if necessary
+        }).populate("userProfileId").populate('locationId').sort({ createdAt: 1 });  // Adjust sort field if necessary
 
 
         globalLeads.push(...leads);
