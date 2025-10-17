@@ -47,7 +47,7 @@ const zipCodeSchema = new mongoose.Schema(
       },
       coordinates: {
         type: [Number], // [longitude, latitude]
-        required: true,
+        default: [0, 0],
       },
     },
 

@@ -70,123 +70,210 @@ import config from "../../config";
 
 
 
-export async function filterByTravelTime(
-  origin: [number, number], // [lat, lon]
-  leads: any[],
-  maxMinutes: number,
-  mode: 'driving' | 'walking' | 'transit' = 'driving',
-) {
-  if (!leads?.length) return [];
+// export async function filterByTravelTime(
+//   origin: [number, number], // [lat, lon]
+//   leads: any[],
+//   maxMinutes: number,
+//   mode: 'driving' | 'walking' | 'transit' = 'driving',
+// ) {
+//   if (!leads?.length) return [];
 
-  const destinations = leads
-    .map((lead) => `${lead.locationId.latitude},${lead.locationId.longitude}`)
-    .join('|');
+//   const destinations = leads
+//     .map((lead) => `${lead.locationId.latitude},${lead.locationId.longitude}`)
+//     .join('|');
 
-  const originStr = `${origin[1]},${origin[0]}`; // Google expects lat,lng
+//   const originStr = `${origin[1]},${origin[0]}`; // Google expects lat,lng
 
-  const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-    params: {
-      origins: originStr,
-      destinations,
-      mode,
-      departure_time: 'now',
-      key: config.google_maps_api_key,
-    },
-  });
+//   const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
+//     params: {
+//       origins: originStr,
+//       destinations,
+//       mode,
+//       departure_time: 'now',
+//       key: config.google_maps_api_key,
+//     },
+//   });
 
-  const elements = response.data?.rows?.[0]?.elements || [];
+//   const elements = response.data?.rows?.[0]?.elements || [];
 
-  // ✅ Merge travel data into each lead
-  const mergedLeads = leads.map((lead, idx) => {
-    const result = elements[idx];
-    if (!result || result.status !== 'OK') return null;
+//   // ✅ Merge travel data into each lead
+//   const mergedLeads = leads.map((lead, idx) => {
+//     const result = elements[idx];
+//     if (!result || result.status !== 'OK') return null;
 
-    const durationValue = result.duration_in_traffic?.value || result.duration?.value || 0; // seconds
-    const durationMinutes = durationValue / 60;
+//     const durationValue = result.duration_in_traffic?.value || result.duration?.value || 0; // seconds
+//     const durationMinutes = durationValue / 60;
 
-    return {
-      ...(lead.toObject ? lead.toObject() : lead),
-      travelInfo: {
-        distanceText: result.distance?.text,
-        distanceValue: result.distance?.value,
-        durationText: result.duration_in_traffic?.text || result.duration?.text,
-        durationValue,
-        durationInTrafficText: result.duration_in_traffic?.text,
-        durationInTrafficValue: result.duration_in_traffic?.value,
-        calculatedAt: new Date().toISOString(),
-        mode,
-      },
-      durationMinutes,
-    };
-  }).filter(Boolean);
-
-
-
-
-  // ✅ Filter only leads within allowed travel time
-  const filteredLeads = mergedLeads.filter((lead) => lead.durationMinutes <= maxMinutes);
-
-  // ✅ (Optional) Debug logging
-  console.log(`Total leads: ${mergedLeads.length}, Within ${maxMinutes} min: ${filteredLeads.length}`);
-
-  return filteredLeads;
-}
+//     return {
+//       ...(lead.toObject ? lead.toObject() : lead),
+//       travelInfo: {
+//         distanceText: result.distance?.text,
+//         distanceValue: result.distance?.value,
+//         durationText: result.duration_in_traffic?.text || result.duration?.text,
+//         durationValue,
+//         durationInTrafficText: result.duration_in_traffic?.text,
+//         durationInTrafficValue: result.duration_in_traffic?.value,
+//         calculatedAt: new Date().toISOString(),
+//         mode,
+//       },
+//       durationMinutes,
+//     };
+//   }).filter(Boolean);
 
 
 
 
+//   // ✅ Filter only leads within allowed travel time
+//   const filteredLeads = mergedLeads.filter((lead) => lead.durationMinutes <= maxMinutes);
 
-export function filterByDistanceKm(
-  origin: [number, number], // [lng, lat]
-  leads: any[],
-  maxDistanceKm: number
-) {
-  if (!leads?.length) return [];
+//   // ✅ (Optional) Debug logging
+//   console.log(`Total leads: ${mergedLeads.length}, Within ${maxMinutes} min: ${filteredLeads.length}`);
 
-  const [originLng, originLat] = origin;
-  const R = 6371; // Earth radius in km
-
-  // Function to calculate distance between two coordinates
-  const getDistanceKm = (coord1: [number, number], coord2: [number, number]) => {
-    const [lon1, lat1] = coord1;
-    const [lon2, lat2] = coord2;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-  };
-
-  // ✅ Calculate distance for each lead
-  const enrichedLeads = leads.map((lead) => {
-    const { latitude, longitude } = lead.locationId;
-    const distanceKm = getDistanceKm([originLng, originLat], [longitude, latitude]);
+//   return filteredLeads;
+// }
 
 
 
 
-   const result= {
-      ...(lead.toObject ? lead.toObject() : lead),
-      distanceInfo: {
-        distanceText: `${distanceKm.toFixed(2)} km`,
-        distanceValue: distanceKm,
-        calculatedAt: new Date().toISOString(),
-      },
-    };
 
-    console.log('result', result);
-     return result;
-  });
+// export function filterByDistanceKm(
+//   origin: [number, number], // [lng, lat]
+//   leads: any[],
+//   maxDistanceKm: number
+// ) {
+//   if (!leads?.length) return [];
 
-  //  Filter leads within maxDistanceKm
-  const filteredLeads = enrichedLeads.filter(l => l.distanceInfo.distanceValue <= maxDistanceKm);
+//   const [originLng, originLat] = origin;
+//   const R = 6371; // Earth radius in km
 
-  //  Optional debug info
-  // console.log(`Total leads: ${enrichedLeads.length}, Within ${maxDistanceKm} km: ${filteredLeads.length}`);
+//   // Function to calculate distance between two coordinates
+//   const getDistanceKm = (coord1: [number, number], coord2: [number, number]) => {
+//     const [lon1, lat1] = coord1;
+//     const [lon2, lat2] = coord2;
+//     const dLat = (lat2 - lat1) * Math.PI / 180;
+//     const dLon = (lon2 - lon1) * Math.PI / 180;
+//     const a =
+//       Math.sin(dLat / 2) ** 2 +
+//       Math.cos(lat1 * Math.PI / 180) *
+//       Math.cos(lat2 * Math.PI / 180) *
+//       Math.sin(dLon / 2) ** 2;
+//     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+//   };
 
-  return filteredLeads;
-}
+//   // ✅ Calculate distance for each lead
+//   const enrichedLeads = leads.map((lead) => {
+//     const { latitude, longitude } = lead.locationId;
+//     const distanceKm = getDistanceKm([originLng, originLat], [longitude, latitude]);
 
+
+
+
+//    const result= {
+//       ...(lead.toObject ? lead.toObject() : lead),
+//       distanceInfo: {
+//         distanceText: `${distanceKm.toFixed(2)} km`,
+//         distanceValue: distanceKm,
+//         calculatedAt: new Date().toISOString(),
+//       },
+//     };
+
+//     console.log('result', result);
+//      return result;
+//   });
+
+//   //  Filter leads within maxDistanceKm
+//   const filteredLeads = enrichedLeads.filter(l => l.distanceInfo.distanceValue <= maxDistanceKm);
+
+//   //  Optional debug info
+//   // console.log(`Total leads: ${enrichedLeads.length}, Within ${maxDistanceKm} km: ${filteredLeads.length}`);
+
+//   return filteredLeads;
+// }
+
+
+
+
+
+//  final travel time function
+
+
+
+
+
+// Batch travel info for multiple destinations
+
+
+
+// Simple in-memory cache
+const travelCache = new Map<string, { distanceMeters: number; durationSeconds: number }>();
+
+export const getBatchTravelInfo = async (
+  origin: { lat: number; lng: number },
+  destinations: { lat?: number; lng?: number; zipCodeId?: string }[],
+  mode = 'driving',
+  batchSize = 25 // Google Distance Matrix limit
+) => {
+  const results: any[] = [];
+
+  for (let i = 0; i < destinations.length; i += batchSize) {
+    const batch = destinations.slice(i, i + batchSize);
+
+    // Prepare keys for caching
+    const cacheKeys = batch.map(
+      d => `${origin.lat},${origin.lng}_${d.lat},${d.lng}_${mode}`
+    );
+
+    // Check cache first
+    const cachedResults = batch.map((d, idx) => {
+      const key = cacheKeys[idx];
+      if (travelCache.has(key)) {
+        return { ...travelCache.get(key), zipCodeId: d.zipCodeId };
+      }
+      return null;
+    });
+
+    // Destinations not in cache
+    const toFetch = batch.filter((_, idx) => !cachedResults[idx]);
+
+    if (toFetch.length > 0) {
+      const destinationStr = toFetch.map(d => `${d.lat},${d.lng}`).join('|');
+
+      try {
+        const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
+          params: {
+            origins: `${origin.lat},${origin.lng}`,
+            destinations: destinationStr,
+            mode,
+            key: config.google_maps_api_key,
+          },
+          timeout: 15000,
+        });
+
+        if (response.data.rows?.[0]?.elements) {
+          response.data.rows[0].elements.forEach((el: any, idx: number) => {
+            if (el.status === 'OK') {
+              const key = `${origin.lat},${origin.lng}_${toFetch[idx].lat},${toFetch[idx].lng}_${mode}`;
+              const res = {
+                zipCodeId: toFetch[idx].zipCodeId,
+                distanceMeters: el.distance.value,
+                durationSeconds: el.duration.value,
+              };
+              results.push(res);
+              // Save to cache
+              travelCache.set(key, { distanceMeters: el.distance.value, durationSeconds: el.duration.value });
+            }
+          });
+        }
+      } catch (err: any) {
+        console.error('Distance Matrix API error:', err.message);
+      }
+    }
+
+    // Add cached results
+    cachedResults.forEach(cr => {
+      if (cr) results.push(cr);
+    });
+  }
+
+  return results;
+};
