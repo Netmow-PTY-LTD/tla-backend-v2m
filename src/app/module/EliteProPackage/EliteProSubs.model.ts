@@ -20,7 +20,6 @@ export interface IEliteProPackage extends Document {
   isActive: boolean;
   stripePriceId: string | null;
   stripeProductId: string;
-  monthlyCaseContacts: number;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
