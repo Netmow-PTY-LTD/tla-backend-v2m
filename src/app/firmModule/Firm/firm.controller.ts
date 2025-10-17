@@ -56,7 +56,7 @@ const updateFirm = catchAsync(async (req, res) => {
   });
 });
 
-// ✅ Delete Firm
+//  Delete Firm
 const deleteFirm = catchAsync(async (req, res) => {
   const { id } = req.params;
   await firmService.deleteFirm(id);
@@ -70,6 +70,25 @@ const deleteFirm = catchAsync(async (req, res) => {
 });
 
 //   --------------------  current firm  user dedicated api -------------------
+
+
+
+const getFirmDasboardStats = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const firm = await firmService.getFirmDasboardStats(userId);
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Firm dashboard stats fetched successfully.',
+    data: firm,
+  });
+});
+
+
+
+
+
 
 const getFirmInfo = catchAsync(async (req, res) => {
   const userId = req.user.userId;
@@ -136,4 +155,5 @@ export const firmController = {
   createFirm,
   getFirmInfo,
   updateFirmInfo,
+  getFirmDasboardStats
 };
