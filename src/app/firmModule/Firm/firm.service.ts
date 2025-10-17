@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { IFirmProfile } from './firm.interface';
 import { FirmProfile } from './firm.model';
 import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
@@ -6,6 +6,9 @@ import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import FirmUser from '../FirmAuth/frimAuth.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
+import UserProfile from '../../module/User/user.model';
+import Transaction from '../../module/CreditPayment/transaction.model';
+import CreditTransaction from '../../module/CreditPayment/creditTransaction.model';
 
 //  Create
 // helper: normalize date
@@ -171,7 +174,7 @@ const getFirmInfoFromDB = async (userId: string) => {
 
   return await FirmProfile.findById(user.firmProfileId)
     .populate({
-      path:'lawyers',
+      path: 'lawyers',
       populate: {
         path: 'serviceIds',
         model: 'Service', // or whatever your actual model name is
@@ -206,6 +209,70 @@ const updateFirmInfoIntoDB = async (userId: string, data: Partial<IFirmProfile>)
 
 
 
+const getFirmDasboardStats = async (userId: string) => {
+
+  const user = await FirmUser.findById(userId).select('firmProfileId')
+
+  if (!user) {
+    return sendNotFoundResponse("User not found");
+  }
+
+  // Get total lawyers and their IDs
+
+  const totalLawyers = await UserProfile.countDocuments({ firmProfileId: user.firmProfileId });
+  const lawyers = await UserProfile.find({ firmProfileId: user.firmProfileId });
+
+
+
+  const lawyersUserIds = lawyers.map(lawyer => lawyer.user);
+  const lawyersProfileIds = lawyers.map(lawyer => lawyer._id);
+
+  const [purchases, usages] = await Promise.all([
+    Transaction.aggregate([
+      {
+        $match: { userId: { $in: lawyersUserIds }, type: 'purchase', status: 'completed' },
+      },
+      { $group: { _id: null, total: { $sum: '$credit' } } },
+    ]),
+    CreditTransaction.aggregate([
+      { $match: { userProfileId: { $in: lawyersProfileIds }, type: 'usage' } },
+      { $group: { _id: null, total: { $sum: { $abs: '$credit' } } } },
+    ]),
+  ]);
+
+  // Sum of current credits across all firm lawyers
+  const currentCredits = lawyers.reduce((sum, lawyer) => sum + (lawyer.credits || 0), 0);
+  // Total credits purchased by all firm lawyers
+  const totalPurchasedCredits = purchases.length
+    ? purchases.reduce((sum, p) => sum + (p.total || 0), 0)
+    : 0;
+  // Total credits used by all firm lawyers
+  const totalUsedCredits = usages.length
+    ? usages.reduce((sum, u) => sum + (u.total || 0), 0)
+    : 0;
+
+  const lawyerCreditStats = {
+    currentCredits,
+    totalPurchasedCredits,
+    totalUsedCredits,
+  };
+
+  return {
+    lawyerCreditStats,
+    totalLawyers
+  }
+
+
+
+};
+
+
+
+
+
+
+
+
 export const firmService = {
   createFirm,
   listFirms,
@@ -214,4 +281,5 @@ export const firmService = {
   deleteFirm,
   getFirmInfoFromDB,
   updateFirmInfoIntoDB,
+  getFirmDasboardStats
 };

@@ -69,6 +69,8 @@ const getUserCreditStats = async (userId: string) => {
 };
 
 
+
+
 const getUserCreditTransactions = async (userId: string) => {
   const user = await UserProfile.findOne({ user: userId }).select('_id');
   if (!user) throw new Error('User profile not found');

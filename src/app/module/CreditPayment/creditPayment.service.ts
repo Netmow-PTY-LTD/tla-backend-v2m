@@ -208,8 +208,6 @@ const getTransactionHistory = async (userId: string) => {
 
 
 
-
-
 const getAllTransactionHistory = async (query: Record<string, any>) => {
   const page = Math.max(1, parseInt(query.page as string, 10) || 1);
   const limit = Math.max(1, parseInt(query.limit as string, 10) || 10);
@@ -337,6 +335,8 @@ const findNextCreditOffer = async (userId: string) => {
   });
   return largestPackage || null;
 };
+
+
 
 export const CreditPaymentService = {
   getCreditPackages,
