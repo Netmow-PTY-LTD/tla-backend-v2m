@@ -2038,17 +2038,10 @@ export const getAllLeadFromDB = async (
   let leads = await Lead.aggregate(aggregationPipeline);
 
   // ----------------------- DYNAMIC TRAVEL-TIME FILTER -----------------------
-  if (filters.coordinates) {
-    const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
-    leads = await filterByTravelTime(coord, leads, maxMinutes, mode);
-
-    const travelResults = await getBatchTravelInfo(
-      { lat: coord[0], lng: coord[1] },
-      destinations,
-      maxMinutes,
-      25 // batch size
-    );
-  }
+  // if (filters.coordinates) {
+  //   const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
+  //   leads = await filterByTravelTime(coord, leads, maxMinutes, mode);
+  // }
 
 
   // ----------------------- PAGINATION -----------------------
