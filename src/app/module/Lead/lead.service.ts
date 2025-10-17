@@ -9,7 +9,6 @@ import UserProfile from '../User/user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
 import { customCreditLogic } from './customCreditLogic';
-
 import QueryBuilder from '../../builder/QueryBuilder';
 import LeadResponse from '../LeadResponse/response.model';
 import Service from '../Service/service.model';
@@ -19,11 +18,10 @@ import { IUser } from '../Auth/auth.interface';
 import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
-import axios from 'axios';
-import { filterByDistanceKm, filterByTravelTime, getBatchTravelInfo } from './lead.utils';
+import { getBatchTravelInfo } from './lead.utils';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
-import { serviceService } from '../Service/service.service';
+
 
 
 
