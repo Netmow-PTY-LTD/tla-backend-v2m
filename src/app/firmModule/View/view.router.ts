@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { viewController } from './view.controller';
 import { upload } from '../../config/upload';
+import firmAuth from '../middleware/firmAuth';
+import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
 
 
 
@@ -36,6 +38,7 @@ router.post("/public/claim", upload.array("proofOwnFiles"), (req: Request, res: 
 
 router.get(
   '/lawyer-notifications',
+  firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.LAWYER, Firm_USER_ROLE.STAFF),
   viewController.getAllFirmLawyerNotification
 );
 
