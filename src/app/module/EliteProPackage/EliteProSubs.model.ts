@@ -19,6 +19,7 @@ export interface IEliteProPackage extends Document {
   isActive: boolean;
   stripePriceId: string | null;
   stripeProductId: string;
+  monthlyCaseContacts: number;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -41,6 +42,7 @@ const EliteProPackageSchema = new Schema<IEliteProPackage>(
     name: { type: String, required: true, trim: true, maxlength: 150 },
     slug: { type: String, trim: true, lowercase: true, unique: true },
     price: { type: PriceSchema, required: true },
+    monthlyCaseContacts: { type: Number, default: 0 },
     billingCycle: {
       type: String,
       enum: ["monthly", "yearly", "weekly", "one_time"],
