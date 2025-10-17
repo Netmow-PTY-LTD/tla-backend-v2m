@@ -15,6 +15,7 @@ export interface ISubscription extends Document {
   price: IPrice;
   monthlyCaseContacts: number;
   billingCycle: BillingCycle;
+  monthlyCaseContacts: number;
   features: string[];
   description?: string;
   isActive: boolean;
@@ -55,7 +56,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     isActive: { type: Boolean, default: true },
     stripePriceId: { type: String, default: null },
     stripeProductId: { type: String, required: true }, // <- add this
-     deletedAt: { type: Date, default: null },
+    deletedAt: { type: Date, default: null },
   },
   {
     timestamps: true,
