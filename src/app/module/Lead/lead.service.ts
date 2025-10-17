@@ -1568,6 +1568,7 @@ export const getAllLeadFromDB = async (
     };
   }
 
+
   const page = options.page || 1;
   const limit = options.limit || 10;
   const skip = (page - 1) * limit;
@@ -1583,11 +1584,21 @@ export const getAllLeadFromDB = async (
     select: 'location.coordinates',
   });
 
+
+  /* 
+  
+  1. nationwide service exlcude from other location type
+    2. travel time and distance wise service id should not be same
+
+  
+  */
+
   // Step 1: Use `Promise.all` to handle async operations correctly
   await Promise.all(
     userLocationService.map(async (loc) => {
       if (loc.locationType === "nation_wide") {
         const leads = await Lead.find({
+          countryId: userProfile.country,
           serviceId: { $in: loc.serviceIds },
           userProfileId: { $ne: userProfile._id },
           status: 'approved',
@@ -1602,27 +1613,23 @@ export const getAllLeadFromDB = async (
 
       if (loc.locationType === "travel_time") {
         const leads = await Lead.find({
+          countryId: userProfile.country,
           serviceId: { $in: loc.serviceIds },
           userProfileId: { $ne: userProfile._id },
           status: 'approved',
           responders: { $ne: userProfile._id },
         }).populate("userProfileId").populate('locationId').sort({ createdAt: 1 });  // Adjust sort field if necessary
 
-
-
         const maxMinutes = loc.traveltime ? parseInt(loc.traveltime, 10) : 15;
         const mode = loc.travelmode ? loc.travelmode as 'driving' | 'walking' | 'transit' : 'driving';
-
         const filteredLeads = await filterByTravelTime((loc.locationGroupId as any)?.location?.coordinates, leads, maxMinutes, mode);
-
-
-
         globalLeads.push(...filteredLeads);
 
       }
 
       if (loc.locationType === "distance_wise") {
         const leads = await Lead.find({
+          countryId: userProfile.country,
           serviceId: { $in: loc.serviceIds },
           userProfileId: { $ne: userProfile._id },
           status: 'approved',
@@ -1630,14 +1637,10 @@ export const getAllLeadFromDB = async (
         }).populate("userProfileId").populate('locationId').sort({ createdAt: 1 });  // Adjust sort field if necessary
 
         console.log('Distance-wise leads before filtering:', leads.length);
-
-
+     
         const maxDistanceKm = loc.rangeInKm ?? 15;
         const filteredLeads = filterByDistanceKm((loc.locationGroupId as any)?.location?.coordinates, leads, maxDistanceKm);
-
-
         globalLeads.push(...filteredLeads);
-
 
       }
     })

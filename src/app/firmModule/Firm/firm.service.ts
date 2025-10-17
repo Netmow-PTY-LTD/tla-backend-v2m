@@ -271,8 +271,6 @@ const getFirmDasboardStats = async (userId: string) => {
 
 
 
-
-
 export const firmService = {
   createFirm,
   listFirms,

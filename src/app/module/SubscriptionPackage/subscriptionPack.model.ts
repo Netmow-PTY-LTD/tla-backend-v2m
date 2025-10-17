@@ -13,6 +13,7 @@ export interface ISubscription extends Document {
   name: string;
   slug: string;
   price: IPrice;
+  monthlyCaseContacts: number;
   billingCycle: BillingCycle;
   features: string[];
   description?: string;
@@ -41,6 +42,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     name: { type: String, required: true, trim: true, maxlength: 150 },
     slug: { type: String, trim: true, lowercase: true, unique: true },
     price: { type: PriceSchema, required: true },
+    monthlyCaseContacts: { type: Number, default: 0 },
 
     billingCycle: {
       type: String,

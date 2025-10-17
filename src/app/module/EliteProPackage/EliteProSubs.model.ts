@@ -13,6 +13,7 @@ export interface IEliteProPackage extends Document {
   name: string;
   slug: string;
   price: IPrice;
+  monthlyCaseContacts: number;
   billingCycle: BillingCycle;
   features: string[];
   description?: string;
@@ -36,11 +37,14 @@ const PriceSchema = new Schema<IPrice>(
   { _id: false }
 );
 
+
+
 const EliteProPackageSchema = new Schema<IEliteProPackage>(
   {
     name: { type: String, required: true, trim: true, maxlength: 150 },
     slug: { type: String, trim: true, lowercase: true, unique: true },
     price: { type: PriceSchema, required: true },
+    monthlyCaseContacts: { type: Number, default: 0 },
     billingCycle: {
       type: String,
       enum: ["monthly", "yearly", "weekly", "one_time"],
@@ -61,6 +65,9 @@ const EliteProPackageSchema = new Schema<IEliteProPackage>(
     versionKey: false,
   }
 );
+
+
+
 
 // Indexes
 EliteProPackageSchema.index({ slug: 1 });
