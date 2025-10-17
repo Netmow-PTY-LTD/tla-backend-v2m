@@ -111,11 +111,46 @@ const createClaimRequest = catchAsync(async (req, res) => {
 
 
 
+
+
+const getAllFirmLawyerNotification = catchAsync(async (req, res) => {
+  const query = req.query;
+  const result = await viewService.getLawyerNotificationsFromDB(req.user.userId, query);
+
+  if (!Array.isArray(result) || result.length === 0) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'No notifications found.',
+      data: [],
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All lawyer notifications retrieved successfully.',
+    data: result,
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
 export const viewController = {
 
   getSingleFirmProfileBySlug,
   checkFirmName,
   getAllFirm,
-  createClaimRequest
+  createClaimRequest,
+  getAllFirmLawyerNotification
 
 };

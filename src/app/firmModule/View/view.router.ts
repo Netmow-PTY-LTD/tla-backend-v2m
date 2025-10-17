@@ -34,4 +34,11 @@ router.post("/public/claim", upload.array("proofOwnFiles"), (req: Request, res: 
 
 
 
+router.get(
+  '/lawyer-notifications',
+  viewController.getAllFirmLawyerNotification
+);
+
+
+
 export const firmViewRouter = router;

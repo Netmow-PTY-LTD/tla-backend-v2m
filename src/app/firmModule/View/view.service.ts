@@ -14,6 +14,9 @@ import { AppError } from "../../errors/error";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
+import { Notification } from "../../module/Notification/notification.model";
+import UserProfile from "../../module/User/user.model";
+import { sendNotFoundResponse } from "../../errors/custom.error";
 
 
 
@@ -40,7 +43,7 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
       select: 'zipcode postalCode countryCode latitude longitude -_id',
     }).populate({
       path: 'lawyers',
-      populate: { path: "serviceIds" ,model:"Service" }
+      populate: { path: "serviceIds", model: "Service" }
     }) // user refs
     .lean();
 
@@ -344,11 +347,61 @@ const createClaimIntoDB = async (
 
 
 
+
+const getLawyerNotificationsFromDB = async (
+  userId: string,
+  query: Record<string, any>
+) => {
+  // 1️ Validate and get firm user
+  const user = await FirmUser.findById(userId).select('firmProfileId');
+  if (!user) {
+    return sendNotFoundResponse('User not found');
+  }
+
+  const firmProfileId = user.firmProfileId;
+  if (!firmProfileId) {
+    return sendNotFoundResponse('User does not belong to any firm');
+  }
+
+  // 2️ Get all lawyers under the same firm
+  const lawyers = await UserProfile.find({ firmProfileId }).select('user');
+  if (!lawyers.length) {
+    return [];
+  }
+
+  const lawyerUserIds = lawyers.map(l => l.user);
+
+  // 3️ Build base filter
+  const filter: Record<string, any> = { userId: { $in: lawyerUserIds } };
+
+  // Optional filters (kept safe & flexible)
+  if (query.isRead !== undefined) {
+    filter.isRead = query.isRead === 'true';
+  }
+  if (query.module) {
+    filter.module = query.module;
+  }
+
+  // 4️ Fetch notifications
+  const notifications = await Notification.find(filter).populate('toUser').populate('userId')
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return notifications;
+};
+
+
+
+
+
+
+
 export const viewService = {
   getSingleFirmProfileBySlug,
   checkFirmName,
   getAllFirmFromDB,
-  createClaimIntoDB
+  createClaimIntoDB,
+  getLawyerNotificationsFromDB
 };
 
 
