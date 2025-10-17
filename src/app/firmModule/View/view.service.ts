@@ -383,7 +383,13 @@ const getLawyerNotificationsFromDB = async (
   }
 
   // 4️ Fetch notifications
-  const notifications = await Notification.find(filter).populate('toUser').populate('userId')
+  const notifications = await Notification.find(filter).populate({
+    path: 'toUser',
+    populate: { path: 'profile', select: 'name  profilePicture' },
+  }).populate({
+    path: 'userId',
+    populate: { path: 'profile', select: 'name  profilePicture' },
+  })
     .sort({ createdAt: -1 })
     .lean();
 
