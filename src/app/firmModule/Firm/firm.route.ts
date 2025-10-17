@@ -12,6 +12,13 @@ router.get(
   firmController.getFirmInfo,
 );
 
+
+router.get(
+  '/dashboard/stats',
+  firmAuth(Firm_USER_ROLE.STAFF,Firm_USER_ROLE.ADMIN),
+  firmController.getFirmDasboardStats,
+);
+
 router.put(
   '/firmInfo/update',
   upload.single('companyLogo'),
