@@ -29,7 +29,7 @@ const userLocationServiceMapSchema = new Schema<IUserLocationServiceMap>(
       default: 0,
     },
     traveltime: {
-      type: String
+      type: Number
     },
     travelmode: {
       type: String,
