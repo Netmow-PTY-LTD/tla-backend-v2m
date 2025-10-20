@@ -13,8 +13,8 @@ export interface ISubscription extends Document {
   name: string;
   slug: string;
   price: IPrice;
+   monthlyCaseContacts: number;
   billingCycle: BillingCycle;
-  monthlyCaseContacts: number;
   features: string[];
   description?: string;
   isActive: boolean;
