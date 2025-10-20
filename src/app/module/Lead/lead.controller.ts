@@ -114,7 +114,7 @@ const updateSingleLead = catchAsync(async (req, res) => {
 // });
 
 
-const getAllLead = catchAsync(async (req, res) => {
+const getAllLeadForLawyerPanel = catchAsync(async (req, res) => {
   const timer = startQueryTimer();
   const userId = req.user.userId;
 
@@ -160,7 +160,7 @@ const getAllLead = catchAsync(async (req, res) => {
 
 
   // Fetch filtered results
-  const result = await leadService.getAllLeadFromDB(userId, filters, options);
+  const result = await leadService.getAllLeadForLawyerPanel(userId, filters, options);
   const queryTime = timer.endQueryTimer();
 
   const data = result.data || [];
@@ -349,7 +349,7 @@ export const leadController = {
   getSingleLead,
   deleteSingleLead,
   updateSingleLead,
-  getAllLead,
+  getAllLeadForLawyerPanel,
   getMyAllLead,
   getAllLeadForAdmin,
   closeLead,

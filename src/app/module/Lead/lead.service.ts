@@ -868,10 +868,15 @@ type PaginatedResult<T> = {
 
 
 
-//  ----------------- get all my lead for lawyer dashboard version-3 --------------------
+
+//  ----------------- GET ALL MY LEAD FOR LAWYER PANEL --------------------
 
 
-const getAllLeadFromDB = async (
+
+ 
+
+
+const getAllLeadForLawyerPanel = async (
   userId: string,
   filters: any = {},
   options: {
@@ -1302,6 +1307,7 @@ const getAllLeadFromDB = async (
     leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
   };
 };
+
 
 
 
@@ -1866,7 +1872,8 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
 
 export const leadService = {
   CreateLeadIntoDB,
-  getAllLeadFromDB,
+  // getAllLeadFromDB,
+  getAllLeadForLawyerPanel,
   getSingleLeadFromDB,
   updateLeadIntoDB,
   deleteLeadFromDB,
