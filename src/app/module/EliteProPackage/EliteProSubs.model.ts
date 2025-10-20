@@ -13,13 +13,13 @@ export interface IEliteProPackage extends Document {
   name: string;
   slug: string;
   price: IPrice;
+  monthlyCaseContacts: number;
   billingCycle: BillingCycle;
   features: string[];
   description?: string;
   isActive: boolean;
   stripePriceId: string | null;
   stripeProductId: string;
-  monthlyCaseContacts: number;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -36,6 +36,8 @@ const PriceSchema = new Schema<IPrice>(
   },
   { _id: false }
 );
+
+
 
 const EliteProPackageSchema = new Schema<IEliteProPackage>(
   {
@@ -63,6 +65,9 @@ const EliteProPackageSchema = new Schema<IEliteProPackage>(
     versionKey: false,
   }
 );
+
+
+
 
 // Indexes
 EliteProPackageSchema.index({ slug: 1 });
