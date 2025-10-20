@@ -225,7 +225,6 @@ const firmStatus = async (
 
 
 
-
 export const adminFirmService = {
     createFirm,
     listFirms,

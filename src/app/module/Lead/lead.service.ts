@@ -2006,76 +2006,104 @@ export const getAllLeadFromDB = async (
 
   console.log('filter data:', filters);
 
-if (filters.coordinates) {
-  const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
+  if (filters.coordinates) {
+    const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
 
 
-  if (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1])) {
-    throw new Error("Invalid coordinates provided for location filtering");
-  }
+    if (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1])) {
+      throw new Error("Invalid coordinates provided for location filtering");
+    }
 
-  const supportedTypes = ["draw_on_area", "travel_time", "nation_wide", "distance_wise"];
+    const supportedTypes = ["draw_on_area", "travel_time", "nation_wide", "distance_wise"];
 
-  if (locationType && supportedTypes.includes(locationType)) {
-    let nearbyLocationIds: Types.ObjectId[] = [];
+    if (locationType && supportedTypes.includes(locationType)) {
+      let nearbyLocationIds: Types.ObjectId[] = [];
 
-    // ------------------ CASE: DISTANCE BASED ------------------
-    if (locationType === "distance_wise") {
-      const radiusInMeters = rangeInKm * 1000;
+      // ------------------ CASE: DISTANCE BASED ------------------
+      if (locationType === "distance_wise") {
+        const radiusInMeters = rangeInKm * 1000;
 
-      const nearbyZips = await ZipCode.aggregate([
-        {
-          $geoNear: {
-            near: { type: "Point", coordinates: [coord[0], coord[1]] },
-            distanceField: "distance",
-            maxDistance: radiusInMeters,
-            spherical: true,
+        const nearbyZips = await ZipCode.aggregate([
+          {
+            $geoNear: {
+              near: { type: "Point", coordinates: [coord[0], coord[1]] },
+              distanceField: "distance",
+              maxDistance: radiusInMeters,
+              spherical: true,
+            },
           },
-        },
-        { $project: { _id: 1 } },
-      ]);
+          { $project: { _id: 1 } },
+        ]);
 
-      nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
-    }
+        nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+      }
 
-    // ------------------ CASE: DRAW-ON-AREA (Polygon) ------------------
-    else if (locationType === "draw_on_area" && filters.coordinates.polygon) {
-      const { polygon } = filters.coordinates;
-      const nearbyZips = await ZipCode.find({
-        location: {
-          $geoWithin: {
-            $geometry: polygon,
+      // ------------------ CASE: DRAW-ON-AREA (Polygon) ------------------
+      else if (locationType === "draw_on_area" && filters.coordinates.polygon) {
+        const { polygon } = filters.coordinates;
+        const nearbyZips = await ZipCode.find({
+          location: {
+            $geoWithin: {
+              $geometry: polygon,
+            },
           },
-        },
-      }).select("_id");
+        }).select("_id");
 
-      nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
-    }
+        nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+      }
 
-    // ------------------ CASE: TRAVEL-TIME BASED ------------------
-    else if (locationType === "travel_time") {
-      const { travelmode = "driving", traveltime = 15 } = filters.coordinates;
-      // TODO: integrate Google or OpenRouteService API here
-    }
+      // ------------------ CASE: TRAVEL-TIME BASED ------------------
+      else if (locationType === "travel_time") {
+        const { travelmode = "driving", traveltime = 15, coord } = filters.coordinates;
 
-    // ------------------ CASE: NATION-WIDE ------------------
-    else if (locationType === "nation_wide") {
-      // No filtering
-    }
+        console.log('Travel-time filter params:', { travelmode, traveltime, coord });
+        // Fetch all zip codes once
+        const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
+
+        // Prepare destinations for travel API
+        const destinations = allZips.map(z => ({
+          lat: z.location?.coordinates?.[1],
+          lng: z.location?.coordinates?.[0],
+          zipCodeId: z._id
+        }));
 
 
-    //  Deduplicate as ObjectIds safely
-    const uniqueIds = Array.from(
-      new Set(nearbyLocationIds.map((id) => id.toString()))
-    ).map((idStr) => new mongoose.Types.ObjectId(idStr));
+        console.log(`Fetching travel info from (${coord[1]}, ${coord[0]}) using mode: ${travelmode}`);
 
-    if (uniqueIds.length > 0) {
-      conditions.push({ locationId: { $in: uniqueIds } });
+        // Fetch batch travel info
+        const travelResults = await getBatchTravelInfo(
+          { lat: coord[1], lng: coord[0] },
+          destinations,
+          travelmode,
+          25 // batch size
+        );
+
+        console.log('Travel Results fetched:', travelResults.length);
+
+        // Filter destinations within TravelTime
+        nearbyLocationIds = travelResults
+          .filter(r => r.durationSeconds <= traveltime * 60)
+          .map(r => r.zipCodeId);
+
+
+      }
+
+      // ------------------ CASE: NATION-WIDE ------------------
+      else if (locationType === "nation_wide") {
+        // No filtering
+      }
+
+
+      //  Deduplicate as ObjectIds safely
+      const uniqueIds = Array.from(
+        new Set(nearbyLocationIds.map((id) => id.toString()))
+      ).map((idStr) => new mongoose.Types.ObjectId(idStr));
+
+      if (uniqueIds.length > 0) {
+        conditions.push({ locationId: { $in: uniqueIds } });
+      }
     }
   }
-}
-
-
 
 
 

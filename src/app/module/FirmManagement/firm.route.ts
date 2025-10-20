@@ -25,7 +25,6 @@ router.put(
 );
 
 
-
 router.delete(
     '/:id/delete',
     auth(USER_ROLE.ADMIN),
@@ -33,13 +32,11 @@ router.delete(
 );
 
 
-
 router.patch(
     '/:id/status',
     auth(USER_ROLE.ADMIN),
     adminFirmController.firmStatus,
 );
-
 
 
 export const adminFirmRouter = router;
