@@ -22,9 +22,6 @@ const getFirmDasboardStats = catchAsync(async (req, res) => {
 
 
 
-
-
-
 const getFirmInfo = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const firm = await firmService.getFirmInfoFromDB(userId);
