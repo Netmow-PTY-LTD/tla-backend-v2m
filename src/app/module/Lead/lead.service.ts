@@ -2002,6 +2002,87 @@ export const getAllLeadFromDB = async (
     if (startDate) matchStage.createdAt = { $gte: startDate };
   }
 
+
+
+  console.log('filter data:', filters);
+
+if (filters.coordinates) {
+  const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
+
+
+  if (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1])) {
+    throw new Error("Invalid coordinates provided for location filtering");
+  }
+
+  const supportedTypes = ["draw_on_area", "travel_time", "nation_wide", "distance_wise"];
+
+  if (locationType && supportedTypes.includes(locationType)) {
+    let nearbyLocationIds: Types.ObjectId[] = [];
+
+    // ------------------ CASE: DISTANCE BASED ------------------
+    if (locationType === "distance_wise") {
+      const radiusInMeters = rangeInKm * 1000;
+
+      const nearbyZips = await ZipCode.aggregate([
+        {
+          $geoNear: {
+            near: { type: "Point", coordinates: [coord[0], coord[1]] },
+            distanceField: "distance",
+            maxDistance: radiusInMeters,
+            spherical: true,
+          },
+        },
+        { $project: { _id: 1 } },
+      ]);
+
+      nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+    }
+
+    // ------------------ CASE: DRAW-ON-AREA (Polygon) ------------------
+    else if (locationType === "draw_on_area" && filters.coordinates.polygon) {
+      const { polygon } = filters.coordinates;
+      const nearbyZips = await ZipCode.find({
+        location: {
+          $geoWithin: {
+            $geometry: polygon,
+          },
+        },
+      }).select("_id");
+
+      nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+    }
+
+    // ------------------ CASE: TRAVEL-TIME BASED ------------------
+    else if (locationType === "travel_time") {
+      const { travelmode = "driving", traveltime = 15 } = filters.coordinates;
+      // TODO: integrate Google or OpenRouteService API here
+    }
+
+    // ------------------ CASE: NATION-WIDE ------------------
+    else if (locationType === "nation_wide") {
+      // No filtering
+    }
+
+
+    //  Deduplicate as ObjectIds safely
+    const uniqueIds = Array.from(
+      new Set(nearbyLocationIds.map((id) => id.toString()))
+    ).map((idStr) => new mongoose.Types.ObjectId(idStr));
+
+    if (uniqueIds.length > 0) {
+      conditions.push({ locationId: { $in: uniqueIds } });
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
   // ----------------------- AGGREGATION PIPELINE -----------------------
   const aggregationPipeline: any[] = [
     { $match: matchStage },
