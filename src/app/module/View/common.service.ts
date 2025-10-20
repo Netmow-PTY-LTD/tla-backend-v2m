@@ -20,6 +20,8 @@ import { IUser } from '../Auth/auth.interface';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
+import { IUserSubscription } from '../CreditPayment/subscriptions.model';
+import { ISubscription } from '../SubscriptionPackage/subscriptionPack.model';
 // import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
@@ -238,6 +240,261 @@ import { FirmProfile } from '../../firmModule/Firm/firm.model';
 //   }
 // };
 
+
+
+
+
+
+//  previouse logic
+// const createLawyerResponseAndSpendCredit = async (
+//   userId: Types.ObjectId,
+//   payload: {
+//     leadId: Types.ObjectId;
+//     credit: number;
+//     serviceId: Types.ObjectId;
+//   },
+// ) => {
+//   const io = getIO();
+//   const session = await mongoose.startSession();
+
+//   try {
+//     // Find user profile
+//     let user = await UserProfile.findOne({ user: userId }).populate('user');
+//     if (!user) {
+//       return {
+//         success: false,
+//         status: HTTP_STATUS.NOT_FOUND,
+//         message: 'User not found',
+//       };
+//     }
+
+//     // 2️⃣ Check if account status is approved
+//     const accountStatus = (user.user as IUser)?.accountStatus; // if using User ref
+//     // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
+
+//     if (accountStatus !== USER_STATUS.APPROVED) {
+//       return {
+//         success: false,
+//         status: HTTP_STATUS.FORBIDDEN,
+//         message:
+//           'Your account is not approved yet. Please wait until it is approved by the admin.',
+//       };
+//     }
+
+//     const { leadId, credit, serviceId } = payload;
+
+//     if (user.credits < credit) {
+//       // User has saved cards — suggest automatic credit purchase
+//       const creditPackages = await CreditPackage.find({ isActive: true }).sort({
+//         credit: 1,
+//       });
+//       const requiredCredits = Math.max(0, credit - user.credits);
+//       const recommendedPackage = creditPackages.find(
+//         (pkg) => pkg.credit >= requiredCredits,
+//       );
+
+//       // Check if user has saved payment methods
+//       const savedCards = await PaymentMethod.find({
+//         userProfileId: user._id,
+//         isActive: true,
+//         isDefault: true,
+//       });
+
+//       if (savedCards.length === 0) {
+//         // No saved card — tell frontend to ask user to add a card first
+//         return {
+//           success: false,
+//           status: HTTP_STATUS.PRECONDITION_FAILED, // 412 or 400 as you prefer
+//           message:
+//             'Insufficient credits and no saved payment method. Please add a card first.',
+//           needAddCard: true,
+//           requiredCredits: requiredCredits,
+//           recommendedPackage,
+//         };
+//       }
+
+//       return {
+//         success: false,
+//         status: HTTP_STATUS.PAYMENT_REQUIRED, // 402 or 400 as you prefer
+//         message: 'Insufficient credits. Auto-purchase recommended.',
+//         autoPurchaseCredit: true,
+//         requiredCredits,
+//         recommendedPackage,
+//         // Optionally send info needed for auto-purchase like savedCardId
+//         savedCardId: savedCards[0]._id,
+//       };
+//     }
+
+//     let resultLeadResponse: ILeadResponse | null = null;
+//     // let leadUser;
+
+//     const leadUser = await Lead.findById(leadId)
+//       .populate({ path: 'userProfileId', select: 'name user' })
+//       .session(session);
+
+//     // Type assertion to safely access user field
+//     const populatedLeadUser = leadUser as typeof leadUser & {
+//       userProfileId: {
+//         _id: Types.ObjectId;
+//         name: string;
+//         user: Types.ObjectId;
+//       };
+//     };
+
+//     await session.withTransaction(async () => {
+//       user = await UserProfile.findOne({ user: userId }).session(session);
+//       if (!user) {
+//         throw new Error('User not found inside transaction');
+//       }
+
+//       const creditsBefore = user.credits;
+//       user.credits -= credit;
+//       const creditsAfter = user.credits;
+
+//       await user.save({ session });
+
+//       await CreditTransaction.create(
+//         [
+//           {
+//             userProfileId: user._id,
+//             type: 'usage',
+//             credit: -credit,
+//             creditsBefore,
+//             creditsAfter,
+//             description: 'Credits are deducted upon initiating case contact',
+//             relatedLeadId: leadId,
+//           },
+//         ],
+//         { session },
+//       );
+
+//       const [leadResponse] = await LeadResponse.create(
+//         [
+//           {
+//             leadId,
+//             // userProfileId: user._id,
+//             responseBy: user._id,
+//             serviceId,
+//           },
+//         ],
+//         { session },
+//       );
+
+//       await Lead.findOneAndUpdate(
+//         { _id: leadId }, // Find the lead by its _id
+//         [
+//           {
+//             $set: {
+//               responders: {
+//                 $cond: [
+//                   { $in: [user._id, '$responders'] },
+//                   '$responders', // If already exists, keep as is
+//                   { $concatArrays: ['$responders', [user._id]] }, // Else push
+//                 ],
+//               },
+//             },
+//           },
+//         ],
+//         { new: true, session },
+//       );
+//       // Log: Credit spent
+//       await logActivity({
+//         createdBy: userId,
+//         activityType: 'credit_spent',
+//         module: 'response',
+//         objectId: leadResponse._id,
+//         activityNote: `Spent ${credit} credits to contact`,
+//         extraField: {
+//           creditsBefore,
+//           creditsAfter,
+//           creditSpent: credit,
+//           leadId,
+//         },
+//         session,
+//       });
+//       // Log: Response created
+//       await logActivity({
+//         createdBy: userId,
+//         activityType: 'create',
+//         module: 'response',
+//         objectId: leadResponse._id,
+//         activityNote: `Created response`,
+//         extraField: {
+//           leadId,
+//           serviceId,
+//         },
+//         session,
+//       });
+
+//       // Return the leadResponse in the outer scope
+//       resultLeadResponse = leadResponse; // declare this before transaction
+
+//       await createNotification({
+//         userId: populatedLeadUser?.userProfileId?.user,
+//         toUser: userId,
+//         title: "You've received a new contact request",
+//         message: `${user.name} wants to connect with you.`,
+//         module: 'lead', // module relates to the lead domain
+//         type: 'contact', // type indicates a contact request notification
+//         link: `/client/dashboard/my-cases/${leadId}`,
+//         session,
+//       });
+
+//       // 4. Create notification for the lawyer
+//       await createNotification({
+//         userId: userId,
+//         toUser: populatedLeadUser?.userProfileId?.user,
+//         title: 'Your message was sent',
+//         message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
+//         module: 'response', // module relates to response domain
+//         type: 'create', // type for creating a response/contact
+//         link: `/lawyer/dashboard/my-responses?responseId=${leadResponse._id}`,
+//         session,
+//       });
+//     });
+
+//     // 📡 --------------- Emit socket notifications -----------------------------------------
+//     io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit(
+//       'notification',
+//       {
+//         userId: populatedLeadUser?.userProfileId?.user,
+//         toUser: userId,
+//         title: "You've received a new contact request",
+//         message: `${user.name} wants to connect with you.`,
+//         module: 'lead', // module relates to the lead domain
+//         type: 'contact', // type indicates a contact request notification
+//         link: `/client/dashboard/my-cases/${leadId}`,
+//       },
+//     );
+//     io.to(`user:${userId}`).emit('notification', {
+//       userId: userId,
+//       toUser: populatedLeadUser?.userProfileId?.user,
+//       title: 'Your message was sent',
+//       message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
+//       module: 'response', // module relates to response domain
+//       type: 'create', // type for creating a response/contact
+//       link: `/lawyer/dashboard/my-responses?responseId=${(resultLeadResponse as any)?._id}`,
+//     });
+
+//     return {
+//       success: true,
+//       message: 'Contact initiated and credits deducted successfully',
+//       data: {
+//         responseId: (resultLeadResponse as any)?._id,
+//       },
+//     };
+//   } catch (error) {
+//     console.error('Transaction failed:', error);
+//     throw error;
+//   } finally {
+//     await session.endSession();
+//   }
+// };
+
+
+
+
+//    Create lawyer response and spend credit
 const createLawyerResponseAndSpendCredit = async (
   userId: Types.ObjectId,
   payload: {
@@ -250,8 +507,10 @@ const createLawyerResponseAndSpendCredit = async (
   const session = await mongoose.startSession();
 
   try {
-    // Find user profile
-    let user = await UserProfile.findOne({ user: userId }).populate('user');
+    let user = await UserProfile.findOne({ user: userId })
+      .populate('user')
+      .populate({ path: 'subscriptionId', populate: { path: 'subscriptionPackageId' } });
+
     if (!user) {
       return {
         success: false,
@@ -260,10 +519,7 @@ const createLawyerResponseAndSpendCredit = async (
       };
     }
 
-    // 2️⃣ Check if account status is approved
-    const accountStatus = (user.user as IUser)?.accountStatus; // if using User ref
-    // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
-
+    const accountStatus = (user.user as IUser)?.accountStatus;
     if (accountStatus !== USER_STATUS.APPROVED) {
       return {
         success: false,
@@ -275,56 +531,82 @@ const createLawyerResponseAndSpendCredit = async (
 
     const { leadId, credit, serviceId } = payload;
 
-    if (user.credits < credit) {
-      // User has saved cards — suggest automatic credit purchase
-      const creditPackages = await CreditPackage.find({ isActive: true }).sort({
-        credit: 1,
-      });
-      const requiredCredits = Math.max(0, credit - user.credits);
-      const recommendedPackage = creditPackages.find(
-        (pkg) => pkg.credit >= requiredCredits,
-      );
+    // --- 1️ Determine payment method: credit vs subscription
+    let useCredit = false;
+    let subscriptionValid = false;
+    let subscriptionToUse: IUserSubscription | null = null;
 
-      // Check if user has saved payment methods
-      const savedCards = await PaymentMethod.find({
-        userProfileId: user._id,
-        isActive: true,
-        isDefault: true,
-      });
+    if (user?.subscriptionId) {
+      const subscription = user.subscriptionId as unknown as IUserSubscription;
+      const pkg = subscription.subscriptionPackageId as unknown as ISubscription;
 
-      if (savedCards.length === 0) {
-        // No saved card — tell frontend to ask user to add a card first
-        return {
-          success: false,
-          status: HTTP_STATUS.PRECONDITION_FAILED, // 412 or 400 as you prefer
-          message:
-            'Insufficient credits and no saved payment method. Please add a card first.',
-          needAddCard: true,
-          requiredCredits: requiredCredits,
-          recommendedPackage,
-        };
+      if (subscription.status === 'active' && pkg) {
+        subscriptionValid = true;
+        subscriptionToUse = subscription;
+
+        const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        const usedContacts = await LeadResponse.countDocuments({
+          responseBy: user._id,
+          createdAt: { $gte: startOfMonth },
+          isSubscriptionUsed: true,
+        });
+
+        const contactLimit = pkg.monthlyCaseContacts || 0;
+        if (usedContacts >= contactLimit) {
+          useCredit = true; // limit exceeded
+        } else {
+          console.log(` Subscription contact used (${usedContacts + 1}/${contactLimit})`);
+        }
+      } else {
+        useCredit = true; // inactive subscription
       }
-
-      return {
-        success: false,
-        status: HTTP_STATUS.PAYMENT_REQUIRED, // 402 or 400 as you prefer
-        message: 'Insufficient credits. Auto-purchase recommended.',
-        autoPurchaseCredit: true,
-        requiredCredits,
-        recommendedPackage,
-        // Optionally send info needed for auto-purchase like savedCardId
-        savedCardId: savedCards[0]._id,
-      };
+    } else {
+      useCredit = true; // no subscription
     }
 
-    let resultLeadResponse: ILeadResponse | null = null;
-    // let leadUser;
+    // --- 2️ Handle credit validation & auto-purchase suggestion
+    if (useCredit) {
+      console.log(' Using credit for contact initiation');
+
+      if (user.credits < credit) {
+        const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
+        const requiredCredits = Math.max(0, credit - user.credits);
+        const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
+
+        const savedCards = await PaymentMethod.find({
+          userProfileId: user._id,
+          isActive: true,
+          isDefault: true,
+        });
+
+        if (savedCards.length === 0) {
+          return {
+            success: false,
+            status: HTTP_STATUS.PRECONDITION_FAILED,
+            message:
+              'Insufficient credits and no saved payment method. Please add a card first.',
+            needAddCard: true,
+            requiredCredits,
+            recommendedPackage,
+          };
+        }
+
+        return {
+          success: false,
+          status: HTTP_STATUS.PAYMENT_REQUIRED,
+          message: 'Insufficient credits. Auto-purchase recommended.',
+          autoPurchaseCredit: true,
+          requiredCredits,
+          recommendedPackage,
+          savedCardId: savedCards[0]._id,
+        };
+      }
+    }
 
     const leadUser = await Lead.findById(leadId)
       .populate({ path: 'userProfileId', select: 'name user' })
       .session(session);
 
-    // Type assertion to safely access user field
     const populatedLeadUser = leadUser as typeof leadUser & {
       userProfileId: {
         _id: Types.ObjectId;
@@ -333,55 +615,82 @@ const createLawyerResponseAndSpendCredit = async (
       };
     };
 
+    let resultLeadResponse: ILeadResponse | null = null;
+    let creditTx: any = null;
+
+    // --- 3️ Transaction block
     await session.withTransaction(async () => {
       user = await UserProfile.findOne({ user: userId }).session(session);
-      if (!user) {
-        throw new Error('User not found inside transaction');
+      if (!user) throw new Error('User not found inside transaction');
+
+      // If credits are used
+      if (useCredit) {
+        const creditsBefore = user.credits;
+        user.credits -= credit;
+        const creditsAfter = user.credits;
+
+        await user.save({ session });
+
+        const [tx] = await CreditTransaction.create(
+          [
+            {
+              userProfileId: user._id,
+              type: 'usage',
+              credit: -credit,
+              creditsBefore,
+              creditsAfter,
+              description: 'Credits deducted for lead contact',
+              relatedLeadId: leadId,
+            },
+          ],
+          { session },
+        );
+
+        creditTx = tx;
+
+        const [leadResponse] = await LeadResponse.create(
+          [
+            {
+              leadId,
+              responseBy: user._id,
+              serviceId,
+              isCreditUsed: true,
+              creditTransactionId: tx._id,
+            },
+          ],
+          { session },
+        );
+
+        resultLeadResponse = leadResponse;
+      } else {
+        //  Subscription used
+        const [leadResponse] = await LeadResponse.create(
+          [
+            {
+              leadId,
+              responseBy: user._id,
+              serviceId,
+              isSubscriptionUsed: true,
+              subscriptionId: subscriptionToUse?._id,
+            },
+          ],
+          { session },
+        );
+
+        resultLeadResponse = leadResponse;
       }
 
-      const creditsBefore = user.credits;
-      user.credits -= credit;
-      const creditsAfter = user.credits;
-
-      await user.save({ session });
-
-      await CreditTransaction.create(
-        [
-          {
-            userProfileId: user._id,
-            type: 'usage',
-            credit: -credit,
-            creditsBefore,
-            creditsAfter,
-            description: 'Credits are deducted upon initiating case contact',
-            relatedLeadId: leadId,
-          },
-        ],
-        { session },
-      );
-
-      const [leadResponse] = await LeadResponse.create(
-        [
-          {
-            leadId,
-            // userProfileId: user._id,
-            responseBy: user._id,
-            serviceId,
-          },
-        ],
-        { session },
-      );
-
+      // --- Update lead responders
       await Lead.findOneAndUpdate(
-        { _id: leadId }, // Find the lead by its _id
+        { _id: leadId },
         [
           {
             $set: {
               responders: {
                 $cond: [
                   { $in: [user._id, '$responders'] },
-                  '$responders', // If already exists, keep as is
-                  { $concatArrays: ['$responders', [user._id]] }, // Else push
+                  '$responders',
+                  { $concatArrays: ['$responders', [user._id]] },
                 ],
               },
             },
@@ -389,90 +698,101 @@ const createLawyerResponseAndSpendCredit = async (
         ],
         { new: true, session },
       );
-      // Log: Credit spent
-      await logActivity({
-        createdBy: userId,
-        activityType: 'credit_spent',
-        module: 'response',
-        objectId: leadResponse._id,
-        activityNote: `Spent ${credit} credits to contact`,
-        extraField: {
-          creditsBefore,
-          creditsAfter,
-          creditSpent: credit,
-          leadId,
-        },
-        session,
-      });
-      // Log: Response created
+
+      // --- Log activity
+      if (useCredit && creditTx) {
+        await logActivity({
+          createdBy: userId,
+          activityType: 'credit_spent',
+          module: 'response',
+          objectId: creditTx._id,
+          activityNote: `Spent ${credit} credits to contact`,
+          extraField: {
+            creditsBefore: creditTx.creditsBefore,
+            creditsAfter: creditTx.creditsAfter,
+            creditSpent: credit,
+            leadId,
+          },
+          session,
+        });
+      } else {
+        await logActivity({
+          createdBy: userId,
+          activityType: 'subscription_contact',
+          module: 'response',
+          objectId: resultLeadResponse?._id,
+          activityNote: 'Used subscription contact to initiate lead',
+          extraField: {
+            subscriptionId: subscriptionToUse?._id,
+            leadId,
+          },
+          session,
+        });
+      }
+
       await logActivity({
         createdBy: userId,
         activityType: 'create',
         module: 'response',
-        objectId: leadResponse._id,
-        activityNote: `Created response`,
-        extraField: {
-          leadId,
-          serviceId,
-        },
+        objectId: resultLeadResponse?._id,
+        activityNote: 'Created response',
+        extraField: { leadId, serviceId },
         session,
       });
 
-      // Return the leadResponse in the outer scope
-      resultLeadResponse = leadResponse; // declare this before transaction
-
+      // --- Notifications
       await createNotification({
         userId: populatedLeadUser?.userProfileId?.user,
         toUser: userId,
         title: "You've received a new contact request",
         message: `${user.name} wants to connect with you.`,
-        module: 'lead', // module relates to the lead domain
-        type: 'contact', // type indicates a contact request notification
+        module: 'lead',
+        type: 'contact',
         link: `/client/dashboard/my-cases/${leadId}`,
         session,
       });
 
-      // 4. Create notification for the lawyer
       await createNotification({
         userId: userId,
         toUser: populatedLeadUser?.userProfileId?.user,
         title: 'Your message was sent',
         message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
-        module: 'response', // module relates to response domain
-        type: 'create', // type for creating a response/contact
-        link: `/lawyer/dashboard/my-responses?responseId=${leadResponse._id}`,
+        module: 'response',
+        type: 'create',
+        link: `/lawyer/dashboard/my-responses?responseId=${resultLeadResponse?._id}`,
         session,
       });
     });
 
-    // 📡 --------------- Emit socket notifications -----------------------------------------
-    io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit(
-      'notification',
-      {
-        userId: populatedLeadUser?.userProfileId?.user,
-        toUser: userId,
-        title: "You've received a new contact request",
-        message: `${user.name} wants to connect with you.`,
-        module: 'lead', // module relates to the lead domain
-        type: 'contact', // type indicates a contact request notification
-        link: `/client/dashboard/my-cases/${leadId}`,
-      },
-    );
+    // --- 4️ Emit socket notifications
+    io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit('notification', {
+      userId: populatedLeadUser?.userProfileId?.user,
+      toUser: userId,
+      title: "You've received a new contact request",
+      message: `${user.name} wants to connect with you.`,
+      module: 'lead',
+      type: 'contact',
+      link: `/client/dashboard/my-cases/${leadId}`,
+    });
+
     io.to(`user:${userId}`).emit('notification', {
-      userId: userId,
+      userId,
       toUser: populatedLeadUser?.userProfileId?.user,
       title: 'Your message was sent',
       message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
-      module: 'response', // module relates to response domain
-      type: 'create', // type for creating a response/contact
+      module: 'response',
+      type: 'create',
       link: `/lawyer/dashboard/my-responses?responseId=${(resultLeadResponse as any)?._id}`,
     });
 
     return {
       success: true,
-      message: 'Contact initiated and credits deducted successfully',
+      message: useCredit
+        ? 'Contact initiated and credits deducted successfully'
+        : 'Contact initiated using active subscription',
       data: {
         responseId: (resultLeadResponse as any)?._id,
+        paymentType: useCredit ? 'credit' : 'subscription',
       },
     };
   } catch (error) {
@@ -482,6 +802,14 @@ const createLawyerResponseAndSpendCredit = async (
     await session.endSession();
   }
 };
+
+
+
+
+
+
+
+
 
 const getChatHistoryFromDB = async (responseId: string) => {
   // const messages = await ResponseWiseChatMessage.find({ responseId })

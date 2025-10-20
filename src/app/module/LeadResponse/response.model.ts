@@ -74,6 +74,32 @@ const responseSchema = new Schema<ILeadResponse>(
       default:null
     },
 
+    //  Credit-based response tracking
+    creditTransactionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'CreditTransaction', // links to credit deduction record
+      default: null,
+    },
+    
+    isCreditUsed: {
+      type: Boolean,
+      default: false,
+    },
+
+
+    //  NEW: Subscription-based response tracking
+    subscriptionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Subscription', // links to active subscription record
+      default: null,
+    },
+    isSubscriptionUsed: {
+      type: Boolean,
+      default: false,
+    },
+
+
+
   },
   {
     timestamps: true,
