@@ -156,7 +156,7 @@ const getFirmLawyerLeadStatsByDate = async (
 
   // 4️ Aggregate leads
   const stats = await Lead.aggregate([
-    { $match: {  userProfileId: { $in: lawyerIds } } },
+    { $match: { userProfileId: { $in: lawyerIds } } },
     {
       $group: {
         _id: { $dateToString: { format: dateFormat, date: '$createdAt' } },
@@ -165,7 +165,16 @@ const getFirmLawyerLeadStatsByDate = async (
         totalUnhired: { $sum: { $cond: [{ $eq: ['$isHired', false] }, 1, 0] } },
       }
     },
-    { $sort: { _id: 1 } } // Sort by date ascending
+    {
+      $project: {
+        _id: 0,
+        date: '$_id',
+        totalLeads: 1,
+        totalHired: 1,
+        totalUnhired: 1
+      }
+    },
+    { $sort: { date: 1 } } // Sort by date ascending
   ]);
 
   return stats;
