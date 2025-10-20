@@ -1738,7 +1738,7 @@ type PaginatedResult<T> = {
 //  ----------------- get all my lead for lawyer dashboard version-3 --------------------
 
 
-export const getAllLeadFromDB = async (
+ const getAllLeadFromDB = async (
   userId: string,
   filters: any = {},
   options: {
@@ -1764,8 +1764,6 @@ export const getAllLeadFromDB = async (
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
   const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id });
-
-
 
 
 
@@ -1797,12 +1795,7 @@ export const getAllLeadFromDB = async (
   const drawOnAreaServiceIds = locationServiceByType[LocationType.DRAW_ON_AREA];
 
 
-  console.log('Service IDs by Location Type:', {
-    nationwideServiceIds,
-    distanceWiseServiceIds,
-    travelTimeServiceIds,
-    drawOnAreaServiceIds,
-  });
+
 
 
 
@@ -1872,13 +1865,12 @@ export const getAllLeadFromDB = async (
 
 
 
-
   // 3 Travel-time
 
   if (travelTimeServiceIds.length > 0) {
     // Fetch all zip codes once
     const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
-    console.log('Total Zip Codes fetched for Travel Time:', allZips.length);
+
 
     // Prepare destinations for travel API
     const destinations = allZips.map(z => ({
@@ -1907,7 +1899,7 @@ export const getAllLeadFromDB = async (
         : Number(loc.traveltime) || 15; // default 15 minutes if NaN
 
 
-      console.log(`Fetching travel info from (${userLat}, ${userLng}) using mode: ${travelMode}`);
+    
 
       // Fetch batch travel info
       const travelResults = await getBatchTravelInfo(
@@ -1917,14 +1909,13 @@ export const getAllLeadFromDB = async (
         25 // batch size
       );
 
-      console.log('Travel Results fetched:', travelResults.length);
-
+     
       // Filter destinations within maxTravelTime
       const nearbyIds = travelResults
         .filter(r => r.durationSeconds <= maxTravelTime * 60)
         .map(r => r.zipCodeId);
 
-      console.log(`Found ${nearbyIds.length} nearby locations within ${maxTravelTime} minutes for reference location ${loc.locationGroupId}`);
+   
       validLocationIds.push(...nearbyIds);
     }
 
@@ -2004,7 +1995,7 @@ export const getAllLeadFromDB = async (
 
 
 
-  console.log('filter data:', filters);
+  
 
   if (filters.coordinates) {
     const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
@@ -2085,9 +2076,11 @@ export const getAllLeadFromDB = async (
           .filter(r => r.durationSeconds <= traveltime * 60)
           .map(r => r.zipCodeId);
 
+        console.log(`Found ${nearbyLocationIds.length} nearby locations within ${traveltime} minutes for travel-time filter`);
+
 
       }
-
+      
       // ------------------ CASE: NATION-WIDE ------------------
       else if (locationType === "nation_wide") {
         // No filtering
@@ -2145,12 +2138,6 @@ export const getAllLeadFromDB = async (
   }
 
   let leads = await Lead.aggregate(aggregationPipeline);
-
-  // ----------------------- DYNAMIC TRAVEL-TIME FILTER -----------------------
-  // if (filters.coordinates) {
-  //   const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
-  //   leads = await filterByTravelTime(coord, leads, maxMinutes, mode);
-  // }
 
 
   // ----------------------- PAGINATION -----------------------
