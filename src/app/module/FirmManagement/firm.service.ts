@@ -206,7 +206,20 @@ export const deleteFirm = async (id: string) => {
 
 
 
+// firm status update
+const firmStatus = async (
+    id: string,
+    status: 'pending' | 'approved' | 'rejected' | 'suspended'
+) => {
+    const firm = await FirmProfile.findById(id);
+    if (!firm) {
+        throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm not found');
+    }
 
+    firm.status = status;
+    await firm.save();
+    return firm;
+};
 
 
 
@@ -219,6 +232,7 @@ export const adminFirmService = {
     getFirmById,
     updateFirm,
     deleteFirm,
+    firmStatus
 
 
 };

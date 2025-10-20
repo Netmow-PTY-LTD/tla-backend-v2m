@@ -74,6 +74,12 @@ const firmProfileSchema = new Schema<IFirmProfile>(
       },
     ],
 
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'suspended'],
+      default: 'pending',
+    },
+
     // Permissions
     createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },

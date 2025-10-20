@@ -104,11 +104,41 @@ const updateFirm = catchAsync(async (req, res) => {
     });
 });
 
+
+
+// Firm Status Update
+const firmStatus = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['pending', 'approved', 'rejected', 'suspended'].includes(status)) {
+        return sendResponse(res, {
+            statusCode: httpStatus.BAD_REQUEST,
+            success: false,
+            message: 'Status must be one of pending, approved, rejected, or suspended.',
+            data: null,
+        });
+    }
+
+
+    const updatedFirm = await adminFirmService.firmStatus(id, status);
+
+    return sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Firm status updated successfully.',
+        data: updatedFirm,
+    });
+});
+
+
+
 export const adminFirmController = {
     deleteFirm,
     updateFirm,
     getFirmById,
     listFirms,
     createFirm,
+    firmStatus
 
 };
