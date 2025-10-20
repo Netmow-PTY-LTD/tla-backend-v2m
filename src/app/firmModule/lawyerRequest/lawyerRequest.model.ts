@@ -9,6 +9,9 @@ export interface ILawyerRequestAsMember extends Document {
   reviewedAt?: Date;
   rejectionReason?: string;
   isActive: boolean; // Soft delete / archive
+  leftReason?: string; // Reason for leaving the firm
+  leftBy?: Types.ObjectId; // Reference to User who left the firm
+  leftAt?: Date; // Timestamp when the lawyer left the firm
   createdAt: Date;
   updatedAt: Date;
   cancelBy?: Types.ObjectId; // Reference to User who canceled the request
@@ -60,6 +63,18 @@ const lawyerRequestAsMemberSchema = new Schema<ILawyerRequestAsMember>(
       ref: 'UserProfile',
     },
     cancelAt: {
+      type: Date,
+    },
+    leftReason: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+    leftBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'UserProfile',
+    },
+    leftAt: {
       type: Date,
     },
   },
