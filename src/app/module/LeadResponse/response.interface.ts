@@ -40,7 +40,15 @@ export interface ILeadResponse {
   status: "pending" | "hire_requested" | "hired" | "rejected" | "cancelled";
   hireMessage: string | null;
   clientRating?: Types.ObjectId | null;
+  // ✅ Credit-based tracking
+  creditTransactionId?: Types.ObjectId | null;
+  isCreditUsed: boolean;
+
+  // ✅ Subscription-based tracking
+  subscriptionId?: Types.ObjectId | null;
+  isSubscriptionUsed: boolean;
   leadAnswers?: ILeadServiceAnswer[];
+
 
 }
 
