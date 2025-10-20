@@ -1738,7 +1738,7 @@ type PaginatedResult<T> = {
 //  ----------------- get all my lead for lawyer dashboard version-3 --------------------
 
 
-export const getAllLeadFromDB = async (
+const getAllLeadFromDB = async (
   userId: string,
   filters: any = {},
   options: {
@@ -1764,8 +1764,6 @@ export const getAllLeadFromDB = async (
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
   const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id });
-
-
 
 
 
@@ -1797,12 +1795,7 @@ export const getAllLeadFromDB = async (
   const drawOnAreaServiceIds = locationServiceByType[LocationType.DRAW_ON_AREA];
 
 
-  console.log('Service IDs by Location Type:', {
-    nationwideServiceIds,
-    distanceWiseServiceIds,
-    travelTimeServiceIds,
-    drawOnAreaServiceIds,
-  });
+
 
 
 
@@ -1820,50 +1813,144 @@ export const getAllLeadFromDB = async (
   // ----------------------- BUILD MATCH CONDITIONS -----------------------
   const conditions: any[] = [];
 
-  // 1 Nationwide (ignore locationId)
-  if (nationwideServiceIds.length > 0) {
-    conditions.push({ serviceId: { $in: nationwideServiceIds } });
-  }
 
-  // 2 Distance-wise
+  console.log('Filters received:', filters.coordinates);
 
-  if (distanceWiseServiceIds.length > 0) {
-    // Array to hold all locationIds that are nearby
-    let nearbyLocationIds: mongoose.Types.ObjectId[] = [];
+  if (!filters.coordinates) {
 
-    for (const loc of userLocationService.filter(l => l.locationType === LocationType.DISTANCE_WISE)) {
-      if (!loc.locationGroupId) continue;
-      // Fetch the coordinates from the ZipCode
-      const zip = await ZipCode.findById(loc.locationGroupId).select('location');
-      if (!zip || !zip.location) continue;
 
-      const radiusInMeters = (loc.rangeInKm || 5) * 1000; // convert km to meters
+    // 1 Nationwide (ignore locationId)
+    if (nationwideServiceIds.length > 0) {
+      conditions.push({ serviceId: { $in: nationwideServiceIds } });
+    }
 
-      const nearby = await ZipCode.aggregate([
-        {
-          $geoNear: {
-            near: { type: "Point", coordinates: [zip.location.coordinates[0], zip.location.coordinates[1]] },
-            distanceField: "distance",
-            maxDistance: radiusInMeters,
-            spherical: true,
+    // 2 Distance-wise
+
+    if (distanceWiseServiceIds.length > 0) {
+      // Array to hold all locationIds that are nearby
+      let nearbyLocationIds: mongoose.Types.ObjectId[] = [];
+
+      for (const loc of userLocationService.filter(l => l.locationType === LocationType.DISTANCE_WISE)) {
+        if (!loc.locationGroupId) continue;
+        // Fetch the coordinates from the ZipCode
+        const zip = await ZipCode.findById(loc.locationGroupId).select('location');
+        if (!zip || !zip.location) continue;
+
+        const radiusInMeters = (loc.rangeInKm || 5) * 1000; // convert km to meters
+
+        const nearby = await ZipCode.aggregate([
+          {
+            $geoNear: {
+              near: { type: "Point", coordinates: [zip.location.coordinates[0], zip.location.coordinates[1]] },
+              distanceField: "distance",
+              maxDistance: radiusInMeters,
+              spherical: true,
+            },
           },
-        },
-        { $project: { _id: 1 } },
-      ]);
+          { $project: { _id: 1 } },
+        ]);
 
-      nearbyLocationIds.push(...nearby.map(z => z._id));
+        nearbyLocationIds.push(...nearby.map(z => z._id));
+      }
+
+      // Remove duplicates
+      nearbyLocationIds = Array.from(new Set(nearbyLocationIds.map(id => id.toString()))).map(id => new mongoose.Types.ObjectId(id));
+
+      // If we found nearby location IDs, add them to the conditions
+
+      if (nearbyLocationIds.length > 0) {
+        conditions.push({
+          serviceId: { $in: distanceWiseServiceIds },
+          locationId: { $in: nearbyLocationIds },
+        });
+      }
+
+
+
     }
 
-    // Remove duplicates
-    nearbyLocationIds = Array.from(new Set(nearbyLocationIds.map(id => id.toString()))).map(id => new mongoose.Types.ObjectId(id));
 
-    // If we found nearby location IDs, add them to the conditions
 
-    if (nearbyLocationIds.length > 0) {
-      conditions.push({
-        serviceId: { $in: distanceWiseServiceIds },
-        locationId: { $in: nearbyLocationIds },
-      });
+    // 3 Travel-time
+
+    if (travelTimeServiceIds.length > 0) {
+      // Fetch all zip codes once
+      const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
+
+
+      // Prepare destinations for travel API
+      const destinations = allZips.map(z => ({
+        lat: z.location?.coordinates?.[1],
+        lng: z.location?.coordinates?.[0],
+        zipCodeId: z._id
+      }));
+
+      let validLocationIds: mongoose.Types.ObjectId[] = [];
+
+      const travelTimeMappings = userLocationService.filter(l => l.locationType === LocationType.TRAVEL_TIME);
+
+      for (const loc of travelTimeMappings) {
+        if (!loc.locationGroupId) continue;
+
+        // Get coordinates of user's reference location
+        const zip = await ZipCode.findById(loc.locationGroupId).select('location');
+        if (!zip || !zip.location) continue;
+
+        const userLat = zip.location.coordinates[1];
+        const userLng = zip.location.coordinates[0];
+
+        const travelMode = loc.travelmode || 'driving';
+        const maxTravelTime = typeof loc.traveltime === 'number'
+          ? loc.traveltime
+          : Number(loc.traveltime) || 15; // default 15 minutes if NaN
+
+
+
+
+        // Fetch batch travel info
+        const travelResults = await getBatchTravelInfo(
+          { lat: userLat, lng: userLng },
+          destinations,
+          travelMode,
+          25 // batch size
+        );
+
+
+        // Filter destinations within maxTravelTime
+        const nearbyIds = travelResults
+          .filter(r => r.durationSeconds <= maxTravelTime * 60)
+          .map(r => r.zipCodeId);
+
+
+        validLocationIds.push(...nearbyIds);
+      }
+
+      // Remove duplicates and convert to ObjectId
+      validLocationIds = Array.from(new Set(validLocationIds.map(id => id.toString())))
+        .map(id => new mongoose.Types.ObjectId(id));
+
+      if (validLocationIds.length > 0) {
+        conditions.push({
+          serviceId: { $in: travelTimeServiceIds },
+          locationId: { $in: validLocationIds },
+        });
+      }
+    }
+
+    // 4 Draw-on-area
+    if (drawOnAreaServiceIds.length > 0) {
+      const locationIds = userLocationService
+        .filter(loc => loc.locationType === LocationType.DRAW_ON_AREA)
+        .map(loc => loc.locationGroupId)
+        .filter(Boolean)
+        .map((loc: any) => loc._id);
+
+      if (locationIds.length > 0) {
+        conditions.push({
+          serviceId: { $in: drawOnAreaServiceIds },
+          locationId: { $in: locationIds },
+        });
+      }
     }
 
 
@@ -1873,88 +1960,112 @@ export const getAllLeadFromDB = async (
 
 
 
-  // 3 Travel-time
-
-  if (travelTimeServiceIds.length > 0) {
-    // Fetch all zip codes once
-    const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
-    console.log('Total Zip Codes fetched for Travel Time:', allZips.length);
-
-    // Prepare destinations for travel API
-    const destinations = allZips.map(z => ({
-      lat: z.location?.coordinates?.[1],
-      lng: z.location?.coordinates?.[0],
-      zipCodeId: z._id
-    }));
-
-    let validLocationIds: mongoose.Types.ObjectId[] = [];
-
-    const travelTimeMappings = userLocationService.filter(l => l.locationType === LocationType.TRAVEL_TIME);
-
-    for (const loc of travelTimeMappings) {
-      if (!loc.locationGroupId) continue;
-
-      // Get coordinates of user's reference location
-      const zip = await ZipCode.findById(loc.locationGroupId).select('location');
-      if (!zip || !zip.location) continue;
-
-      const userLat = zip.location.coordinates[1];
-      const userLng = zip.location.coordinates[0];
-
-      const travelMode = loc.travelmode || 'driving';
-      const maxTravelTime = typeof loc.traveltime === 'number'
-        ? loc.traveltime
-        : Number(loc.traveltime) || 15; // default 15 minutes if NaN
 
 
-      console.log(`Fetching travel info from (${userLat}, ${userLng}) using mode: ${travelMode}`);
+  if (filters.coordinates) {
+    const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
 
-      // Fetch batch travel info
-      const travelResults = await getBatchTravelInfo(
-        { lat: userLat, lng: userLng },
-        destinations,
-        travelMode,
-        25 // batch size
-      );
 
-      console.log('Travel Results fetched:', travelResults.length);
-
-      // Filter destinations within maxTravelTime
-      const nearbyIds = travelResults
-        .filter(r => r.durationSeconds <= maxTravelTime * 60)
-        .map(r => r.zipCodeId);
-
-      console.log(`Found ${nearbyIds.length} nearby locations within ${maxTravelTime} minutes for reference location ${loc.locationGroupId}`);
-      validLocationIds.push(...nearbyIds);
+    if (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1])) {
+      throw new Error("Invalid coordinates provided for location filtering");
     }
 
-    // Remove duplicates and convert to ObjectId
-    validLocationIds = Array.from(new Set(validLocationIds.map(id => id.toString())))
-      .map(id => new mongoose.Types.ObjectId(id));
+    const supportedTypes = ["draw_on_area", "travel_time", "nation_wide", "distance_wise"];
 
-    if (validLocationIds.length > 0) {
-      conditions.push({
-        serviceId: { $in: travelTimeServiceIds },
-        locationId: { $in: validLocationIds },
-      });
+    if (locationType && supportedTypes.includes(locationType)) {
+      let nearbyLocationIds: Types.ObjectId[] = [];
+
+      // ------------------ CASE: DISTANCE BASED ------------------
+      if (locationType === "distance_wise") {
+        const radiusInMeters = rangeInKm * 1000;
+
+        const nearbyZips = await ZipCode.aggregate([
+          {
+            $geoNear: {
+              near: { type: "Point", coordinates: [coord[0], coord[1]] },
+              distanceField: "distance",
+              maxDistance: radiusInMeters,
+              spherical: true,
+            },
+          },
+          { $project: { _id: 1 } },
+        ]);
+
+        nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+      }
+
+      // ------------------ CASE: DRAW-ON-AREA (Polygon) ------------------
+      else if (locationType === "draw_on_area" && filters.coordinates.polygon) {
+        const { polygon } = filters.coordinates;
+        const nearbyZips = await ZipCode.find({
+          location: {
+            $geoWithin: {
+              $geometry: polygon,
+            },
+          },
+        }).select("_id");
+
+        nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+      }
+
+      // ------------------ CASE: TRAVEL-TIME BASED ------------------
+      else if (locationType === "travel_time") {
+        const { travelmode = "driving", traveltime = 15, coord } = filters.coordinates;
+
+        console.log('Travel-time filter params:', { travelmode, traveltime, coord });
+        // Fetch all zip codes once
+        const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
+
+        // Prepare destinations for travel API
+        const destinations = allZips.map(z => ({
+          lat: z.location?.coordinates?.[1],
+          lng: z.location?.coordinates?.[0],
+          zipCodeId: z._id
+        }));
+
+
+        console.log(`Fetching travel info from (${coord[1]}, ${coord[0]}) using mode: ${travelmode}`);
+
+        // Fetch batch travel info
+        const travelResults = await getBatchTravelInfo(
+          { lat: coord[1], lng: coord[0] },
+          destinations,
+          travelmode,
+          25 // batch size
+        );
+
+        console.log('Travel Results fetched:', travelResults.length);
+
+        // Filter destinations within TravelTime
+        nearbyLocationIds = travelResults
+          .filter(r => r.durationSeconds <= traveltime * 60)
+          .map(r => r.zipCodeId);
+
+        console.log(`Found ${nearbyLocationIds.length} nearby locations within ${traveltime} minutes for travel-time filter`);
+
+
+      }
+
+      // ------------------ CASE: NATION-WIDE ------------------
+      else if (locationType === "nation_wide") {
+        // No filtering
+      }
+
+
+      //  Deduplicate as ObjectIds safely
+      const uniqueIds = Array.from(
+        new Set(nearbyLocationIds.map((id) => id.toString()))
+      ).map((idStr) => new mongoose.Types.ObjectId(idStr));
+
+      if (uniqueIds.length > 0) {
+        conditions.push({ locationId: { $in: uniqueIds } });
+      }
     }
   }
 
-  // 4 Draw-on-area
-  if (drawOnAreaServiceIds.length > 0) {
-    const locationIds = userLocationService
-      .filter(loc => loc.locationType === LocationType.DRAW_ON_AREA)
-      .map(loc => loc.locationGroupId)
-      .filter(Boolean)
-      .map((loc: any) => loc._id);
 
-    if (locationIds.length > 0) {
-      conditions.push({
-        serviceId: { $in: drawOnAreaServiceIds },
-        locationId: { $in: locationIds },
-      });
-    }
-  }
+
+
 
   // 5 If no mappings, prevent match
   if (conditions.length === 0) {
@@ -2004,77 +2115,6 @@ export const getAllLeadFromDB = async (
 
 
 
-  console.log('filter data:', filters);
-
-if (filters.coordinates) {
-  const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
-
-
-  if (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1])) {
-    throw new Error("Invalid coordinates provided for location filtering");
-  }
-
-  const supportedTypes = ["draw_on_area", "travel_time", "nation_wide", "distance_wise"];
-
-  if (locationType && supportedTypes.includes(locationType)) {
-    let nearbyLocationIds: Types.ObjectId[] = [];
-
-    // ------------------ CASE: DISTANCE BASED ------------------
-    if (locationType === "distance_wise") {
-      const radiusInMeters = rangeInKm * 1000;
-
-      const nearbyZips = await ZipCode.aggregate([
-        {
-          $geoNear: {
-            near: { type: "Point", coordinates: [coord[0], coord[1]] },
-            distanceField: "distance",
-            maxDistance: radiusInMeters,
-            spherical: true,
-          },
-        },
-        { $project: { _id: 1 } },
-      ]);
-
-      nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
-    }
-
-    // ------------------ CASE: DRAW-ON-AREA (Polygon) ------------------
-    else if (locationType === "draw_on_area" && filters.coordinates.polygon) {
-      const { polygon } = filters.coordinates;
-      const nearbyZips = await ZipCode.find({
-        location: {
-          $geoWithin: {
-            $geometry: polygon,
-          },
-        },
-      }).select("_id");
-
-      nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
-    }
-
-    // ------------------ CASE: TRAVEL-TIME BASED ------------------
-    else if (locationType === "travel_time") {
-      const { travelmode = "driving", traveltime = 15 } = filters.coordinates;
-      // TODO: integrate Google or OpenRouteService API here
-    }
-
-    // ------------------ CASE: NATION-WIDE ------------------
-    else if (locationType === "nation_wide") {
-      // No filtering
-    }
-
-
-    //  Deduplicate as ObjectIds safely
-    const uniqueIds = Array.from(
-      new Set(nearbyLocationIds.map((id) => id.toString()))
-    ).map((idStr) => new mongoose.Types.ObjectId(idStr));
-
-    if (uniqueIds.length > 0) {
-      conditions.push({ locationId: { $in: uniqueIds } });
-    }
-  }
-}
-
 
 
 
@@ -2117,12 +2157,6 @@ if (filters.coordinates) {
   }
 
   let leads = await Lead.aggregate(aggregationPipeline);
-
-  // ----------------------- DYNAMIC TRAVEL-TIME FILTER -----------------------
-  // if (filters.coordinates) {
-  //   const { coord, maxMinutes = 15, mode = 'driving' } = filters.coordinates;
-  //   leads = await filterByTravelTime(coord, leads, maxMinutes, mode);
-  // }
 
 
   // ----------------------- PAGINATION -----------------------
