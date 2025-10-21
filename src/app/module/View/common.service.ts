@@ -1433,73 +1433,172 @@ const lawyerCancelMembershipRequest = async (
 
 
 
- const lawyerCancelMembership = async (
+//  const lawyerCancelMembership = async (
+//   lawyerUserId: string,
+//   firmProfileId: string
+// ) => {
+//   // --- Validate firmProfileId ---
+//   if (!Types.ObjectId.isValid(firmProfileId)) {
+//     throw new Error("Invalid firm profile ID");
+//   }
+
+//   // --- Find Lawyer Profile ---
+//   const lawyerProfile = await UserProfile.findOne({ user: lawyerUserId });
+//   if (!lawyerProfile) return sendNotFoundResponse("Lawyer profile not found");
+
+//   // --- Find Active Firm Membership Request ---
+//   const request = await LawyerRequestAsMember.findOne({
+//     firmProfileId: new Types.ObjectId(firmProfileId),
+//     lawyerId: lawyerProfile._id,
+//     isActive: true,
+//   });
+
+//   if (!request)
+//     return sendNotFoundResponse("Active firm membership not found or already left");
+
+//   // --- Prevent leaving if already in a final status ---
+//   const finalStatuses = ["cancelled", "rejected", "left"];
+//   if (finalStatuses.includes(request.status)) {
+//     return `You cannot leave a firm with status: ${request.status}`;
+//   }
+
+
+//   // --- Update membership request status ---
+//   request.status = "left";
+//   request.leftBy = new Types.ObjectId(lawyerProfile._id);
+//   request.leftAt = new Date();
+//   request.isActive = false;
+//   await request.save();
+
+//   // --- Update lawyer's profile to reflect leaving the firm ---
+//   await UserProfile.findByIdAndUpdate(lawyerProfile._id, {
+//     $set: {
+//       firmProfileId: null,
+//       activeFirmRequestId: null,
+//       firmMembershipStatus: "left",
+//       joinedAt: null,
+//       leftAt: new Date(),
+//       isFirmMemberRequest: false,
+//     },
+//   });
+
+//   // --- Remove lawyer from firm's active lawyer list ---
+//   await FirmProfile.findByIdAndUpdate(request.firmProfileId, {
+//     $pull: { lawyers: lawyerProfile._id },
+//   });
+
+//   // --- Return updated membership info ---
+//   const updatedRequest = await LawyerRequestAsMember.findById(request._id)
+//     .populate("firmProfileId", "firmName")
+//     .populate("lawyerId", "name email");
+
+
+//     console.log("Updated Request after leaving firm:", updatedRequest);
+
+
+//   return {
+//     message: "Successfully left the firm",
+//     data: updatedRequest,
+//   };
+// };
+
+
+
+
+const lawyerCancelMembership = async (
   lawyerUserId: string,
   firmProfileId: string
 ) => {
-  // --- Validate firmProfileId ---
   if (!Types.ObjectId.isValid(firmProfileId)) {
     throw new Error("Invalid firm profile ID");
   }
 
-  // --- Find Lawyer Profile ---
-  const lawyerProfile = await UserProfile.findOne({ user: lawyerUserId });
-  if (!lawyerProfile) return sendNotFoundResponse("Lawyer profile not found");
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  // --- Find Active Firm Membership Request ---
-  const request = await LawyerRequestAsMember.findOne({
-    firmProfileId: new Types.ObjectId(firmProfileId),
-    lawyerId: lawyerProfile._id,
-    isActive: true,
-  });
+  try {
+    // --- Find Lawyer Profile ---
+    const lawyerProfile = await UserProfile.findOne({ user: lawyerUserId }).session(session);
+    if (!lawyerProfile) {
+      await session.abortTransaction();
+      session.endSession();
+      return sendNotFoundResponse("Lawyer profile not found");
+    }
 
-  if (!request)
-    return sendNotFoundResponse("Active firm membership not found or already left");
+    // --- Find Active Firm Membership Request ---
+    const request = await LawyerRequestAsMember.findOne({
+      firmProfileId: new Types.ObjectId(firmProfileId),
+      lawyerId: lawyerProfile._id,
+      isActive: true,
+    }).session(session);
 
-  // --- Prevent leaving if already in a final status ---
-  const finalStatuses = ["cancelled", "rejected", "left"];
-  if (finalStatuses.includes(request.status)) {
-    return `You cannot leave a firm with status: ${request.status}`;
+    if (!request) {
+      await session.abortTransaction();
+      session.endSession();
+      return sendNotFoundResponse("Active firm membership not found or already left");
+    }
+
+    // --- Prevent leaving if already in a final status ---
+    const finalStatuses = ["cancelled", "rejected", "left"];
+    if (finalStatuses.includes(request.status)) {
+      await session.abortTransaction();
+      session.endSession();
+      return `You cannot leave a firm with status: ${request.status}`;
+    }
+
+    // --- Update membership request ---
+    request.status = "left";
+    request.leftBy = new Types.ObjectId(lawyerProfile._id);
+    request.leftAt = new Date();
+    request.isActive = false;
+    await request.save({ session });
+
+    // --- Update lawyer profile ---
+    await UserProfile.findByIdAndUpdate(
+      lawyerProfile._id,
+      {
+        $set: {
+          firmProfileId: null,
+          activeFirmRequestId: null,
+          firmMembershipStatus: "left",
+          joinedAt: null,
+          leftAt: new Date(),
+          isFirmMemberRequest: false,
+        },
+      },
+      { session }
+    );
+
+    // --- Remove lawyer from firm's lawyer list ---
+    await FirmProfile.findByIdAndUpdate(
+      request.firmProfileId,
+      { $pull: { lawyers: lawyerProfile._id } },
+      { session }
+    );
+
+    // --- Commit transaction ---
+    await session.commitTransaction();
+    session.endSession();
+
+    // --- Return updated request ---
+    const updatedRequest = await LawyerRequestAsMember.findById(request._id)
+      .populate("firmProfileId", "firmName")
+      .populate("lawyerId", "name email");
+
+    console.log("Updated Request after leaving firm:", updatedRequest);
+
+    return {
+      message: "Successfully left the firm",
+      data: updatedRequest,
+    };
+  } catch (error) {
+    // Rollback transaction on error
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error leaving firm membership:", error);
+    throw new Error("Failed to leave the firm. Please try again.");
   }
-
-
-  // --- Update membership request status ---
-  request.status = "left";
-  request.leftBy = new Types.ObjectId(lawyerProfile._id);
-  request.leftAt = new Date();
-  request.isActive = false;
-  await request.save();
-
-  // --- Update lawyer's profile to reflect leaving the firm ---
-  await UserProfile.findByIdAndUpdate(lawyerProfile._id, {
-    $set: {
-      firmProfileId: null,
-      activeFirmRequestId: null,
-      firmMembershipStatus: "left",
-      joinedAt: null,
-      leftAt: new Date(),
-      isFirmMemberRequest: false,
-    },
-  });
-
-  // --- Remove lawyer from firm's active lawyer list ---
-  await FirmProfile.findByIdAndUpdate(request.firmProfileId, {
-    $pull: { lawyers: lawyerProfile._id },
-  });
-
-  // --- Return updated membership info ---
-  const updatedRequest = await LawyerRequestAsMember.findById(request._id)
-    .populate("firmProfileId", "firmName")
-    .populate("lawyerId", "name email");
-
-  return {
-    message: "Successfully left the firm",
-    data: updatedRequest,
-  };
 };
-
-
-
 
 
 

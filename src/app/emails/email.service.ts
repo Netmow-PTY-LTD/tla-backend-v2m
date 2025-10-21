@@ -27,7 +27,12 @@ export const sendEmail = async ({
 }: SendEmailParams) => {
 
   const settings = await getAppSettings();
-  if (!settings.emailProviderEnabled) {
+  // if (!settings.emailProviderEnabled) {
+  //   console.log('📧 Email provider is disabled. Skipping email.');
+  //   return;
+  // }
+  
+  if (!settings || !settings.emailProviderEnabled) {
     console.log('📧 Email provider is disabled. Skipping email.');
     return;
   }
