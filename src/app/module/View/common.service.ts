@@ -1430,40 +1430,48 @@ const lawyerCancelMembershipRequest = async (
 
 
 
-const lawyerCancelMembership = async (
+
+
+
+ const lawyerCancelMembership = async (
   lawyerUserId: string,
   firmProfileId: string
 ) => {
+  // --- Validate firmProfileId ---
+  if (!Types.ObjectId.isValid(firmProfileId)) {
+    throw new Error("Invalid firm profile ID");
+  }
 
-
+  // --- Find Lawyer Profile ---
   const lawyerProfile = await UserProfile.findOne({ user: lawyerUserId });
   if (!lawyerProfile) return sendNotFoundResponse("Lawyer profile not found");
 
-  // --- Find request owned by this lawyer ---
+  // --- Find Active Firm Membership Request ---
   const request = await LawyerRequestAsMember.findOne({
     firmProfileId: new Types.ObjectId(firmProfileId),
     lawyerId: lawyerProfile._id,
     isActive: true,
   });
 
-  if (!request) return sendNotFoundResponse("Lawyer request not found or already left");
+  if (!request)
+    return sendNotFoundResponse("Active firm membership not found or already left");
 
-  // --- Check if it's still cancellable ---  
-  if (["approved", "rejected", "cancelled", "left"].includes(request.status)) {
-    return (
-      `You cannot cancel a request that is already ${request.status}`
-    );
+  // --- Prevent leaving if already in a final status ---
+  const finalStatuses = ["cancelled", "rejected", "left"];
+  if (finalStatuses.includes(request.status)) {
+    return `You cannot leave a firm with status: ${request.status}`;
   }
 
-  // --- Update request status to 'left' ---
+
+  // --- Update membership request status ---
   request.status = "left";
-  request.leftBy = new mongoose.Types.ObjectId(lawyerProfile?._id);
+  request.leftBy = new Types.ObjectId(lawyerProfile._id);
   request.leftAt = new Date();
   request.isActive = false;
   await request.save();
 
-  // --- Update lawyer profile ---
-  await UserProfile.findByIdAndUpdate(request.lawyerId, {
+  // --- Update lawyer's profile to reflect leaving the firm ---
+  await UserProfile.findByIdAndUpdate(lawyerProfile._id, {
     $set: {
       firmProfileId: null,
       activeFirmRequestId: null,
@@ -1474,21 +1482,21 @@ const lawyerCancelMembership = async (
     },
   });
 
-
-
-  // --- Remove from firm's lawyer list if already linked ---
+  // --- Remove lawyer from firm's active lawyer list ---
   await FirmProfile.findByIdAndUpdate(request.firmProfileId, {
-    $pull: { lawyers: request.lawyerId },
+    $pull: { lawyers: lawyerProfile._id },
   });
 
-  // --- Return updated request ---
+  // --- Return updated membership info ---
   const updatedRequest = await LawyerRequestAsMember.findById(request._id)
     .populate("firmProfileId", "firmName")
     .populate("lawyerId", "name email");
 
-  return updatedRequest;
+  return {
+    message: "Successfully left the firm",
+    data: updatedRequest,
+  };
 };
-
 
 
 
