@@ -823,7 +823,7 @@ const getUserInfoFromDB = async (userId: string) => {
                 },
             ],
         })
-        .populate("permissions")
+        .populate({path:"permissions",populate:{path:"pageId",model:"Page"}})
         .lean();
 
     if (!user) {
