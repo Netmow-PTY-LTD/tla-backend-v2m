@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import config from './index';
 import { s3Client } from './s3Client';
+import { FOLDERS, TFolder } from '../constant';
 
 const allowedTypes = [
   'application/pdf', // PDF
@@ -42,32 +43,32 @@ export const upload = multer({
 
 // Upload logic to S3
 
-export const uploadToSpaces = async (
-  fileBuffer: Buffer,
-  originalName: string,
-  userId: string, //  Add userId to distinguish folders
-  folder: string = 'profiles' // default folder if not provided
-): Promise<string> => {
-  const fileExt = path.extname(originalName);
-  const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
-  // const fileName = `  profiles/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
-  const fileName = `thelawapp/${folder}/${userId}/${uuidv4()}${fileExt}`;
+// export const uploadToSpaces = async (
+//   fileBuffer: Buffer,
+//   originalName: string,
+//   userId: string, //  Add userId to distinguish folders
+//   folder: string = 'profiles' // default folder if not provided
+// ): Promise<string> => {
+//   const fileExt = path.extname(originalName);
+//   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
+//   // const fileName = `  profiles/${userId}/${uuidv4()}${fileExt}`; // 👈 File path with user folder
+//   const fileName = `thelawapp/${folder}/${userId}/${uuidv4()}${fileExt}`;
 
-  const command = new PutObjectCommand({
-    Bucket: config.do_spaces_bucket!,
-    Key: fileName,
-    Body: fileBuffer,
-    ACL: 'public-read',
-    ContentType: mimeType,
-  });
+//   const command = new PutObjectCommand({
+//     Bucket: config.do_spaces_bucket!,
+//     Key: fileName,
+//     Body: fileBuffer,
+//     ACL: 'public-read',
+//     ContentType: mimeType,
+//   });
 
-  await s3Client.send(command);
+//   await s3Client.send(command);
 
-  //  Construct public URL
-  const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
-  const publicUrl = `https://${config.do_spaces_bucket}.${endpoint}/${fileName}`;
-  return publicUrl;
-};
+//   //  Construct public URL
+//   const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
+//   const publicUrl = `https://${config.do_spaces_bucket}.${endpoint}/${fileName}`;
+//   return publicUrl;
+// };
 
 
 
@@ -96,9 +97,9 @@ export const deleteMultipleFromSpace = async (fileUrls: string[]): Promise<void>
 
 
 
-/* 
 
-******* it will use thelawapp as the main bucket folder and then create subfolders based on entity type and ID - it use in future
+
+// ******* it will use thelawapp as the main bucket folder and then create subfolders based on entity type and ID - it use in future
 
 interface UploadOptions {
   folder?: TFolder;        // Main folder (profiles, lawyer, client...)
@@ -140,31 +141,29 @@ export const uploadToSpaces = async (
 
 
 
- *** example uses in api controllers:
+//  *** example uses in api controllers:
 
-import { FOLDERS } from '@/constants/folderNames';
+// import { FOLDERS } from '@/constants/folderNames';
 
-// Upload a client profile image
-const clientProfileUrl = await uploadToSpaces(file.buffer, file.originalname, {
-  folder: FOLDERS.CLIENT,
-  entityId: clientId,
-  subFolder: 'avatars'
-});
+// // Upload a client profile image
+// const clientProfileUrl = await uploadToSpaces(file.buffer, file.originalname, {
+//   folder: FOLDERS.CLIENT,
+//   entityId: clientId,
+//   subFolder: 'avatars'
+// });
 
-// Upload a lawyer certification document
-const lawyerCertUrl = await uploadToSpaces(file.buffer, file.originalname, {
-  folder: FOLDERS.LAWYER,
-  entityId: lawyerId,
-  subFolder: 'certifications'
-});
+// // Upload a lawyer certification document
+// const lawyerCertUrl = await uploadToSpaces(file.buffer, file.originalname, {
+//   folder: FOLDERS.LAWYER,
+//   entityId: lawyerId,
+//   subFolder: 'certifications'
+// });
 
-// Upload a marketing banner
-const bannerUrl = await uploadToSpaces(file.buffer, file.originalname, {
-  folder: FOLDERS.BANNERS,
-  entityId: 'homepage',
-});
-
-
+// // Upload a marketing banner
+// const bannerUrl = await uploadToSpaces(file.buffer, file.originalname, {
+//   folder: FOLDERS.BANNERS,
+//   entityId: 'homepage',
+// });
 
 
 
@@ -176,4 +175,5 @@ const bannerUrl = await uploadToSpaces(file.buffer, file.originalname, {
 
 
 
-*/
+
+

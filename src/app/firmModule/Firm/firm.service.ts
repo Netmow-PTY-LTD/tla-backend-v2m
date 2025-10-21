@@ -7,6 +7,9 @@ import UserProfile from '../../module/User/user.model';
 import Transaction from '../../module/CreditPayment/transaction.model';
 import CreditTransaction from '../../module/CreditPayment/creditTransaction.model';
 import Lead from '../../module/Lead/lead.model';
+import { TUploadedFile } from '../../interface/file.interface';
+import { FOLDERS } from '../../constant';
+import { uploadToSpaces } from '../../config/upload';
 
 
 
@@ -43,13 +46,33 @@ const getFirmInfoFromDB = async (userId: string) => {
 
 
 
-const updateFirmInfoIntoDB = async (userId: string, data: Partial<IFirmProfile>) => {
+const updateFirmInfoIntoDB = async (userId: string, data: Partial<IFirmProfile>, file: TUploadedFile) => {
 
   const user = await FirmUser.findById(userId).select('firmProfileId')
 
   if (!user) {
     return sendNotFoundResponse("User not found");
   }
+
+
+
+  //  handle file upload if present
+  if (file.buffer) {
+    const fileBuffer = file.buffer;
+    const originalName = file.originalname;
+    const firmLogoUrl = await uploadToSpaces(fileBuffer, originalName, {
+      folder: FOLDERS.FIRMS,
+      entityId: `firm-${user.firmProfileId}`,
+      subFolder: FOLDERS.LOGOS
+    });
+
+    data.logo = firmLogoUrl;
+
+
+  }
+
+
+
 
   const updateFirmInfo = await FirmProfile.findByIdAndUpdate(user?.firmProfileId, data, {
     new: true,

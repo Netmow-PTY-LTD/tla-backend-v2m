@@ -304,7 +304,7 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
     );
 
     // Fetch user data
-    const userData = await FirmUser.findOne({ email: payload.email }).populate({path:"permissions",populate:{path:"pageId",model:"Page"}});
+    const userData = await FirmUser.findOne({ email: payload.email }).populate({ path: "permissions", populate: { path: "pageId", model: "Page" } });
     // Return tokens and user data
     return {
         accessToken,
@@ -821,7 +821,7 @@ const getUserInfoFromDB = async (userId: string) => {
                 },
             ],
         })
-        .populate({path:"permissions",populate:{path:"pageId",model:"Page"}})
+        .populate({ path: "permissions", populate: { path: "pageId", model: "Page" } })
         .lean();
 
     if (!user) {
@@ -846,7 +846,7 @@ const getUserInfoFromDB = async (userId: string) => {
     }
 
     return user;
-    
+
 };
 
 
@@ -903,9 +903,18 @@ export const updateCurrentUser = async (
             }
 
             // Upload new image
-            const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId, FOLDERS.PROFILES);
+            // const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId, FOLDERS.PROFILES);
+
+            const logoUrl = await uploadToSpaces(file?.buffer, file.originalname, {
+                folder: FOLDERS.FIRMS,
+                entityId: `${user.role}-${user._id}`,
+                subFolder: FOLDERS.PROFILES
+            });
             payload.image = logoUrl;
         }
+
+
+
 
         // Remove user-only fields from profile payload
         const { email, password, status, ...profilePayload } = payload;

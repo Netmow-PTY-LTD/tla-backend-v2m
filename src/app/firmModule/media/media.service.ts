@@ -1,4 +1,5 @@
 import { uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { AppError } from '../../errors/error';
@@ -84,7 +85,13 @@ const updateFirmMediaIntoDB = async (
       if (files.photos?.length) {
         const photoUrls = await Promise.all(
           files.photos.map((file) =>
-            uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
+            // uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
+
+            uploadToSpaces(file.buffer as Buffer, file.originalname, {
+              folder: FOLDERS.FIRMS,
+              entityId: user.firmProfileId as unknown as string,
+              subFolder: FOLDERS.MEDIA
+            })
           )
         );
         uploadedUrls.push(...photoUrls);
@@ -93,11 +100,17 @@ const updateFirmMediaIntoDB = async (
       // Upload banner
       if (files.bannerImage?.length) {
         const [bannerFile] = files.bannerImage;
-        uploadedBannerUrl = await uploadToSpaces(
-          bannerFile.buffer as Buffer,
-          bannerFile.originalname,
-          userId,
-        );
+        // uploadedBannerUrl = await uploadToSpaces(
+        //   bannerFile.buffer as Buffer,
+        //   bannerFile.originalname,
+        //   userId,
+        // );
+        uploadedBannerUrl = await uploadToSpaces(bannerFile.buffer as Buffer, bannerFile.originalname, {
+          folder: FOLDERS.FIRMS,
+          entityId: user.firmProfileId as unknown as string,
+          subFolder: FOLDERS.BANNERS
+        });
+
       }
     } catch (err) {
       throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "File upload failed");

@@ -8,6 +8,9 @@ import FirmUser from '../FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import AdminProfile from './admin.model';
+import { TUploadedFile } from '../../interface/file.interface';
+import { uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 
 
 export const getAdminList = async (userId: string) => {
@@ -65,7 +68,9 @@ const getAdminById = async (adminUserId: string) => {
 };
 
 
-const updateAdmin = async (userId: string, adminUserId: string, payload: any) => {
+const updateAdmin = async (userId: string, adminUserId: string, payload: any, file: TUploadedFile) => {
+
+
 
 
   const user = await FirmUser.findById(adminUserId).select("+password");
@@ -77,6 +82,23 @@ const updateAdmin = async (userId: string, adminUserId: string, payload: any) =>
   if (!adminProfile) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, "Admin not found");
   }
+
+    if (file) {
+    const fileBuffer = file.buffer;
+    const originalName = file.originalname;
+
+    if (!fileBuffer) {
+      throw new AppError(HTTP_STATUS.BAD_REQUEST, "File buffer is missing.");
+    }
+    const adminProUrl = await uploadToSpaces(fileBuffer, originalName, {
+      folder: FOLDERS.FIRMS,
+      entityId: `admin-${userId}`,
+      subFolder: FOLDERS.PROFILES
+    });
+    payload.image = adminProUrl;
+  }
+
+
 
   if (payload.email) {
     user.email = payload.email;
@@ -91,7 +113,6 @@ const updateAdmin = async (userId: string, adminUserId: string, payload: any) =>
   if (payload.email) {
     user.accountStatus = payload.status;
   }
-
 
   await user.save();
 
