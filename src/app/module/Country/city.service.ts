@@ -78,6 +78,19 @@ const getAllCityFromDB = async (query: { countryId?: string; search?: string; pa
 
 
 
+
+
+
+
+const createCityInDB = async (cityData: any) => {
+    const newCity = await City.create(cityData);
+    return newCity;
+};
+
+
+
+
 export const cityService = {
-    getAllCityFromDB
+    getAllCityFromDB,
+    createCityInDB,
 }

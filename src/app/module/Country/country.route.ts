@@ -100,9 +100,7 @@ router.patch(
 //  city
 
 router.get('/city/list', cityController.getAllCity);
-
-
-
+router.post('/city/add', cityController.createCity);
 
 
 
