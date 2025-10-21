@@ -6,14 +6,12 @@ import config from "../../config";
 import { createToken, verifyToken } from "../../module/Auth/auth.utils";
 import { Firm_USER_ROLE, FIRM_USER_STATUS } from "./frimAuth.constant";
 import { FirmUser } from "./frimAuth.model";
-
 import { StringValue } from "ms";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { FirmProfile } from "../Firm/firm.model";
 import { sendEmail } from "../../emails/email.service";
 import { validateObjectId } from "../../utils/validateObjectId";
 import { generateOtpForFrim } from "./auth.utils";
-
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IFirmLoginUser } from "./frimAuth.interface";

@@ -31,6 +31,26 @@ const getAllCity = catchAsync(async (req, res) => {
 });
 
 
+
+//  create city
+const createCity = catchAsync(async (req, res) => {
+  const cityData = req.body;
+
+  const result = await cityService.createCityInDB(cityData);
+
+
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.CREATED,
+    success: true,
+    message: "City created successfully.",
+    data: result
+  });
+});
+
+
+
 export const cityController={
-    getAllCity
+    getAllCity,
+    createCity,
 }
