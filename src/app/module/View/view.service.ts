@@ -367,7 +367,7 @@ interface CompanyProfileQuery {
 const getAllPublicCompanyProfilesIntoDB = async (query: CompanyProfileQuery) => {
   const { page = 1, limit = 10, search, countryId, ZipCodeId, cityId } = query;
 
-  const filter: Record<string, any> = { deletedAt: null };
+  const filter: Record<string, any> = { status:'approved', deletedAt: null };
 
   if (countryId) filter["contactInfo.country"] = countryId;
   if (cityId) filter["contactInfo.city"] = cityId;

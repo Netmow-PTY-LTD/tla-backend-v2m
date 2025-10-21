@@ -274,6 +274,7 @@ const lawyerCancelMembershipRequest = catchAsync(async (req, res) => {
 
 
 
+
 const lawyerCancelMembership = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const firmProfileId = req.body.firmProfileId; // optional, in case lawyer is part of multiple firms
@@ -285,6 +286,7 @@ const lawyerCancelMembership = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 
 
 export const commonController = {
