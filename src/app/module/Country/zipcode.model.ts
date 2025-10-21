@@ -29,6 +29,10 @@ const zipCodeSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
+    isCity: {
+      type: Boolean,
+      default: false, 
+    },
     // latitude: {
     //   type: String,
     //   trim: true
