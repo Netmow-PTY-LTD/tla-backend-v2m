@@ -5,18 +5,24 @@ import { AppError } from '../../errors/error';
 import { TUploadedFile } from '../../interface/file.interface';
 import { ICategory } from './category.interface';
 import Category from './category.model';
+import { FOLDERS } from '../../constant';
 
 const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: TUploadedFile) => {
 
   // ✅ Handle file upload if provided
   if (file?.buffer) {
     try {
-      const uploadedUrl = await uploadToSpaces(
-        file.buffer,
-        file.originalname,
-        userId,
-        // 'avatars', // optional folder name
-      );
+      // const uploadedUrl = await uploadToSpaces(
+      //   file.buffer,
+      //   file.originalname,
+      //   userId,
+      //   // 'avatars', // optional folder name
+      // );
+      const uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+        folder: FOLDERS.SERVICES,
+        entityId: "CategoryImages",
+
+      })
       payload.image = uploadedUrl;
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
@@ -126,12 +132,17 @@ const updateCategoryIntoDB = async (
   // ✅ Handle file upload if a new file is provided
   if (file?.buffer) {
     try {
-      const uploadedUrl = await uploadToSpaces(
-        file.buffer,
-        file.originalname,
-        userId,
-        // 'avatars', // optional folder or 'categories'
-      );
+      // const uploadedUrl = await uploadToSpaces(
+      //   file.buffer,
+      //   file.originalname,
+      //   userId,
+      //   // 'avatars', // optional folder or 'categories'
+      // );
+      const uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+        folder: FOLDERS.SERVICES,
+        entityId: "CategoryImages",
+
+      })
       payload.image = uploadedUrl;
     } catch (err: unknown) {
       throw new AppError(
