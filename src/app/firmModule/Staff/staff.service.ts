@@ -9,6 +9,9 @@ import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import StaffProfile from './staff.model';
 import PageModel from '../../module/Pages/page.model';
+import { TUploadedFile } from '../../interface/file.interface';
+import { uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 
 
 export const getStaffList = async (userId: string) => {
@@ -49,9 +52,8 @@ export const getStaffList = async (userId: string) => {
 };
 
 
+
 const getStaffById = async (staffUserId: string) => {
-
-
 
   const existingUser = await FirmUser.isUserExists(staffUserId);
   if (!existingUser) {
@@ -66,71 +68,12 @@ const getStaffById = async (staffUserId: string) => {
 };
 
 
-// const updateStaff = async (userId: string, staffUserId: string, payload: any) => {
-
-//   const user = await FirmUser.findById(staffUserId).select("+password");
-//   if (!user) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
-//   }
-
-//   const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).populate("userId");
-//   if (!staffProfile) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff not found");
-//   }
-
-//   if (payload.email) {
-//     user.email = payload.email;
-//   }
-
-//   if (payload.password) {
-//     user.password = payload.password; // will be auto-hashed by pre-save hook
-//     user.needsPasswordChange = true; // optional: force user to login again
-//     user.passwordChangedAt = new Date();
-//   }
-
-//   if (payload.email) {
-//     user.accountStatus = payload.status;
-//   }
-
-
-//   await user.save();
-
-//   // 3️ Remove fields meant for FirmUser from StaffProfile update payload
-//   const { email, password, status, ...profilePayload } = payload;
-
-//   // 4️ Update StaffProfile fields
-//   const updatedProfile = await StaffProfile.findOneAndUpdate(
-//     { _id: staffProfile?._id },
-//     {
-//       $set: {
-//         ...profilePayload,
-//         updatedBy: new Types.ObjectId(userId) // ensure ObjectId type
-//       }
-//     },
-//     { new: true }
-//   );
-
-//   if (!updatedProfile) {
-//     throw new AppError(
-//       HTTP_STATUS.NOT_FOUND,
-//       "Staff profile not found "
-//     );
-//   }
-
-//   return {
-//     staffProfile: updatedProfile,
-//     user,
-//   };
-// };
-
-
-
-
 
 const updateStaff = async (
   userId: string,
   staffUserId: string,
-  payload: any
+  payload: any,
+  file: TUploadedFile
 ) => {
   // 1️⃣ Fetch FirmUser
   const user = await FirmUser.findById(staffUserId).select("+password");
@@ -143,6 +86,22 @@ const updateStaff = async (
   if (!staffProfile) {
     throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found");
   }
+
+
+
+
+    //  Handle file upload
+    if (file?.buffer) {
+     const imageUrl = await uploadToSpaces(file.buffer, file.originalname, {
+        folder: FOLDERS.FIRMS,
+        entityId: `staff-${user.firmProfileId}`, // use firmProfileId directly
+        subFolder: FOLDERS.PROFILES
+      });
+
+      payload.image = imageUrl;
+    }
+
+
 
   // 3️⃣ Update FirmUser fields
   if (payload.email) {
@@ -246,13 +205,13 @@ const deleteStaff = async (staffUserId: string) => {
 
 
 
-interface StaffRegisterPayload {
-  email: string;
-  password: string;
-  fullName: string;
-  role?: string; // optional, default to STAFF
+// interface StaffRegisterPayload {
+//   email: string;
+//   password: string;
+//   fullName: string;
+//   role?: string; // optional, default to STAFF
 
-}
+// }
 
 
 interface StaffRegisterPayload {
@@ -264,13 +223,23 @@ interface StaffRegisterPayload {
   firmProfileId: Types.ObjectId; // optional
   permissions?: { pageId: Types.ObjectId; permission: boolean }[];
   role?: string;
-  image?: string;
+  // image?: string;
   status: "active" | "inactive"; // optional
 }
 
-const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPayload) => {
+const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPayload, file: TUploadedFile) => {
   const session = await mongoose.startSession();
   session.startTransaction();
+
+
+
+
+
+
+
+
+
+
 
   try {
     const {
@@ -282,7 +251,6 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       phone,
       permissions,
       role = Firm_USER_ROLE.STAFF,
-      image,
       status
     } = payload;
 
@@ -308,6 +276,20 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       { session }
     );
 
+
+    let imageUrl: string | undefined = undefined;
+
+    //  Handle file upload
+    if (file?.buffer) {
+      imageUrl = await uploadToSpaces(file.buffer, file.originalname, {
+        folder: FOLDERS.FIRMS,
+        entityId: `staff-${firmProfileId}`, // use firmProfileId directly
+        subFolder: FOLDERS.PROFILES
+      });
+    }
+
+
+
     // 3️⃣ Create corresponding StaffProfile
     const [newProfile] = await StaffProfile.create(
       [
@@ -318,7 +300,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
           designation,
           phone,
           role,
-          image,
+          image: imageUrl,
           createdBy: new mongoose.Types.ObjectId(userId)
         },
       ],
