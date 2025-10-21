@@ -8,6 +8,7 @@ import CountryWiseServiceWiseField from './countryWiseServiceWiseFields.model';
 import { ICountryServiceField } from './countryWiseServiceWiseField.interface';
 import { TUploadedFile } from '../../interface/file.interface';
 import { uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -92,11 +93,21 @@ const manageServiceIntoDB = async (
     for (const file of files) {
       if (file?.buffer && file?.fieldname) {
         try {
-          const uploadedUrl = await uploadToSpaces(
-            file.buffer,
-            file.originalname,
-            userId,
-          );
+          // const uploadedUrl = await uploadToSpaces(
+          //   file.buffer,
+          //   file.originalname,
+          //   userId,
+          // );
+
+
+          const uploadedUrl= await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+            folder: FOLDERS.SERVICES,
+            entityId:`country-${payload.countryId}-service-${payload.serviceId}`,
+          });
+
+
+
+          
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (payload as any)[file.fieldname] = uploadedUrl;
           // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars

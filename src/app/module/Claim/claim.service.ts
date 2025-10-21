@@ -67,7 +67,13 @@ const createClaimIntoDB = async (
     if (files?.length) {
       proofOwnFiles = await Promise.all(
         files.map((file) =>
-          uploadToSpaces(file.buffer as Buffer, file.originalname, normalizedLawFirmEmail, FOLDERS.CLAIMS)
+          // uploadToSpaces(file.buffer as Buffer, file.originalname, normalizedLawFirmEmail, FOLDERS.CLAIMS)
+        
+                  uploadToSpaces(file.buffer as Buffer, file.originalname, {
+                    folder: FOLDERS.CLAIMS,
+                    entityId: normalizedLawFirmEmail,
+        
+                  })
         )
       );
     }
