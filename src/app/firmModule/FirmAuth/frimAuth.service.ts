@@ -306,7 +306,7 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
     );
 
     // Fetch user data
-    const userData = await FirmUser.findOne({ email: payload.email });
+    const userData = await FirmUser.findOne({ email: payload.email }).populate({path:"permissions",populate:{path:"pageId",model:"Page"}});
     // Return tokens and user data
     return {
         accessToken,
