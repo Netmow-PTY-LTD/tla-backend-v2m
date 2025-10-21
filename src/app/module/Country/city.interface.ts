@@ -14,7 +14,7 @@ export interface ICity {
   name: string;
   countryId: Types.ObjectId; // Reference to Country
   region?: string; // e.g., State or Province
-  zipCodes: Types.ObjectId; // Reference to ZipCode (single)
+  zipCode: Types.ObjectId; // Reference to ZipCode (single)
   areaNames?: string[]; // Optional neighborhoods or local areas
   location: {
     type: "Point";

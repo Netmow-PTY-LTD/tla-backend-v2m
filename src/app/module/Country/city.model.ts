@@ -37,7 +37,7 @@ const CitySchema = new Schema<ICity>(
 
     region: { type: String, trim: true }, // e.g., State/Province
 
-    zipCodes: {
+    zipCode: {
       type: Schema.Types.ObjectId,  // Multiple ZIP/postal codes for large cities
       ref: "ZipCode",
       required: true,
