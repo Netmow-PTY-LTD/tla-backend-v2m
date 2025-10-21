@@ -100,7 +100,7 @@ router.patch(
 //  city
 
 router.get('/city/list', cityController.getAllCity);
-router.post('/city/add', cityController.createCity);
+router.post('/city/add', auth(USER_ROLE.ADMIN), cityController.createCity);
 
 
 
