@@ -1801,7 +1801,7 @@ const getAllLeadForLawyerPanel = async (
 
 
 
-        // ----------------------- LEAD SERVICE & ANSWERS -----------------------
+    // ----------------------- LEAD SERVICE & ANSWERS -----------------------
     {
       $lookup: {
         from: 'leadserviceanswers',
@@ -1818,7 +1818,7 @@ const getAllLeadForLawyerPanel = async (
         from: 'userwiseservicewisequestionwiseoptions',
         let: { serviceId: '$serviceId._id' },
         pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] },{ $eq: ['$countryId',  new mongoose.Types.ObjectId(userProfile.country)] }] } } },
+          { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] }, { $eq: ['$countryId', new mongoose.Types.ObjectId(userProfile.country)] }] } } },
         ],
         as: 'lawyerLeadServices',
       },
@@ -1848,8 +1848,20 @@ const getAllLeadForLawyerPanel = async (
         },
       },
     },
+
+    // Only include leads with matched answers
+
     { $match: { 'matchedAnswers.0': { $exists: true } } },
 
+
+    // ----------------------- REMOVE UNUSED FIELDS -----------------------
+    {
+      $project: {
+        leadServiceAnswers: 0,
+        lawyerLeadServices: 0,
+        matchedAnswers: 0,
+      },
+    },
 
 
 
