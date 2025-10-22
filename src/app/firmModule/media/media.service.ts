@@ -1,4 +1,4 @@
-import { uploadToSpaces } from '../../config/upload';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { sendNotFoundResponse } from '../../errors/custom.error';
@@ -89,8 +89,8 @@ const updateFirmMediaIntoDB = async (
 
             uploadToSpaces(file.buffer as Buffer, file.originalname, {
               folder: FOLDERS.FIRMS,
+              subFolder: FOLDERS.MEDIA,
               entityId: user.firmProfileId as unknown as string,
-              subFolder: FOLDERS.MEDIA
             })
           )
         );
@@ -107,8 +107,8 @@ const updateFirmMediaIntoDB = async (
         // );
         uploadedBannerUrl = await uploadToSpaces(bannerFile.buffer as Buffer, bannerFile.originalname, {
           folder: FOLDERS.FIRMS,
+          subFolder: FOLDERS.BANNERS,
           entityId: user.firmProfileId as unknown as string,
-          subFolder: FOLDERS.BANNERS
         });
 
       }
@@ -145,33 +145,76 @@ const updateFirmMediaIntoDB = async (
 
 
 
+// const removeFirmMediaFromDB = async (
+//   userId: string,
+//   type: "photos" | "videos" | "bannerImage",
+//   index?: number
+// ) => {
+//   const user = await FirmUser.findById(userId).select("firmProfileId");
+
+//   if (!user) {
+//     return sendNotFoundResponse("User not found");
+//   }
+
+//   const firmMedia = await FirmMedia.findOne({ firmProfileId: user.firmProfileId });
+//   if (!firmMedia) return null;
+
+//   if (type === "bannerImage") {
+//     firmMedia.bannerImage = null;
+//   } else {
+//     if (typeof index !== "number") return firmMedia;
+
+//     if (index < 0 || index >= firmMedia[type].length) return firmMedia;
+
+//     firmMedia[type].splice(index, 1);
+//   }
+
+//   await firmMedia.save();
+//   return firmMedia;
+// };
+
+
+
 const removeFirmMediaFromDB = async (
   userId: string,
   type: "photos" | "videos" | "bannerImage",
   index?: number
 ) => {
   const user = await FirmUser.findById(userId).select("firmProfileId");
-
-  if (!user) {
-    return sendNotFoundResponse("User not found");
-  }
+  if (!user) return sendNotFoundResponse("User not found");
 
   const firmMedia = await FirmMedia.findOne({ firmProfileId: user.firmProfileId });
   if (!firmMedia) return null;
 
-  if (type === "bannerImage") {
-    firmMedia.bannerImage = null;
-  } else {
-    if (typeof index !== "number") return firmMedia;
+  try {
+    if (type === "bannerImage") {
+      if (firmMedia.bannerImage) {
+        await deleteFromSpace(firmMedia.bannerImage);
+        firmMedia.bannerImage = null;
+      }
+    } else {
+      // Ensure it's an array before calling splice
+      const mediaArray = firmMedia[type];
+      if (!Array.isArray(mediaArray)) return firmMedia;
+      if (typeof index !== "number") return firmMedia;
+      if (index < 0 || index >= mediaArray.length) return firmMedia;
 
-    if (index < 0 || index >= firmMedia[type].length) return firmMedia;
+      // Delete file from Space
+      const fileUrl = mediaArray[index];
+      await deleteFromSpace(fileUrl);
 
-    firmMedia[type].splice(index, 1);
+      // Remove from array
+      mediaArray.splice(index, 1);
+      firmMedia[type] = mediaArray; // re-assign to satisfy TypeScript
+    }
+  } catch (err) {
+    console.error(` Failed to delete ${type} file from Space:`, err);
   }
 
   await firmMedia.save();
   return firmMedia;
 };
+
 
 
 
