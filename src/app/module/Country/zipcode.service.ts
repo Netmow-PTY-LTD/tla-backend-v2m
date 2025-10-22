@@ -70,10 +70,30 @@ const getAllZipCodeFromDB = async (query: { countryId?: string; zipCodeId?: stri
     filter._id = zipCodeId;
   }
 
-  if (isCity) {
-    filter.isCity = { $exists: true,$ne: null };
-    // filter.isCity = { $exists: true, $ne: null, $nin: ["", false] };
+
+
+  // Convert string to boolean
+  let isCityBool: boolean | undefined;
+  if (typeof isCity === "string") {
+    const isCityStr = isCity as string;
+    if (isCityStr.toLowerCase() === "true") isCityBool = true;
+    else if (isCityStr.toLowerCase() === "false") isCityBool = false;
   }
+
+  // Apply filter
+  if (typeof isCityBool === "boolean") {
+    filter.isCity = isCityBool;
+  } else if (isCity) {
+    // fallback: just check field exists and is not null
+    filter.isCity = { $exists: true, $ne: null };
+  }
+
+
+
+
+
+
+
 
   let zipCodesQuery = ZipCode.find(filter).populate("countryId");
 

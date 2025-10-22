@@ -1,5 +1,7 @@
 import axios from "axios";
 import config from "../../config";
+import mongoose from "mongoose";
+import ZipCode from "../Country/zipcode.model";
 
 //  export async function filterByTravelTime(
 //   origin: [number, number], // [lat, lon]
@@ -206,6 +208,55 @@ import config from "../../config";
 
 // Simple in-memory cache
 const travelCache = new Map<string, { distanceMeters: number; durationSeconds: number }>();
+
+
+
+// ------------------ Module-level in-memory cache ------------------
+interface CachedZip {
+  _id: mongoose.Types.ObjectId;
+  location: { coordinates: number[] };
+}
+
+const zipCache: Record<string, CachedZip[]> = {};
+const zipCacheTimestamps: Record<string, number> = {};
+const ZIP_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+export async function getZipsByCountry(countryId: string): Promise<CachedZip[]> {
+  const now = Date.now();
+  const cacheExpired = !zipCacheTimestamps[countryId] || now - zipCacheTimestamps[countryId] > ZIP_CACHE_TTL;
+
+  if (!zipCache[countryId] || cacheExpired) {
+    console.log(`Fetching zips for country ${countryId} from DB...`);
+    const zips = await ZipCode.find({ countryId }).select('location');
+    zipCache[countryId] = zips
+      .filter(z => z.location && Array.isArray(z.location.coordinates))
+      .map(z => ({
+        _id: new mongoose.Types.ObjectId(z._id),
+        location: { coordinates: z.location?.coordinates ?? [] }
+      }));
+    zipCacheTimestamps[countryId] = now;
+  } else {
+    console.log(`Using cached zips for country ${countryId}`);
+  }
+
+  return zipCache[countryId];
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const getBatchTravelInfo = async (
   origin: { lat: number; lng: number },
