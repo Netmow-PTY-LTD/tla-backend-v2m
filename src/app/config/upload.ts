@@ -118,8 +118,9 @@ export const uploadToSpaces = async (
   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
 
   // Construct folder path
-  const parts = ['thelawapp', folder, entityId];
+  const parts = ['thelawapp', folder];
   if (subFolder) parts.push(subFolder);
+  parts.push(entityId);
 
   const filePath = `${parts.join('/')}/${uuidv4()}${fileExt}`;
 

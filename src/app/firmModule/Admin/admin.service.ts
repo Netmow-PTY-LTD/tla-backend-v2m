@@ -9,7 +9,7 @@ import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import AdminProfile from './admin.model';
 import { TUploadedFile } from '../../interface/file.interface';
-import { uploadToSpaces } from '../../config/upload';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 
 
@@ -68,81 +68,198 @@ const getAdminById = async (adminUserId: string) => {
 };
 
 
-const updateAdmin = async (userId: string, adminUserId: string, payload: any, file: TUploadedFile) => {
+// const updateAdmin = async (userId: string, adminUserId: string, payload: any, file: TUploadedFile) => {
 
 
 
 
-  const user = await FirmUser.findById(adminUserId).select("+password");
-  if (!user) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
-  }
+//   const user = await FirmUser.findById(adminUserId).select("+password");
+//   if (!user) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
+//   }
 
-  const adminProfile = await AdminProfile.findOne({ userId: adminUserId }).populate("userId");
-  if (!adminProfile) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, "Admin not found");
-  }
+//   const adminProfile = await AdminProfile.findOne({ userId: adminUserId }).populate("userId");
+//   if (!adminProfile) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Admin not found");
+//   }
 
-    if (file) {
-    const fileBuffer = file.buffer;
-    const originalName = file.originalname;
+//     if (file) {
+//     const fileBuffer = file.buffer;
+//     const originalName = file.originalname;
 
-    if (!fileBuffer) {
-      throw new AppError(HTTP_STATUS.BAD_REQUEST, "File buffer is missing.");
+//     if (!fileBuffer) {
+//       throw new AppError(HTTP_STATUS.BAD_REQUEST, "File buffer is missing.");
+//     }
+//     const adminProUrl = await uploadToSpaces(fileBuffer, originalName, {
+//       folder: FOLDERS.FIRMS,
+//       entityId: `admin-${userId}`,
+//       subFolder: FOLDERS.PROFILES
+//     });
+//     payload.image = adminProUrl;
+//   }
+
+
+
+//   if (payload.email) {
+//     user.email = payload.email;
+//   }
+
+//   if (payload.password) {
+//     user.password = payload.password; // will be auto-hashed by pre-save hook
+//     user.needsPasswordChange = true; // optional: force user to login again
+//     user.passwordChangedAt = new Date();
+//   }
+
+//   if (payload.email) {
+//     user.accountStatus = payload.status;
+//   }
+
+//   await user.save();
+
+//   // 3️ Remove fields meant for FirmUser from StaffProfile update payload
+//   const { email, password, status, ...profilePayload } = payload;
+
+//   // 4️ Update AdminProfile fields
+//   const updatedProfile = await AdminProfile.findOneAndUpdate(
+//     { _id: adminProfile?._id },
+//     {
+//       $set: {
+//         ...profilePayload,
+//         updatedBy: new Types.ObjectId(userId) // ensure ObjectId type
+//       }
+//     },
+//     { new: true }
+//   );
+
+//   if (!updatedProfile) {
+//     throw new AppError(
+//       HTTP_STATUS.NOT_FOUND,
+//       "Admin profile not found "
+//     );
+//   }
+
+//   return {
+//     adminProfile: updatedProfile,
+//     user,
+//   };
+// };
+
+
+
+
+
+const updateAdmin = async (
+  userId: string,
+  adminUserId: string,
+  payload: any,
+  file?: TUploadedFile
+) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  let newFileUrl: string | null = null;
+
+  try {
+    // Step 1️: Find User and Admin Profile
+    const user = await FirmUser.findById(adminUserId).select("+password").session(session);
+    if (!user) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
     }
-    const adminProUrl = await uploadToSpaces(fileBuffer, originalName, {
-      folder: FOLDERS.FIRMS,
-      entityId: `admin-${userId}`,
-      subFolder: FOLDERS.PROFILES
-    });
-    payload.image = adminProUrl;
-  }
 
+    const adminProfile = await AdminProfile.findOne({ userId: adminUserId })
+      .populate("userId")
+      .session(session);
+    if (!adminProfile) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "Admin not found");
+    }
 
+    // Keep reference to old image before updating
+    const oldImageUrl = adminProfile.image;
 
-  if (payload.email) {
-    user.email = payload.email;
-  }
+    // Step 2️: Handle file upload (if present)
+    if (file) {
+      const fileBuffer = file.buffer;
+      const originalName = file.originalname;
 
-  if (payload.password) {
-    user.password = payload.password; // will be auto-hashed by pre-save hook
-    user.needsPasswordChange = true; // optional: force user to login again
-    user.passwordChangedAt = new Date();
-  }
-
-  if (payload.email) {
-    user.accountStatus = payload.status;
-  }
-
-  await user.save();
-
-  // 3️ Remove fields meant for FirmUser from StaffProfile update payload
-  const { email, password, status, ...profilePayload } = payload;
-
-  // 4️ Update AdminProfile fields
-  const updatedProfile = await AdminProfile.findOneAndUpdate(
-    { _id: adminProfile?._id },
-    {
-      $set: {
-        ...profilePayload,
-        updatedBy: new Types.ObjectId(userId) // ensure ObjectId type
+      if (!fileBuffer) {
+        throw new AppError(HTTP_STATUS.BAD_REQUEST, "File buffer is missing.");
       }
-    },
-    { new: true }
-  );
 
-  if (!updatedProfile) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      "Admin profile not found "
+      // Upload new image
+      newFileUrl = await uploadToSpaces(fileBuffer, originalName, {
+        folder: FOLDERS.FIRMS,
+        subFolder: FOLDERS.PROFILES,
+        entityId: `admin-${userId}`,
+      });
+
+      payload.image = newFileUrl;
+    }
+
+    // Step 3️: Update FirmUser fields
+    if (payload.email) user.email = payload.email;
+    if (payload.password) {
+      user.password = payload.password;
+      user.needsPasswordChange = true;
+      user.passwordChangedAt = new Date();
+    }
+    if (payload.status) user.accountStatus = payload.status;
+
+    await user.save({ session });
+
+    // Step 4️: Update AdminProfile fields
+    const { email, password, status, ...profilePayload } = payload;
+
+    const updatedProfile = await AdminProfile.findOneAndUpdate(
+      { _id: adminProfile._id },
+      {
+        $set: {
+          ...profilePayload,
+          updatedBy: new Types.ObjectId(userId),
+        },
+      },
+      { new: true, session }
     );
-  }
 
-  return {
-    adminProfile: updatedProfile,
-    user,
-  };
+    if (!updatedProfile) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "Admin profile not found");
+    }
+
+    // Step 5️: Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Step 6️: After commit — delete old image asynchronously
+    if (file && oldImageUrl) {
+      deleteFromSpace(oldImageUrl).catch((err) =>
+        console.error(" Failed to delete old admin image from Space:", err)
+      );
+    }
+
+    return {
+      adminProfile: updatedProfile,
+      user,
+    };
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // Rollback newly uploaded file if transaction failed
+    if (newFileUrl) {
+      deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+        console.error(" Failed to rollback uploaded admin image:", cleanupErr)
+      );
+    }
+
+    throw err;
+  }
 };
+
+
+
+
+
+
+
 
 
 
@@ -152,15 +269,16 @@ const deleteAdmin = async (adminUserId: string) => {
   try {
     session.startTransaction();
 
-    // 1️⃣ Delete the firm user
+    // 1️ Delete the firm user
     const user = await FirmUser.findByIdAndDelete(adminUserId, { session });
     if (!user) {
       throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm user not found.");
     }
 
-    // 2️⃣ Delete the admin profile linked to that user
-    const deleted = await AdminProfile.findOneAndDelete(
+    // 2️ Delete the admin profile linked to that user
+    const deleted = await AdminProfile.findOneAndUpdate(
       { userId: adminUserId },
+      { isDeleted: true },
       { session }
     );
 
@@ -168,7 +286,7 @@ const deleteAdmin = async (adminUserId: string) => {
       throw new AppError(HTTP_STATUS.NOT_FOUND, "Admin profile not found.");
     }
 
-    // 3️⃣ Commit transaction (✅ both deleted)
+    // 3️ Commit transaction (✅ both deleted)
     await session.commitTransaction();
     session.endSession();
 
