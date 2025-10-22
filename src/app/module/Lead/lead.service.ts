@@ -1751,55 +1751,6 @@ const getAllLeadForLawyerPanel = async (
     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
 
 
-    // ----------------------- LEAD SERVICE & ANSWERS -----------------------
-    // {
-    //   $lookup: {
-    //     from: 'userwiseservicewisequestionwiseoptions', // LeadService collection
-    //     let: { leadId: '$_id', serviceId: '$serviceId._id' },
-    //     pipeline: [
-    //       {
-    //         $match: {
-    //           $expr: {
-    //             $and: [
-    //               // { $eq: ['$userProfileId', '$$leadId'] },
-    //               { $eq: ['$userProfileId', userProfile._id] },
-    //               { $eq: ['$serviceId', '$$serviceId'] },
-    //               { $eq: ['$isSelected', true] }, // <-- only selected services
-
-    //             ]
-    //           }
-    //         }
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: 'leadserviceanswers',
-    //           let: { serviceId: '$serviceId', questionId: '$questionId', optionId: '$optionId' },
-    //           pipeline: [
-    //             {
-    //               $match: {
-    //                 $expr: {
-    //                   $and: [
-    //                     { $eq: ['$serviceId', '$$serviceId'] },
-    //                     { $eq: ['$questionId', '$$questionId'] },
-    //                     { $eq: ['$optionId', '$$optionId'] },
-    //                     { $eq: ['$isSelected', true] }, // <-- only selected answers
-    //                   ]
-    //                 }
-    //               }
-    //             }
-    //           ],
-    //           as: 'answers'
-    //         }
-    //       },
-
-    //     ],
-    //     as: 'leadServices'
-    //   }
-    // },
-
-
-
-
 
     // ----------------------- LEAD SERVICE & ANSWERS -----------------------
     {
