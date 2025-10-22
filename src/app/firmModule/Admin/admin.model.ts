@@ -10,6 +10,7 @@ export interface IAdminProfile extends Document {
   image: string;
   createdBy: Types.ObjectId;
   updatedBy?: Types.ObjectId;
+  isDeleted: boolean;
 }
 
 
@@ -24,6 +25,7 @@ const adminProfileSchema = new Schema<IAdminProfile>(
     image: { type: String, required: false },
     createdBy: { type: Schema.Types.ObjectId, ref: 'FirmUser', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'FirmUser' },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

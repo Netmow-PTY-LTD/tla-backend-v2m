@@ -9,6 +9,9 @@ import { Firm_USER_ROLE } from '../FirmAuth/frimAuth.constant';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import StaffProfile from './staff.model';
 import PageModel from '../../module/Pages/page.model';
+import { TUploadedFile } from '../../interface/file.interface';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 
 
 export const getStaffList = async (userId: string) => {
@@ -49,9 +52,8 @@ export const getStaffList = async (userId: string) => {
 };
 
 
+
 const getStaffById = async (staffUserId: string) => {
-
-
 
   const existingUser = await FirmUser.isUserExists(staffUserId);
   if (!existingUser) {
@@ -66,46 +68,87 @@ const getStaffById = async (staffUserId: string) => {
 };
 
 
-// const updateStaff = async (userId: string, staffUserId: string, payload: any) => {
 
+
+// const updateStaff = async (
+//   userId: string,
+//   staffUserId: string,
+//   payload: any,
+//   file: TUploadedFile
+// ) => {
+//   // 1️ Fetch FirmUser
 //   const user = await FirmUser.findById(staffUserId).select("+password");
 //   if (!user) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, " User not found");
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 //   }
 
+//   // 2️ Fetch StaffProfile
 //   const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).populate("userId");
 //   if (!staffProfile) {
-//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff not found");
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found");
 //   }
 
+
+//     //  Handle file upload
+//     if (file?.buffer) {
+//      const imageUrl = await uploadToSpaces(file.buffer, file.originalname, {
+//         folder: FOLDERS.FIRMS,
+//         entityId: `staff-${user.firmProfileId}`, // use firmProfileId directly
+//         subFolder: FOLDERS.PROFILES
+//       });
+
+//       payload.image = imageUrl;
+//     }
+
+
+
+//   // 3️ Update FirmUser fields
 //   if (payload.email) {
 //     user.email = payload.email;
 //   }
 
 //   if (payload.password) {
-//     user.password = payload.password; // will be auto-hashed by pre-save hook
-//     user.needsPasswordChange = true; // optional: force user to login again
+//     user.password = payload.password; // auto-hashed by pre-save hook
+//     user.needsPasswordChange = true;
 //     user.passwordChangedAt = new Date();
 //   }
 
-//   if (payload.email) {
+//   if (payload.status) {
 //     user.accountStatus = payload.status;
 //   }
 
+//   // 4️ Assign permissions directly (validate pageIds)
+//   if (payload.permissions && Array.isArray(payload.permissions)) {
+//     const pageIds = payload.permissions.map((p: { pageId: Types.ObjectId }) => p.pageId);
+//     const validPages = await PageModel.find({ _id: { $in: pageIds } });
+//     if (validPages.length !== pageIds.length) {
+//       throw new AppError(
+//         HTTP_STATUS.BAD_REQUEST,
+//         "One or more pageIds are invalid."
+//       );
+//     }
+
+//     user.permissions = payload.permissions.map((perm: { pageId: Types.ObjectId; permission: boolean }) => ({
+//       pageId: perm.pageId,
+//       permission: perm.permission,
+//     }));
+
+//     // populate permissions for frontend
+//     await user.populate("permissions.pageId", "title slug");
+//   }
 
 //   await user.save();
 
-//   // 3️ Remove fields meant for FirmUser from StaffProfile update payload
-//   const { email, password, status, ...profilePayload } = payload;
+//   // 5️ Update StaffProfile fields (excluding FirmUser-specific fields)
+//   const { email, password, status, permissions, ...profilePayload } = payload;
 
-//   // 4️ Update StaffProfile fields
 //   const updatedProfile = await StaffProfile.findOneAndUpdate(
-//     { _id: staffProfile?._id },
+//     { _id: staffProfile._id },
 //     {
 //       $set: {
 //         ...profilePayload,
-//         updatedBy: new Types.ObjectId(userId) // ensure ObjectId type
-//       }
+//         updatedBy: new Types.ObjectId(userId),
+//       },
 //     },
 //     { new: true }
 //   );
@@ -113,7 +156,7 @@ const getStaffById = async (staffUserId: string) => {
 //   if (!updatedProfile) {
 //     throw new AppError(
 //       HTTP_STATUS.NOT_FOUND,
-//       "Staff profile not found "
+//       "Staff profile not found"
 //     );
 //   }
 
@@ -124,120 +167,183 @@ const getStaffById = async (staffUserId: string) => {
 // };
 
 
+// const deleteStaff = async (staffUserId: string) => {
+//   const session = await mongoose.startSession();
+
+//   try {
+//     session.startTransaction();
+
+//     // 1️ Delete the firm user
+//     const user = await FirmUser.findByIdAndDelete(staffUserId, { session });
+//     if (!user) {
+//       throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm user not found.");
+//     }
+
+//     // 2️ Delete the staff profile linked to that user
+//     const deleted = await StaffProfile.findOneAndDelete(
+//       { userId: staffUserId },
+//       { session }
+//     );
+
+//     if (!deleted) {
+//       throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found.");
+//     }
+
+//     // 3️ Commit transaction ( both deleted)
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     return { message: "Firm user and staff profile deleted successfully." };
+//   } catch (err) {
+//     // ❌ Rollback everything if any error occurs
+//     await session.abortTransaction();
+//     session.endSession();
+//     throw err;
+//   }
+// };
 
 
 
-const updateStaff = async (
+
+
+
+
+export const updateStaff = async (
   userId: string,
   staffUserId: string,
-  payload: any
+  payload: any,
+  file?: TUploadedFile
 ) => {
-  // 1️⃣ Fetch FirmUser
-  const user = await FirmUser.findById(staffUserId).select("+password");
-  if (!user) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
-  }
-
-  // 2️⃣ Fetch StaffProfile
-  const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).populate("userId");
-  if (!staffProfile) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found");
-  }
-
-  // 3️⃣ Update FirmUser fields
-  if (payload.email) {
-    user.email = payload.email;
-  }
-
-  if (payload.password) {
-    user.password = payload.password; // auto-hashed by pre-save hook
-    user.needsPasswordChange = true;
-    user.passwordChangedAt = new Date();
-  }
-
-  if (payload.status) {
-    user.accountStatus = payload.status;
-  }
-
-  // 4️⃣ Assign permissions directly (validate pageIds)
-  if (payload.permissions && Array.isArray(payload.permissions)) {
-    const pageIds = payload.permissions.map((p: { pageId: Types.ObjectId }) => p.pageId);
-    const validPages = await PageModel.find({ _id: { $in: pageIds } });
-    if (validPages.length !== pageIds.length) {
-      throw new AppError(
-        HTTP_STATUS.BAD_REQUEST,
-        "One or more pageIds are invalid."
-      );
-    }
-
-    user.permissions = payload.permissions.map((perm: { pageId: Types.ObjectId; permission: boolean }) => ({
-      pageId: perm.pageId,
-      permission: perm.permission,
-    }));
-
-    // populate permissions for frontend
-    await user.populate("permissions.pageId", "title slug");
-  }
-
-  await user.save();
-
-  // 5️⃣ Update StaffProfile fields (excluding FirmUser-specific fields)
-  const { email, password, status, permissions, ...profilePayload } = payload;
-
-  const updatedProfile = await StaffProfile.findOneAndUpdate(
-    { _id: staffProfile._id },
-    {
-      $set: {
-        ...profilePayload,
-        updatedBy: new Types.ObjectId(userId),
-      },
-    },
-    { new: true }
-  );
-
-  if (!updatedProfile) {
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      "Staff profile not found"
-    );
-  }
-
-  return {
-    staffProfile: updatedProfile,
-    user,
-  };
-};
-
-
-const deleteStaff = async (staffUserId: string) => {
   const session = await mongoose.startSession();
+  session.startTransaction();
+
+  let newFileUrl: string | null = null;
 
   try {
-    session.startTransaction();
+    // 1️ Fetch FirmUser
+    const user = await FirmUser.findById(staffUserId).select("+password").session(session);
+    if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
-    // 1️⃣ Delete the firm user
-    const user = await FirmUser.findByIdAndDelete(staffUserId, { session });
-    if (!user) {
-      throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm user not found.");
+    // 2️ Fetch StaffProfile
+    const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).populate("userId").session(session);
+    if (!staffProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found");
+
+    const oldImageUrl = staffProfile.image;
+
+    // 3️ Handle file upload
+    if (file?.buffer) {
+      const imageUrl = await uploadToSpaces(file.buffer, file.originalname, {
+        folder: FOLDERS.FIRMS,
+        entityId: `staff-${user.firmProfileId}`,
+        subFolder: FOLDERS.PROFILES,
+      });
+      payload.image = imageUrl;
+      newFileUrl = imageUrl;
     }
 
-    // 2️⃣ Delete the staff profile linked to that user
-    const deleted = await StaffProfile.findOneAndDelete(
-      { userId: staffUserId },
-      { session }
+    // 4️ Update FirmUser fields
+    if (payload.email) user.email = payload.email;
+    if (payload.password) {
+      user.password = payload.password; // auto-hashed by pre-save hook
+      user.needsPasswordChange = true;
+      user.passwordChangedAt = new Date();
+    }
+    if (payload.status) user.accountStatus = payload.status;
+
+    // 5️ Assign permissions directly (validate pageIds)
+    if (payload.permissions && Array.isArray(payload.permissions)) {
+      const pageIds = payload.permissions.map((p: { pageId: Types.ObjectId }) => p.pageId);
+      const validPages = await PageModel.find({ _id: { $in: pageIds } });
+      if (validPages.length !== pageIds.length) {
+        throw new AppError(HTTP_STATUS.BAD_REQUEST, "One or more pageIds are invalid.");
+      }
+
+      user.permissions = payload.permissions.map((perm: { pageId: Types.ObjectId; permission: boolean }) => ({
+        pageId: perm.pageId,
+        permission: perm.permission,
+      }));
+
+      await user.populate("permissions.pageId", "title slug");
+    }
+
+    await user.save({ session });
+
+    // 6️ Update StaffProfile fields
+    const { email, password, status, permissions, ...profilePayload } = payload;
+
+    const updatedProfile = await StaffProfile.findOneAndUpdate(
+      { _id: staffProfile._id },
+      {
+        $set: {
+          ...profilePayload,
+          updatedBy: new Types.ObjectId(userId),
+        },
+      },
+      { new: true, session }
     );
 
-    if (!deleted) {
-      throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found.");
-    }
+    if (!updatedProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found");
 
-    // 3️⃣ Commit transaction (✅ both deleted)
+    // 7️ Commit transaction
     await session.commitTransaction();
     session.endSession();
 
+    // 8️ After commit → delete old profile image asynchronously
+    if (file?.buffer && oldImageUrl) {
+      deleteFromSpace(oldImageUrl).catch((err) =>
+        console.error(" Failed to delete old staff profile image:", err)
+      );
+    }
+
+    return {
+      staffProfile: updatedProfile,
+      user,
+    };
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // Rollback newly uploaded file if transaction failed
+    if (newFileUrl) {
+      deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+        console.error(" Failed to rollback uploaded staff image:", cleanupErr)
+      );
+    }
+
+    throw err;
+  }
+};
+
+export const deleteStaff = async (staffUserId: string) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 1️ Find user & profile
+    const user = await FirmUser.findById(staffUserId).session(session);
+    if (!user) throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm user not found.");
+
+    const staffProfile = await StaffProfile.findOne({ userId: staffUserId }).session(session);
+    if (!staffProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Staff profile not found.");
+
+    const oldImageUrl = staffProfile.image;
+
+    // 2️ Delete FirmUser & StaffProfile
+    await FirmUser.findByIdAndDelete(staffUserId, { session });
+    await StaffProfile.findOneAndDelete({ userId: staffUserId }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // 3️ Delete profile image from Space asynchronously
+    if (oldImageUrl) {
+      deleteFromSpace(oldImageUrl).catch((err) =>
+        console.error(" Failed to delete staff profile image after deletion:", err)
+      );
+    }
+
     return { message: "Firm user and staff profile deleted successfully." };
   } catch (err) {
-    // ❌ Rollback everything if any error occurs
     await session.abortTransaction();
     session.endSession();
     throw err;
@@ -246,13 +352,13 @@ const deleteStaff = async (staffUserId: string) => {
 
 
 
-interface StaffRegisterPayload {
-  email: string;
-  password: string;
-  fullName: string;
-  role?: string; // optional, default to STAFF
 
-}
+
+
+
+
+
+
 
 
 interface StaffRegisterPayload {
@@ -264,13 +370,23 @@ interface StaffRegisterPayload {
   firmProfileId: Types.ObjectId; // optional
   permissions?: { pageId: Types.ObjectId; permission: boolean }[];
   role?: string;
-  image?: string;
+  // image?: string;
   status: "active" | "inactive"; // optional
 }
 
-const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPayload) => {
+const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPayload, file: TUploadedFile) => {
   const session = await mongoose.startSession();
   session.startTransaction();
+
+
+
+
+
+
+
+
+
+
 
   try {
     const {
@@ -282,7 +398,6 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       phone,
       permissions,
       role = Firm_USER_ROLE.STAFF,
-      image,
       status
     } = payload;
 
@@ -295,7 +410,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       );
     }
 
-    // 2️⃣ Create new FirmUser
+    // 2️ Create new FirmUser
     const [newUser] = await FirmUser.create(
       [
         {
@@ -308,7 +423,21 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
       { session }
     );
 
-    // 3️⃣ Create corresponding StaffProfile
+
+    let imageUrl: string | undefined = undefined;
+
+    //  Handle file upload
+    if (file?.buffer) {
+      imageUrl = await uploadToSpaces(file.buffer, file.originalname, {
+        folder: FOLDERS.FIRMS,
+        entityId: `staff-${firmProfileId}`, // use firmProfileId directly
+        subFolder: FOLDERS.PROFILES
+      });
+    }
+
+
+
+    // 3️ Create corresponding StaffProfile
     const [newProfile] = await StaffProfile.create(
       [
         {
@@ -318,7 +447,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
           designation,
           phone,
           role,
-          image,
+          image: imageUrl,
           createdBy: new mongoose.Types.ObjectId(userId)
         },
       ],
@@ -330,7 +459,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
     await newUser.save({ session });
 
 
-    // 4️⃣ Assign permissions directly (no service)
+    // 4️ Assign permissions directly (no service)
     if (permissions && Array.isArray(permissions) && permissions.length > 0) {
       const pageIds = permissions.map((p) => p.pageId);
       const validPages = await PageModel.find({ _id: { $in: pageIds } });
@@ -349,13 +478,13 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
 
     await newUser.save({ session });
 
-    // 5️⃣ Populate permissions with page info for frontend
+    // 5️ Populate permissions with page info for frontend
     if (newUser.permissions && newUser.permissions.length > 0) {
       await newUser.populate("permissions.pageId", "title slug");
     }
 
 
-    // 5️⃣ Generate JWT token
+    // 5️ Generate JWT token
     const jwtPayload = {
       userId: newUser._id,
       email: newUser.email,
@@ -373,7 +502,7 @@ const createStaffUserIntoDB = async (userId: string, payload: StaffRegisterPaylo
     newUser.verifyToken = accessToken;
     await newUser.save({ session });
 
-    // 6️⃣ Commit transaction
+    // 6️ Commit transaction
     await session.commitTransaction();
     session.endSession();
 

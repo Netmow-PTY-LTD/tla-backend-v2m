@@ -1,4 +1,4 @@
-import { FilterQuery, Types } from 'mongoose';
+import mongoose, { FilterQuery, Types } from 'mongoose';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { ICountryWiseMap } from './countryWiseMap.interface';
 import CountryWiseMap from './countryWiseMap.model';
@@ -7,7 +7,8 @@ import { HTTP_STATUS } from '../../constant/httpStatus';
 import CountryWiseServiceWiseField from './countryWiseServiceWiseFields.model';
 import { ICountryServiceField } from './countryWiseServiceWiseField.interface';
 import { TUploadedFile } from '../../interface/file.interface';
-import { uploadToSpaces } from '../../config/upload';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -83,53 +84,166 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
   return result;
 };
 
+
+// const manageServiceIntoDB = async (
+//   userId: string,
+//   payload: Partial<ICountryServiceField>,
+//   files?: TUploadedFile[],
+// ): Promise<{ result: ICountryServiceField; isNew: boolean }> => {
+//   if (files?.length) {
+//     for (const file of files) {
+//       if (file?.buffer && file?.fieldname) {
+//         try {
+//           // const uploadedUrl = await uploadToSpaces(
+//           //   file.buffer,
+//           //   file.originalname,
+//           //   userId,
+//           // );
+
+
+//           const uploadedUrl= await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+//             folder: FOLDERS.SERVICES,
+//             entityId:`country-${payload.countryId}-service-${payload.serviceId}`,
+//           });
+
+
+
+          
+//           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//           (payload as any)[file.fieldname] = uploadedUrl;
+//           // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+//         } catch (err) {
+//           throw new AppError(
+//             HTTP_STATUS.INTERNAL_SERVER_ERROR,
+//             `File upload failed for ${file.fieldname}`,
+//           );
+//         }
+//       }
+//     }
+//   }
+
+
+//   const existing = await CountryWiseServiceWiseField.findOne({
+//     countryId: payload.countryId,
+//     serviceId: payload.serviceId,
+//   });
+
+//   const updated = await CountryWiseServiceWiseField.findOneAndUpdate(
+//     {
+//       countryId: payload.countryId,
+//       serviceId: payload.serviceId,
+//     },
+//     { $set: payload },
+//     {
+//       new: true,
+//       upsert: true,
+//       runValidators: true,
+//     },
+//   );
+
+//   return { result: updated, isNew: !existing };
+// };
+
+
+
+
+
+//  Manage Service old image remove
+
+ 
+
+
 const manageServiceIntoDB = async (
   userId: string,
   payload: Partial<ICountryServiceField>,
   files?: TUploadedFile[],
 ): Promise<{ result: ICountryServiceField; isNew: boolean }> => {
-  if (files?.length) {
-    for (const file of files) {
-      if (file?.buffer && file?.fieldname) {
-        try {
-          const uploadedUrl = await uploadToSpaces(
-            file.buffer,
-            file.originalname,
-            userId,
-          );
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (payload as any)[file.fieldname] = uploadedUrl;
-          // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-        } catch (err) {
-          throw new AppError(
-            HTTP_STATUS.INTERNAL_SERVER_ERROR,
-            `File upload failed for ${file.fieldname}`,
-          );
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  const uploadedFilesMap: Record<string, string> = {}; // track new uploads for rollback
+  const oldFilesMap: Record<string, string> = {}; // track old files to remove after commit
+
+  try {
+    // 1️ Fetch existing record
+    const existing = await CountryWiseServiceWiseField.findOne({
+      countryId: payload.countryId,
+      serviceId: payload.serviceId,
+    }).session(session);
+
+    // 2️ Handle file uploads
+    if (files?.length) {
+      for (const file of files) {
+        if (file?.buffer && file?.fieldname) {
+          const fieldName = file.fieldname;
+          try {
+            const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
+              folder: FOLDERS.SERVICES,
+              entityId: `country-${payload.countryId}-service-${payload.serviceId}`,
+            });
+
+            uploadedFilesMap[fieldName] = uploadedUrl;
+
+            // Track old file if exists
+            if (existing && (existing as any)[fieldName]) {
+              oldFilesMap[fieldName] = (existing as any)[fieldName];
+            }
+
+            // Assign uploaded URL to payload
+            (payload as any)[fieldName] = uploadedUrl;
+          } catch (err) {
+            throw new AppError(
+              HTTP_STATUS.INTERNAL_SERVER_ERROR,
+              `File upload failed for ${fieldName}`
+            );
+          }
         }
       }
     }
+
+    // 3️ Update or create record
+    const updated = await CountryWiseServiceWiseField.findOneAndUpdate(
+      {
+        countryId: payload.countryId,
+        serviceId: payload.serviceId,
+      },
+      { $set: payload },
+      { new: true, upsert: true, runValidators: true, session }
+    );
+
+    if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to save service data');
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // 4️ Delete old files asynchronously
+    for (const key in oldFilesMap) {
+      deleteFromSpace(oldFilesMap[key]).catch((err) =>
+        console.error(` Failed to delete old service file for ${key}:`, err)
+      );
+    }
+
+    return { result: updated, isNew: !existing };
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // 5️ Rollback newly uploaded files if transaction failed
+    for (const key in uploadedFilesMap) {
+      deleteFromSpace(uploadedFilesMap[key]).catch((cleanupErr) =>
+        console.error(` Failed to rollback uploaded service file for ${key}:`, cleanupErr)
+      );
+    }
+
+    throw err;
   }
-
-  const existing = await CountryWiseServiceWiseField.findOne({
-    countryId: payload.countryId,
-    serviceId: payload.serviceId,
-  });
-
-  const updated = await CountryWiseServiceWiseField.findOneAndUpdate(
-    {
-      countryId: payload.countryId,
-      serviceId: payload.serviceId,
-    },
-    { $set: payload },
-    {
-      new: true,
-      upsert: true,
-      runValidators: true,
-    },
-  );
-
-  return { result: updated, isNew: !existing };
 };
+
+
+
+
+
+
 
 interface ICountryServiceFieldQuery {
   countryId?: string;

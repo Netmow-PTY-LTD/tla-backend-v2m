@@ -275,13 +275,13 @@ const createClaimIntoDB = async (
   session.startTransaction();
 
   try {
-    // 🔹 Normalize
+    //  Normalize
     const normalizedFirmName = payload.lawFirmName.trim();
     const normalizedLawFirmEmail = payload.lawFirmEmail.toLowerCase().trim();
     const normalizedClaimerEmail = payload.claimerEmail.toLowerCase().trim();
     const knownAdminEmails = normalizeEmails(payload.knownAdminEmails);
 
-    // 🔹 Prevent duplicate pending/needs_more_info claims
+    //  Prevent duplicate pending/needs_more_info claims
     const existing = await Claim.findOne({
       country: payload.country,
       lawFirmName: normalizedFirmName,
@@ -296,17 +296,23 @@ const createClaimIntoDB = async (
       );
     }
 
-    // 🔹 Upload files if any
+    //  Upload files if any
     let proofOwnFiles: string[] = [];
     if (files?.length) {
       proofOwnFiles = await Promise.all(
         files.map((file) =>
-          uploadToSpaces(file.buffer as Buffer, file.originalname, normalizedLawFirmEmail, FOLDERS.CLAIMS)
+          // uploadToSpaces(file.buffer as Buffer, file.originalname, normalizedLawFirmEmail, FOLDERS.CLAIMS)
+        
+          uploadToSpaces(file.buffer as Buffer, file.originalname, {
+            folder: FOLDERS.CLAIMS,
+            entityId: normalizedLawFirmEmail,
+
+          })
         )
       );
     }
 
-    // 🔹 Create new claim
+    //  Create new claim
     const [created] = await Claim.create(
       [
         {
