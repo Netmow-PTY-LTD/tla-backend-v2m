@@ -1695,6 +1695,34 @@ const getAllLeadForLawyerPanel = async (
 
 
 
+  /* 
+  
+  business logic:
+
+  **leadService
+
+  1. current logged-in lawyer leadservice 
+  2. based leadservice selected options true data filter 
+  
+  
+  **leadserviceanswers
+  1. leadserviceanswers filter by lead id
+  2. 
+
+
+  **lead serviceanswers and Leadservice 
+
+ 1. match with leadservice selected options and leadserviceanswers selected options wise match data fetch
+
+ *finally
+ 
+  1. leadservice with leadserviceanswers array data fetch
+  2. based lead service and leadAnswer show lead data fetch
+  3. if no leadservice selected options true data means no lead show
+  
+  
+  */
+
 
 
 
@@ -1724,53 +1752,103 @@ const getAllLeadForLawyerPanel = async (
 
 
     // ----------------------- LEAD SERVICE & ANSWERS -----------------------
+    // {
+    //   $lookup: {
+    //     from: 'userwiseservicewisequestionwiseoptions', // LeadService collection
+    //     let: { leadId: '$_id', serviceId: '$serviceId._id' },
+    //     pipeline: [
+    //       {
+    //         $match: {
+    //           $expr: {
+    //             $and: [
+    //               // { $eq: ['$userProfileId', '$$leadId'] },
+    //               { $eq: ['$userProfileId', userProfile._id] },
+    //               { $eq: ['$serviceId', '$$serviceId'] },
+    //               { $eq: ['$isSelected', true] }, // <-- only selected services
+
+    //             ]
+    //           }
+    //         }
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: 'leadserviceanswers',
+    //           let: { serviceId: '$serviceId', questionId: '$questionId', optionId: '$optionId' },
+    //           pipeline: [
+    //             {
+    //               $match: {
+    //                 $expr: {
+    //                   $and: [
+    //                     { $eq: ['$serviceId', '$$serviceId'] },
+    //                     { $eq: ['$questionId', '$$questionId'] },
+    //                     { $eq: ['$optionId', '$$optionId'] },
+    //                     { $eq: ['$isSelected', true] }, // <-- only selected answers
+    //                   ]
+    //                 }
+    //               }
+    //             }
+    //           ],
+    //           as: 'answers'
+    //         }
+    //       },
+
+    //     ],
+    //     as: 'leadServices'
+    //   }
+    // },
+
+
+
+
+
+        // ----------------------- LEAD SERVICE & ANSWERS -----------------------
     {
       $lookup: {
-        from: 'userwiseservicewisequestionwiseoptions', // LeadService collection
-        let: { leadId: '$_id', serviceId: '$serviceId._id' },
+        from: 'leadserviceanswers',
+        let: { leadId: '$_id' },
         pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$userProfileId', '$$leadId'] },
-                  { $eq: ['$serviceId', '$$serviceId'] },
-                  { $eq: ['$isSelected', true] }, // <-- only selected services
-                ]
-              }
-            }
-          },
-          {
-            $lookup: {
-              from: 'leadserviceanswers',
-              let: { serviceId: '$serviceId', questionId: '$questionId', optionId: '$optionId' },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $and: [
-                        { $eq: ['$serviceId', '$$serviceId'] },
-                        { $eq: ['$questionId', '$$questionId'] },
-                        { $eq: ['$optionId', '$$optionId'] },
-                        { $eq: ['$isSelected', true] }, // <-- only selected answers
-                      ]
-                    }
-                  }
-                }
-              ],
-              as: 'answers'
-            }
-          }
+          { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
+          { $match: { isSelected: true } },
         ],
-        as: 'leadServices'
-      }
-    }
-
-
-
-
-
-
+        as: 'leadServiceAnswers',
+      },
+    },
+    {
+      $lookup: {
+        from: 'userwiseservicewisequestionwiseoptions',
+        let: { serviceId: '$serviceId._id' },
+        pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] }] } } },
+        ],
+        as: 'lawyerLeadServices',
+      },
+    },
+    {
+      $addFields: {
+        matchedAnswers: {
+          $filter: {
+            input: '$leadServiceAnswers',
+            as: 'answer',
+            cond: {
+              $anyElementTrue: {
+                $map: {
+                  input: '$lawyerLeadServices',
+                  as: 'lawyer',
+                  in: {
+                    $and: [
+                      { $eq: ['$$answer.serviceId', '$$lawyer.serviceId'] },
+                      { $eq: ['$$answer.questionId', '$$lawyer.questionId'] },
+                      { $eq: ['$$answer.optionId', '$$lawyer.optionId'] },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    { $match: { 'matchedAnswers.0': { $exists: true } } },
 
 
 
