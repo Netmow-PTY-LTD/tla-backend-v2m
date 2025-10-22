@@ -203,7 +203,7 @@ const updateLawFirmCertification = async (
     // Step 5: After commit → delete old file (non-blocking)
     if (file && userId && existingCert.logo) {
       deleteFromSpace(existingCert.logo).catch((err) =>
-        console.error('⚠️ Failed to delete old file from Space:', err),
+        console.error(' Failed to delete old file from Space:', err),
       );
     }
 
@@ -215,7 +215,7 @@ const updateLawFirmCertification = async (
     // Rollback uploaded file if DB transaction failed
     if (newFileUrl) {
       deleteFromSpace(newFileUrl).catch((cleanupErr) =>
-        console.error('⚠️ Failed to rollback uploaded file:', cleanupErr),
+        console.error(' Failed to rollback uploaded file:', cleanupErr),
       );
     }
 
