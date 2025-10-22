@@ -286,13 +286,13 @@ const deleteAdmin = async (adminUserId: string) => {
       throw new AppError(HTTP_STATUS.NOT_FOUND, "Admin profile not found.");
     }
 
-    // 3️ Commit transaction (✅ both deleted)
+    // 3️ Commit transaction ( both deleted)
     await session.commitTransaction();
     session.endSession();
 
     return { message: "Firm user and admin profile deleted successfully." };
   } catch (err) {
-    // ❌ Rollback everything if any error occurs
+    //  Rollback everything if any error occurs
     await session.abortTransaction();
     session.endSession();
     throw err;
