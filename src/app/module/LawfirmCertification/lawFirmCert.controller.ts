@@ -1,9 +1,9 @@
-import { uploadToSpaces } from "../../config/upload";
-import { FOLDERS } from "../../constant";
+
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { lawFirmCertService } from "./lawFirmCert.service";
+import { TUploadedFile } from "../../interface/file.interface";
 
 
 
@@ -36,20 +36,16 @@ const getLawFirmCertifications = catchAsync(async (req, res) => {
 const createLawFirmCertification = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const staffData = req.body;
-
-  //  handle file upload if present
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-
-    // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId, FOLDERS.CERTIFICATIONS);
-    staffData.logo = logoUrl;
-  }
+  const file= req.file as TUploadedFile; // multer file
 
 
 
-  const result = await lawFirmCertService.createLawFirmCertification(staffData);
+
+
+
+
+
+  const result = await lawFirmCertService.createLawFirmCertification(staffData, file);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -77,17 +73,6 @@ const updateLawFirmCertification = catchAsync(async (req, res) => {
   const staffData = req.body;
   const { id } = req.params;
   const file = req.file; // multer file
-
-  // //  handle file upload if present
-  // if (req.file) {
-  //   const fileBuffer = req.file.buffer;
-  //   const originalName = req.file.originalname;
-
-  //   // upload to Spaces and get public URL
-  //   const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-  //   staffData.logo = logoUrl;
-  // }
-
 
   const result = await lawFirmCertService.updateLawFirmCertification(id, staffData, file, userId);
   return sendResponse(res, {

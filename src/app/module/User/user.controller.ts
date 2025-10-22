@@ -67,7 +67,6 @@ const updateProfile = catchAsync(async (req, res) => {
 
   if (parsedData?.companyInfo) {
 
-    console.log("parsedData?.companyInfo",parsedData?.companyInfo);
     companyProfileResult =
       await CompanyProfileService.firmRequestAsMember(
         userId,

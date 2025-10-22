@@ -31,9 +31,12 @@ export const FOLDERS = {
   LOGOS: 'logos',                     // Logos (company, app, services)
   CLIENT: 'client',                   // Client-specific uploads (documents, profile pics)
   ADMIN: 'admin',                     // Admin-specific uploads (reports, configs)
+  FIRM_ADMIN: 'firm_admin',                     // Admin-specific uploads (reports, configs)
   LAWYER: 'lawyer',                   // Lawyer-specific uploads (certifications, documents)
   CLAIMS: 'claims',                   // Claims-specific uploads (evidence, documents)
   TESTIMONIALS: 'testimonials',                   // testimonials uploads (evidence, documents)
+  AGREEMENTS: 'agreements',                   // agreements uploads (evidence, documents)
+  ACCREDITATIONS: 'accreditations',                   // accreditations uploads (evidence, documents)
 } as const;
 
 export type TFolder = (typeof FOLDERS)[keyof typeof FOLDERS];

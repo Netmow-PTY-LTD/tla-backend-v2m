@@ -10,6 +10,7 @@ import CompanyProfile from './companyProfile.model';
 import UserProfile from './user.model';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 import { Types } from 'mongoose';
+import { FOLDERS } from '../../constant';
 
 const updateCompanyProfileIntoDB = async (
   userId: string,
@@ -32,11 +33,18 @@ const updateCompanyProfileIntoDB = async (
   // Step 2: Handle file upload if present
   if (file?.buffer) {
     try {
-      const uploadedUrl = await uploadToSpaces(
-        file.buffer,
-        file.originalname,
-        userId,
-      );
+      // const uploadedUrl = await uploadToSpaces(
+      //   file.buffer,
+      //   file.originalname,
+      //   userId,
+      // );
+
+       const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
+        folder: FOLDERS.FIRMS,
+        entityId: `logos_${userId}`,
+      });
+
+
       // payload.logoUrl = uploadedUrl;
       companyProfileData.logoUrl = uploadedUrl;
 
@@ -45,6 +53,10 @@ const updateCompanyProfileIntoDB = async (
       throw new Error('File upload failed');
     }
   }
+
+
+
+
 
 
   if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {

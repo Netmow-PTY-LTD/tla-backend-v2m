@@ -4,28 +4,18 @@ import { HTTP_STATUS } from '../../constant/httpStatus';
 import { staffService } from './staff.service';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { uploadToSpaces } from '../../config/upload';
+
+import { TUploadedFile } from '../../interface/file.interface';
 
 const createStaff = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const staffData = req.body;
-
-
-  //  handle file upload if present
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-
-    // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-    staffData.image = logoUrl;
-  }
+  const file = req.file as TUploadedFile;
 
 
 
 
-
-  const newStaff = await staffService.createStaffUserIntoDB(userId, staffData);
+  const newStaff = await staffService.createStaffUserIntoDB(userId, staffData,file);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
@@ -67,19 +57,10 @@ const updateStaff = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const { staffUserId } = req.params;
   const payload = req.body;
-
-  //  handle file upload if present
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-
-    // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-    payload.image = logoUrl;
-  }
+    const file = req.file as TUploadedFile;
 
 
-  const updated = await staffService.updateStaff(userId, staffUserId, payload);
+  const updated = await staffService.updateStaff(userId, staffUserId, payload,file);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

@@ -304,7 +304,7 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
     );
 
     // Fetch user data
-    const userData = await FirmUser.findOne({ email: payload.email }).populate({path:"permissions",populate:{path:"pageId",model:"Page"}});
+    const userData = await FirmUser.findOne({ email: payload.email }).populate({ path: "permissions", populate: { path: "pageId", model: "Page" } });
     // Return tokens and user data
     return {
         accessToken,
@@ -821,7 +821,7 @@ const getUserInfoFromDB = async (userId: string) => {
                 },
             ],
         })
-        .populate({path:"permissions",populate:{path:"pageId",model:"Page"}})
+        .populate({ path: "permissions", populate: { path: "pageId", model: "Page" } })
         .lean();
 
     if (!user) {
@@ -846,7 +846,7 @@ const getUserInfoFromDB = async (userId: string) => {
     }
 
     return user;
-    
+
 };
 
 
@@ -865,6 +865,8 @@ export const updateCurrentUser = async (
 ) => {
     const session = await mongoose.startSession();
     session.startTransaction();
+
+    let newFileUrl: string | null = null;
 
     try {
         // 1️ Fetch user
@@ -891,6 +893,12 @@ export const updateCurrentUser = async (
         const profile = await Model.findById(user.profile).session(session);
         if (!profile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Profile not found");
 
+
+        // Keep reference to old image
+        const oldImageUrl = profile.image;
+
+
+
         // Handle profile image update
         if (file?.buffer) {
             // Delete previous image if exists
@@ -903,9 +911,19 @@ export const updateCurrentUser = async (
             }
 
             // Upload new image
-            const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId, FOLDERS.PROFILES);
+            // const logoUrl = await uploadToSpaces(file.buffer, file.originalname, userId, FOLDERS.PROFILES);
+
+            const logoUrl = await uploadToSpaces(file?.buffer, file.originalname, {
+                folder: FOLDERS.FIRMS,
+                subFolder: FOLDERS.PROFILES,
+                entityId: `${user.role}-${user._id}`,
+            });
             payload.image = logoUrl;
+            newFileUrl = logoUrl;
         }
+
+
+
 
         // Remove user-only fields from profile payload
         const { email, password, status, ...profilePayload } = payload;
@@ -928,6 +946,16 @@ export const updateCurrentUser = async (
         await session.commitTransaction();
         session.endSession();
 
+
+
+        // 7️ After commit — delete old profile image asynchronously
+        if (file?.buffer && oldImageUrl) {
+            deleteFromSpace(oldImageUrl).catch((err) =>
+                console.error(" Failed to delete old profile image:", err)
+            );
+        }
+
+
         return {
             user,
             profile: updatedProfile,
@@ -936,6 +964,16 @@ export const updateCurrentUser = async (
         // Rollback transaction on any error
         await session.abortTransaction();
         session.endSession();
+
+
+        // Rollback newly uploaded file if transaction failed
+        if (newFileUrl) {
+            deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+                console.error("Failed to rollback uploaded profile image:", cleanupErr)
+            );
+        }
+
+
 
         throw error; // propagate error to caller
     }

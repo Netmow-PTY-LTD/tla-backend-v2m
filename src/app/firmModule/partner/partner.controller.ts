@@ -1,5 +1,6 @@
-import { uploadToSpaces } from "../../config/upload";
+
 import { HTTP_STATUS } from "../../constant/httpStatus";
+import { TUploadedFile } from "../../interface/file.interface";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { partnerService } from "./partner.service";
@@ -8,19 +9,11 @@ const createPartner = catchAsync(async (req, res) => {
   const userId = req.user.userId; // from auth middleware
   const partnerData = req.body;
 
-
-  // ✅ handle file upload if present
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-
-    // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-    partnerData.image = logoUrl;
-  }
+const file = req.file as TUploadedFile
 
 
-  const newPartner = await partnerService.createPartner(userId, partnerData);
+
+  const newPartner = await partnerService.createPartner(userId, partnerData,file);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
@@ -47,19 +40,9 @@ const updatePartner = catchAsync(async (req, res) => {
   const { partnerId } = req.params;
   const payload = req.body;
 
+  const file = req.file as TUploadedFile;
 
-  // ✅ handle file upload if present
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-
-    // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-    payload.image = logoUrl;
-  }
-
-
-  const updated = await partnerService.updatePartner(partnerId, payload);
+  const updated = await partnerService.updatePartner(userId, partnerId, payload,file);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

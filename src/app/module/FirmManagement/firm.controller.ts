@@ -1,9 +1,8 @@
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { uploadToSpaces } from '../../config/upload';
 import { adminFirmService } from './firm.service';
-import { FOLDERS } from '../../constant';
+import { TUploadedFile } from '../../interface/file.interface';
 
 //  Create Firm
 const createFirm = catchAsync(async (req, res) => {
@@ -64,18 +63,13 @@ const updateFirm = catchAsync(async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
     //  handle file upload if present
-    if (req.file) {
-        const fileBuffer = req.file.buffer;
-        const originalName = req.file.originalname;
 
-        // upload to Spaces and get public URL
-        const logoUrl = await uploadToSpaces(fileBuffer, originalName, 'admin', FOLDERS.FIRMS);
-        updateData.logo = logoUrl;
-    }
+    const file=req.file as TUploadedFile
 
     const updatedFirm = await adminFirmService.updateFirm(
         id,
         updateData,
+        file
     );
 
     // Determine the response message

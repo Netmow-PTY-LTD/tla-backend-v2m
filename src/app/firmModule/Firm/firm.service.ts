@@ -7,6 +7,10 @@ import UserProfile from '../../module/User/user.model';
 import Transaction from '../../module/CreditPayment/transaction.model';
 import CreditTransaction from '../../module/CreditPayment/creditTransaction.model';
 import Lead from '../../module/Lead/lead.model';
+import { TUploadedFile } from '../../interface/file.interface';
+import { FOLDERS } from '../../constant';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
+import mongoose from 'mongoose';
 
 
 
@@ -43,21 +47,127 @@ const getFirmInfoFromDB = async (userId: string) => {
 
 
 
-const updateFirmInfoIntoDB = async (userId: string, data: Partial<IFirmProfile>) => {
+// const updateFirmInfoIntoDB = async (userId: string, data: Partial<IFirmProfile>, file: TUploadedFile) => {
 
-  const user = await FirmUser.findById(userId).select('firmProfileId')
+//   const user = await FirmUser.findById(userId).select('firmProfileId')
 
-  if (!user) {
-    return sendNotFoundResponse("User not found");
+//   if (!user) {
+//     return sendNotFoundResponse("User not found");
+//   }
+
+
+//   //  handle file upload if present
+//   if (file.buffer) {
+//     const fileBuffer = file.buffer;
+//     const originalName = file.originalname;
+//     const firmLogoUrl = await uploadToSpaces(fileBuffer, originalName, {
+//       folder: FOLDERS.FIRMS,
+//       entityId: `firm-${user.firmProfileId}`,
+//       subFolder: FOLDERS.LOGOS
+//     });
+
+//     data.logo = firmLogoUrl;
+
+
+//   }
+
+
+//   const updateFirmInfo = await FirmProfile.findByIdAndUpdate(user?.firmProfileId, data, {
+//     new: true,
+//     runValidators: true,
+//   });
+
+//   return updateFirmInfo
+// };
+
+
+
+
+const updateFirmInfoIntoDB = async (
+  userId: string,
+  data: Partial<IFirmProfile>,
+  file?: TUploadedFile
+) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  let newFileUrl: string | null = null;
+
+  try {
+    // Step 1: Find user
+    const user = await FirmUser.findById(userId).select("firmProfileId").session(session);
+    if (!user) return sendNotFoundResponse("User not found");
+
+    // Step 2: Fetch existing firm profile to keep old logo reference
+    const existingFirm = await FirmProfile.findById(user.firmProfileId).session(session);
+    if (!existingFirm) {
+      return sendNotFoundResponse("Firm profile not found");
+    }
+    const oldLogoUrl = existingFirm.logo;
+
+    // Step 3: Handle file upload if present
+    if (file?.buffer) {
+      const fileBuffer = file.buffer;
+      const originalName = file.originalname;
+
+      const firmLogoUrl = await uploadToSpaces(fileBuffer, originalName, {
+        folder: FOLDERS.FIRMS,
+        subFolder: FOLDERS.LOGOS,
+        entityId: `firm-${user.firmProfileId}`,
+      });
+
+      data.logo = firmLogoUrl;
+      newFileUrl = firmLogoUrl;
+    }
+
+    // Step 4: Update firm profile in DB
+    const updatedFirmInfo = await FirmProfile.findByIdAndUpdate(
+      user.firmProfileId,
+      data,
+      {
+        new: true,
+        runValidators: true,
+        session,
+      }
+    );
+
+    if (!updatedFirmInfo) throw new Error("Failed to update firm profile");
+
+    // Step 5: Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Step 6: Delete old logo after successful commit
+    if (file?.buffer && oldLogoUrl) {
+      deleteFromSpace(oldLogoUrl).catch((err) =>
+        console.error(" Failed to delete old firm logo:", err)
+      );
+    }
+
+    return updatedFirmInfo;
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // Rollback newly uploaded logo if transaction fails
+    if (newFileUrl) {
+      deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+        console.error(" Failed to rollback uploaded firm logo:", cleanupErr)
+      );
+    }
+
+    throw err;
   }
-
-  const updateFirmInfo = await FirmProfile.findByIdAndUpdate(user?.firmProfileId, data, {
-    new: true,
-    runValidators: true,
-  });
-
-  return updateFirmInfo
 };
+
+
+
+
+
+
+
+
+
 
 
 

@@ -2,7 +2,7 @@ import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { firmService } from './firm.service';
-import { uploadToSpaces } from '../../config/upload';
+import { TUploadedFile } from '../../interface/file.interface';
 
 
 
@@ -38,19 +38,12 @@ const updateFirmInfo = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const updateData = req.body;
 
-  // ✅ handle file upload if present
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
 
-    // upload to Spaces and get public URL
-    const logoUrl = await uploadToSpaces(fileBuffer, originalName, userId);
-    updateData.logo = logoUrl;
-  }
 
   const updatedFirm = await firmService.updateFirmInfoIntoDB(
     userId,
     updateData,
+    req.file as TUploadedFile
   );
 
   // Determine the response message
