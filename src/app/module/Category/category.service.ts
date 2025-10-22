@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { uploadToSpaces } from '../../config/upload';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { AppError } from '../../errors/error';
 import { TUploadedFile } from '../../interface/file.interface';
@@ -117,63 +117,173 @@ const getSingleCategoryFromDB = async (id: string) => {
   return result;
 };
 
-const updateCategoryIntoDB = async (
+// const updateCategoryIntoDB = async (
+//   userId: string,
+//   id: string,
+//   payload: Partial<ICategory>,
+//   file?: TUploadedFile
+// ) => {
+//   //  Check if the category exists
+//   const category = await Category.isCategoryExists(id);
+//   if (!category) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found!');
+//   }
+
+//   //  Handle file upload if a new file is provided
+//   if (file?.buffer) {
+//     try {
+//       // const uploadedUrl = await uploadToSpaces(
+//       //   file.buffer,
+//       //   file.originalname,
+//       //   userId,
+//       //   // 'avatars', // optional folder or 'categories'
+//       // );
+//       const uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+//         folder: FOLDERS.SERVICES,
+//         entityId: "CategoryImages",
+
+//       })
+//       payload.image = uploadedUrl;
+//     } catch (err: unknown) {
+//       throw new AppError(
+//         HTTP_STATUS.INTERNAL_SERVER_ERROR,
+//         'File upload failed during update'
+//       );
+//     }
+//   }
+
+
+//   //  Perform the update
+//   const updatedCategory = await Category.findByIdAndUpdate(
+//     category._id,
+//     payload,
+//     {
+//       new: true, // Return the updated document
+//     }
+//   );
+
+//   return updatedCategory;
+// };
+
+// const deleteCategoryFromDB = async (id: string) => {
+//   const category = await Category.isCategoryExists(id);
+//   if (!category) {
+//     throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
+//   }
+
+//   const result = await Category.findByIdAndDelete(id);
+//   return result;
+// };
+
+
+
+
+ const updateCategoryIntoDB = async (
   userId: string,
   id: string,
   payload: Partial<ICategory>,
   file?: TUploadedFile
 ) => {
-  // ✅ Check if the category exists
-  const category = await Category.isCategoryExists(id);
-  if (!category) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found!');
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  // ✅ Handle file upload if a new file is provided
-  if (file?.buffer) {
-    try {
-      // const uploadedUrl = await uploadToSpaces(
-      //   file.buffer,
-      //   file.originalname,
-      //   userId,
-      //   // 'avatars', // optional folder or 'categories'
-      // );
-      const uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
-        folder: FOLDERS.SERVICES,
-        entityId: "CategoryImages",
+  let newFileUrl: string | null = null;
 
-      })
-      payload.image = uploadedUrl;
-    } catch (err: unknown) {
-      throw new AppError(
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        'File upload failed during update'
+  try {
+    // 1️ Check if category exists
+    const category = await Category.isCategoryExists(id);
+    if (!category) throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found!');
+
+    const oldImageUrl = category.image;
+
+    // 2️ Handle file upload
+    if (file?.buffer) {
+      try {
+        const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
+          folder: FOLDERS.SERVICES,
+          entityId: "CategoryImages",
+        });
+        payload.image = uploadedUrl;
+        newFileUrl = uploadedUrl;
+      } catch (err: unknown) {
+        throw new AppError(
+          HTTP_STATUS.INTERNAL_SERVER_ERROR,
+          'File upload failed during update'
+        );
+      }
+    }
+
+    // 3️ Perform the update
+    const updatedCategory = await Category.findByIdAndUpdate(
+      category._id,
+      payload,
+      { new: true, session }
+    );
+
+    if (!updatedCategory) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to update category');
+
+    // 4️ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // 5️ Delete old image after successful commit
+    if (file?.buffer && oldImageUrl) {
+      deleteFromSpace(oldImageUrl).catch((err) =>
+        console.error(" Failed to delete old category image:", err)
       );
     }
-  }
 
+    return updatedCategory;
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
 
-  // ✅ Perform the update
-  const updatedCategory = await Category.findByIdAndUpdate(
-    category._id,
-    payload,
-    {
-      new: true, // Return the updated document
+    // Rollback newly uploaded file if transaction failed
+    if (newFileUrl) {
+      deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+        console.error(" Failed to rollback uploaded category image:", cleanupErr)
+      );
     }
-  );
 
-  return updatedCategory;
-};
-
-const deleteCategoryFromDB = async (id: string) => {
-  const category = await Category.isCategoryExists(id);
-  if (!category) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found !');
+    throw err;
   }
-
-  const result = await Category.findByIdAndDelete(id);
-  return result;
 };
+
+ const deleteCategoryFromDB = async (id: string) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 1️ Check if category exists
+    const category = await Category.isCategoryExists(id);
+    if (!category) throw new AppError(HTTP_STATUS.NOT_FOUND, 'This Category is not found!');
+
+    const oldImageUrl = category.image;
+
+    // 2️ Delete category from DB
+    await Category.findByIdAndDelete(id, { session });
+
+    // 3️ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // 4️ Delete category image from Space asynchronously
+    if (oldImageUrl) {
+      deleteFromSpace(oldImageUrl).catch((err) =>
+        console.error(" Failed to delete category image:", err)
+      );
+    }
+
+    return category;
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
+  }
+};
+
+
+
 
 export const categoryService = {
   CreateCategoryIntoDB,
