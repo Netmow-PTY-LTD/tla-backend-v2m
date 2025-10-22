@@ -80,6 +80,8 @@ export const deleteFromSpace = async (fileUrl: string): Promise<void> => {
   const urlObj = new URL(fileUrl);
   const fileKey = urlObj.pathname.substring(1); // remove leading '/'
 
+  console.log('Deleting file from Space with key:', fileKey);
+
   const command = new DeleteObjectCommand({
     Bucket: config.do_spaces_bucket!,
     Key: fileKey,

@@ -5,7 +5,7 @@ import { AppError } from '../../errors/error';
 import User from '../Auth/auth.model';
 import { IUserProfile } from './user.interface';
 
-import { uploadToSpaces } from '../../config/upload';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { TUploadedFile } from '../../interface/file.interface';
 import UserProfile from './user.model';
 import CompanyProfile from './companyProfile.model';
@@ -151,47 +151,128 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
  * @returns  Returns the updated profile data.
  * @throws {AppError} Throws an error if the user does not exist or the profile cannot be updated.
  */
+// const updateProfileIntoDB = async (
+//   userId: string,
+//   payload: Partial<IUserProfile>,
+//   file?: TUploadedFile,
+// ) => {
+//   // ✅ Handle file upload if provided
+//   if (file?.buffer) {
+//     try {
+//       // const uploadedUrl = await uploadToSpaces(
+//       //   file.buffer,
+//       //   file.originalname,
+//       //   userId,
+//       //   // 'avatars', // optional folder name
+//       // );
+//       const uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+//         folder: FOLDERS.PROFILES,
+//         entityId: `user_${userId}`,
+//       });
+//       payload.profilePicture = uploadedUrl;
+//       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+//     } catch (err) {
+//       throw new AppError(
+//         HTTP_STATUS.INTERNAL_SERVER_ERROR,
+//         'File upload failed',
+//       );
+//     }
+//   }
+
+//   // Update the user's profile in the database
+//   const updatedProfile = await UserProfile.findOneAndUpdate(
+//     { user: userId },
+//     payload,
+//     {
+//       new: true, // Return the updated document
+//       runValidators: true, // Run schema validation before saving
+//     },
+//   );
+
+//   // Return the updated profile
+//   return updatedProfile;
+// };
+
+
+
 const updateProfileIntoDB = async (
   userId: string,
   payload: Partial<IUserProfile>,
-  file?: TUploadedFile,
+  file?: TUploadedFile
 ) => {
-  // ✅ Handle file upload if provided
-  if (file?.buffer) {
-    try {
-      // const uploadedUrl = await uploadToSpaces(
-      //   file.buffer,
-      //   file.originalname,
-      //   userId,
-      //   // 'avatars', // optional folder name
-      // );
-      const uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  let newFileUrl: string | null = null;
+
+  try {
+    // Step 1: Fetch existing profile
+    const existingProfile = await UserProfile.findOne({ user: userId }).session(session);
+    if (!existingProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
+
+    // Step 2: Handle file upload (if new file provided)
+    if (file?.buffer) {
+      const fileBuffer = file.buffer;
+      const originalName = file.originalname;
+
+      // Upload new file to DigitalOcean Spaces
+      newFileUrl = await uploadToSpaces(fileBuffer, originalName, {
         folder: FOLDERS.PROFILES,
-        entityId: `userId_${userId}`,
+        entityId: `user_${userId}`,
       });
-      payload.profilePicture = uploadedUrl;
-      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-    } catch (err) {
-      throw new AppError(
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        'File upload failed',
+
+      // Attach new URL to payload
+      payload.profilePicture = newFileUrl;
+    }
+
+    // Step 3: Update DB record inside transaction
+    const updatedProfile = await UserProfile.findOneAndUpdate(
+      { user: userId },
+      payload,
+      {
+        new: true,
+        runValidators: true,
+        session,
+      }
+    );
+
+    if (!updatedProfile) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Failed to update profile');
+
+    // Step 4: Commit DB transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Step 5: Delete old file after successful update
+    if (file?.buffer && existingProfile.profilePicture) {
+      deleteFromSpace(existingProfile.profilePicture).catch((err) =>
+        console.error('⚠️ Failed to delete old profile picture:', err)
       );
     }
+
+    return updatedProfile;
+  } catch (err) {
+    // Rollback DB transaction
+    await session.abortTransaction();
+    session.endSession();
+
+    // Rollback uploaded file if DB transaction failed
+    if (newFileUrl) {
+      deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+        console.error('⚠️ Failed to rollback uploaded file:', cleanupErr)
+      );
+    }
+
+    throw err;
   }
-
-  // Update the user's profile in the database
-  const updatedProfile = await UserProfile.findOneAndUpdate(
-    { user: userId },
-    payload,
-    {
-      new: true, // Return the updated document
-      runValidators: true, // Run schema validation before saving
-    },
-  );
-
-  // Return the updated profile
-  return updatedProfile;
 };
+
+
+
+
+
+
+
+
 
 /**
  * @desc   Retrieves the profile data of a single user from the database, including user and profile details.
@@ -450,39 +531,85 @@ export const softDeleteUserIntoDB = async (id: string) => {
 
 
 
-export const updateDefaultProfileIntoDB = async (
+
+
+const updateDefaultProfileIntoDB = async (
   userId: string,
   file: Express.Multer.File
 ) => {
+
+
   if (!file?.buffer) {
     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Invalid file');
   }
 
-  // Upload file to Spaces
-  let uploadedUrl: string;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  let newFileUrl: string | null = null;
+
   try {
-    // uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
+    // Step 1️: Find existing user profile
+    const userProfile = await UserProfile.findOne({ user: userId }).session(session);
+    if (!userProfile) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
+    }
 
+    const oldFileUrl = userProfile.profilePicture;
 
-     uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+    // Step 2️: Upload new file
+    const fileBuffer = file.buffer;
+    const originalName = file.originalname;
+
+    newFileUrl = await uploadToSpaces(fileBuffer, originalName, {
       folder: FOLDERS.PROFILES,
-      entityId: `userId_${userId}`,
+      entityId: `user_${userId}`,
     });
 
+    // Step 3️: Update DB record inside transaction
+    userProfile.profilePicture = newFileUrl;
+    await userProfile.save({ session });
 
+    
+    // Step 4️: Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Step 5️: Delete old file asynchronously (non-blocking)
+    if (oldFileUrl) {
+    
+      deleteFromSpace(oldFileUrl).catch((err) =>
+        console.error('⚠️ Failed to delete old profile image:', err)
+      );
+    }
+
+    return userProfile;
   } catch (err) {
-    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'File upload failed');
+    // Rollback transaction
+    await session.abortTransaction();
+    session.endSession();
+
+    // Rollback uploaded file if DB update failed
+    if (newFileUrl) {
+      deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+        console.error('⚠️ Failed to rollback uploaded file:', cleanupErr)
+      );
+    }
+
+    throw err;
   }
-
-  // Update profilePicture in user profile
-  const updatedProfile = await UserProfile.findOneAndUpdate(
-    { user: userId },
-    { profilePicture: uploadedUrl },
-    { new: true, runValidators: true }
-  );
-
-  return updatedProfile;
 };
+
+
+
+
+
+
+
+
+
+
+
 
 
 export const UserProfileService = {
