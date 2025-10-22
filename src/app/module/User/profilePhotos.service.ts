@@ -1,4 +1,5 @@
 import { uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { AppError } from '../../errors/error';
@@ -28,7 +29,12 @@ const updateProfilePhotosIntoDB = async (
       const uploadPromises = files
         .filter((file) => file?.buffer)
         .map((file) =>
-          uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
+          // uploadToSpaces(file.buffer as Buffer, file.originalname, userId),
+          uploadToSpaces(file.buffer as Buffer, file.originalname, {
+            folder: FOLDERS.MEDIA,
+            entityId: `media_${userId}`,
+          }),
+
         );
 
       uploadedUrls = await Promise.all(uploadPromises);

@@ -1,3 +1,6 @@
+import { uploadToSpaces } from "../../config/upload";
+import { FOLDERS } from "../../constant";
+import { TUploadedFile } from "../../interface/file.interface";
 import { Testimonial } from "./testimonial.model";
 import { FilterQuery } from "mongoose";
 
@@ -7,7 +10,28 @@ interface GetAllParams {
   limit?: number;
 }
 
-const createTestimonial = async (payload: any) => {
+const createTestimonial = async (payload: any,file: TUploadedFile | undefined) => {
+
+  if (file?.buffer) {
+      const fileBuffer = file.buffer;
+      const originalName = file.originalname;
+  
+      // upload to Spaces and get public URL
+      const imageUrl = await uploadToSpaces(fileBuffer, originalName, {
+        folder: FOLDERS.TESTIMONIALS,
+        entityId: `testimonial_${Date.now()}`,
+      });
+  
+      payload.image = imageUrl;
+      
+    }
+
+
+
+
+
+
+
   const result = await Testimonial.create(payload);
   return result;
 };
@@ -43,7 +67,24 @@ const getTestimonialById = async (id: string) => {
   return result;
 };
 
-const updateTestimonial = async (id: string, payload: any) => {
+const updateTestimonial = async (id: string, payload: any, file: TUploadedFile | undefined) => {
+
+
+  if (file?.buffer) {
+      const fileBuffer = file.buffer;
+      const originalName = file.originalname;
+  
+      // upload to Spaces and get public URL
+      const imageUrl = await uploadToSpaces(fileBuffer, originalName, {
+        folder: FOLDERS.TESTIMONIALS,
+        entityId: `testimonial_${Date.now()}`,
+      });
+      payload.image = imageUrl;
+      
+    }
+
+
+
   const result = await Testimonial.findByIdAndUpdate(id, payload, {
     new: true,
   });

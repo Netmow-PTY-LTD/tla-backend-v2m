@@ -35,6 +35,8 @@ export const FOLDERS = {
   LAWYER: 'lawyer',                   // Lawyer-specific uploads (certifications, documents)
   CLAIMS: 'claims',                   // Claims-specific uploads (evidence, documents)
   TESTIMONIALS: 'testimonials',                   // testimonials uploads (evidence, documents)
+  AGREEMENTS: 'agreements',                   // agreements uploads (evidence, documents)
+  ACCREDITATIONS: 'accreditations',                   // accreditations uploads (evidence, documents)
 } as const;
 
 export type TFolder = (typeof FOLDERS)[keyof typeof FOLDERS];

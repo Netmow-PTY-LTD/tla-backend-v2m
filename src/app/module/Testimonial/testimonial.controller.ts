@@ -1,6 +1,6 @@
-import { uploadToSpaces } from "../../config/upload";
-import { FOLDERS } from "../../constant";
+
 import { HTTP_STATUS } from "../../constant/httpStatus";
+import { TUploadedFile } from "../../interface/file.interface";
 
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
@@ -10,25 +10,14 @@ import { testimonialService } from "./testimonial.service";
 // Create testimonial
 const createTestimonial = catchAsync(async (req, res) => {
   const { name, comment } = req.body;
-  const userId = req.user?.userId;
-  let imageUrl: string | null = null;
+  const file= req.file as TUploadedFile; // multer file
 
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-    imageUrl = await uploadToSpaces(
-      fileBuffer,
-      originalName,
-      userId,
-      FOLDERS.TESTIMONIALS
-    );
-  }
 
   const result = await testimonialService.createTestimonial({
     name,
     comment,
-    image: imageUrl,
-  });
+  
+  }, file);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
@@ -73,24 +62,10 @@ const getTestimonialById = catchAsync(async (req, res) => {
 // Update testimonial
 const updateTestimonial = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const userId = req.user?.userId;
-  let imageUrl: string | undefined;
+  const updateData = req.body;
+  const file = req.file as TUploadedFile; // multer file
 
-  if (req.file) {
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-    imageUrl = await uploadToSpaces(
-      fileBuffer,
-      originalName,
-      userId,
-      FOLDERS.TESTIMONIALS
-    );
-  }
-
-  const updateData = { ...req.body };
-  if (imageUrl) updateData.image = imageUrl;
-
-  const result = await testimonialService.updateTestimonial(id, updateData);
+  const result = await testimonialService.updateTestimonial(id, updateData,file);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

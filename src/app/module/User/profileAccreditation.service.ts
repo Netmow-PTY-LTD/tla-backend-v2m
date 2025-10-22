@@ -9,6 +9,7 @@ import { IAccreditation } from './profileAccreditation.interface';
 
 import Accreditation from './ProfileAccreditation';
 import UserProfile from './user.model';
+import { FOLDERS } from '../../constant';
 
 const updateProfileAccreditationIntoDB = async (
   id: string,
@@ -25,11 +26,18 @@ const updateProfileAccreditationIntoDB = async (
   // Handle file upload if provided
   if (file?.buffer) {
     try {
-      const uploadedUrl = await uploadToSpaces(
-        file.buffer,
-        file.originalname,
-        id,
-      );
+      // const uploadedUrl = await uploadToSpaces(
+      //   file.buffer,
+      //   file.originalname,
+      //   id,
+      // );
+
+      const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
+        folder: FOLDERS.ACCREDITATIONS,
+        entityId: `accreditation_${id}`,
+      });
+
+
       payload.attachment = uploadedUrl;
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {

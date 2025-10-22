@@ -1,7 +1,6 @@
 import { uploadToSpaces } from "../../config/upload";
-import { HTTP_STATUS } from "../../constant/httpStatus";
+import { FOLDERS } from "../../constant";
 import { sendNotFoundResponse } from "../../errors/custom.error";
-import { AppError } from "../../errors/error";
 import { TUploadedFile } from "../../interface/file.interface";
 import { validateObjectId } from "../../utils/validateObjectId";
 import Agreement, { IAgreement } from "./agreement.model";
@@ -24,16 +23,33 @@ const updateProfileAgreementIntoDB = async (
 
 
   // Handle file upload if provided
+  // if (file?.buffer) {
+  //   try {
+  //     uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
+  //   } catch (err) {
+  //     throw new AppError(
+  //       HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  //       'File upload failed',
+  //     );
+  //   }
+  // }
+
+
   if (file?.buffer) {
-    try {
-      uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
-    } catch (err) {
-      throw new AppError(
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        'File upload failed',
-      );
+      const fileBuffer = file.buffer;
+      const originalName = file.originalname;
+  
+      // upload to Spaces and get public URL
+      const imageUrl = await uploadToSpaces(fileBuffer, originalName, {
+        folder: FOLDERS.AGREEMENTS,
+        entityId: `agreement_${userId}`,
+      });
+  
+      uploadedUrl = imageUrl;
+      
     }
-  }
+
+
 
   // Try to find existing Agreement by userProfile._id
   let agreement = await Agreement.findOne({ userProfileId: userProfile._id });

@@ -55,7 +55,6 @@ const updateFirmInfoIntoDB = async (userId: string, data: Partial<IFirmProfile>,
   }
 
 
-
   //  handle file upload if present
   if (file.buffer) {
     const fileBuffer = file.buffer;
@@ -70,8 +69,6 @@ const updateFirmInfoIntoDB = async (userId: string, data: Partial<IFirmProfile>,
 
 
   }
-
-
 
 
   const updateFirmInfo = await FirmProfile.findByIdAndUpdate(user?.firmProfileId, data, {

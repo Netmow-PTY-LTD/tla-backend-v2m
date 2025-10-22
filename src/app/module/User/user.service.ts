@@ -20,6 +20,7 @@ import mongoose, { Document } from 'mongoose';
 import Experience from './experience.model';
 import Faq from './faq.model';
 import Agreement from './agreement.model';
+import { FOLDERS } from '../../constant';
 
 
 /**
@@ -158,12 +159,16 @@ const updateProfileIntoDB = async (
   // ✅ Handle file upload if provided
   if (file?.buffer) {
     try {
-      const uploadedUrl = await uploadToSpaces(
-        file.buffer,
-        file.originalname,
-        userId,
-        // 'avatars', // optional folder name
-      );
+      // const uploadedUrl = await uploadToSpaces(
+      //   file.buffer,
+      //   file.originalname,
+      //   userId,
+      //   // 'avatars', // optional folder name
+      // );
+      const uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+        folder: FOLDERS.PROFILES,
+        entityId: `userId_${userId}`,
+      });
       payload.profilePicture = uploadedUrl;
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     } catch (err) {
@@ -302,7 +307,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
           path: 'serviceIds',
           model: 'Service', // or whatever your actual model name is
         },
- 
+
         {
           path: 'firmProfileId',
           model: 'FirmProfile',
@@ -313,7 +318,7 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
         {
           path: 'activeFirmRequestId',
           model: 'LawyerRequestAsMember',
-          populate: { path: 'firmProfileId' ,select: 'firmName'},
+          populate: { path: 'firmProfileId', select: 'firmName' },
         },
         {
           path: 'subscriptionId',
@@ -456,7 +461,15 @@ export const updateDefaultProfileIntoDB = async (
   // Upload file to Spaces
   let uploadedUrl: string;
   try {
-    uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
+    // uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, userId);
+
+
+     uploadedUrl = await uploadToSpaces(file.buffer as Buffer, file.originalname, {
+      folder: FOLDERS.PROFILES,
+      entityId: `userId_${userId}`,
+    });
+
+
   } catch (err) {
     throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'File upload failed');
   }

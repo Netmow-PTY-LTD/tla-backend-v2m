@@ -3,6 +3,7 @@ import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { validateObjectId } from "../../utils/validateObjectId";
 import { LawFirmCertification } from "./lawFirmCert.model";
 import { FOLDERS } from "../../constant";
+import { TUploadedFile } from "../../interface/file.interface";
 
 
 const getAllLawFirmCertificationsFromDB = async (query: {
@@ -108,7 +109,29 @@ const getAllLawFirmCertificationsFromDB = async (query: {
 
 
 
-const createLawFirmCertification = async (payload: any) => {
+const createLawFirmCertification = async (payload: any, file: TUploadedFile) => {
+
+
+
+
+  //  handle file upload if present
+  if (file.buffer) {
+    const fileBuffer = file.buffer;
+    const originalName = file.originalname;
+
+    // upload to Spaces and get public URL
+    const logoUrl = await uploadToSpaces(fileBuffer, originalName, {
+      folder: FOLDERS.CERTIFICATIONS,
+      entityId: `lawfirmcert`,
+    });
+
+    payload.logo = logoUrl;
+  }
+
+
+
+
+
   const result = await LawFirmCertification.create(payload);
   return result;
 };
@@ -140,14 +163,29 @@ const updateLawFirmCertification = async (
     const existingCert = await LawFirmCertification.findById(id).session(session);
     if (!existingCert) throw new Error('LawFirmCertification not found');
 
-    // Step 2: Handle new file upload
-    if (file && userId) {
+    // // Step 2: Handle new file upload
+    // if (file && userId) {
+    //   const fileBuffer = file.buffer;
+    //   const originalName = file.originalname;
+
+    //   // Upload new file to Space
+    //   newFileUrl = await uploadToSpaces(fileBuffer, originalName, userId, FOLDERS.CERTIFICATIONS);
+    //   payload.logo = newFileUrl;
+    // }
+
+
+    //  handle file upload if present
+    if (file) {
       const fileBuffer = file.buffer;
       const originalName = file.originalname;
 
-      // Upload new file to Space
-      newFileUrl = await uploadToSpaces(fileBuffer, originalName, userId, FOLDERS.CERTIFICATIONS);
-      payload.logo = newFileUrl;
+      // upload to Spaces and get public URL
+      const logoUrl = await uploadToSpaces(fileBuffer, originalName, {
+        folder: FOLDERS.CERTIFICATIONS,
+        entityId: `lawfirmcert`,
+      });
+
+      payload.logo = logoUrl;
     }
 
     // Step 3: Update DB record inside transaction

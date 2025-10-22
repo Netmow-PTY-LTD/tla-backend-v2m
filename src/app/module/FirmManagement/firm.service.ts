@@ -7,6 +7,9 @@ import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
 import { IFirmProfile } from '../../firmModule/Firm/firm.interface';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { TUploadedFile } from '../../interface/file.interface';
+import { uploadToSpaces } from '../../config/upload';
+import { FOLDERS } from '../../constant';
 
 
 //  Create
@@ -168,11 +171,30 @@ const getFirmById = async (id: string) => {
 
 
 //  Update
-const updateFirm = async (id: string, data: Partial<IFirmProfile>) => {
-    return await FirmProfile.findByIdAndUpdate(id, data, {
+const updateFirm = async (firmProfileId: string, data: Partial<IFirmProfile>, file: TUploadedFile) => {
+
+    //  handle file upload if present
+    if (file.buffer) {
+        const fileBuffer = file.buffer;
+        const originalName = file.originalname;
+        const firmLogoUrl = await uploadToSpaces(fileBuffer, originalName, {
+            folder: FOLDERS.FIRMS,
+            entityId: `firm-${firmProfileId}`,
+            subFolder: FOLDERS.LOGOS
+        });
+
+        data.logo = firmLogoUrl;
+
+    }
+
+
+    return await FirmProfile.findByIdAndUpdate(firmProfileId, data, {
         new: true,
         runValidators: true,
     });
+
+
+
 };
 
 
