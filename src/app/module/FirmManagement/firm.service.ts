@@ -8,7 +8,7 @@ import { IFirmProfile } from '../../firmModule/Firm/firm.interface';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { TUploadedFile } from '../../interface/file.interface';
-import { uploadToSpaces } from '../../config/upload';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 
 
@@ -171,59 +171,173 @@ const getFirmById = async (id: string) => {
 
 
 //  Update
-const updateFirm = async (firmProfileId: string, data: Partial<IFirmProfile>, file: TUploadedFile) => {
+// const updateFirm = async (firmProfileId: string, data: Partial<IFirmProfile>, file: TUploadedFile) => {
 
-    //  handle file upload if present
-    if (file.buffer) {
-        const fileBuffer = file.buffer;
-        const originalName = file.originalname;
-        const firmLogoUrl = await uploadToSpaces(fileBuffer, originalName, {
-            folder: FOLDERS.FIRMS,
-            entityId: `firm-${firmProfileId}`,
-            subFolder: FOLDERS.LOGOS
-        });
+//     //  handle file upload if present
+//     if (file.buffer) {
+//         const fileBuffer = file.buffer;
+//         const originalName = file.originalname;
+//         const firmLogoUrl = await uploadToSpaces(fileBuffer, originalName, {
+//             folder: FOLDERS.FIRMS,
+//             entityId: `firm-${firmProfileId}`,
+//             subFolder: FOLDERS.LOGOS
+//         });
 
-        data.logo = firmLogoUrl;
+//         data.logo = firmLogoUrl;
 
+//     }
+
+
+//     return await FirmProfile.findByIdAndUpdate(firmProfileId, data, {
+//         new: true,
+//         runValidators: true,
+//     });
+
+
+
+// };
+
+
+
+// //  Delete Firm (and associated FirmUser) transactionally
+// export const deleteFirm = async (id: string) => {
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
+
+//     try {
+//         // 1️ Find the firm profile
+//         const firm = await FirmProfile.findById(id).session(session);
+//         if (!firm) {
+//             throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm not found');
+//         }
+
+//         // 3️ Delete the FirmProfile
+//         await FirmProfile.findByIdAndDelete(id, { session });
+
+//         await session.commitTransaction();
+//         session.endSession();
+
+//         return { message: 'Firm and associated user deleted successfully' };
+//     } catch (err) {
+//         await session.abortTransaction();
+//         session.endSession();
+//         throw err;
+//     }
+// };
+
+
+
+
+
+
+const updateFirm = async (
+  firmProfileId: string,
+  data: Partial<IFirmProfile>,
+  file?: TUploadedFile
+) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  let newFileUrl: string | null = null;
+
+  try {
+    const firm = await FirmProfile.findById(firmProfileId).session(session);
+    if (!firm) throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm not found");
+
+    const oldLogoUrl = firm.logo;
+
+    // Handle file upload
+    if (file?.buffer) {
+      const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
+        folder: FOLDERS.FIRMS,
+        entityId: `firm-${firmProfileId}`,
+        subFolder: FOLDERS.LOGOS,
+      });
+
+      data.logo = uploadedUrl;
+      newFileUrl = uploadedUrl;
     }
 
-
-    return await FirmProfile.findByIdAndUpdate(firmProfileId, data, {
-        new: true,
-        runValidators: true,
+    // Update FirmProfile
+    const updatedFirm = await FirmProfile.findByIdAndUpdate(firmProfileId, data, {
+      new: true,
+      runValidators: true,
+      session,
     });
 
+    if (!updatedFirm) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Failed to update firm");
 
+    await session.commitTransaction();
+    session.endSession();
 
-};
-
-
-
-//  Delete Firm (and associated FirmUser) transactionally
-export const deleteFirm = async (id: string) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        // 1️ Find the firm profile
-        const firm = await FirmProfile.findById(id).session(session);
-        if (!firm) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm not found');
-        }
-
-        // 3️ Delete the FirmProfile
-        await FirmProfile.findByIdAndDelete(id, { session });
-
-        await session.commitTransaction();
-        session.endSession();
-
-        return { message: 'Firm and associated user deleted successfully' };
-    } catch (err) {
-        await session.abortTransaction();
-        session.endSession();
-        throw err;
+    // Delete old logo after successful commit
+    if (file?.buffer && oldLogoUrl) {
+      deleteFromSpace(oldLogoUrl).catch((err) =>
+        console.error("Failed to delete old firm logo:", err)
+      );
     }
+
+    return updatedFirm;
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // Rollback newly uploaded file if transaction failed
+    if (newFileUrl) {
+      deleteFromSpace(newFileUrl).catch((cleanupErr) =>
+        console.error(" Failed to rollback uploaded firm logo:", cleanupErr)
+      );
+    }
+
+    throw err;
+  }
 };
+
+// Delete Firm transactionally
+export const deleteFirm = async (id: string) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const firm = await FirmProfile.findById(id).session(session);
+    if (!firm) throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm not found");
+
+    const oldLogoUrl = firm.logo;
+
+    // Optionally delete associated FirmUser(s)
+    await FirmUser.deleteMany({ firmProfileId: id }, { session });
+
+    // Delete the FirmProfile
+    await FirmProfile.findByIdAndDelete(id, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // Delete logo from Spaces asynchronously
+    if (oldLogoUrl) {
+      deleteFromSpace(oldLogoUrl).catch((err) =>
+        console.error("Failed to delete firm logo:", err)
+      );
+    }
+
+    return { message: "Firm and associated users deleted successfully" };
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
 
 
 
