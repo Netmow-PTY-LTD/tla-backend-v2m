@@ -1,4 +1,5 @@
-import { uploadToSpaces } from '../../config/upload';
+import mongoose from 'mongoose';
+import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { sendNotFoundResponse } from '../../errors/custom.error';
@@ -69,33 +70,89 @@ const updateProfilePhotosIntoDB = async (
   return updatedProfilePhotos;
 };
 
-const removeProfileMediaFromDB = async (
+// const removeProfileMediaFromDB = async (
+//   userId: string,
+//   type: 'photos' | 'videos',
+//   urlToRemove: string
+// ) => {
+//   const userProfile = await UserProfile.findOne({ user: userId });
+
+//   if (!userProfile) {
+//     return {
+//       statusCode: 200,
+//       success: false,
+//       message: "user not found ",
+//       data: null
+//     }
+//   }
+
+//   const updateResult = await ProfilePhotos.findOneAndUpdate(
+//     { userProfileId: userProfile._id },
+//     {
+//       $pull: {
+//         [type]: urlToRemove,
+//       },
+//     },
+//     { new: true }
+//   );
+
+//   return updateResult;
+// };
+
+
+
+
+export const removeProfileMediaFromDB = async (
   userId: string,
   type: 'photos' | 'videos',
   urlToRemove: string
 ) => {
-  const userProfile = await UserProfile.findOne({ user: userId });
+  // Start MongoDB transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (!userProfile) {
+  try {
+    // Step 1️: Find user profile
+    const userProfile = await UserProfile.findOne({ user: userId }).session(session);
+    if (!userProfile) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'User profile not found');
+    }
+
+    // Step 2️: Update DB (remove the media URL)
+    const updatedMedia = await ProfilePhotos.findOneAndUpdate(
+      { userProfileId: userProfile._id },
+      { $pull: { [type]: urlToRemove } },
+      { new: true, session }
+    );
+
+    if (!updatedMedia) {
+      throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Failed to update media collection');
+    }
+
+    // Step 3️: Attempt to delete the file from DigitalOcean Spaces
+    try {
+      await deleteFromSpace(urlToRemove);
+    } catch (fileErr) {
+      throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to delete file from Spaces');
+    }
+
+    // Step 4️: Commit DB transaction
+    await session.commitTransaction();
+    session.endSession();
+
     return {
       statusCode: 200,
-      success: false,
-      message: "user not found ",
-      data: null
-    }
+      success: true,
+      message: 'Media removed successfully',
+      data: updatedMedia,
+    };
+  } catch (err) {
+    // Step 5️: Rollback DB delete
+    await session.abortTransaction();
+    session.endSession();
+
+    throw err;
   }
-
-  const updateResult = await ProfilePhotos.findOneAndUpdate(
-    { userProfileId: userProfile._id },
-    {
-      $pull: {
-        [type]: urlToRemove,
-      },
-    },
-    { new: true }
-  );
-
-  return updateResult;
 };
 
 
@@ -104,7 +161,7 @@ const removeProfileMediaFromDB = async (
 
 
 
-
+//  previous code logic update profile photos into DB
 // const updateProfilePhotosIntoDB = async (
 //   userId: string,
 //   payload: Partial<IProfilePhotos>,
