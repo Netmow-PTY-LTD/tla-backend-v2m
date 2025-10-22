@@ -1818,7 +1818,7 @@ const getAllLeadForLawyerPanel = async (
         from: 'userwiseservicewisequestionwiseoptions',
         let: { serviceId: '$serviceId._id' },
         pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] }] } } },
+          { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] },{ $eq: ['$countryId',  new mongoose.Types.ObjectId(userProfile.country)] }] } } },
         ],
         as: 'lawyerLeadServices',
       },
