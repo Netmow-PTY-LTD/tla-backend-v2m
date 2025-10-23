@@ -26,7 +26,6 @@ import { pageRouter } from '../module/Pages/page.route';
 import { claimRouter } from '../module/Claim/claim.route';
 import { testimonialRoutes } from '../module/Testimonial/testimonial.route';
 import { userLocationServiceMapRouter } from '../module/UserLocationServiceMap/userLocationServiceMap.route';
-import { ad } from '@faker-js/faker/dist/airline-CHFQMWko';
 import { adminFirmRouter } from '../module/FirmManagement/firm.route';
 
 const router = Router();
