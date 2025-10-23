@@ -44,9 +44,22 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
   { timestamps: true },
 );
 
+
+
+
+
+
+
+
+
 leadServiceSchema.statics.isLeadServiceExists = async function (id: string) {
   return await this.findById(id);
 };
+
+
+
+
+
 
 const LeadService = mongoose.model<ILeadService, ILeadServiceModel>(
   'userWiseServiceWiseQuestionWiseOptions',
