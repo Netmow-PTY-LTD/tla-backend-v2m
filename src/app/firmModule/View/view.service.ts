@@ -47,23 +47,10 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
     }) // user refs
     .lean();
 
+
+
   if (!firmProfile) return null;
 
-  // Find the user using the firm profile ID
-  const rawUser = await FirmUser.findOne({
-    profile: firmProfile._id,
-    deletedAt: null,
-  })
-    .select('email profile')
-    .lean();
-
-  if (!rawUser) return null;
-
-  // Type override
-  const user = rawUser as unknown as Omit<IFirmUser, 'profile'> & {
-    email: string;
-    profile: IFirmProfile;
-  };
 
 
   const certification = await FirmLicense.find({
@@ -88,13 +75,13 @@ const getSingleFirmProfileBySlug = async (slug: string) => {
   });
 
 
+
   // Compose a complete, frontend-friendly response
   return {
     ...firmProfile,
     certification: certification || [],
     media: media || { photos: [], videos: [] },
     location: location || [],
-    // lawyers: []
   };
 };
 
