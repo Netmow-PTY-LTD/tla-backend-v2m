@@ -21,6 +21,8 @@ import ZipCode from '../Country/zipcode.model';
 import { getBatchTravelInfo } from './lead.utils';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
+import { findLeadsWithinTravelTime } from './filterTravelTime';
+import { IZipCode } from '../Country/zipcode.interface';
 
 
 
@@ -1336,7 +1338,7 @@ const getAllLeadForLawyerPanel = async (
   const sortField = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
-  const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id });
+  const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
 
 
 
@@ -1406,22 +1408,75 @@ const getAllLeadForLawyerPanel = async (
 
     // 2 Distance-wise
 
+    // if (distanceWiseServiceIds.length > 0) {
+    //   // Array to hold all locationIds that are nearby
+    //   let nearbyLocationIds: mongoose.Types.ObjectId[] = [];
+
+    //   for (const loc of userLocationService.filter(l => l.locationType === LocationType.DISTANCE_WISE)) {
+    //     if (!loc.locationGroupId) continue;
+    //     // Fetch the coordinates from the ZipCode
+    //     const zip = await ZipCode.findById(loc.locationGroupId).select('location');
+
+    //     if (!zip || !zip.location) continue;
+
+    //     const radiusInMeters = (loc.rangeInKm || 5) * 1000; // convert km to meters
+
+    //     const nearby = await ZipCode.aggregate([
+    //       {
+    //         $geoNear: {
+    //           near: { type: "Point", coordinates: [zip.location.coordinates[0], zip.location.coordinates[1]] },
+    //           distanceField: "distance",
+    //           maxDistance: radiusInMeters,
+    //           spherical: true,
+    //         },
+    //       },
+    //       { $project: { _id: 1 } },
+    //     ]);
+
+    //     nearbyLocationIds.push(...nearby.map(z => z._id));
+    //   }
+
+    //   // Remove duplicates
+    //   nearbyLocationIds = Array.from(new Set(nearbyLocationIds.map(id => id.toString()))).map(id => new mongoose.Types.ObjectId(id));
+
+    //   // If we found nearby location IDs, add them to the conditions
+
+    //   if (nearbyLocationIds.length > 0) {
+    //     conditions.push({
+    //       serviceId: { $in: distanceWiseServiceIds },
+    //       locationId: { $in: nearbyLocationIds },
+    //     });
+    //   }
+
+
+
+    // }
+
+
     if (distanceWiseServiceIds.length > 0) {
-      // Array to hold all locationIds that are nearby
+      // Step 1: Collect distance-wise location entries
+      const distanceWiseLocations = userLocationService.filter(
+        (l) => l.locationType === LocationType.DISTANCE_WISE
+      );
+
       let nearbyLocationIds: mongoose.Types.ObjectId[] = [];
 
-      for (const loc of userLocationService.filter(l => l.locationType === LocationType.DISTANCE_WISE)) {
-        if (!loc.locationGroupId) continue;
-        // Fetch the coordinates from the ZipCode
-        const zip = await ZipCode.findById(loc.locationGroupId).select('location');
-        if (!zip || !zip.location) continue;
+      // Step 2: Loop through each location to find nearby zip codes
+      for (const loc of distanceWiseLocations) {
+        const locationGroup = loc.locationGroupId as IZipCode;
+        const coords = locationGroup.location?.coordinates;
 
-        const radiusInMeters = (loc.rangeInKm || 5) * 1000; // convert km to meters
+        if (!coords || coords.length < 2) continue;
 
+        const [lng, lat] = coords;
+        const rangeInKm = loc.rangeInKm || 5;
+        const radiusInMeters = rangeInKm * 1000;
+
+        // Step 3: Use $geoNear to find nearby zip codes within the range
         const nearby = await ZipCode.aggregate([
           {
             $geoNear: {
-              near: { type: "Point", coordinates: [zip.location.coordinates[0], zip.location.coordinates[1]] },
+              near: { type: "Point", coordinates: [lng, lat] },
               distanceField: "distance",
               maxDistance: radiusInMeters,
               spherical: true,
@@ -1430,14 +1485,16 @@ const getAllLeadForLawyerPanel = async (
           { $project: { _id: 1 } },
         ]);
 
-        nearbyLocationIds.push(...nearby.map(z => z._id));
+        // Step 4: Push found IDs
+        nearbyLocationIds.push(...nearby.map((z) => z._id));
       }
 
-      // Remove duplicates
-      nearbyLocationIds = Array.from(new Set(nearbyLocationIds.map(id => id.toString()))).map(id => new mongoose.Types.ObjectId(id));
+      // Step 5: Deduplicate all nearby locations
+      nearbyLocationIds = Array.from(
+        new Set(nearbyLocationIds.map((id) => id.toString()))
+      ).map((id) => new mongoose.Types.ObjectId(id));
 
-      // If we found nearby location IDs, add them to the conditions
-
+      // Step 6: Add query condition
       if (nearbyLocationIds.length > 0) {
         conditions.push({
           serviceId: { $in: distanceWiseServiceIds },
@@ -1446,74 +1503,86 @@ const getAllLeadForLawyerPanel = async (
       }
 
 
-
     }
 
 
 
     // 3 Travel-time
 
+    // if (travelTimeServiceIds.length > 0) {
+    //   // Fetch all zip codes once
+    //   const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
+
+
+    //   // Prepare destinations for travel API
+    //   const destinations = allZips.map(z => ({
+    //     lat: z.location?.coordinates?.[1],
+    //     lng: z.location?.coordinates?.[0],
+    //     zipCodeId: z._id
+    //   }));
+
+    //   let validLocationIds: mongoose.Types.ObjectId[] = [];
+
+    //   const travelTimeMappings = userLocationService.filter(l => l.locationType === LocationType.TRAVEL_TIME);
+
+    //   for (const loc of travelTimeMappings) {
+    //     if (!loc.locationGroupId) continue;
+
+    //     // Get coordinates of user's reference location
+    //     const zip = await ZipCode.findById(loc.locationGroupId).select('location');
+    //     if (!zip || !zip.location) continue;
+
+    //     const userLat = zip.location.coordinates[1];
+    //     const userLng = zip.location.coordinates[0];
+
+    //     const travelMode = loc.travelmode || 'driving';
+    //     const maxTravelTime = typeof loc.traveltime === 'number'
+    //       ? loc.traveltime
+    //       : Number(loc.traveltime) || 15; // default 15 minutes if NaN
+
+
+
+
+    //     // Fetch batch travel info
+    //     const travelResults = await getBatchTravelInfo(
+    //       { lat: userLat, lng: userLng },
+    //       destinations,
+    //       travelMode,
+    //       25 // batch size
+    //     );
+
+    //     // Filter destinations within maxTravelTime
+    //     const nearbyIds = travelResults
+    //       .filter(r => r.durationSeconds <= maxTravelTime * 60)
+    //       .map(r => r.zipCodeId);
+
+
+    //     validLocationIds.push(...nearbyIds);
+    //   }
+
+    //   // Remove duplicates and convert to ObjectId
+    //   validLocationIds = Array.from(new Set(validLocationIds.map(id => id.toString())))
+    //     .map(id => new mongoose.Types.ObjectId(id));
+
+    //   if (validLocationIds.length > 0) {
+    //     conditions.push({
+    //       serviceId: { $in: travelTimeServiceIds },
+    //       locationId: { $in: validLocationIds },
+    //     });
+    //   }
+    // }
+
+
     if (travelTimeServiceIds.length > 0) {
-      // Fetch all zip codes once
-      const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
 
+      const { condition: travelTimeCondition } = await findLeadsWithinTravelTime(
+        userProfile,
+        userLocationService,
+        travelTimeServiceIds
+      );
 
-      // Prepare destinations for travel API
-      const destinations = allZips.map(z => ({
-        lat: z.location?.coordinates?.[1],
-        lng: z.location?.coordinates?.[0],
-        zipCodeId: z._id
-      }));
-
-      let validLocationIds: mongoose.Types.ObjectId[] = [];
-
-      const travelTimeMappings = userLocationService.filter(l => l.locationType === LocationType.TRAVEL_TIME);
-
-      for (const loc of travelTimeMappings) {
-        if (!loc.locationGroupId) continue;
-
-        // Get coordinates of user's reference location
-        const zip = await ZipCode.findById(loc.locationGroupId).select('location');
-        if (!zip || !zip.location) continue;
-
-        const userLat = zip.location.coordinates[1];
-        const userLng = zip.location.coordinates[0];
-
-        const travelMode = loc.travelmode || 'driving';
-        const maxTravelTime = typeof loc.traveltime === 'number'
-          ? loc.traveltime
-          : Number(loc.traveltime) || 15; // default 15 minutes if NaN
-
-
-
-
-        // Fetch batch travel info
-        const travelResults = await getBatchTravelInfo(
-          { lat: userLat, lng: userLng },
-          destinations,
-          travelMode,
-          25 // batch size
-        );
-
-
-        // Filter destinations within maxTravelTime
-        const nearbyIds = travelResults
-          .filter(r => r.durationSeconds <= maxTravelTime * 60)
-          .map(r => r.zipCodeId);
-
-
-        validLocationIds.push(...nearbyIds);
-      }
-
-      // Remove duplicates and convert to ObjectId
-      validLocationIds = Array.from(new Set(validLocationIds.map(id => id.toString())))
-        .map(id => new mongoose.Types.ObjectId(id));
-
-      if (validLocationIds.length > 0) {
-        conditions.push({
-          serviceId: { $in: travelTimeServiceIds },
-          locationId: { $in: validLocationIds },
-        });
+      if (travelTimeCondition) {
+        conditions.push(travelTimeCondition);
       }
     }
 
@@ -1648,6 +1717,7 @@ const getAllLeadForLawyerPanel = async (
 
 
   // 5 If no mappings, prevent match
+
   if (conditions.length === 0) {
     matchStage._id = { $exists: false };
   } else {
@@ -1735,6 +1805,7 @@ const getAllLeadForLawyerPanel = async (
 
     // Apply sorting
     { $sort: { [sortField]: sortOrder } }, // <- Add this line
+
     // Lookups
     { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
@@ -1813,6 +1884,9 @@ const getAllLeadForLawyerPanel = async (
         matchedAnswers: 0,
       },
     },
+
+
+
 
 
 
