@@ -2,7 +2,6 @@ import { NextFunction, Request, Response, Router } from "express";
 import { lawFirmCertController } from "./lawFirmCert.controller";
 import { upload } from "../../config/upload";
 import auth from "../../middlewares/auth";
-import { U } from "@faker-js/faker/dist/airline-CHFQMWko";
 import { USER_ROLE } from "../../constant";
 
 const router = Router();
