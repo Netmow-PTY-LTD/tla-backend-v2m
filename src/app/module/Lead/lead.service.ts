@@ -21,6 +21,8 @@ import ZipCode from '../Country/zipcode.model';
 import { getBatchTravelInfo } from './lead.utils';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
+import { findLeadsWithinTravelTime } from './filterTravelTime';
+import { IZipCode } from '../Country/zipcode.interface';
 
 
 
@@ -1746,6 +1748,632 @@ type PaginatedResult<T> = {
 
 
 
+// const getAllLeadForLawyerPanel = async (
+//   userId: string,
+//   filters: any = {},
+//   options: {
+//     page: number;
+//     limit: number;
+//     sortBy: string;
+//     sortOrder: 'asc' | 'desc';
+//   }
+// ): Promise<any> => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds country');
+//   if (!userProfile) {
+//     return {
+//       data: [],
+//       pagination: { total: 0, page: options.page, limit: options.limit, totalPage: 0 },
+//       leadCount: {},
+//     };
+//   }
+
+//   const page = options.page || 1;
+//   const limit = options.limit || 10;
+//   const skip = (page - 1) * limit;
+//   const sortField = options.sortBy || 'createdAt';
+//   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+//   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
+//   const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
+
+
+
+//   // ----------------------- SEPARATE BY LOCATION TYPE -----------------------
+//   const locationServiceByType: Record<string, mongoose.Types.ObjectId[]> = {
+//     [LocationType.NATION_WIDE]: [],
+//     [LocationType.DISTANCE_WISE]: [],
+//     [LocationType.TRAVEL_TIME]: [],
+//     [LocationType.DRAW_ON_AREA]: [],
+//   };
+
+
+//   // Fill service IDs by location type, remove duplicates
+//   userLocationService.forEach(loc => {
+//     if (loc.serviceIds && loc.serviceIds.length > 0) {
+//       const type = loc.locationType as keyof typeof locationServiceByType;
+//       const currentSet = new Set(locationServiceByType[type].map(id => id.toString()));
+//       loc.serviceIds.forEach((id: any) => currentSet.add(id.toString()));
+//       locationServiceByType[type] = Array.from(currentSet).map(id => new mongoose.Types.ObjectId(id));
+//     }
+//   });
+
+
+
+
+
+
+//   // service IDs by location type
+//   const nationwideServiceIds = locationServiceByType[LocationType.NATION_WIDE];
+//   const distanceWiseServiceIds = locationServiceByType[LocationType.DISTANCE_WISE];
+//   const travelTimeServiceIds = locationServiceByType[LocationType.TRAVEL_TIME];
+//   const drawOnAreaServiceIds = locationServiceByType[LocationType.DRAW_ON_AREA];
+
+
+
+//   console.log('Nationwide Service IDs:', nationwideServiceIds);
+//   console.log('Distance-wise Service IDs:', distanceWiseServiceIds);
+//   console.log('Travel-time Service IDs:', travelTimeServiceIds);
+//   console.log('Draw-on-area Service IDs:', drawOnAreaServiceIds);
+
+
+
+//   // // ----------------------- MATCH STAGE -----------------------
+//   const matchStage: any = {
+//     countryId: new mongoose.Types.ObjectId(userProfile.country),
+//     userProfileId: { $ne: userProfile._id },
+//     responders: { $ne: userProfile._id },
+//     status: 'approved',
+//   };
+
+
+
+
+//   // ----------------------- BUILD MATCH CONDITIONS -----------------------
+//   const conditions: any[] = [];
+
+
+//   console.log('Filters received:', filters.coordinates);
+
+//   if (!filters.coordinates) {
+
+
+//     // 1 Nationwide (ignore locationId)
+//     if (nationwideServiceIds.length > 0) {
+//       conditions.push({ serviceId: { $in: nationwideServiceIds } });
+//     }
+
+//     // 2 Distance-wise
+
+//     // if (distanceWiseServiceIds.length > 0) {
+//     //   // Array to hold all locationIds that are nearby
+//     //   let nearbyLocationIds: mongoose.Types.ObjectId[] = [];
+
+//     //   for (const loc of userLocationService.filter(l => l.locationType === LocationType.DISTANCE_WISE)) {
+//     //     if (!loc.locationGroupId) continue;
+//     //     // Fetch the coordinates from the ZipCode
+//     //     const zip = await ZipCode.findById(loc.locationGroupId).select('location');
+
+//     //     if (!zip || !zip.location) continue;
+
+//     //     const radiusInMeters = (loc.rangeInKm || 5) * 1000; // convert km to meters
+
+//     //     const nearby = await ZipCode.aggregate([
+//     //       {
+//     //         $geoNear: {
+//     //           near: { type: "Point", coordinates: [zip.location.coordinates[0], zip.location.coordinates[1]] },
+//     //           distanceField: "distance",
+//     //           maxDistance: radiusInMeters,
+//     //           spherical: true,
+//     //         },
+//     //       },
+//     //       { $project: { _id: 1 } },
+//     //     ]);
+
+//     //     nearbyLocationIds.push(...nearby.map(z => z._id));
+//     //   }
+
+//     //   // Remove duplicates
+//     //   nearbyLocationIds = Array.from(new Set(nearbyLocationIds.map(id => id.toString()))).map(id => new mongoose.Types.ObjectId(id));
+
+//     //   // If we found nearby location IDs, add them to the conditions
+
+//     //   if (nearbyLocationIds.length > 0) {
+//     //     conditions.push({
+//     //       serviceId: { $in: distanceWiseServiceIds },
+//     //       locationId: { $in: nearbyLocationIds },
+//     //     });
+//     //   }
+
+
+
+//     // }
+
+
+//     if (distanceWiseServiceIds.length > 0) {
+//       // Step 1: Collect distance-wise location entries
+//       const distanceWiseLocations = userLocationService.filter(
+//         (l) => l.locationType === LocationType.DISTANCE_WISE
+//       );
+
+//       let nearbyLocationIds: mongoose.Types.ObjectId[] = [];
+
+//       // Step 2: Loop through each location to find nearby zip codes
+//       for (const loc of distanceWiseLocations) {
+//         const locationGroup = loc.locationGroupId as IZipCode;
+//         const coords = locationGroup.location?.coordinates;
+
+//         if (!coords || coords.length < 2) continue;
+
+//         const [lng, lat] = coords;
+//         const rangeInKm = loc.rangeInKm || 5;
+//         const radiusInMeters = rangeInKm * 1000;
+
+//         // Step 3: Use $geoNear to find nearby zip codes within the range
+//         const nearby = await ZipCode.aggregate([
+//           {
+//             $geoNear: {
+//               near: { type: "Point", coordinates: [lng, lat] },
+//               distanceField: "distance",
+//               maxDistance: radiusInMeters,
+//               spherical: true,
+//             },
+//           },
+//           { $project: { _id: 1 } },
+//         ]);
+
+//         // Step 4: Push found IDs
+//         nearbyLocationIds.push(...nearby.map((z) => z._id));
+//       }
+
+//       // Step 5: Deduplicate all nearby locations
+//       nearbyLocationIds = Array.from(
+//         new Set(nearbyLocationIds.map((id) => id.toString()))
+//       ).map((id) => new mongoose.Types.ObjectId(id));
+
+//       // Step 6: Add query condition
+//       if (nearbyLocationIds.length > 0) {
+//         conditions.push({
+//           serviceId: { $in: distanceWiseServiceIds },
+//           locationId: { $in: nearbyLocationIds },
+//         });
+//       }
+
+
+//     }
+
+
+
+//     // 3 Travel-time
+
+//     // if (travelTimeServiceIds.length > 0) {
+//     //   // Fetch all zip codes once
+//     //   const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
+
+
+//     //   // Prepare destinations for travel API
+//     //   const destinations = allZips.map(z => ({
+//     //     lat: z.location?.coordinates?.[1],
+//     //     lng: z.location?.coordinates?.[0],
+//     //     zipCodeId: z._id
+//     //   }));
+
+//     //   let validLocationIds: mongoose.Types.ObjectId[] = [];
+
+//     //   const travelTimeMappings = userLocationService.filter(l => l.locationType === LocationType.TRAVEL_TIME);
+
+//     //   for (const loc of travelTimeMappings) {
+//     //     if (!loc.locationGroupId) continue;
+
+//     //     // Get coordinates of user's reference location
+//     //     const zip = await ZipCode.findById(loc.locationGroupId).select('location');
+//     //     if (!zip || !zip.location) continue;
+
+//     //     const userLat = zip.location.coordinates[1];
+//     //     const userLng = zip.location.coordinates[0];
+
+//     //     const travelMode = loc.travelmode || 'driving';
+//     //     const maxTravelTime = typeof loc.traveltime === 'number'
+//     //       ? loc.traveltime
+//     //       : Number(loc.traveltime) || 15; // default 15 minutes if NaN
+
+
+
+
+//     //     // Fetch batch travel info
+//     //     const travelResults = await getBatchTravelInfo(
+//     //       { lat: userLat, lng: userLng },
+//     //       destinations,
+//     //       travelMode,
+//     //       25 // batch size
+//     //     );
+
+//     //     // Filter destinations within maxTravelTime
+//     //     const nearbyIds = travelResults
+//     //       .filter(r => r.durationSeconds <= maxTravelTime * 60)
+//     //       .map(r => r.zipCodeId);
+
+
+//     //     validLocationIds.push(...nearbyIds);
+//     //   }
+
+//     //   // Remove duplicates and convert to ObjectId
+//     //   validLocationIds = Array.from(new Set(validLocationIds.map(id => id.toString())))
+//     //     .map(id => new mongoose.Types.ObjectId(id));
+
+//     //   if (validLocationIds.length > 0) {
+//     //     conditions.push({
+//     //       serviceId: { $in: travelTimeServiceIds },
+//     //       locationId: { $in: validLocationIds },
+//     //     });
+//     //   }
+//     // }
+
+
+//     if (travelTimeServiceIds.length > 0) {
+
+//       const { condition: travelTimeCondition } = await findLeadsWithinTravelTime(
+//         userProfile,
+//         userLocationService,
+//         travelTimeServiceIds
+//       );
+
+//       if (travelTimeCondition) {
+//         conditions.push(travelTimeCondition);
+//       }
+//     }
+
+//     // 4 Draw-on-area
+//     if (drawOnAreaServiceIds.length > 0) {
+//       const locationIds = userLocationService
+//         .filter(loc => loc.locationType === LocationType.DRAW_ON_AREA)
+//         .map(loc => loc.locationGroupId)
+//         .filter(Boolean)
+//         .map((loc: any) => loc._id);
+
+//       if (locationIds.length > 0) {
+//         conditions.push({
+//           serviceId: { $in: drawOnAreaServiceIds },
+//           locationId: { $in: locationIds },
+//         });
+//       }
+//     }
+
+
+
+//   }
+
+
+
+
+
+
+//   if (filters.coordinates) {
+//     const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
+
+
+//     if (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1])) {
+//       throw new Error("Invalid coordinates provided for location filtering");
+//     }
+
+//     const supportedTypes = ["draw_on_area", "travel_time", "nation_wide", "distance_wise"];
+
+//     if (locationType && supportedTypes.includes(locationType)) {
+//       let nearbyLocationIds: Types.ObjectId[] = [];
+
+//       // ------------------ CASE: DISTANCE BASED ------------------
+//       if (locationType === "distance_wise") {
+//         const radiusInMeters = rangeInKm * 1000;
+
+//         const nearbyZips = await ZipCode.aggregate([
+//           {
+//             $geoNear: {
+//               near: { type: "Point", coordinates: [coord[0], coord[1]] },
+//               distanceField: "distance",
+//               maxDistance: radiusInMeters,
+//               spherical: true,
+//             },
+//           },
+//           { $project: { _id: 1 } },
+//         ]);
+
+//         nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+//       }
+
+//       // ------------------ CASE: DRAW-ON-AREA (Polygon) ------------------
+//       else if (locationType === "draw_on_area" && filters.coordinates.polygon) {
+//         const { polygon } = filters.coordinates;
+//         const nearbyZips = await ZipCode.find({
+//           location: {
+//             $geoWithin: {
+//               $geometry: polygon,
+//             },
+//           },
+//         }).select("_id");
+
+//         nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+//       }
+
+//       // ------------------ CASE: TRAVEL-TIME BASED ------------------
+//       else if (locationType === "travel_time") {
+//         const { travelmode = "driving", traveltime = 15, coord } = filters.coordinates;
+
+//         console.log('Travel-time filter params:', { travelmode, traveltime, coord });
+//         // Fetch all zip codes once
+//         const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
+
+//         // Prepare destinations for travel API
+//         const destinations = allZips.map(z => ({
+//           lat: z.location?.coordinates?.[1],
+//           lng: z.location?.coordinates?.[0],
+//           zipCodeId: z._id
+//         }));
+
+
+//         console.log(`Fetching travel info from (${coord[1]}, ${coord[0]}) using mode: ${travelmode}`);
+
+//         // Fetch batch travel info
+//         const travelResults = await getBatchTravelInfo(
+//           { lat: coord[1], lng: coord[0] },
+//           destinations,
+//           travelmode,
+//           25 // batch size
+//         );
+
+//         console.log('Travel Results fetched:', travelResults.length);
+
+//         // Filter destinations within TravelTime
+//         nearbyLocationIds = travelResults
+//           .filter(r => r.durationSeconds <= traveltime * 60)
+//           .map(r => r.zipCodeId);
+
+//         console.log(`Found ${nearbyLocationIds.length} nearby locations within ${traveltime} minutes for travel-time filter`);
+
+
+//       }
+
+//       // ------------------ CASE: NATION-WIDE ------------------
+//       else if (locationType === "nation_wide") {
+//         // No filtering
+//       }
+
+
+//       //  Deduplicate as ObjectIds safely
+//       const uniqueIds = Array.from(
+//         new Set(nearbyLocationIds.map((id) => id.toString()))
+//       ).map((idStr) => new mongoose.Types.ObjectId(idStr));
+
+//       if (uniqueIds.length > 0) {
+//         conditions.push({ locationId: { $in: uniqueIds } });
+//       }
+//     }
+//   }
+
+
+
+
+
+//   // 5 If no mappings, prevent match
+
+//   if (conditions.length === 0) {
+//     matchStage._id = { $exists: false };
+//   } else {
+//     matchStage.$or = conditions;
+//   }
+
+
+
+//   // ----------------------- ADDITIONAL FILTERS -----------------------
+//   if (filters.spotlight?.length) matchStage.leadPriority = { $in: filters.spotlight };
+//   if (filters.services?.length) {
+//     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+//   if (filters.credits?.length) {
+//     const creditConditions = filters.credits.map((range: string) => {
+//       switch (range) {
+//         case 'Free': return { credit: 0 };
+//         case '1-5 credits': return { credit: { $gte: 1, $lte: 5 } };
+//         case '5-10 credits': return { credit: { $gte: 5, $lte: 10 } };
+//         case '10-20 credits': return { credit: { $gte: 10, $lte: 20 } };
+//         case '20-30 credits': return { credit: { $gte: 20, $lte: 30 } };
+//         case '30-40 credits': return { credit: { $gte: 30, $lte: 40 } };
+//         case '40-50 credits': return { credit: { $gte: 40, $lte: 50 } };
+//         case '50-100 credits': return { credit: { $gte: 50, $lte: 100 } };
+//         default: return null;
+//       }
+//     }).filter(Boolean);
+//     if (creditConditions.length) matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+//   }
+//   if (filters.location?.length) {
+//     matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+//   if (filters.leadSubmission) {
+//     let startDate: Date | null = null;
+//     switch (filters.leadSubmission) {
+//       case 'last_1_hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
+//       case 'last_24_hours': startDate = new Date(); startDate.setHours(0, 0, 0, 0); break;
+//       case 'last_48_hours': startDate = new Date(); startDate.setDate(startDate.getDate() - 1); break;
+//       case 'last_3_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 3); break;
+//       case 'last_7_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 7); break;
+//       case 'last_14_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 14); break;
+//     }
+//     if (startDate) matchStage.createdAt = { $gte: startDate };
+//   }
+
+
+
+//   /* 
+
+//   business logic:
+
+//   **leadService
+
+//   1. current logged-in lawyer leadservice 
+//   2. based leadservice selected options true data filter 
+
+
+//   **leadserviceanswers
+//   1. leadserviceanswers filter by lead id
+//   2. 
+
+
+//   **lead serviceanswers and Leadservice 
+
+//  1. match with leadservice selected options and leadserviceanswers selected options wise match data fetch
+
+//  *finally
+
+//   1. leadservice with leadserviceanswers array data fetch
+//   2. based lead service and leadAnswer show lead data fetch
+//   3. if no leadservice selected options true data means no lead show
+
+
+//   */
+
+
+
+
+
+
+
+//   // ----------------------- AGGREGATION PIPELINE -----------------------
+//   const aggregationPipeline: any[] = [
+//     { $match: matchStage },
+
+//     // Apply sorting
+//     { $sort: { [sortField]: sortOrder } }, // <- Add this line
+
+//     // Lookups
+//     { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
+//     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
+//     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'users', localField: 'userProfileId.user', foreignField: '_id', as: 'userProfileId.user' } },
+//     { $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceId' } },
+//     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
+
+
+
+//     // ----------------------- LEAD SERVICE & ANSWERS -----------------------
+//     {
+//       $lookup: {
+//         from: 'leadserviceanswers',
+//         let: { leadId: '$_id' },
+//         pipeline: [
+//           { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
+//           { $match: { isSelected: true } },
+//         ],
+//         as: 'leadServiceAnswers',
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'userwiseservicewisequestionwiseoptions',
+//         let: { serviceId: '$serviceId._id' },
+//         pipeline: [
+//           { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] }, { $eq: ['$countryId', new mongoose.Types.ObjectId(userProfile.country)] }] } } },
+//         ],
+//         as: 'lawyerLeadServices',
+//       },
+//     },
+//     {
+//       $addFields: {
+//         matchedAnswers: {
+//           $filter: {
+//             input: '$leadServiceAnswers',
+//             as: 'answer',
+//             cond: {
+//               $anyElementTrue: {
+//                 $map: {
+//                   input: '$lawyerLeadServices',
+//                   as: 'lawyer',
+//                   in: {
+//                     $and: [
+//                       { $eq: ['$$answer.serviceId', '$$lawyer.serviceId'] },
+//                       { $eq: ['$$answer.questionId', '$$lawyer.questionId'] },
+//                       { $eq: ['$$answer.optionId', '$$lawyer.optionId'] },
+//                     ],
+//                   },
+//                 },
+//               },
+//             },
+//           },
+//         },
+//       },
+//     },
+
+//     // Only include leads with matched answers
+
+//     { $match: { 'matchedAnswers.0': { $exists: true } } },
+
+
+//     // ----------------------- REMOVE UNUSED FIELDS -----------------------
+//     {
+//       $project: {
+//         leadServiceAnswers: 0,
+//         lawyerLeadServices: 0,
+//         matchedAnswers: 0,
+//       },
+//     },
+
+
+
+
+
+
+//   ];
+
+//   if (filters.keyword) {
+//     aggregationPipeline.push({
+//       $match: {
+//         $or: [
+//           { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+//           { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+//         ],
+//       },
+//     });
+//   }
+
+//   let leads = await Lead.aggregate(aggregationPipeline);
+
+
+//   // ----------------------- PAGINATION -----------------------
+//   const total = leads.length;
+//   const paginatedLeads = leads.slice(skip, skip + limit);
+
+//   return {
+//     data: paginatedLeads,
+//     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+//     leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
+//   };
+// };
+
+
+
+
+
+//   optimization code 
+
+
+// Average speeds in meters/minute per travel mode
+const TRAVEL_SPEEDS: Record<string, number> = {
+  driving: 1000, // ~60 km/h
+  walking: 83.33, // ~5 km/h
+  cycling: 250, // ~15 km/h
+  transit: 500, // ~30 km/h
+};
+
+
+
+
+
+
+
+
 const getAllLeadForLawyerPanel = async (
   userId: string,
   filters: any = {},
@@ -1771,7 +2399,7 @@ const getAllLeadForLawyerPanel = async (
   const sortField = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
-  const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id });
+  const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
 
 
 
@@ -1807,10 +2435,7 @@ const getAllLeadForLawyerPanel = async (
 
 
 
-  console.log('Nationwide Service IDs:', nationwideServiceIds);
-  console.log('Distance-wise Service IDs:', distanceWiseServiceIds);
-  console.log('Travel-time Service IDs:', travelTimeServiceIds);
-  console.log('Draw-on-area Service IDs:', drawOnAreaServiceIds);
+
 
 
 
@@ -1829,7 +2454,7 @@ const getAllLeadForLawyerPanel = async (
   const conditions: any[] = [];
 
 
-  console.log('Filters received:', filters.coordinates);
+
 
   if (!filters.coordinates) {
 
@@ -1839,127 +2464,133 @@ const getAllLeadForLawyerPanel = async (
       conditions.push({ serviceId: { $in: nationwideServiceIds } });
     }
 
-    // 2 Distance-wise
+
 
     if (distanceWiseServiceIds.length > 0) {
-      // Array to hold all locationIds that are nearby
-      let nearbyLocationIds: mongoose.Types.ObjectId[] = [];
+      // Step 1: Collect distance-wise location entries
+      const distanceWiseLocations = userLocationService.filter(
+        (l) => l.locationType === LocationType.DISTANCE_WISE
+      );
 
-      for (const loc of userLocationService.filter(l => l.locationType === LocationType.DISTANCE_WISE)) {
-        if (!loc.locationGroupId) continue;
-        // Fetch the coordinates from the ZipCode
-        const zip = await ZipCode.findById(loc.locationGroupId).select('location');
-        if (!zip || !zip.location) continue;
+      let nearbyLeadIds: mongoose.Types.ObjectId[] = [];
 
-        const radiusInMeters = (loc.rangeInKm || 5) * 1000; // convert km to meters
+      // Step 2: Loop through each location to find nearby leads
+      for (const loc of distanceWiseLocations) {
+        const locationGroup = loc.locationGroupId as IZipCode;
+        const coords = locationGroup.location?.coordinates;
 
-        const nearby = await ZipCode.aggregate([
+        if (!coords || coords.length < 2) continue;
+
+        const [lng, lat] = coords;
+        const rangeInKm = loc.rangeInKm || 5;
+        const radiusInMeters = rangeInKm * 1000;
+
+        // Step 3: Use $geoNear to find nearby leads filtered by serviceIds
+        const nearbyLeads = await Lead.aggregate([
           {
             $geoNear: {
-              near: { type: "Point", coordinates: [zip.location.coordinates[0], zip.location.coordinates[1]] },
-              distanceField: "distance",
+              near: { type: 'Point', coordinates: [lng, lat] },
+              distanceField: 'distance',
               maxDistance: radiusInMeters,
               spherical: true,
+              query: { serviceId: { $in: distanceWiseServiceIds } }, // <-- filter by serviceIds
+            },
+          },
+          { $project: { _id: 1 } }, // only get lead IDs
+        ]);
+
+        // Step 4: Push found lead IDs
+        nearbyLeadIds.push(...nearbyLeads.map((l) => l._id));
+      }
+
+      // Step 5: Deduplicate all nearby lead IDs
+      nearbyLeadIds = Array.from(
+        new Set(nearbyLeadIds.map((id) => id.toString()))
+      ).map((id) => new mongoose.Types.ObjectId(id));
+
+      // Step 6: Add query condition
+      if (nearbyLeadIds.length > 0) {
+        conditions.push({
+          _id: { $in: nearbyLeadIds },
+        });
+      }
+    }
+
+
+
+
+
+    if (travelTimeServiceIds.length > 0) {
+      // Step 1: Collect travel-time locations
+      const travelTimeLocations = userLocationService.filter(
+        (l) => l.locationType === LocationType.TRAVEL_TIME
+      );
+
+      let travelTimeLeadIds: mongoose.Types.ObjectId[] = [];
+
+      // Step 2: Loop through each travel-time location
+      for (const loc of travelTimeLocations) {
+        const locationGroup = loc.locationGroupId as IZipCode;
+        const coords = locationGroup.location?.coordinates;
+
+        if (!coords || coords.length < 2) continue;
+
+        const [lng, lat] = coords;
+
+        // Step 2a: Determine max distance based on travel mode
+        const travelMode = loc.travelmode || 'driving'; // default driving
+        const travelTimeInMinutes = Number(loc.traveltime) || 30;
+        const speed = TRAVEL_SPEEDS[travelMode] || TRAVEL_SPEEDS['driving'];
+        const radiusInMeters = travelTimeInMinutes * speed; // approximate radius
+
+        // Step 3: Use $geoNear to find nearby leads within travel-time radius
+        const nearbyLeads = await Lead.aggregate([
+          {
+            $geoNear: {
+              near: { type: 'Point', coordinates: [lng, lat] },
+              distanceField: 'distance',
+              maxDistance: radiusInMeters,
+              spherical: true,
+              query: { serviceId: { $in: travelTimeServiceIds } },
             },
           },
           { $project: { _id: 1 } },
         ]);
 
-        nearbyLocationIds.push(...nearby.map(z => z._id));
+        // Step 4: Collect lead IDs
+        travelTimeLeadIds.push(...nearbyLeads.map((l) => l._id));
       }
 
-      // Remove duplicates
-      nearbyLocationIds = Array.from(new Set(nearbyLocationIds.map(id => id.toString()))).map(id => new mongoose.Types.ObjectId(id));
+      // Step 5: Deduplicate
+      travelTimeLeadIds = Array.from(
+        new Set(travelTimeLeadIds.map((id) => id.toString()))
+      ).map((id) => new mongoose.Types.ObjectId(id));
 
-      // If we found nearby location IDs, add them to the conditions
-
-      if (nearbyLocationIds.length > 0) {
+      // Step 6: Add to conditions
+      if (travelTimeLeadIds.length > 0) {
         conditions.push({
-          serviceId: { $in: distanceWiseServiceIds },
-          locationId: { $in: nearbyLocationIds },
+          _id: { $in: travelTimeLeadIds },
         });
       }
 
 
-
     }
 
-
-
-    // 3 Travel-time
-
-    if (travelTimeServiceIds.length > 0) {
-      // Fetch all zip codes once
-      const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
-
-
-      // Prepare destinations for travel API
-      const destinations = allZips.map(z => ({
-        lat: z.location?.coordinates?.[1],
-        lng: z.location?.coordinates?.[0],
-        zipCodeId: z._id
-      }));
-
-      let validLocationIds: mongoose.Types.ObjectId[] = [];
-
-      const travelTimeMappings = userLocationService.filter(l => l.locationType === LocationType.TRAVEL_TIME);
-
-      for (const loc of travelTimeMappings) {
-        if (!loc.locationGroupId) continue;
-
-        // Get coordinates of user's reference location
-        const zip = await ZipCode.findById(loc.locationGroupId).select('location');
-        if (!zip || !zip.location) continue;
-
-        const userLat = zip.location.coordinates[1];
-        const userLng = zip.location.coordinates[0];
-
-        const travelMode = loc.travelmode || 'driving';
-        const maxTravelTime = typeof loc.traveltime === 'number'
-          ? loc.traveltime
-          : Number(loc.traveltime) || 15; // default 15 minutes if NaN
-
-
-
-
-        // Fetch batch travel info
-        const travelResults = await getBatchTravelInfo(
-          { lat: userLat, lng: userLng },
-          destinations,
-          travelMode,
-          25 // batch size
-        );
-
-
-        // Filter destinations within maxTravelTime
-        const nearbyIds = travelResults
-          .filter(r => r.durationSeconds <= maxTravelTime * 60)
-          .map(r => r.zipCodeId);
-
-
-        validLocationIds.push(...nearbyIds);
-      }
-
-      // Remove duplicates and convert to ObjectId
-      validLocationIds = Array.from(new Set(validLocationIds.map(id => id.toString())))
-        .map(id => new mongoose.Types.ObjectId(id));
-
-      if (validLocationIds.length > 0) {
-        conditions.push({
-          serviceId: { $in: travelTimeServiceIds },
-          locationId: { $in: validLocationIds },
-        });
-      }
-    }
 
     // 4 Draw-on-area
     if (drawOnAreaServiceIds.length > 0) {
-      const locationIds = userLocationService
-        .filter(loc => loc.locationType === LocationType.DRAW_ON_AREA)
-        .map(loc => loc.locationGroupId)
-        .filter(Boolean)
-        .map((loc: any) => loc._id);
+      // Step 1: Get all user locations of type DRAW_ON_AREA
+      const drawAreaLocations = userLocationService
+        .filter((loc) => loc.locationType === LocationType.DRAW_ON_AREA)
+        .map((loc) => loc.locationGroupId) // extract the location group (ZipCode)
+        .filter(Boolean); // remove null or undefined
 
+      // Step 2: Extract location IDs
+      const locationIds: mongoose.Types.ObjectId[] = drawAreaLocations
+        .map((loc: any) => loc._id)
+        .filter(Boolean);
+
+      // Step 3: Push query condition if any locations exist
       if (locationIds.length > 0) {
         conditions.push({
           serviceId: { $in: drawOnAreaServiceIds },
@@ -1969,19 +2600,25 @@ const getAllLeadForLawyerPanel = async (
     }
 
 
-
   }
 
 
 
-
-
-
   if (filters.coordinates) {
-    const { locationType, coord, rangeInKm = 5 } = filters.coordinates;
+    const {
+      locationType,
+      coord,
+      rangeInKm = 5,
+      serviceIds = [],
+      polygon,
+      travelmode = "driving",
+      traveltime = 15,
+    } = filters.coordinates;
 
-
-    if (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1])) {
+    if (
+      coord &&
+      (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1]))
+    ) {
       throw new Error("Invalid coordinates provided for location filtering");
     }
 
@@ -1990,90 +2627,76 @@ const getAllLeadForLawyerPanel = async (
     if (locationType && supportedTypes.includes(locationType)) {
       let nearbyLocationIds: Types.ObjectId[] = [];
 
-      // ------------------ CASE: DISTANCE BASED ------------------
+      // ------------------ DISTANCE-WISE ------------------
       if (locationType === "distance_wise") {
         const radiusInMeters = rangeInKm * 1000;
 
-        const nearbyZips = await ZipCode.aggregate([
+        const nearbyLeads = await Lead.aggregate([
           {
             $geoNear: {
               near: { type: "Point", coordinates: [coord[0], coord[1]] },
               distanceField: "distance",
               maxDistance: radiusInMeters,
               spherical: true,
+              query: serviceIds.length > 0 ? { serviceId: { $in: serviceIds } } : {},
             },
           },
           { $project: { _id: 1 } },
         ]);
 
-        nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+        nearbyLocationIds = nearbyLeads.map((l) => l._id);
       }
 
-      // ------------------ CASE: DRAW-ON-AREA (Polygon) ------------------
-      else if (locationType === "draw_on_area" && filters.coordinates.polygon) {
-        const { polygon } = filters.coordinates;
+      // ------------------ DRAW-ON-AREA ------------------
+      else if (locationType === "draw_on_area" && polygon) {
         const nearbyZips = await ZipCode.find({
           location: {
-            $geoWithin: {
-              $geometry: polygon,
-            },
+            $geoWithin: { $geometry: polygon },
           },
         }).select("_id");
 
         nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
       }
 
-      // ------------------ CASE: TRAVEL-TIME BASED ------------------
+      // ------------------ TRAVEL-TIME ------------------
       else if (locationType === "travel_time") {
-        const { travelmode = "driving", traveltime = 15, coord } = filters.coordinates;
+        if (!coord || coord.length !== 2) {
+          throw new Error("Coordinates required for travel-time filter");
+        }
 
-        console.log('Travel-time filter params:', { travelmode, traveltime, coord });
-        // Fetch all zip codes once
-        const allZips = await ZipCode.find({ countryId: userProfile.country }).select('location');
+        const speed = TRAVEL_SPEEDS[travelmode] || TRAVEL_SPEEDS["driving"];
+        const radiusInMeters = traveltime * speed;
 
-        // Prepare destinations for travel API
-        const destinations = allZips.map(z => ({
-          lat: z.location?.coordinates?.[1],
-          lng: z.location?.coordinates?.[0],
-          zipCodeId: z._id
-        }));
+        const nearbyLeads = await Lead.aggregate([
+          {
+            $geoNear: {
+              near: { type: "Point", coordinates: [coord[0], coord[1]] },
+              distanceField: "distance",
+              maxDistance: radiusInMeters,
+              spherical: true,
+              query: serviceIds.length > 0 ? { serviceId: { $in: serviceIds } } : {},
+            },
+          },
+          { $project: { _id: 1 } },
+        ]);
 
-
-        console.log(`Fetching travel info from (${coord[1]}, ${coord[0]}) using mode: ${travelmode}`);
-
-        // Fetch batch travel info
-        const travelResults = await getBatchTravelInfo(
-          { lat: coord[1], lng: coord[0] },
-          destinations,
-          travelmode,
-          25 // batch size
-        );
-
-        console.log('Travel Results fetched:', travelResults.length);
-
-        // Filter destinations within TravelTime
-        nearbyLocationIds = travelResults
-          .filter(r => r.durationSeconds <= traveltime * 60)
-          .map(r => r.zipCodeId);
-
-        console.log(`Found ${nearbyLocationIds.length} nearby locations within ${traveltime} minutes for travel-time filter`);
-
-
+        nearbyLocationIds = nearbyLeads.map((l) => l._id);
       }
 
-      // ------------------ CASE: NATION-WIDE ------------------
+      // ------------------ NATION-WIDE ------------------
       else if (locationType === "nation_wide") {
-        // No filtering
+        if (serviceIds.length > 0) {
+          conditions.push({ serviceId: { $in: serviceIds } });
+        }
       }
 
+      // Deduplicate and add to conditions
+      if (nearbyLocationIds.length > 0) {
+        nearbyLocationIds = Array.from(
+          new Set(nearbyLocationIds.map((id) => id.toString()))
+        ).map((id) => new mongoose.Types.ObjectId(id));
 
-      //  Deduplicate as ObjectIds safely
-      const uniqueIds = Array.from(
-        new Set(nearbyLocationIds.map((id) => id.toString()))
-      ).map((idStr) => new mongoose.Types.ObjectId(idStr));
-
-      if (uniqueIds.length > 0) {
-        conditions.push({ locationId: { $in: uniqueIds } });
+        conditions.push({ _id: { $in: nearbyLocationIds } });
       }
     }
   }
@@ -2081,13 +2704,18 @@ const getAllLeadForLawyerPanel = async (
 
 
 
+  // // 5 If no mappings, prevent match
 
-  // 5 If no mappings, prevent match
   if (conditions.length === 0) {
     matchStage._id = { $exists: false };
   } else {
     matchStage.$or = conditions;
   }
+
+
+
+
+
 
 
 
@@ -2133,9 +2761,9 @@ const getAllLeadForLawyerPanel = async (
   /* 
   
   business logic:
-
+ 
   **leadService
-
+ 
   1. current logged-in lawyer leadservice 
   2. based leadservice selected options true data filter 
   
@@ -2143,12 +2771,12 @@ const getAllLeadForLawyerPanel = async (
   **leadserviceanswers
   1. leadserviceanswers filter by lead id
   2. 
-
-
+ 
+ 
   **lead serviceanswers and Leadservice 
-
+ 
  1. match with leadservice selected options and leadserviceanswers selected options wise match data fetch
-
+ 
  *finally
  
   1. leadservice with leadserviceanswers array data fetch
@@ -2170,8 +2798,21 @@ const getAllLeadForLawyerPanel = async (
 
     // Apply sorting
     { $sort: { [sortField]: sortOrder } }, // <- Add this line
+
     // Lookups
     { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
+
+    // {
+    //   $lookup: {
+    //     from: 'zipcodes',
+    //     let: { locationId: '$locationId' }, // Pass the lead's locationId
+    //     pipeline: [
+    //       { $match: { $expr: { $eq: ['$_id', '$$locationId'] } } },
+    //       { $project: { _id: 1, zipCode: 1 } }, // Only _id and zipCode
+    //     ],
+    //     as: 'locationId',
+    //   },
+    // },
     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
 
     { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
@@ -2184,8 +2825,6 @@ const getAllLeadForLawyerPanel = async (
     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
 
     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
-
-
 
     // ----------------------- LEAD SERVICE & ANSWERS -----------------------
     {
@@ -2240,7 +2879,7 @@ const getAllLeadForLawyerPanel = async (
     { $match: { 'matchedAnswers.0': { $exists: true } } },
 
 
-    // ----------------------- REMOVE UNUSED FIELDS -----------------------
+    // ----------------------- REMOVE UNUSED FIELDS -----------
     {
       $project: {
         leadServiceAnswers: 0,
@@ -2277,275 +2916,6 @@ const getAllLeadForLawyerPanel = async (
     leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
   };
 };
-
-
-
-
-
-
-//  OPTIMIZED  --------------  GET ALL MY LEAD FOR LAWYER PANEL ----------
-
-// const getAllLeadForLawyerPanel = async (
-//   userId: string,
-//   filters: any = {},
-//   options: {
-//     page: number;
-//     limit: number;
-//     sortBy: string;
-//     sortOrder: 'asc' | 'desc';
-//   }
-// ): Promise<any> => {
-//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds country');
-//   if (!userProfile) {
-//     return {
-//       data: [],
-//       pagination: { total: 0, page: options.page, limit: options.limit, totalPage: 0 },
-//       leadCount: {},
-//     };
-//   }
-
-//   const page = options.page || 1;
-//   const limit = options.limit || 10;
-//   const skip = (page - 1) * limit;
-//   const sortField = options.sortBy || 'createdAt';
-//   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
-//   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
-//   const userLocationServices = await UserLocationServiceMap.find({ userProfileId: userProfile._id });
-
-
-
-//   // -------------------- Build serviceId sets by locationType --------------------
-//   const serviceIdsByType: Record<string, Types.ObjectId[]> = {
-//     [LocationType.NATION_WIDE]: [],
-//     [LocationType.DISTANCE_WISE]: [],
-//     [LocationType.TRAVEL_TIME]: [],
-//     [LocationType.DRAW_ON_AREA]: [],
-//   };
-
-//   userLocationServices.forEach(loc => {
-//     if (loc.serviceIds?.length) {
-//       const type = loc.locationType as keyof typeof serviceIdsByType;
-//       const currentSet = new Set(serviceIdsByType[type].map(id => id.toString()));
-//       loc.serviceIds.forEach((id: any) => currentSet.add(id.toString()));
-//       serviceIdsByType[type] = Array.from(currentSet).map(id => new mongoose.Types.ObjectId(id));
-//     }
-//   });
-
-//   const matchStage: any = {
-//     countryId: new mongoose.Types.ObjectId(userProfile.country),
-//     userProfileId: { $ne: userProfile._id },
-//     responders: { $ne: userProfile._id },
-//     status: "approved",
-//   };
-
-//   const conditions: any[] = [];
-
-//   // -------------------- Nationwide --------------------
-//   if (serviceIdsByType[LocationType.NATION_WIDE].length) {
-//     conditions.push({ serviceId: { $in: serviceIdsByType[LocationType.NATION_WIDE] } });
-//   }
-
-//   // -------------------- Distance-wise --------------------
-//   const distanceWiseLocs = userLocationServices.filter(l => l.locationType === LocationType.DISTANCE_WISE && l.locationGroupId);
-//   if (distanceWiseLocs.length && serviceIdsByType[LocationType.DISTANCE_WISE].length) {
-//     const zipIds = distanceWiseLocs.map(l => l.locationGroupId);
-//     const nearbyZips = await ZipCode.find({ _id: { $in: zipIds } }).select("_id");
-//     if (nearbyZips.length) {
-//       conditions.push({
-//         serviceId: { $in: serviceIdsByType[LocationType.DISTANCE_WISE] },
-//         locationId: { $in: nearbyZips.map(z => z._id) },
-//       });
-//     }
-//   }
-
-//   // -------------------- Travel-time --------------------
-//   const travelTimeLocs = userLocationServices.filter(l => l.locationType === LocationType.TRAVEL_TIME && l.locationGroupId);
-//   if (travelTimeLocs.length && serviceIdsByType[LocationType.TRAVEL_TIME].length) {
-//     // Fetch all zips once
-//     const allZips = await ZipCode.find({ countryId: userProfile.country }).select("location");
-
-//     let validLocationIds: Types.ObjectId[] = [];
-
-//     for (const loc of travelTimeLocs) {
-//       const zip = allZips.find(z => loc.locationGroupId && z._id.toString() === loc.locationGroupId.toString());
-//       if (!zip?.location?.coordinates) continue;
-
-//       const userLat = zip.location.coordinates[1];
-//       const userLng = zip.location.coordinates[0];
-//       const travelMode = loc.travelmode || "driving";
-//       const maxTravelTime = typeof loc.traveltime === "number" ? loc.traveltime : Number(loc.traveltime) || 15;
-
-//       const travelResults = await getBatchTravelInfo(
-//         { lat: userLat, lng: userLng },
-//         allZips
-//           .filter(z => z.location && Array.isArray(z.location.coordinates) && z.location.coordinates.length >= 2)
-//           .map(z => ({ lat: (z.location as any).coordinates[1], lng: (z.location as any).coordinates[0], zipCodeId: z._id })),
-//         travelMode,
-//         25
-//       );
-
-//       validLocationIds.push(...travelResults.filter(r => r.durationSeconds <= maxTravelTime * 60).map(r => r.zipCodeId));
-//     }
-
-//     validLocationIds = Array.from(new Set(validLocationIds.map(id => id.toString()))).map(id => new mongoose.Types.ObjectId(id));
-//     if (validLocationIds.length) {
-//       conditions.push({
-//         serviceId: { $in: serviceIdsByType[LocationType.TRAVEL_TIME] },
-//         locationId: { $in: validLocationIds },
-//       });
-//     }
-//   }
-
-//   // -------------------- Draw-on-area --------------------
-//   const drawAreaLocs = userLocationServices.filter(l => l.locationType === LocationType.DRAW_ON_AREA && l.locationGroupId);
-//   if (drawAreaLocs.length && serviceIdsByType[LocationType.DRAW_ON_AREA].length) {
-//     const areaIds = drawAreaLocs.map(l => l.locationGroupId);
-//     conditions.push({
-//       serviceId: { $in: serviceIdsByType[LocationType.DRAW_ON_AREA] },
-//       locationId: { $in: areaIds },
-//     });
-//   }
-
-//   // -------------------- User-provided filter --------------------
-//   if (filters.coordinates) {
-//     const { locationType, coord, rangeInKm = 5, polygon, traveltime, travelmode } = filters.coordinates;
-//     if (Array.isArray(coord) && coord.length === 2 && !isNaN(coord[0]) && !isNaN(coord[1])) {
-//       let nearbyLocationIds: Types.ObjectId[] = [];
-
-//       if (locationType === "distance_wise") {
-//         const nearbyZips = await ZipCode.aggregate([
-//           {
-//             $geoNear: {
-//               near: { type: "Point", coordinates: [coord[0], coord[1]] },
-//               distanceField: "distance",
-//               maxDistance: rangeInKm * 1000,
-//               spherical: true,
-//             },
-//           },
-//           { $project: { _id: 1 } },
-//         ]);
-//         nearbyLocationIds = nearbyZips.map(z => new mongoose.Types.ObjectId(z._id));
-//       } else if (locationType === "draw_on_area" && polygon) {
-//         const nearbyZips = await ZipCode.find({ location: { $geoWithin: { $geometry: polygon } } }).select("_id");
-//         nearbyLocationIds = nearbyZips.map(z => new mongoose.Types.ObjectId(z._id));
-//       } else if (locationType === "travel_time") {
-//         const allZips = await ZipCode.find({ countryId: userProfile.country }).select("location");
-//         const travelResults = await getBatchTravelInfo(
-//           { lat: coord[1], lng: coord[0] },
-//           allZips.map(z => ({ lat: (z.location as any).coordinates[1], lng: (z.location as any).coordinates[0], zipCodeId: z._id })),
-//           travelmode || "driving",
-//           25
-//         );
-//         nearbyLocationIds = travelResults.filter(r => r.durationSeconds <= (traveltime || 15) * 60).map(r => r.zipCodeId);
-//       }
-
-//       if (nearbyLocationIds.length) {
-//         conditions.push({ locationId: { $in: nearbyLocationIds } });
-//       }
-//     }
-//   }
-
-//   if (!conditions.length) matchStage._id = { $exists: false };
-//   else matchStage.$or = conditions;
-
-
-
-//   // ----------------------- ADDITIONAL FILTERS -----------------------
-//   if (filters.spotlight?.length) matchStage.leadPriority = { $in: filters.spotlight };
-//   if (filters.services?.length) {
-//     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
-//   }
-//   if (filters.credits?.length) {
-//     const creditConditions = filters.credits.map((range: string) => {
-//       switch (range) {
-//         case 'Free': return { credit: 0 };
-//         case '1-5 credits': return { credit: { $gte: 1, $lte: 5 } };
-//         case '5-10 credits': return { credit: { $gte: 5, $lte: 10 } };
-//         case '10-20 credits': return { credit: { $gte: 10, $lte: 20 } };
-//         case '20-30 credits': return { credit: { $gte: 20, $lte: 30 } };
-//         case '30-40 credits': return { credit: { $gte: 30, $lte: 40 } };
-//         case '40-50 credits': return { credit: { $gte: 40, $lte: 50 } };
-//         case '50-100 credits': return { credit: { $gte: 50, $lte: 100 } };
-//         default: return null;
-//       }
-//     }).filter(Boolean);
-//     if (creditConditions.length) matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
-//   }
-//   if (filters.location?.length) {
-//     matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };
-//   }
-//   if (filters.leadSubmission) {
-//     let startDate: Date | null = null;
-//     switch (filters.leadSubmission) {
-//       case 'last_1_hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
-//       case 'last_24_hours': startDate = new Date(); startDate.setHours(0, 0, 0, 0); break;
-//       case 'last_48_hours': startDate = new Date(); startDate.setDate(startDate.getDate() - 1); break;
-//       case 'last_3_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 3); break;
-//       case 'last_7_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 7); break;
-//       case 'last_14_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 14); break;
-//     }
-//     if (startDate) matchStage.createdAt = { $gte: startDate };
-//   }
-
-//   // ----------------------- AGGREGATION PIPELINE -----------------------
-//   const aggregationPipeline: any[] = [
-//     { $match: matchStage },
-
-//     // Apply sorting
-//     { $sort: { [sortField]: sortOrder } }, // <- Add this line
-//     // Lookups
-//     { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
-//     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
-
-//     { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
-//     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
-
-//     { $lookup: { from: 'users', localField: 'userProfileId.user', foreignField: '_id', as: 'userProfileId.user' } },
-//     { $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true } },
-
-//     { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceId' } },
-//     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
-
-//     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
-//   ];
-
-//   if (filters.keyword) {
-//     aggregationPipeline.push({
-//       $match: {
-//         $or: [
-//           { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
-//           { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
-//         ],
-//       },
-//     });
-//   }
-
-//   let leads = await Lead.aggregate(aggregationPipeline);
-
-
-//   // ----------------------- PAGINATION -----------------------
-//   const total = leads.length;
-//   const paginatedLeads = leads.slice(skip, skip + limit);
-
-//   return {
-//     data: paginatedLeads,
-//     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
-//     leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
-//   };
-// };
-
-
-
-
-
-
-
-
-
-
-
-// ------------------ GET ALL MY LEAD -----------------------------
-
 
 
 

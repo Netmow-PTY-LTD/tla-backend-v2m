@@ -24,6 +24,10 @@ export interface ILead {
   countryId: Types.ObjectId;
   serviceId: Types.ObjectId;
   locationId: Types.ObjectId;
+  location?: {
+    type: 'Point';
+    coordinates: [number, number]; // [lng, lat]
+  };
 
   additionalDetails?: string;
   budgetAmount?: number;
