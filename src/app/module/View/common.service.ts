@@ -885,7 +885,7 @@ const getLawyerSuggestionsFromDB = async (
     {
       $match: {
         _id: { $ne: new mongoose.Types.ObjectId(userId) },
-        accountStatus: USER_STATUS.APPROVED, // ✅ Only approved users
+        accountStatus: USER_STATUS.APPROVED, // Only approved users
       },
     },
     // 2. Lookup profile
@@ -965,7 +965,7 @@ const getLawyerSuggestionsFromDB = async (
     //   }
     // },
 
-    // 🔹 Lookup responses for this specific lead
+    //  Lookup responses for this specific lead
     {
       $lookup: {
         from: 'leadresponses',
@@ -987,7 +987,7 @@ const getLawyerSuggestionsFromDB = async (
       },
     },
 
-    // 🔹 Exclude lawyers who already responded
+    //  Exclude lawyers who already responded
     {
       $match: {
         leadResponseForThisLead: { $size: 0 },
@@ -1034,7 +1034,7 @@ const getLawyerSuggestionsFromDB = async (
       },
     },
 
-    // 8. 🔹 NEW: Lookup into ProfileVisitor to check if current user visited this lawyer
+    // 8.  NEW: Lookup into ProfileVisitor to check if current user visited this lawyer
     {
       $lookup: {
         from: 'profilevisitors',
@@ -1088,6 +1088,214 @@ const getLawyerSuggestionsFromDB = async (
     //   }
     // },
 
+
+
+
+
+    // ----------------------- LEAD SERVICE & ANSWERS -----------------------
+    // {
+    //   $lookup: {
+    //     from: 'leadserviceanswers',
+    //     let: { leadId: new mongoose.Types.ObjectId(leadId) },
+    //     pipeline: [
+    //       { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
+    //       { $match: { isSelected: true } },
+    //       {
+    //         $project: {
+    //           serviceId: 1,
+    //           questionId: 1,
+    //           optionId: 1,
+    //         },
+    //       },
+    //     ],
+    //     as: 'leadAnswers',
+    //   },
+    // },
+    // {
+    //   $lookup: {
+    //     from: 'userwiseservicewisequestionwiseoptions',
+    //     let: { lawyerProfileId: '$profile._id', countryId: '$profile.country' },
+    //     pipeline: [
+    //       {
+    //         $match: {
+    //           $expr: {
+    //             $and: [
+    //               { $eq: ['$userProfileId', '$$lawyerProfileId'] },
+    //               { $eq: ['$isSelected', true] },
+    //               { $eq: ['$countryId', '$$countryId'] },
+    //             ],
+    //           },
+    //         },
+    //       },
+    //       {
+    //         $project: {
+    //           serviceId: 1,
+    //           questionId: 1,
+    //           optionId: 1,
+    //         },
+    //       },
+    //     ],
+    //     as: 'lawyerAnswers',
+    //   },
+    // },
+
+    // //  Step: Only lawyers whose ALL lead answers are present in lawyer answers
+    // {
+    //   $addFields: {
+    //     allLeadAnswersMatched: {
+    //       $reduce: {
+    //         input: '$leadAnswers',
+    //         initialValue: true,
+    //         in: {
+    //           $and: [
+    //             '$$value', // keep true if all previous lead answers matched
+    //             {
+    //               $anyElementTrue: {
+    //                 $map: {
+    //                   input: '$lawyerAnswers',
+    //                   as: 'lawyerAns',
+    //                   in: {
+    //                     $and: [
+    //                       { $eq: ['$$lawyerAns.serviceId', '$$this.serviceId'] },
+    //                       { $eq: ['$$lawyerAns.questionId', '$$this.questionId'] },
+    //                       { $eq: ['$$lawyerAns.optionId', '$$this.optionId'] },
+    //                     ],
+    //                   },
+    //                 },
+    //               },
+    //             },
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   },
+    // },
+    // { $match: { allLeadAnswersMatched: true } },
+
+
+    // ----------------------- LEAD SERVICE & ANSWERS -----------------------
+    {
+      $lookup: {
+        from: 'leadserviceanswers',
+        let: { leadId: new mongoose.Types.ObjectId(leadId) },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
+          { $match: { isSelected: true } },
+          {
+            $project: {
+              serviceId: 1,
+              questionId: 1,
+              optionId: 1,
+            },
+          },
+        ],
+        as: 'leadAnswers',
+      },
+    },
+    {
+      $lookup: {
+        from: 'userwiseservicewisequestionwiseoptions',
+        let: { lawyerProfileId: '$profile._id', countryId: '$profile.country' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$userProfileId', '$$lawyerProfileId'] },
+                  { $eq: ['$isSelected', true] },
+                  { $eq: ['$countryId', '$$countryId'] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              serviceId: 1,
+              questionId: 1,
+              optionId: 1,
+            },
+          },
+        ],
+        as: 'lawyerAnswers',
+      },
+    },
+
+    //  Step: Count how many lead answers match lawyer answers
+    {
+      $addFields: {
+        matchCount: {
+          $size: {
+            $filter: {
+              input: '$leadAnswers',
+              as: 'leadAns',
+              cond: {
+                $anyElementTrue: {
+                  $map: {
+                    input: '$lawyerAnswers',
+                    as: 'lawyerAns',
+                    in: {
+                      $and: [
+                        { $eq: ['$$lawyerAns.serviceId', '$$leadAns.serviceId'] },
+                        { $eq: ['$$lawyerAns.questionId', '$$leadAns.questionId'] },
+                        { $eq: ['$$lawyerAns.optionId', '$$leadAns.optionId'] },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    //  Step: Only include lawyers with at least one match
+    { $match: { matchCount: { $gt: 0 } } },
+
+
+
+
+    // ----------------------- END: LEAD SERVICE & ANSWERS -----------------------
+
+    {
+      $addFields: {
+        matchCount: {
+          $size: {
+            $filter: {
+              input: '$lawyerAnswers',
+              as: 'lawyerAns',
+              cond: {
+                $anyElementTrue: {
+                  $map: {
+                    input: '$leadAnswers',
+                    as: 'leadAns',
+                    in: {
+                      $and: [
+                        { $eq: ['$$lawyerAns.serviceId', '$$leadAns.serviceId'] },
+                        { $eq: ['$$lawyerAns.questionId', '$$leadAns.questionId'] },
+                        { $eq: ['$$lawyerAns.optionId', '$$leadAns.optionId'] },
+                        { $eq: ['$$lawyerAns.isSelected', '$$leadAns.isSelected'] },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    { $sort: { matchCount: -1, eliteProPriority: -1 } },
+
+
+
+
+
+
+
+
+
+
     // 6. Sorting
     // { $sort: sortOption },
     {
@@ -1095,7 +1303,14 @@ const getLawyerSuggestionsFromDB = async (
         eliteProPriority: -1, // Elite Pro first
         ...sortOption,
       },
+
     },
+
+
+
+
+
+
     // 7. Facet for paginated data and total count
     {
       $facet: {
@@ -1117,6 +1332,297 @@ const getLawyerSuggestionsFromDB = async (
     currentPage: page,
   };
 };
+
+
+// const getLawyerSuggestionsFromDB = async (
+//   userId: string,
+//   serviceId: string,
+//   leadId: string,
+//   options: {
+//     page?: number;
+//     limit?: number;
+//     sortBy?: string;
+//     sortOrder?: 'asc' | 'desc';
+//     minRating?: number | null; // minimum rating filter
+//   } = {},
+// ) => {
+//   const {
+//     page = 1,
+//     limit = 10,
+//     sortBy = 'createdAt',
+//     sortOrder = 'asc',
+//     minRating,
+//   } = options;
+
+//   const skip = (page - 1) * limit;
+//   const sortOption: Record<string, 1 | -1> = {};
+//   sortOption[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+//   // First, get current user's profileId (needed for lookup)
+//   const currentUserProfile = await UserProfile.findOne(
+//     { user: userId },
+//     { _id: 1, country: 1 },
+//   );
+//   const currentProfileId = currentUserProfile?._id;
+
+//   const pipeline = [
+//     // 1. Match users excluding the current one
+//     {
+//       $match: {
+//         _id: { $ne: new mongoose.Types.ObjectId(userId) },
+//         accountStatus: USER_STATUS.APPROVED, // Only approved users
+//       },
+//     },
+//     // 2. Lookup profile
+//     {
+//       $lookup: {
+//         from: 'userprofiles',
+//         localField: 'profile',
+//         foreignField: '_id',
+//         as: 'profile',
+//       },
+//     },
+//     // 3. Unwind profile
+
+//     { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
+
+//     {
+//       $addFields: {
+//         'profile.avgRating': { $ifNull: ['$profile.avgRating', 0] },
+//       },
+//     },
+//     // {
+//     //   $match: {
+//     //     $expr: {
+//     //       $and: [
+//     //         { $eq: ['$profile.country', new mongoose.Types.ObjectId(currentUserProfile?.country)] },
+//     //         { $in: [new mongoose.Types.ObjectId(serviceId), { $ifNull: ['$profile.serviceIds', []] }] },
+//     //         {
+//     //           $cond: [
+//     //             { $ifNull: [minRating, false] }, // if minRating provided
+//     //             { $gte: ['$profile.avgRating', minRating] }, // only avgRating >= minRating
+//     //             true // if no minRating, include all avgRating 0–5
+//     //           ]
+//     //         }
+//     //       ]
+//     //     }
+//     //   }
+//     // },
+
+//     {
+//       $match: {
+//         $expr: {
+//           $and: [
+//             {
+//               $eq: [
+//                 '$profile.country',
+//                 new mongoose.Types.ObjectId(currentUserProfile?.country),
+//               ],
+//             },
+//             {
+//               $in: [
+//                 new mongoose.Types.ObjectId(serviceId),
+//                 { $ifNull: ['$profile.serviceIds', []] },
+//               ],
+//             },
+//             {
+//               $or: [
+//                 { $eq: [minRating, null] }, // if minRating not provided, include all
+//                 {
+//                   $and: [
+//                     { $gte: ['$profile.avgRating', minRating] },
+//                     { $lt: ['$profile.avgRating', { $add: [minRating, 1] }] },
+//                   ],
+//                 },
+//               ],
+//             },
+//           ],
+//         },
+//       },
+//     },
+
+//     // // 4. Filter only profiles that have serviceId
+
+//     // {
+//     //   $match: {
+//     //     'profile.country': new mongoose.Types.ObjectId(currentUserProfile?.country),
+//     //     'profile.serviceIds': new mongoose.Types.ObjectId(serviceId)
+//     //   }
+//     // },
+
+//     //  Lookup responses for this specific lead
+//     {
+//       $lookup: {
+//         from: 'leadresponses',
+//         let: { lawyerId: '$profile._id' },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $and: [
+//                   { $eq: ['$leadId', new mongoose.Types.ObjectId(leadId)] },
+//                   { $eq: ['$responseBy', '$$lawyerId'] },
+//                 ],
+//               },
+//             },
+//           },
+//           { $limit: 1 },
+//         ],
+//         as: 'leadResponseForThisLead',
+//       },
+//     },
+
+//     //  Exclude lawyers who already responded
+//     {
+//       $match: {
+//         leadResponseForThisLead: { $size: 0 },
+//       },
+//     },
+
+//     // 5. Lookup serviceIds in profile
+//     {
+//       $lookup: {
+//         from: 'services', // adjust to your services collection name
+//         localField: 'profile.serviceIds',
+//         foreignField: '_id',
+//         as: 'profile.serviceIds',
+//       },
+//     },
+
+//     //  Lookup into LeadContactRequest to see if request exists
+//     {
+//       $lookup: {
+//         from: 'leadcontactrequests',
+//         let: { lawyerProfileId: '$profile._id' },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $and: [
+//                   { $eq: ['$leadId', new mongoose.Types.ObjectId(leadId)] }, // specific lead request
+//                   { $eq: ['$requestedId', currentProfileId] }, // current user requested
+//                   { $eq: ['$toRequestId', '$$lawyerProfileId'] }, // to this lawyer
+//                 ],
+//               },
+//             },
+//           },
+//           { $limit: 1 },
+//         ],
+//         as: 'requestInfo',
+//       },
+//     },
+//     //  Add requested: true/false
+//     {
+//       $addFields: {
+//         // isRequested: { $gt: [{ $size: '$requestInfo' }, 0] }
+//         isRequested: { $gt: [{ $size: { $ifNull: ['$requestInfo', []] } }, 0] },
+//       },
+//     },
+
+//     // 8.  NEW: Lookup into ProfileVisitor to check if current user visited this lawyer
+//     {
+//       $lookup: {
+//         from: 'profilevisitors',
+//         let: { targetProfileId: '$_id' },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $and: [
+//                   { $eq: ['$visitorId', new mongoose.Types.ObjectId(userId)] },
+//                   { $eq: ['$targetId', '$$targetProfileId'] },
+//                 ],
+//               },
+//             },
+//           },
+//           { $limit: 1 }, // Only need one visit record
+//         ],
+//         as: 'profileVisitInfo',
+//       },
+//     },
+//     // Add isProfileVisited: true/false + attach visit data
+//     {
+//       $addFields: {
+//         isProfileVisited: { $gt: [{ $size: '$profileVisitInfo' }, 0] },
+//         profileVisit: { $arrayElemAt: ['$profileVisitInfo', 0] },
+//       },
+//     },
+
+//     //  Add Elite Pro priority
+//     {
+//       $addFields: {
+//         eliteProPriority: { $cond: [{ $eq: ['$profile.isElitePro', true] }, 1, 0] },
+//       },
+//     },
+
+
+//     // Hide unwanted fields
+//     {
+//       $project: {
+//         // requestInfo: 0,  // it will comment out in future
+//         leadResponseForThisLead: 0,
+//         profileVisitInfo: 0,
+//       },
+//     },
+
+//     // Hide requestInfo field from output
+//     // {
+//     //   $project: {
+//     //     requestInfo: 0,
+//     //     leadResponseForThisLead: 0
+//     //   }
+//     // },
+
+//     // 6. Sorting
+//     // { $sort: sortOption },
+//     {
+//       $sort: {
+//         eliteProPriority: -1, // Elite Pro first
+//         ...sortOption,
+//       },
+
+//     },
+
+
+
+
+
+
+
+//     // 7. Facet for paginated data and total count
+//     {
+//       $facet: {
+//         paginatedData: [{ $skip: skip }, { $limit: limit }],
+//         totalCount: [{ $count: 'count' }],
+//       },
+//     },
+//   ];
+
+//   const result = await User.aggregate(pipeline as any);
+
+//   const lawyers = result[0]?.paginatedData || [];
+//   const totalCount = result[0]?.totalCount[0]?.count || 0;
+
+//   return {
+//     lawyers,
+//     totalCount,
+//     totalPages: Math.ceil(totalCount / limit),
+//     currentPage: page,
+//   };
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // export const createLeadContactRequest = async (
 //   leadId: string,
@@ -1168,7 +1674,7 @@ const getLawyerSuggestionsFromDB = async (
 //     createdAt: new Date(),
 //   });
 
-//   // 📢 Notification content
+//   //  Notification content
 //   const notificationPayload = {
 //     userId: toRequestUserId,        // receiver
 //     toUser: requestedUserId,        // sender
