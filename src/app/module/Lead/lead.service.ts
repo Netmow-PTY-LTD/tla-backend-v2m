@@ -2666,7 +2666,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
       },
     },
 
-    // ✅ Final sort to ensure question order is preserved
+    //  Final sort to ensure question order is preserved
     {
       $sort: {
         order: 1,
@@ -2711,7 +2711,7 @@ const getSingleLeadFromDB = async (userId: string, leadId: string) => {
   // Define credit from leadDoc
   const credit = Number(leadDoc.credit) || 0;
 
-  // ✅ 5. Return final result
+  //  5. Return final result
   return {
     ...leadDoc,
     leadAnswers,
@@ -2796,7 +2796,7 @@ export const leadClosedIntoDB = async (
 //   try {
 //     session.startTransaction();
 
-//     // 1️⃣ Fetch original lead
+//     // 1️ Fetch original lead
 //     const originalLead = await Lead.findById(leadId).session(session);
 //     if (!originalLead) {
 //       await session.abortTransaction();
@@ -2804,7 +2804,7 @@ export const leadClosedIntoDB = async (
 //       throw new Error('Original lead not found');
 //     }
 
-//     // 2️⃣ Duplicate Lead
+//     // 2️ Duplicate Lead
 //     const newLeadData = {
 //       userProfileId: originalLead.userProfileId,
 //       countryId: originalLead.countryId,
@@ -2834,7 +2834,7 @@ export const leadClosedIntoDB = async (
 
 //     const [newLead] = await Lead.create([newLeadData], { session });
 
-//     // 3️⃣ Duplicate LeadServiceAnswers
+//     // 3️ Duplicate LeadServiceAnswers
 //     const leadAnswers = await LeadServiceAnswer.find({ leadId }).session(session);
 //     if (leadAnswers.length > 0) {
 //       const newAnswers = leadAnswers.map((ans) => ({
@@ -2871,7 +2871,7 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
 
   try {
     session.startTransaction();
-    // 1️⃣ Fetch original lead and user profile
+    // 1️ Fetch original lead and user profile
     const originalLead = await Lead.findById(leadId)
       .populate({
         path: 'userProfileId',
@@ -2884,13 +2884,13 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
       throw new Error('Original case not found');
     }
 
-    // 2️⃣ Guard: only the client who created the lead can repost
+    // 2️ Guard: only the client who created the lead can repost
     const leadOwnerId = (originalLead.userProfileId as any).user?._id?.toString?.();
     if (leadOwnerId !== clientUserId) {
       throw new Error('Unauthorized: Only the case owner can repost this lead');
     }
 
-    // 3️⃣ Duplicate Lead
+    // 3️ Duplicate Lead
     const newLeadData = {
       userProfileId: originalLead.userProfileId,
       countryId: originalLead.countryId,
@@ -2920,16 +2920,16 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
 
     const [newLead] = await Lead.create([newLeadData], { session });
 
-    // ✅ 4️⃣ Mark original lead as requested
+    //  4️ Mark original lead as requested
     await Lead.findByIdAndUpdate(
       leadId,
-      { $set: { isReposted: true } }, // <-- FIXED HERE ✅
+      { $set: { isReposted: true } }, // <-- FIXED HERE 
       { session, new: true }
     );
 
 
 
-    // 4️⃣ Duplicate LeadServiceAnswers
+    // 4️ Duplicate LeadServiceAnswers
     const leadAnswers = await LeadServiceAnswer.find({ leadId }).session(session);
     let formattedAnswers = '';
 
@@ -2977,12 +2977,12 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
         .join('');
     }
 
-    // 6️⃣ Send email to client about reposted lead
+    // 6️ Send email to client about reposted lead
     const service = await Service.findById(newLead.serviceId).select('name');
     const userProfile = originalLead.userProfileId as any;
 
 
-    // 5️⃣ Commit transaction
+    // 5️ Commit transaction
     await session.commitTransaction();
     session.endSession();
 
