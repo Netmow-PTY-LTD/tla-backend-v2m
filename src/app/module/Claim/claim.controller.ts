@@ -45,6 +45,19 @@ const listClaims = catchAsync(async (req, res) => {
 
 });
 
+const claimDetails = catchAsync(async (req, res) => {
+  const { claimId } = req.params;
+
+  const claim = await claimService.getClaimDetails(claimId);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Claim fetched.",
+    data: claim,
+  });
+
+});
+
 
 
 
@@ -75,5 +88,6 @@ const updateClaimStatus = catchAsync(async (req, res) => {
 export const claimController = {
   createClaimRequest,
   listClaims,
-  updateClaimStatus
+  updateClaimStatus,
+  claimDetails,
 }

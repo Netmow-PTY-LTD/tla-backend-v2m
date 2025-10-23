@@ -12,6 +12,7 @@ router.post("/", upload.array("proofOwnFiles"), (req: Request, res: Response, ne
     next();
 }, claimController.createClaimRequest);
 router.get("/list", auth(USER_ROLE.ADMIN), claimController.listClaims);
+router.get("/:claimId", auth(USER_ROLE.ADMIN), claimController.claimDetails);
 router.put("/:claimId/status", auth(USER_ROLE.ADMIN), claimController.updateClaimStatus);
 
 

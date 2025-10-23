@@ -68,12 +68,12 @@ const createClaimIntoDB = async (
       proofOwnFiles = await Promise.all(
         files.map((file) =>
           // uploadToSpaces(file.buffer as Buffer, file.originalname, normalizedLawFirmEmail, FOLDERS.CLAIMS)
-        
-                  uploadToSpaces(file.buffer as Buffer, file.originalname, {
-                    folder: FOLDERS.CLAIMS,
-                    entityId: normalizedLawFirmEmail,
-        
-                  })
+
+          uploadToSpaces(file.buffer as Buffer, file.originalname, {
+            folder: FOLDERS.CLAIMS,
+            entityId: normalizedLawFirmEmail,
+
+          })
         )
       );
     }
@@ -155,9 +155,23 @@ const updateClaimStatus = async (
 };
 
 
+
+
+//   claim details
+const getClaimDetails = async (claimId: string) => {
+  const claim = await Claim.findById(claimId).populate("country").populate("matchedLawFirmId");
+
+  return claim;
+};
+
+
+
+
 export const claimService = {
   updateClaimStatus,
   listClaims,
-  createClaimIntoDB
+  getClaimDetails,
+  createClaimIntoDB,
+ 
 
 }
