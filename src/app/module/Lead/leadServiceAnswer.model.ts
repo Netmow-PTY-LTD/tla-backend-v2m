@@ -39,6 +39,10 @@ const leadServiceAnswerSchema = new Schema<ILeadServiceAnswer>(
   },
 );
 
+
+
+leadServiceAnswerSchema.index({ leadId: 1, serviceId: 1, questionId: 1, optionId: 1 ,isSelected: 1 }, { unique: true });
+
 export const LeadServiceAnswer = mongoose.model<ILeadServiceAnswer>(
   'LeadServiceAnswer',
   leadServiceAnswerSchema,

@@ -48,6 +48,7 @@ const leadServiceSchema = new Schema<ILeadService, ILeadServiceModel>(
 
 
 
+leadServiceSchema.index({ userProfileId: 1, serviceId: 1, questionId: 1, optionId: 1 ,isSelected: 1 }, { unique: true });
 
 
 

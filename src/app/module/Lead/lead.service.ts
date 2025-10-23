@@ -2391,70 +2391,67 @@ const getAllLeadForLawyerPanel = async (
 
     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
 
-    // // ----------------------- LEAD SERVICE & ANSWERS -----------------------
-    // {
-    //   $lookup: {
-    //     from: 'leadserviceanswers',
-    //     let: { leadId: '$_id' },
-    //     pipeline: [
-    //       { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
-    //       { $match: { isSelected: true } },
-    //     ],
-    //     as: 'leadServiceAnswers',
-    //   },
-    // },
-    // {
-    //   $lookup: {
-    //     from: 'userwiseservicewisequestionwiseoptions',
-    //     let: { serviceId: '$serviceId._id' },
-    //     pipeline: [
-    //       { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] }, { $eq: ['$countryId', new mongoose.Types.ObjectId(userProfile.country)] }] } } },
-    //     ],
-    //     as: 'lawyerLeadServices',
-    //   },
-    // },
-    // {
-    //   $addFields: {
-    //     matchedAnswers: {
-    //       $filter: {
-    //         input: '$leadServiceAnswers',
-    //         as: 'answer',
-    //         cond: {
-    //           $anyElementTrue: {
-    //             $map: {
-    //               input: '$lawyerLeadServices',
-    //               as: 'lawyer',
-    //               in: {
-    //                 $and: [
-    //                   { $eq: ['$$answer.serviceId', '$$lawyer.serviceId'] },
-    //                   { $eq: ['$$answer.questionId', '$$lawyer.questionId'] },
-    //                   { $eq: ['$$answer.optionId', '$$lawyer.optionId'] },
-    //                 ],
-    //               },
-    //             },
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
+    // ----------------------- LEAD SERVICE & ANSWERS -----------------------
+    {
+      $lookup: {
+        from: 'leadserviceanswers',
+        let: { leadId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
+          { $match: { isSelected: true } },
+        ],
+        as: 'leadServiceAnswers',
+      },
+    },
+    {
+      $lookup: {
+        from: 'userwiseservicewisequestionwiseoptions',
+        let: { serviceId: '$serviceId._id' },
+        pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] }, { $eq: ['$countryId', new mongoose.Types.ObjectId(userProfile.country)] }] } } },
+        ],
+        as: 'lawyerLeadServices',
+      },
+    },
+    {
+      $addFields: {
+        matchedAnswers: {
+          $filter: {
+            input: '$leadServiceAnswers',
+            as: 'answer',
+            cond: {
+              $anyElementTrue: {
+                $map: {
+                  input: '$lawyerLeadServices',
+                  as: 'lawyer',
+                  in: {
+                    $and: [
+                      { $eq: ['$$answer.serviceId', '$$lawyer.serviceId'] },
+                      { $eq: ['$$answer.questionId', '$$lawyer.questionId'] },
+                      { $eq: ['$$answer.optionId', '$$lawyer.optionId'] },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
 
-    // // Only include leads with matched answers
+    // Only include leads with matched answers
 
-    // { $match: { 'matchedAnswers.0': { $exists: true } } },
-
-
-    // // ----------------------- REMOVE UNUSED FIELDS -----------------------
-    // {
-    //   $project: {
-    //     leadServiceAnswers: 0,
-    //     lawyerLeadServices: 0,
-    //     matchedAnswers: 0,
-    //   },
-    // },
+    { $match: { 'matchedAnswers.0': { $exists: true } } },
 
 
-
+    // ----------------------- REMOVE UNUSED FIELDS -----------
+    {
+      $project: {
+        leadServiceAnswers: 0,
+        lawyerLeadServices: 0,
+        matchedAnswers: 0,
+      },
+    },
 
 
 
@@ -2484,11 +2481,6 @@ const getAllLeadForLawyerPanel = async (
     leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
   };
 };
-
-
-
-
-
 
 
 
