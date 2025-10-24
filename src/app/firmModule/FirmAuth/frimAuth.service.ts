@@ -22,6 +22,9 @@ import StaffProfile from "../Staff/staff.model";
 import { TUploadedFile } from "../../interface/file.interface";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
+import User from "../../module/Auth/auth.model";
+import { USER_STATUS } from "../../module/Auth/auth.constant";
+import { SsoToken } from "./SsoToken.model";
 
 
 
@@ -982,6 +985,129 @@ export const updateCurrentUser = async (
 
 
 
+
+
+
+
+//  lawyer access request
+
+// const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
+//     console.log("Requesting lawyer access for user:", userId);
+
+//     // 1️ Load the firm user with permission data
+//     const user = await FirmUser.findById(userId).populate({
+//         path: 'permissions',
+//         populate: { path: 'pageId', model: 'Page' }
+//     });
+
+//     if (!user) {
+//         throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+//     }
+
+//     // 2️ Check if user is admin (auto access)
+//     let hasAccess = false;
+//     if (user.role === Firm_USER_ROLE.ADMIN) {
+//         console.log('Admin user can request lawyer access', user);
+//         hasAccess = true;
+//     } else {
+//         // 3️ Check if permission exists
+//         const lawyerAccessPermission = user.permissions?.find((perm: any) => {
+//             return perm.pageId?.slug === 'you-are-permitted-to-log-in-to-the-lawyer-panel';  // very specific slug
+//         });
+
+//         if (lawyerAccessPermission?.permission) {
+//             hasAccess = true;
+//         }
+//     }
+
+//     if (!hasAccess) {
+//         console.log('Access denied for lawyer login');
+//         throw new AppError(
+//             HTTP_STATUS.FORBIDDEN,
+//             'You do not have permission to access the lawyer panel.'
+//         );
+//     }
+
+//     // 4️ Ensure we know which lawyer dashboard to log in to
+//     if (!lawyerId) {
+//         throw new AppError(
+//             HTTP_STATUS.BAD_REQUEST,
+//             'Missing lawyerId. Staff must select which lawyer to log in as.'
+//         );
+//     }
+
+//     // 5️ Generate short-lived SSO token (JWT)
+//     const tokenPayload = {
+//         staffId: user._id,
+//         lawyerId,
+//     };
+
+//     const token = jwt.sign(tokenPayload, process.env.SSO_SECRET as string, {
+//         expiresIn: '30s', // short lifetime for security
+//     });
+
+//     // 6️ Build redirect URL to TLA system
+//     const redirectUrl = `${process.env.TLA_URL}/auth/sso-login?token=${token}`;
+
+//     console.log('Redirecting to lawyer dashboard:', redirectUrl);
+
+//     return {
+//         userId,
+//         lawyerId,
+//         redirectUrl,
+//         status: 'granted',
+//     };
+// };
+
+
+/**
+ * Generate one-time SSO token for staff to log in as a lawyer
+ */
+const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
+    const firmUser = await FirmUser.findById(userId).populate({
+        path: 'permissions',
+        populate: { path: 'pageId', model: 'Page' }
+    });
+
+    if (!firmUser) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm user not found');
+
+    // Check admin or permission
+    const hasAccess = firmUser.role === Firm_USER_ROLE.ADMIN || firmUser.permissions?.some(
+        (p: any) => p.pageId?.slug === 'you-are-permitted-to-log-in-to-the-lawyer-panel' && p.permission
+    );
+
+    if (!hasAccess) throw new AppError(HTTP_STATUS.FORBIDDEN, 'No permission');
+
+    if (!lawyerId) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Missing lawyerId');
+
+    const lawyer = await User.findOne({ profile: lawyerId });
+    if (!lawyer) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Lawyer not found');
+
+    if ([lawyer.deletedAt, 'SUSPENDED', 'ARCHIVED', 'REJECTED'].includes(lawyer.accountStatus)) {
+        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Lawyer not accessible');
+    }
+
+    // Generate random token
+    const tokenValue = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 18)}`;
+
+
+    // Save token in DB with short expiry (2 minutes)
+    await SsoToken.create({
+        token: tokenValue,
+        lawyerId: lawyer._id,
+        adminId: firmUser.role === Firm_USER_ROLE.ADMIN ? firmUser._id : undefined, // <-- add admin reference if admin
+        staffId: firmUser.role === Firm_USER_ROLE.STAFF ? firmUser._id : undefined,
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes
+        used: false
+    });
+
+    // Build redirect URL
+    const redirectUrl = `${config.client_url}/sso-login?token=${tokenValue}`;
+
+    return { status: 'granted', redirectUrl, expiresIn: 120 };
+};
+
+
 export const firmAuthService = {
     firmRegisterUserIntoDB,
     loginUserIntoDB,
@@ -997,5 +1123,6 @@ export const firmAuthService = {
     verifyOtp,
     changeEmail,
     getUserInfoFromDB,
-    updateCurrentUser
+    updateCurrentUser,
+    requestLawyerAccess,
 };

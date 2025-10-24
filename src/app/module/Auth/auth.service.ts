@@ -15,6 +15,7 @@ import { sendEmail } from '../../emails/email.service';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { generateOtp } from './otp.utils';
 import { IUserProfile } from '../User/user.interface';
+import { SsoToken } from '../../firmModule/FirmAuth/SsoToken.model';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -83,6 +84,8 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
     refreshToken,
     userData,
   };
+
+
 };
 
 /**
@@ -593,6 +596,62 @@ const changeEmail = async (userId: string, newEmail: string) => {
 
 
 
+// sso-login
+const ssoLogin = async (token: string) => {
+  // Find the SSO token record
+  const ssoToken = await SsoToken.findOne({ token, used: false });
+  if (!ssoToken || ssoToken.expiresAt < new Date()) {
+    throw new Error('Invalid or expired token');
+  }
+
+  // Mark token as used
+  ssoToken.used = true;
+  await ssoToken.save();
+
+  // Fetch lawyer
+  const lawyer = await User.findById(ssoToken.lawyerId).populate('profile');
+  if (!lawyer) throw new Error('Lawyer not found');
+
+  // Generate actual session/access token
+
+  const jwtPayload = {
+    userId: lawyer?._id,
+    email: lawyer?.email,
+    country: (lawyer?.profile as any)?.country.slug, //  Fix TS error
+    role: lawyer?.role,
+    regUserType: lawyer?.regUserType,
+    accountStatus: lawyer.accountStatus,
+  };
+
+  // Generate access token
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as StringValue,
+    config.jwt_access_expires_in as StringValue,
+  );
+
+  // Generate refresh token
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret as StringValue,
+    config.jwt_refresh_expires_in as StringValue,
+  );
+
+  // Fetch user data
+  const userData = await User.findOne({ email: lawyer?.email });
+  // Return tokens and user data
+  return {
+    accessToken,
+    refreshToken,
+    userData,
+  };
+
+
+}
+
+
+
+
 export const authService = {
   loginUserIntoDB,
   refreshToken,
@@ -605,5 +664,6 @@ export const authService = {
   resendVerificationEmail,
   sendOtp,
   verifyOtp,
-  changeEmail
+  changeEmail,
+  ssoLogin
 };

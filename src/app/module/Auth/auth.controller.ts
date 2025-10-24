@@ -198,7 +198,7 @@ const resendVerificationEmail = catchAsync(
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: true,
-     message: 'Verification email resent successfully.',
+      message: 'Verification email resent successfully.',
       data: result, // usually null or { email, isVerified: false }
     });
   }
@@ -226,7 +226,7 @@ export const updateAccountStatusController = catchAsync(
         statusCode: HTTP_STATUS.BAD_REQUEST,
         success: false,
         message: error.message || 'Failed to update account status',
-        data:null
+        data: null
       });
     }
   }
@@ -306,6 +306,43 @@ const changeEmail = catchAsync(async (req, res) => {
 
 
 
+//  sso-login
+const ssoLogin = catchAsync(async (req, res) => {
+  const { token } = req.body;
+
+
+  const { accessToken, refreshToken, userData } =
+    await authService.ssoLogin(token);
+  // Set the refresh token in a secure HTTP-only cookie
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
+    // secure: config.NODE_ENV === 'production',
+    secure: true, // Ensures cookie is only sent over HTTPS
+    sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
+  });
+
+  // Send the access token and user data in the response
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'SSO Lawyer login successfully.',
+    token: accessToken,
+    data: userData,
+
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+});
 
 
 
@@ -322,4 +359,5 @@ export const authController = {
   sendOtp,
   verifyOtp,
   changeEmail,
+  ssoLogin,
 };
