@@ -370,6 +370,25 @@ const changeEmail = catchAsync(async (req, res) => {
 });
 
 
+// request-lawyer-access
+
+const requestLawyerAccess = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const lawyerId = req.params.lawyerId;
+
+  const result = await firmAuthService.requestLawyerAccess(userId, lawyerId);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Lawyer access requested successfully.',
+    data: result,
+  });
+});
+
+
+
+
 
 
 export const firmAuthController = {
@@ -387,5 +406,6 @@ export const firmAuthController = {
   verifyOtp,
   changeEmail,
   userInfo,
-  updateCurrentUserInfo
+  updateCurrentUserInfo,
+  requestLawyerAccess,
 };

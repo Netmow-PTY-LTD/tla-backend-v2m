@@ -85,4 +85,14 @@ router.post(
 router.post("/change-email", firmAuthController.changeEmail);
 
 
+
+//   request-lawyer-access
+
+
+router.post(
+    '/request-lawyer-access',
+    firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.STAFF),
+    firmAuthController.requestLawyerAccess,
+);
+
 export const firmAuthRouter = router;
