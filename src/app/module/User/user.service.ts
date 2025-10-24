@@ -245,7 +245,7 @@ const updateProfileIntoDB = async (
     // Step 5: Delete old file after successful update
     if (file?.buffer && existingProfile.profilePicture) {
       deleteFromSpace(existingProfile.profilePicture).catch((err) =>
-        console.error('⚠️ Failed to delete old profile picture:', err)
+        console.error(' Failed to delete old profile picture:', err)
       );
     }
 
@@ -258,7 +258,7 @@ const updateProfileIntoDB = async (
     // Rollback uploaded file if DB transaction failed
     if (newFileUrl) {
       deleteFromSpace(newFileUrl).catch((cleanupErr) =>
-        console.error('⚠️ Failed to rollback uploaded file:', cleanupErr)
+        console.error(' Failed to rollback uploaded file:', cleanupErr)
       );
     }
 

@@ -82,4 +82,102 @@ const auth = (...requiredRoles: TUserRole[]) => {
   });
 };
 
+
+
+
+
+
+//   -------------------- new logic  ---------------------------
+
+
+
+// const auth = (...requiredRoles: TUserRole[]) => {
+//   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+//     const token = req.headers.authorization;
+
+//     if (!token) {
+//       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+//     }
+
+//     let decoded: JwtPayload | null = null;
+
+//     // ----------------------------
+//     // 1️ TRY VERIFYING AS NORMAL USER TOKEN
+//     // ----------------------------
+//     try {
+//       decoded = jwt.verify(token, config.jwt_access_secret as string) as JwtPayload;
+//     } catch (err) {
+//       // ----------------------------
+//       // 2️ IF FAILED, TRY LAWYER SSO TOKEN
+//       // ----------------------------
+//       try {
+//         const ssoDecoded = jwt.verify(token, process.env.SSO_SECRET as string) as JwtPayload;
+//         console.log('Lawyer SSO token verified:', ssoDecoded);
+
+//         // Attach SSO user context to request
+//         req.user = {
+//           staffId: ssoDecoded.staffId,
+//           lawyerId: ssoDecoded.lawyerId,
+//           isLawyerSSO: true,
+//           role: 'LAWYER_SSO',
+//         } as any;
+
+//         return next(); //  Allow route to continue
+//       } catch (ssoErr) {
+//         // If both verifications fail → reject
+//         throw new AppError(httpStatus.UNAUTHORIZED, 'Unauthorized');
+//       }
+//     }
+
+//     // ----------------------------
+//     // 3️ NORMAL USER TOKEN VALIDATION FLOW
+//     // ----------------------------
+//     const { role, email, iat } = decoded;
+
+//     // check if user exists
+//     const user = await User.isUserExistsByEmail(email);
+//     if (!user) {
+//       throw new AppError(httpStatus.NOT_FOUND, 'This user is not found!');
+//     }
+
+//     // check deletion
+//     if (user.deletedAt) {
+//       throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted!');
+//     }
+
+//     // check status
+//     const userStatus = user.accountStatus;
+//     if (
+//       userStatus === USER_STATUS.SUSPENDED ||
+//       userStatus === USER_STATUS.ARCHIVED ||
+//       userStatus === USER_STATUS.REJECTED
+//     ) {
+//       throw new AppError(
+//         HTTP_STATUS.FORBIDDEN,
+//         `This user is ${userStatus}!`
+//       );
+//     }
+
+//     // check password changed after token issued
+//     if (
+//       user.passwordChangedAt &&
+//       User.isJWTIssuedBeforePasswordChanged(user.passwordChangedAt, iat as number)
+//     ) {
+//       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+//     }
+
+//     // check role-based access
+//     if (requiredRoles && !requiredRoles.includes(role)) {
+//       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+//     }
+
+//     req.user = decoded as JwtPayload & { role: string };
+//     next();
+//   });
+// };
+
+
+
+
+
 export default auth;

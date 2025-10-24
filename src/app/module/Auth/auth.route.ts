@@ -84,4 +84,12 @@ router.post(
   lawyerRegisterController.lawyerRegister,
 );
 
+
+
+
+
+
+//  sso-login
+router.post('/sso-login', authController.ssoLogin);
+
 export const authRouter = router;
