@@ -23,8 +23,9 @@ import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationSe
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 import { findLeadsWithinTravelTime } from './filterTravelTime';
 import { IZipCode } from '../Country/zipcode.interface';
+import { redisClient } from '../../config/redis';
 
-import redisClient from '../../config/redis';
+
 
 
 

@@ -21,6 +21,7 @@ import Experience from './experience.model';
 import Faq from './faq.model';
 import Agreement from './agreement.model';
 import { FOLDERS } from '../../constant';
+import { redisClient } from '../../config/redis';
 
 
 /**
@@ -37,6 +38,9 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
   const sortBy = query.sortBy || 'createdAt';
   const sortOrder = query.sortOrder === 'asc' ? 1 : -1;
 
+
+
+
   // Build filters dynamically
   const filters: any = {};
   if (query.role) filters.role = query.role;
@@ -44,6 +48,11 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
   if (query.accountStatus) filters.accountStatus = query.accountStatus;
   if (query.isVerifiedAccount !== undefined) filters.isVerifiedAccount = query.isVerifiedAccount;
   if (query.isPhoneVerified !== undefined) filters.isPhoneVerified = query.isPhoneVerified;
+
+
+
+
+
 
   // Aggregation pipeline
   const pipeline: any[] = [
@@ -122,7 +131,7 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
   const total = totalResult[0]?.total || 0;
   const totalPage = Math.ceil(total / limit);
 
-  return {
+  const result = {
     users,
     meta: {
       page,
@@ -131,6 +140,14 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
       totalPage,
     },
   };
+
+
+
+  return result;
+
+
+
+
 };
 
 
@@ -282,6 +299,20 @@ const updateProfileIntoDB = async (
  */
 
 const getSingleUserProfileDataIntoDB = async (userId: string) => {
+
+  // ----------------------- CACHE KEY -----------------------
+  const cacheKey = `user_profile:${userId}`;
+
+  // ----------------------- CHECK CACHE -----------------------
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log('✅ Cache hit:', cacheKey);
+    return JSON.parse(cachedData);
+  }
+
+
+
+
   // 1. Find the user by ID with profile + serviceIds populated
   const userData = await User.findById(userId)
     .populate({
@@ -352,7 +383,15 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
     agreement,
   };
 
-  return plainUser;
+
+  const finalUser = plainUser;
+
+  // ----------------------- CACHE RESULT -----------------------
+  await redisClient.set(cacheKey, JSON.stringify(finalUser), { EX: 60 * 60 }); // cache for 1 hour
+
+
+
+  return finalUser;
 };
 
 
@@ -570,14 +609,14 @@ const updateDefaultProfileIntoDB = async (
     userProfile.profilePicture = newFileUrl;
     await userProfile.save({ session });
 
-    
+
     // Step 4️: Commit transaction
     await session.commitTransaction();
     session.endSession();
 
     // Step 5️: Delete old file asynchronously (non-blocking)
     if (oldFileUrl) {
-    
+
       deleteFromSpace(oldFileUrl).catch((err) =>
         console.error('⚠️ Failed to delete old profile image:', err)
       );
