@@ -609,7 +609,7 @@ const ssoLogin = async (token: string) => {
   await ssoToken.save();
 
   // Fetch lawyer
-  const lawyer = await User.findById(ssoToken.lawyerId);
+  const lawyer = await User.findById(ssoToken.lawyerId).populate('profile');
   if (!lawyer) throw new Error('Lawyer not found');
 
   // Generate actual session/access token

@@ -374,8 +374,7 @@ const changeEmail = catchAsync(async (req, res) => {
 
 const requestLawyerAccess = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const lawyerId = req.params.lawyerId;
-
+  const lawyerId = req.body.lawyerId;
   const result = await firmAuthService.requestLawyerAccess(userId, lawyerId);
 
   sendResponse(res, {

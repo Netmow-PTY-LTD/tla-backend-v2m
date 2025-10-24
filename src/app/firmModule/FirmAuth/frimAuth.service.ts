@@ -1080,7 +1080,7 @@ const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
 
     if (!lawyerId) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Missing lawyerId');
 
-    const lawyer = await User.findById(lawyerId);
+    const lawyer = await User.findOne({ profile: lawyerId });
     if (!lawyer) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Lawyer not found');
 
     if ([lawyer.deletedAt, 'SUSPENDED', 'ARCHIVED', 'REJECTED'].includes(lawyer.accountStatus)) {
