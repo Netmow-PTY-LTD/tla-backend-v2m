@@ -1063,47 +1063,48 @@ export const updateCurrentUser = async (
 /**
  * Generate one-time SSO token for staff to log in as a lawyer
  */
- const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
-  const firmUser = await FirmUser.findById(userId).populate({
-    path: 'permissions',
-    populate: { path: 'pageId', model: 'Page' }
-  });
+const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
+    const firmUser = await FirmUser.findById(userId).populate({
+        path: 'permissions',
+        populate: { path: 'pageId', model: 'Page' }
+    });
 
-  if (!firmUser) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm user not found');
+    if (!firmUser) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Firm user not found');
 
-  // Check admin or permission
-  const hasAccess = firmUser.role === Firm_USER_ROLE.ADMIN || firmUser.permissions?.some(
-    (p: any) => p.pageId?.slug === 'you-are-permitted-to-log-in-to-the-lawyer-panel' && p.permission
-  );
+    // Check admin or permission
+    const hasAccess = firmUser.role === Firm_USER_ROLE.ADMIN || firmUser.permissions?.some(
+        (p: any) => p.pageId?.slug === 'you-are-permitted-to-log-in-to-the-lawyer-panel' && p.permission
+    );
 
-  if (!hasAccess) throw new AppError(HTTP_STATUS.FORBIDDEN, 'No permission');
+    if (!hasAccess) throw new AppError(HTTP_STATUS.FORBIDDEN, 'No permission');
 
-  if (!lawyerId) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Missing lawyerId');
+    if (!lawyerId) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Missing lawyerId');
 
-  const lawyer = await User.findById(lawyerId);
-  if (!lawyer) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Lawyer not found');
+    const lawyer = await User.findById(lawyerId);
+    if (!lawyer) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Lawyer not found');
 
-  if ([lawyer.deletedAt, 'SUSPENDED', 'ARCHIVED', 'REJECTED'].includes(lawyer.accountStatus)) {
-    throw new AppError(HTTP_STATUS.FORBIDDEN, 'Lawyer not accessible');
-  }
+    if ([lawyer.deletedAt, 'SUSPENDED', 'ARCHIVED', 'REJECTED'].includes(lawyer.accountStatus)) {
+        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Lawyer not accessible');
+    }
 
-  // Generate random token
-const tokenValue = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 18)}`;
+    // Generate random token
+    const tokenValue = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 18)}`;
 
 
-  // Save token in DB with short expiry (2 minutes)
-  await SsoToken.create({
-    token: tokenValue,
-    lawyerId: lawyer._id,
-    staffId: firmUser._id,
-    expiresAt: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes
-    used: false
-  });
+    // Save token in DB with short expiry (2 minutes)
+    await SsoToken.create({
+        token: tokenValue,
+        lawyerId: lawyer._id,
+        adminId: firmUser.role === Firm_USER_ROLE.ADMIN ? firmUser._id : undefined, // <-- add admin reference if admin
+        staffId: firmUser.role === Firm_USER_ROLE.STAFF ? firmUser._id : undefined,
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes
+        used: false
+    });
 
-  // Build redirect URL
-  const redirectUrl = `${config.client_url}/sso-login?token=${tokenValue}`;
+    // Build redirect URL
+    const redirectUrl = `${config.client_url}/sso-login?token=${tokenValue}`;
 
-  return { status: 'granted', redirectUrl, expiresIn: 120 };
+    return { status: 'granted', redirectUrl, expiresIn: 120 };
 };
 
 

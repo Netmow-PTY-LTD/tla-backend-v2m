@@ -306,6 +306,19 @@ const changeEmail = catchAsync(async (req, res) => {
 
 
 
+//  sso-login
+const ssoLogin = catchAsync(async (req, res) => {
+  const { token } = req.body;
+
+  const result = await authService.ssoLogin(token);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'SSO Lawyer login successful.',
+    data: result,
+  });
+});
 
 
 
@@ -322,4 +335,5 @@ export const authController = {
   sendOtp,
   verifyOtp,
   changeEmail,
+  ssoLogin,
 };
