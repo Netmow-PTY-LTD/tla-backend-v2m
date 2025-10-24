@@ -31,7 +31,7 @@ async function connectRedis() {
 
 connectRedis().catch(console.error);
 
-export default client;
+export const redisClient = client;
 
 
 
