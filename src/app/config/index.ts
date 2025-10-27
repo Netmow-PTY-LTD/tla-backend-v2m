@@ -31,5 +31,9 @@ export default {
   firm_reset_pass_ui_link: process.env.FIRM_RESET_PASS_UI_LINK,
   firm_client_url: process.env.FIRM_CLIENT_URL,
   google_maps_api_key: process.env.GOOGLE_MAPS_API_KEY,
+  redis_host: process.env.REDIS_HOST,
+  redis_port: process.env.REDIS_PORT,
+  redis_password: process.env.REDIS_PASSWORD,
+  redis_username: process.env.REDIS_USERNAME,
 
 };
