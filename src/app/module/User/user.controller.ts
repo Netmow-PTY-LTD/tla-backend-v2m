@@ -221,13 +221,13 @@ const getSingleUserProfileData = catchAsync(async (req, res) => {
  * @throws {AppError} Throws an error if the profile retrieval fails.
  */
 
-const getUserProfileInfo = catchAsync(async (req, res) => {
+const getCurrentUserInfo = catchAsync(async (req, res) => {
   const timer = startQueryTimer();
   // Extract the logged-in user information from the request (from JWT payload)
-  const user = req.user;
+  const userId = req.user.userId;
 
   // Call the service function to retrieve the user's profile data from the database
-  const result = await UserProfileService.getUserProfileInfoIntoDB(user);
+  const result = await UserProfileService.getCurrentUserProfileInfoIntoDB(userId);
   const queryTime = timer.endQueryTimer();
   // Send a successful response back to the client with the user's profile data
   return sendResponse(res, {
@@ -259,7 +259,7 @@ const getAllUserProfile = catchAsync(async (req, res) => {
     role: req.query.role as string | undefined,            // user role filter
     regUserType: req.query.regUserType as string | undefined, // registered user type
     accountStatus: req.query.accountStatus as string | undefined, // approved, pending, rejected
-    // ✅ handle boolean parsing
+    //  handle boolean parsing
     isVerifiedAccount: req.query.isVerifiedAccount === "true"
       ? true
       : req.query.isVerifiedAccount === "false"
@@ -272,7 +272,7 @@ const getAllUserProfile = catchAsync(async (req, res) => {
         ? false
         : undefined,
 
-    // ✅ sorting support
+    //  sorting support
     sortBy: (req.query.sortBy as string) || "createdAt",
     sortOrder: req.query.sortOrder === "asc" ? "asc" : "desc",
   };
@@ -355,7 +355,7 @@ export const updateDefaultProfile = catchAsync(async (req, res) => {
 export const userProfileController = {
   updateProfile,
   getSingleUserProfileData,
-  getUserProfileInfo,
+  getCurrentUserInfo,
   getAllUserProfile,
   deleteSingleUserProfile,
   updateDefaultProfile

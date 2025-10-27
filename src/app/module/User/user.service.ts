@@ -410,15 +410,31 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
 
 
-const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
+const getCurrentUserProfileInfoIntoDB = async (userId:string) => {
   // 1. Check if user exists
-  const isUserExists = await User.isUserExists(user.userId);
+  const isUserExists = await User.isUserExists(userId);
   if (!isUserExists) {
     return sendNotFoundResponse('user does not exist');
   }
 
+
+  // ----------------------- CACHE KEY -----------------------
+  const cacheKey = `user_info:${userId}`;
+
+  // ----------------------- CHECK CACHE -----------------------
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Cache hit:', cacheKey);
+    return JSON.parse(cachedData);
+  }
+
+
+
+
+
+
   // 2. Get the user + profile
-  const userData = await User.findById(user.userId)
+  const userData = await User.findById(userId)
     .populate({
       path: 'profile',
       model: 'UserProfile',
@@ -514,6 +530,18 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     faq,
     agreement
   };
+
+
+
+  // ----------------------- CACHE RESULT -----------------------
+  await redisClient.set(cacheKey, JSON.stringify(plainUser), { EX: 60 * 60 }); // cache for 1 hour
+
+
+
+
+
+
+
 
   return plainUser;
 };
@@ -654,7 +682,7 @@ const updateDefaultProfileIntoDB = async (
 export const UserProfileService = {
   updateProfileIntoDB,
   getSingleUserProfileDataIntoDB,
-  getUserProfileInfoIntoDB,
+  getCurrentUserProfileInfoIntoDB,
   getAllUserIntoDB,
   softDeleteUserIntoDB,
   updateDefaultProfileIntoDB

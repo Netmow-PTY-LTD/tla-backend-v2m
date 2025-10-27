@@ -651,6 +651,21 @@ const ssoLogin = async (token: string) => {
 
 
 
+//   user cache data api logic
+const cacheUserData = async (userId: string, data: any) => {
+  // Find the user by ID
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+  }
+
+  // Here, you would typically cache the data using a caching service like Redis.
+
+
+
+
+};
+
 
 export const authService = {
   loginUserIntoDB,
@@ -665,5 +680,6 @@ export const authService = {
   sendOtp,
   verifyOtp,
   changeEmail,
-  ssoLogin
+  ssoLogin,
+  cacheUserData
 };

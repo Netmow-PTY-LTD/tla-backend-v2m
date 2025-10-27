@@ -14,7 +14,7 @@ const router = Router();
 router.get(
   '/userInfo',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userProfileController.getUserProfileInfo,
+  userProfileController.getCurrentUserInfo,
 );
 router.get(
   '/list',

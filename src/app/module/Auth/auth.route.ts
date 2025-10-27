@@ -92,4 +92,13 @@ router.post(
 //  sso-login
 router.post('/sso-login', authController.ssoLogin);
 
+
+//   cache user data api
+
+router.post('/cache-user-data', authController.cacheUserData);
+
+
+
+
+
 export const authRouter = router;
