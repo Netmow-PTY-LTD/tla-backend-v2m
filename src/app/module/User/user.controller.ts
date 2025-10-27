@@ -13,6 +13,7 @@ import { profileExperienceService } from './profileExperience.service';
 import { profileFaqService } from './profileFaq.service';
 import { startQueryTimer } from '../../utils/queryTimer';
 import { agreementService } from './agreement.service';
+import { redisClient } from '../../config/redis';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -22,8 +23,11 @@ import { agreementService } from './agreement.service';
  * @throws {AppError} Throws an error if the user profile update fails.
  */
 
+
+
 const updateProfile = catchAsync(async (req, res) => {
   const userId = req.user.userId;
+    const cacheKey = `user_info:${userId}`;
   // const parsedData = JSON.parse(req.body.data);
   const parsedData = req.body.data ? JSON.parse(req.body.data) : {};
   const files = req.files as TUploadedFile[];
@@ -35,6 +39,9 @@ const updateProfile = catchAsync(async (req, res) => {
     fileMap[file.fieldname].push(file);
   });
 
+  //  Revalidate cache after transaction commit
+  await redisClient.del(cacheKey);
+  console.log(` Cache invalidated for user ${userId}`);
 
   let userProfileResult = null;
   let companyProfileResult = null;

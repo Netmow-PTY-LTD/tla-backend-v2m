@@ -11,6 +11,7 @@ import Accreditation from './ProfileAccreditation';
 import UserProfile from './user.model';
 import { FOLDERS } from '../../constant';
 import mongoose from 'mongoose';
+import { redisClient } from '../../config/redis';
 
 // const updateProfileAccreditationIntoDB = async (
 //   id: string,
@@ -179,8 +180,13 @@ const updateProfileAccreditationIntoDB = async (
 
 
 
-const deleteAccreditationIntoDB = async (id: string) => {
+const deleteAccreditationIntoDB = async (userId: string, id: string) => {
+
   validateObjectId(id, 'Accreditation');
+
+
+  const cacheKey = `user_info:${userId}`;
+  await redisClient.del(cacheKey);
 
   const session = await mongoose.startSession();
   session.startTransaction();
