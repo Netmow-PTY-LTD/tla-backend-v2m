@@ -13,10 +13,11 @@ import ProfileSocialMedia from '../User/profileSocialMedia';
 import ProfileCustomService from '../User/profileServiceCoustom.model';
 import { calculateLawyerBadge } from '../User/user.utils';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
+import { redisClient } from '../../config/redis';
 
 
 
-
+const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
   countryId: string,
@@ -26,12 +27,25 @@ const getSingleServiceWiseQuestionFromDB = async (
   const serviceObjectId = new Types.ObjectId(serviceId);
   const countryObjectId = new Types.ObjectId(countryId);
 
+
+  // Create a deterministic cache key
+  const cacheKey = `serviceWiseQuestion:${serviceId}:${countryId}`;
+
+  //  Check Redis cache first
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Returning cached ServiceWiseQuestion');
+    return JSON.parse(cachedData);
+  }
+
+
+
   const result = await ServiceWiseQuestion.aggregate([
     {
       $match: {
         serviceId: serviceObjectId,
         countryId: countryObjectId,
-  
+
       },
     },
     {
@@ -129,14 +143,31 @@ const getSingleServiceWiseQuestionFromDB = async (
     },
   ]);
 
+
+  await redisClient.set(cacheKey, JSON.stringify(result), { EX: CACHE_TTL_SECONDS });
+  console.log(' Cached ServiceWiseQuestion for 24 hours');
+
+
+
+
+
+
+
   return result;
 };
+
+
+
+
+
+
+
 
 const getQuestionWiseOptionsFromDB = async (questionId: string) => {
   validateObjectId(questionId, 'Question');
   const result = await Option.find({
     questionId: questionId,
-   
+
   }).populate(['questionId', 'serviceId', 'countryId']); // ✅ fixed
 
   return result;
@@ -222,11 +253,11 @@ const getPublicUserProfileById = async (userId: string) => {
 
   const experience = await Experience.findOne({
     userProfileId: user.profile._id,
-  
+
   });
   const faq = await Faq.find({
     userProfileId: user.profile._id,
-   
+
   });
 
   const photosVideos = await ProfilePhotos.findOne({
@@ -300,12 +331,12 @@ const getPublicUserProfileBySlug = async (slug: string) => {
 
   const experience = await Experience.findOne({
     userProfileId: user.profile._id,
-   
+
   });
 
   const faq = await Faq.find({
     userProfileId: user.profile._id,
-    
+
   });
   const photosVideos = await ProfilePhotos.findOne({
     userProfileId: user.profile._id,
@@ -327,7 +358,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     (user?.profile?.serviceIds as { name: string }[] | undefined) || [];
 
   return {
-    userId:rawUser?._id,
+    userId: rawUser?._id,
     email: user.email,
     name,
     slug: slugResult,
@@ -347,9 +378,9 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     socialMedia: socialMedia || {},
     customService: customService,
     badge,
-   languages:user.profile.languages , 
-   law_society_member_number:user.profile.law_society_member_number ,
-   practising_certificate_number:user.profile.practising_certificate_number
+    languages: user.profile.languages,
+    law_society_member_number: user.profile.law_society_member_number,
+    practising_certificate_number: user.profile.practising_certificate_number
   };
 };
 
@@ -367,7 +398,7 @@ interface CompanyProfileQuery {
 const getAllPublicCompanyProfilesIntoDB = async (query: CompanyProfileQuery) => {
   const { page = 1, limit = 10, search, countryId, ZipCodeId, cityId } = query;
 
-  const filter: Record<string, any> = { status:'approved', deletedAt: null };
+  const filter: Record<string, any> = { status: 'approved', deletedAt: null };
 
   if (countryId) filter["contactInfo.country"] = countryId;
   if (cityId) filter["contactInfo.city"] = cityId;
@@ -381,7 +412,7 @@ const getAllPublicCompanyProfilesIntoDB = async (query: CompanyProfileQuery) => 
       { path: "contactInfo.country", select: "name" },
       { path: "contactInfo.city", select: "name region" },
       { path: "contactInfo.zipCode", select: "zipcode postalCode" },
-      
+
     ]).select('firmName logo contactInfo companySize')
     .sort({ createdAt: -1 })
     .skip(skip)
