@@ -17,6 +17,7 @@ import { generateOtp } from './otp.utils';
 import { IUserProfile } from '../User/user.interface';
 import { SsoToken } from '../../firmModule/FirmAuth/SsoToken.model';
 import { getCurrentUserProfileInfoFromCache } from '../User/user.service';
+import { leadService } from '../Lead/lead.service';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -660,12 +661,47 @@ const cacheUserData = async (userId: string) => {
     throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
   }
 
+
+
+//  Demo filter input for lead data
+const filters = {
+  keyword: '',
+  spotlight: '',
+  view: '',
+  leadSubmission: '',
+  location: '',
+  services: [],
+  credits: [],
+  coordinates: null,
+};
+
+//  Demo options input for lead data
+const options: {
+  page: number;
+  limit: number;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+} = {
+  page: 1,
+  limit: 100,
+  sortBy: 'createdAt',
+  sortOrder: 'desc',
+};
+
+/* 
+
+1.   5 page of lead data need cache
+
+
+*/
+
+
   // Here, you would typically cache the data using a caching service like Redis.
+
   await Promise.all([
     getCurrentUserProfileInfoFromCache(userId),
+    leadService.getAllLeadForLawyerPanel(userId, filters, options),
   ]);
-
-
 
 
 
