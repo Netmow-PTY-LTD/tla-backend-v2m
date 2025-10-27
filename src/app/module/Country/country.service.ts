@@ -3,6 +3,14 @@ import CountryWiseMap from '../CountryWiseMap/countryWiseMap.model';
 import { ICountry } from './country.interface';
 import Country from './country.model';
 import { validateObjectId } from '../../utils/validateObjectId';
+import { redisClient } from '../../config/redis';
+
+
+const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+const CACHE_KEY = 'all_countries';
+
+
+
 
 const CreateCountryIntoDB = async (payload: ICountry) => {
   const session = await mongoose.startSession();
@@ -31,10 +39,35 @@ const CreateCountryIntoDB = async (payload: ICountry) => {
   }
 };
 
+
+
+
 const getAllCountryFromDB = async () => {
+  // const countries = await Country.find({});
+  // return countries;
+
+  const cachedData = await redisClient.get(CACHE_KEY);
+  if (cachedData) {
+    console.log(' Returning cached countries');
+    return JSON.parse(cachedData);
+  }
+
+  // 2️ Fetch from DB
   const countries = await Country.find({});
+
+  // 3️ Cache the result
+  await redisClient.set(CACHE_KEY, JSON.stringify(countries), { EX: CACHE_TTL_SECONDS });
+  console.log(' Cached all countries for 24 hours');
+
   return countries;
+
+
 };
+
+
+
+
+
 
 const getSingleCountryFromDB = async (id: string) => {
   validateObjectId(id, 'Country');

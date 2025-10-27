@@ -15,6 +15,7 @@ import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationSe
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 import { IUserLocationServiceMap } from '../UserLocationServiceMap/userLocationServiceMap.interface';
+import { redisClient } from '../../config/redis';
 
 const createLeadService = async (
   userId: string,
@@ -199,6 +200,18 @@ const createLeadService = async (
 
 
 const getLeadServicesWithQuestions = async (userId: string) => {
+
+  const cacheKey = `lead_services_with_questions:${userId}`;
+
+  //  Try to get from cache
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Returning cached data');
+    return JSON.parse(cachedData);
+  }
+
+
+
   // 1. Fetch user profile
   const userProfile = await UserProfile.findOne({ user: userId }).select(
     '_id serviceIds country',
@@ -216,6 +229,9 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     .populate('serviceId')
     .populate('questionId')
     .populate('optionId');
+
+
+
 
   // 3. Organize data
   const grouped: Record<string, { service: any; questionsMap: Record<string, { question: any; options: any[] }>; }> = {};
@@ -278,10 +294,21 @@ const getLeadServicesWithQuestions = async (userId: string) => {
     },
   });
 
-  return {
+  const response = {
     service,
     locations,
   };
+
+
+
+  //  Cache the result for future calls
+
+  await redisClient.set(cacheKey, JSON.stringify(response), { EX: 60 * 60 });
+
+  return response;
+
+
+
 };
 
 // const updateLocations = async (

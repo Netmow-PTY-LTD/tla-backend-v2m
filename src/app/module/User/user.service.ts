@@ -410,15 +410,31 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
 
 
-const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
+ const getCurrentUserProfileInfoIntoDB = async (userId:string) => {
   // 1. Check if user exists
-  const isUserExists = await User.isUserExists(user.userId);
+  const isUserExists = await User.isUserExists(userId);
   if (!isUserExists) {
     return sendNotFoundResponse('user does not exist');
   }
 
+
+  // ----------------------- CACHE KEY -----------------------
+  const cacheKey = `user_info:${userId}`;
+
+  // ----------------------- CHECK CACHE -----------------------
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Cache hit:', cacheKey);
+    return JSON.parse(cachedData);
+  }
+
+
+
+
+
+
   // 2. Get the user + profile
-  const userData = await User.findById(user.userId)
+  const userData = await User.findById(userId)
     .populate({
       path: 'profile',
       model: 'UserProfile',
@@ -515,8 +531,161 @@ const getUserProfileInfoIntoDB = async (user: JwtPayload) => {
     agreement
   };
 
+
+
+  // ----------------------- CACHE RESULT -----------------------
+  await redisClient.set(cacheKey, JSON.stringify(plainUser), { EX: 60 * 60 }); // cache for 1 hour
+
+
+
+
+
+
+
+
   return plainUser;
 };
+
+
+
+//   cache user data api
+export const getCurrentUserProfileInfoFromCache = async (userId:string) => {
+  // 1. Check if user exists
+  const isUserExists = await User.isUserExists(userId);
+  if (!isUserExists) {
+    return sendNotFoundResponse('user does not exist');
+  }
+
+
+  // ----------------------- CACHE KEY -----------------------
+  const cacheKey = `user_info:${userId}`;
+
+  // ----------------------- CHECK CACHE -----------------------
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Cache hit:', cacheKey);
+    // return JSON.parse(cachedData);
+
+    return;
+  }
+
+
+
+  // 2. Get the user + profile
+  const userData = await User.findById(userId)
+    .populate({
+      path: 'profile',
+      model: 'UserProfile',
+      populate: [
+        {
+          path: 'serviceIds',
+          model: 'Service', // or whatever your actual model name is
+        },
+
+        {
+          path: 'firmProfileId',
+          model: 'FirmProfile',
+          populate: {
+            path: 'contactInfo.country contactInfo.city contactInfo.zipCode',
+          },
+        },
+        {
+          path: 'activeFirmRequestId',
+          model: 'LawyerRequestAsMember',
+          populate: { path: 'firmProfileId', select: 'firmName' },
+        },
+        {
+          path: 'subscriptionId',
+          model: 'UserSubscription',
+          populate: { path: 'subscriptionPackageId' },
+        },
+        {
+          path: 'eliteProSubscriptionId',
+          model: 'EliteProUserSubscription',
+          populate: { path: 'eliteProPackageId' },
+        },
+      ],
+    })
+
+
+  if (!userData || !userData.profile || typeof userData.profile === 'string') {
+    return sendNotFoundResponse('user profile data not found');
+  }
+
+  const userProfileId = userData.profile._id;
+
+  // 3. Fetch models that point to the UserProfile
+  const [
+    companyProfile,
+    accreditation,
+    photos,
+    socialMedia,
+    customService,
+    profileQAAnswers,
+    experience,
+    faq,
+    agreement
+  ] = await Promise.all([
+    CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
+    Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
+    ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
+    profileSocialMedia
+      .findOne({ userProfileId: userProfileId })
+      .select('+_id '),
+    ProfileCustomService.find({ userProfileId: userProfileId }).select('+_id '),
+    ProfileQA.find({ userProfileId }), // ← fetch all Q&A
+    Experience.findOne({ userProfileId: userProfileId }).select('+_id '),
+    Faq.find({ userProfileId: userProfileId }).select('+_id '),
+    Agreement.findOne({ userProfileId: userProfileId }).select('+_id '),
+  ]);
+
+  // 4. Convert to plain object to remove Mongoose internals
+  const plainUser = userData.toObject();
+  // const plainProfile = userData?.profile?.toObject();
+  const plainProfile = (
+    userData.profile as unknown as Document & { toObject: () => any }
+  ).toObject();
+
+  // Optional: Map the answers to question labels (sorted as in PROFILE_QUESTIONS)
+  const sortedQA = PROFILE_QUESTIONS.map((q) => {
+    const match = profileQAAnswers.find((item) => item.question === q);
+    return {
+      question: q,
+      answer: match?.answer || '',
+    };
+  });
+
+  // 5. Add nested profile data
+  plainUser.profile = {
+    ...plainProfile,
+    companyProfile,
+    customService,
+    photos,
+    socialMedia,
+    accreditation,
+    profileQA: sortedQA,
+    experience,
+    faq,
+    agreement
+  };
+
+
+
+  // ----------------------- CACHE RESULT -----------------------
+  await redisClient.set(cacheKey, JSON.stringify(plainUser), { EX: 60 * 60 }); // cache for 1 hour
+
+
+
+
+
+ 
+};
+
+
+
+
+
+
 
 /**
  * @desc   Soft deletes a user and their associated profile in the database by marking them as deleted.
@@ -654,7 +823,7 @@ const updateDefaultProfileIntoDB = async (
 export const UserProfileService = {
   updateProfileIntoDB,
   getSingleUserProfileDataIntoDB,
-  getUserProfileInfoIntoDB,
+  getCurrentUserProfileInfoIntoDB,
   getAllUserIntoDB,
   softDeleteUserIntoDB,
   updateDefaultProfileIntoDB

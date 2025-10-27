@@ -65,6 +65,7 @@ export interface IUserProfile {
   leftAt?: Date | null;
   isFirmMemberRequest: boolean;
   activeFirmRequestId: Types.ObjectId | null;
+  isAccessibleByOtherUsers?: boolean;
 
   deletedAt?: Date | null;
 }

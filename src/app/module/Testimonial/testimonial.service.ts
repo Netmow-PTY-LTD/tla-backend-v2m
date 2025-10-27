@@ -1,3 +1,4 @@
+import { redisClient } from "../../config/redis";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
 import { HTTP_STATUS } from "../../constant/httpStatus";
@@ -6,27 +7,34 @@ import { TUploadedFile } from "../../interface/file.interface";
 import { Testimonial } from "./testimonial.model";
 import mongoose, { FilterQuery } from "mongoose";
 
+
+
+const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+
+
+
+
 interface GetAllParams {
   search?: string;
   page?: number;
   limit?: number;
 }
 
-const createTestimonial = async (payload: any,file: TUploadedFile | undefined) => {
+const createTestimonial = async (payload: any, file: TUploadedFile | undefined) => {
 
   if (file?.buffer) {
-      const fileBuffer = file.buffer;
-      const originalName = file.originalname;
-  
-      // upload to Spaces and get public URL
-      const imageUrl = await uploadToSpaces(fileBuffer, originalName, {
-        folder: FOLDERS.TESTIMONIALS,
-        entityId: `testimonial_${Date.now()}`,
-      });
-  
-      payload.image = imageUrl;
-      
-    }
+    const fileBuffer = file.buffer;
+    const originalName = file.originalname;
+
+    // upload to Spaces and get public URL
+    const imageUrl = await uploadToSpaces(fileBuffer, originalName, {
+      folder: FOLDERS.TESTIMONIALS,
+      entityId: `testimonial_${Date.now()}`,
+    });
+
+    payload.image = imageUrl;
+
+  }
 
 
 
@@ -40,7 +48,25 @@ const createTestimonial = async (payload: any,file: TUploadedFile | undefined) =
 
 const getAllTestimonialsFromDB = async (params: GetAllParams) => {
   const { search, page = 1, limit = 10 } = params;
+
+  //  Create a unique cache key per page + search
+  const cacheKey = `testimonials:page${page}:limit${limit}:search:${search || 'all'}`;
+
+
+
+  //  Try to get cached data
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Returning cached testimonials');
+    return JSON.parse(cachedData);
+  }
+
+
+
+
   const query: FilterQuery<any> = {};
+
+
 
   if (search) {
     query.$or = [{ name: { $regex: search, $options: "i" } }];
@@ -53,7 +79,7 @@ const getAllTestimonialsFromDB = async (params: GetAllParams) => {
     Testimonial.countDocuments(query),
   ]);
 
-  return {
+  const queryResult = {
     meta: {
       total,
       page,
@@ -62,6 +88,17 @@ const getAllTestimonialsFromDB = async (params: GetAllParams) => {
     },
     data,
   };
+
+
+
+  // 3️ Cache the result
+  await redisClient.set(cacheKey, JSON.stringify(queryResult), { EX: CACHE_TTL_SECONDS });
+  console.log(' Cached all testimonials for 24 hours');
+
+
+  return queryResult;
+
+
 };
 
 const getTestimonialById = async (id: string) => {
@@ -75,14 +112,14 @@ const getTestimonialById = async (id: string) => {
 //   if (file?.buffer) {
 //       const fileBuffer = file.buffer;
 //       const originalName = file.originalname;
-  
+
 //       // upload to Spaces and get public URL
 //       const imageUrl = await uploadToSpaces(fileBuffer, originalName, {
 //         folder: FOLDERS.TESTIMONIALS,
 //         entityId: `testimonial_${Date.now()}`,
 //       });
 //       payload.image = imageUrl;
-      
+
 //     }
 
 

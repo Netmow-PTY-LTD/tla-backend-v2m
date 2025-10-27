@@ -346,6 +346,28 @@ const ssoLogin = catchAsync(async (req, res) => {
 
 
 
+//  cache user data api
+const cacheUserData = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+
+  console.log("userId from auth controller:", userId);
+
+  await authService.cacheUserData(userId);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "User data cached successfully",
+    data: null,
+  });
+});
+
+
+
+
+
+
+
 export const authController = {
   login,
   refreshToken,
@@ -360,4 +382,5 @@ export const authController = {
   verifyOtp,
   changeEmail,
   ssoLogin,
+  cacheUserData
 };
