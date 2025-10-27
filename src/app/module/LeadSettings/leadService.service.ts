@@ -23,6 +23,13 @@ const createLeadService = async (
     serviceIds: Types.ObjectId[];
   },
 ) => {
+
+  //  Revalidate cache after transaction commit
+  const cacheKey = `lead_services_with_questions:${userId}`;
+  await redisClient.del(cacheKey);
+  console.log(` Cache invalidated for user ${userId}`);
+
+
   const session = await mongoose.startSession();
 
   try {
@@ -184,6 +191,9 @@ const createLeadService = async (
         },
       );
     });
+
+
+
 
     return {
       success: true,
@@ -348,6 +358,12 @@ const updateLocations = async (
     },
   );
 
+
+  //  Revalidate cache after transaction commit
+  const cacheKey = `lead_services_with_questions:${userId}`;
+  await redisClient.del(cacheKey);
+  console.log(` Cache invalidated for user ${userId}`);
+
   return result;
 };
 
@@ -366,6 +382,12 @@ const toggleOnlineEnabled = async (
 
 const deleteLeadService = async (userId: string, serviceId: string) => {
   validateObjectId(serviceId, 'Service ID');
+
+
+  //  Revalidate cache after transaction commit
+  const cacheKey = `lead_services_with_questions:${userId}`;
+  await redisClient.del(cacheKey);
+  console.log(` Cache invalidated for user ${userId}`);
 
   const session = await mongoose.startSession();
 
@@ -420,6 +442,7 @@ const deleteLeadService = async (userId: string, serviceId: string) => {
 
 
 
+
     return {
       message: `Deleted ${deleteResult.deletedCount} lead service record(s) and removed serviceId from user profile.`,
     };
@@ -446,7 +469,13 @@ const updateLeadServiceAnswersIntoDB = async (
     idExtraData: string;
   }>,
 ) => {
-  // ✅ Find the associated user profile
+
+  //  Revalidate cache after transaction commit
+  const cacheKey = `lead_services_with_questions:${userId}`;
+  await redisClient.del(cacheKey);
+  console.log(` Cache invalidated for user ${userId}`);
+
+  //  Find the associated user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
@@ -462,20 +491,20 @@ const updateLeadServiceAnswersIntoDB = async (
     selectedOptionMap.set(questionIdStr, new Set(selectedOptionIdsStr));
   }
 
-  // ✅ Create a lookup map for extraData
+  //  Create a lookup map for extraData
   const extraDataMap = new Map<string, string>(); // key = `${questionId}_${optionId}`
   for (const extra of selectedOptionExtraData || []) {
     const key = `${extra.questionId}_${extra.optionId}`;
     extraDataMap.set(key, extra.idExtraData);
   }
 
-  // ✅ Get all existing LeadService records for this user and service
+  //  Get all existing LeadService records for this user and service
   const allRecords = await LeadService.find({
     userProfileId: userProfile._id,
     serviceId,
   });
 
-  // ✅ Prepare bulk update operations
+  //  Prepare bulk update operations
   const bulkOps = allRecords.map((record) => {
     const qId = record.questionId.toString();
     const oId = record.optionId.toString();
@@ -484,7 +513,7 @@ const updateLeadServiceAnswersIntoDB = async (
 
     const updateData: any = { isSelected };
 
-    // ✅ Check if extraData should be added
+    //  Check if extraData should be added
     const extraKey = `${qId}_${oId}`;
     if (extraDataMap.has(extraKey)) {
       updateData.idExtraData = extraDataMap.get(extraKey);
@@ -498,12 +527,12 @@ const updateLeadServiceAnswersIntoDB = async (
     };
   });
 
-  // ✅ Execute in bulk if there's anything to update
+  //  Execute in bulk if there's anything to update
   if (bulkOps.length > 0) {
     await LeadService.bulkWrite(bulkOps);
   }
 
-  // ✅ Update location-service mappings
+  //  Update location-service mappings
   if (Array.isArray(selectedLocationData) && selectedLocationData.length > 0) {
     for (const location of selectedLocationData) {
       const { locationsId, serviceIds } = location;
@@ -514,6 +543,8 @@ const updateLeadServiceAnswersIntoDB = async (
       );
     }
   }
+
+
 
   return { message: 'Lead service answers and locations updated successfully' };
 };
