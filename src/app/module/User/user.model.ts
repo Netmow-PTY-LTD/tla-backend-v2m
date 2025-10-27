@@ -96,7 +96,7 @@ const userProfileSchema = new Schema<IUserProfile>(
     subscriptionId: { type: Schema.Types.ObjectId, ref: 'UserSubscription', default: null },
     eliteProSubscriptionId: { type: Schema.Types.ObjectId, ref: 'EliteProUserSubscription', default: null },
     isElitePro: { type: Boolean, default: false },
-  // Regular subscription period
+    // Regular subscription period
     subscriptionPeriodStart: { type: Date, default: null },
     subscriptionPeriodEnd: { type: Date, default: null },
 
@@ -136,6 +136,12 @@ const userProfileSchema = new Schema<IUserProfile>(
       default: null,
     },
     isFirmMemberRequest: {
+      type: Boolean,
+      default: false,
+    },
+
+    //   access other user profiles
+    isAccessibleByOtherUsers: {
       type: Boolean,
       default: false,
     },

@@ -6,6 +6,7 @@ import { TUploadedFile } from '../../interface/file.interface';
 import { ICategory } from './category.interface';
 import Category from './category.model';
 import { FOLDERS } from '../../constant';
+import { redisClient } from '../../config/redis';
 
 const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: TUploadedFile) => {
 
@@ -44,6 +45,17 @@ const getAllCategoryFromDB = async () => {
 
 
 const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
+
+  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+  const cacheKey = `public_categories:${countryQueryId}`;
+
+  // 1️ Try to get cached data
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Returning cached categories');
+    return JSON.parse(cachedData);
+  }
+
 
   const countryId = new mongoose.Types.ObjectId(countryQueryId);
 
@@ -95,13 +107,19 @@ const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
 
       },
     },
-    // ✅ Sort categories from newest to oldest
+    //  Sort categories from newest to oldest
     {
       $sort: { createdAt: 1 },
     },
 
 
   ]);
+
+
+  // 4️ Cache the result
+  await redisClient.set(cacheKey, JSON.stringify(categories), { EX: CACHE_TTL_SECONDS });
+  console.log(' Cached public categories for 24 hours');
+
 
   return categories;
 };
@@ -178,7 +196,7 @@ const getSingleCategoryFromDB = async (id: string) => {
 
 
 
- const updateCategoryIntoDB = async (
+const updateCategoryIntoDB = async (
   userId: string,
   id: string,
   payload: Partial<ICategory>,
@@ -249,7 +267,7 @@ const getSingleCategoryFromDB = async (id: string) => {
   }
 };
 
- const deleteCategoryFromDB = async (id: string) => {
+const deleteCategoryFromDB = async (id: string) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
