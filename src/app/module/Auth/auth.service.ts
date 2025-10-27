@@ -699,11 +699,17 @@ const cacheUserData = async (userId: string) => {
 
   // Here, you would typically cache the data using a caching service like Redis.
 
-  await Promise.all([
+  const [userProfileInfo, leadData, leadServices] = await Promise.all([
     getCurrentUserProfileInfoFromCache(userId),
     leadService.getAllLeadForLawyerPanel(userId, filters, options),
     LeadServiceService.getLeadServicesWithQuestions(userId),
   ]);
+
+  return {
+    userProfileInfo: userProfileInfo ? ' Cached successfully' : 'No cache found',
+    leadData: leadData ? ' Cached successfully' : 'No cache found',
+    leadServices: leadServices ? ' Cached successfully' : 'No cache found',
+  };
 
 
 
