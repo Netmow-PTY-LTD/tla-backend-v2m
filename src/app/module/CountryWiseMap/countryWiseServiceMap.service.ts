@@ -9,6 +9,7 @@ import { ICountryServiceField } from './countryWiseServiceWiseField.interface';
 import { TUploadedFile } from '../../interface/file.interface';
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
+import { redisClient } from '../../config/redis';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -22,10 +23,18 @@ const getAllCountryWiseMapFromDB = async () => {
 
 const getSingleCountryWiseMapFromDB = async (id: string) => {
   validateObjectId(id, 'Country Wise Map');
+
+
+
   const result = await CountryWiseMap.findOne({
     _id: id,
-    
+
   });
+
+
+
+
+
   return result;
 };
 
@@ -34,14 +43,26 @@ type TGetCountryWiseMapQuery = {
 };
 
 const getSingleCountryWiseMapByIdFromDB = async (
-  id: string,
+  countryId: string,
   query: TGetCountryWiseMapQuery,
 ) => {
-  validateObjectId(id, 'Country');
+  validateObjectId(countryId, 'Country');
+
+  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+  // Cache key for Redis
+  const cacheKey = `countryWiseMap:${countryId}`;
+
+  //  Try to get cached data
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    console.log(' Returning cached CountryWiseMap');
+    return JSON.parse(cachedData);
+  }
+
 
   const filter = {
-    countryId: new Types.ObjectId(id),
-    
+    countryId: new Types.ObjectId(countryId),
+
   };
 
   if (query == null) {
@@ -54,6 +75,11 @@ const getSingleCountryWiseMapByIdFromDB = async (
 
     // Flatten the array of service arrays into a single array of services
     const populatedServices = records.flatMap((record) => record.serviceIds);
+
+    //  Cache the result
+    await redisClient.set(cacheKey, JSON.stringify(populatedServices), { EX: CACHE_TTL_SECONDS });
+    console.log(' Cached CountryWiseMap for 24 hours');
+
 
     return populatedServices;
   }
@@ -108,7 +134,7 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
 
 
 
-          
+
 //           // eslint-disable-next-line @typescript-eslint/no-explicit-any
 //           (payload as any)[file.fieldname] = uploadedUrl;
 //           // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
@@ -150,7 +176,7 @@ const deleteCountryWiseMapFromDB = async (id: string) => {
 
 //  Manage Service old image remove
 
- 
+
 
 
 const manageServiceIntoDB = async (
@@ -257,7 +283,7 @@ const getAllCountryServiceFieldFromDB = async (
 ) => {
   // Base query to exclude deleted records
   const baseQuery: FilterQuery<typeof CountryWiseServiceWiseField> = {
-   
+
   };
 
   // Extract specific query parameters
