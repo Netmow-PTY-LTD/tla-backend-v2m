@@ -1080,10 +1080,18 @@ const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
 
     if (!lawyerId) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Missing lawyerId');
 
-    const lawyer = await User.findOne({ profile: lawyerId });
+    const lawyer = await User.findOne({ profile: lawyerId }).populate({
+        path: 'profile',
+        model: 'LawyerProfile', // Replace with your actual lawyer profile model name
+    });
     if (!lawyer) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Lawyer not found');
 
     if ([lawyer.deletedAt, 'SUSPENDED', 'ARCHIVED', 'REJECTED'].includes(lawyer.accountStatus)) {
+        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Lawyer not accessible');
+    }
+
+    // Ensure lawyer.profile is populated and has isAccessibleByOtherUsers property
+    if (!lawyer.profile || !(lawyer.profile as any).isAccessibleByOtherUsers) {
         throw new AppError(HTTP_STATUS.FORBIDDEN, 'Lawyer not accessible');
     }
 
