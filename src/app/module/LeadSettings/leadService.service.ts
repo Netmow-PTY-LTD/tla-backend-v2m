@@ -313,7 +313,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
 
   //  Cache the result for future calls
 
-  await redisClient.set(cacheKey, JSON.stringify(response), { EX: 60 * 60 });
+  await redisClient.set(cacheKey, JSON.stringify(response), { EX: 30 * 60 });
 
   return response;
 

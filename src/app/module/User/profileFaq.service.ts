@@ -1,3 +1,4 @@
+import { redisClient } from '../../config/redis';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { validateObjectId } from '../../utils/validateObjectId';
 import Faq, { IFaq } from './faq.model';
@@ -7,6 +8,8 @@ const updateProfileFaqIntoDB = async (
   userId: string,
   payload: Partial<IFaq> & { _id?: string }, // accept _id like the other function
 ) => {
+     const cacheKey = `user_info:${userId}`;
+     await redisClient.del(cacheKey);
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {

@@ -1,3 +1,4 @@
+import { redisClient } from '../../config/redis';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 
 import { IProfileSocialMedia } from './profileSocailMedia.interface';
@@ -9,6 +10,8 @@ const updateProfileSocialMediaIntoDB = async (
   userId: string,
   payload: Partial<IProfileSocialMedia>,
 ) => {
+   const cacheKey = `user_info:${userId}`;
+   await redisClient.del(cacheKey);
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {

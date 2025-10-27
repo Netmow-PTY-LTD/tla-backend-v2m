@@ -36,20 +36,20 @@ const getCreditPackages = async () => {
   // return await CreditPackage.find({ isActive: true });
 
 
-  const CACHE_KEY = 'credit_packages';
-  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours (86,400 seconds)
+  // const CACHE_KEY = 'credit_packages';
+  // const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours (86,400 seconds)
 
-  const cachedData = await redisClient.get(CACHE_KEY);
-  if (cachedData) {
-    console.log(' Returning cached credit packages');
-    return JSON.parse(cachedData);
-  }
+  // const cachedData = await redisClient.get(CACHE_KEY);
+  // if (cachedData) {
+  //   console.log(' Returning cached credit packages');
+  //   return JSON.parse(cachedData);
+  // }
 
   // 2️ Fetch from DB
   const packages = await CreditPackage.find({ isActive: true });
 
   // 3️ Cache the result
-  await redisClient.set(CACHE_KEY, JSON.stringify(packages), { EX: CACHE_TTL_SECONDS });
+  // await redisClient.set(CACHE_KEY, JSON.stringify(packages), { EX: CACHE_TTL_SECONDS });
 
   return packages;
 
