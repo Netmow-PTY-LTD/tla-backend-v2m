@@ -348,19 +348,11 @@ const ssoLogin = catchAsync(async (req, res) => {
 
 //  cache user data api
 const cacheUserData = catchAsync(async (req, res) => {
-  const userData = req.body;
   const userId = req.user.userId;
 
-  if (!userData) {
-    return sendResponse(res, {
-      statusCode: HTTP_STATUS.BAD_REQUEST,
-      success: false,
-      message: "User data is required",
-      data: null,
-    });
-  }
+  console.log("userId from auth controller:", userId);
 
-  await authService.cacheUserData(userId, userData);
+  await authService.cacheUserData(userId);
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

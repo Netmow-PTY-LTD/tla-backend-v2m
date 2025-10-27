@@ -16,6 +16,7 @@ import { validateObjectId } from '../../utils/validateObjectId';
 import { generateOtp } from './otp.utils';
 import { IUserProfile } from '../User/user.interface';
 import { SsoToken } from '../../firmModule/FirmAuth/SsoToken.model';
+import { getCurrentUserProfileInfoFromCache } from '../User/user.service';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -652,7 +653,7 @@ const ssoLogin = async (token: string) => {
 
 
 //   user cache data api logic
-const cacheUserData = async (userId: string, data: any) => {
+const cacheUserData = async (userId: string) => {
   // Find the user by ID
   const user = await User.findById(userId);
   if (!user) {
@@ -660,6 +661,10 @@ const cacheUserData = async (userId: string, data: any) => {
   }
 
   // Here, you would typically cache the data using a caching service like Redis.
+  await Promise.all([
+    getCurrentUserProfileInfoFromCache(userId),
+  ]);
+
 
 
 
