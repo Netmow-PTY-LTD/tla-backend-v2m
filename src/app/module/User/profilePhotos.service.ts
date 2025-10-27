@@ -9,6 +9,7 @@ import { TUploadedFile } from '../../interface/file.interface';
 
 import ProfilePhotos from './profilePhotos';
 import UserProfile from './user.model';
+import { redisClient } from '../../config/redis';
 
 const updateProfilePhotosIntoDB = async (
   userId: string,
@@ -17,6 +18,10 @@ const updateProfilePhotosIntoDB = async (
   },
   files: TUploadedFile[],
 ) => {
+
+     const cacheKey = `user_info:${userId}`;
+     await redisClient.del(cacheKey);
+
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {
@@ -107,6 +112,9 @@ export const removeProfileMediaFromDB = async (
   type: 'photos' | 'videos',
   urlToRemove: string
 ) => {
+
+     const cacheKey = `user_info:${userId}`;
+     await redisClient.del(cacheKey);
   // Start MongoDB transaction
   const session = await mongoose.startSession();
   session.startTransaction();

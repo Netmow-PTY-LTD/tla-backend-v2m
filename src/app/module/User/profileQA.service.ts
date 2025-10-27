@@ -3,6 +3,7 @@ import UserProfile from './user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import ProfileQA from './ProfileQAS';
 import { PROFILE_QUESTIONS } from './profileQA.utils';
+import { redisClient } from '../../config/redis';
 
 interface QAInput {
   question: string;
@@ -13,6 +14,9 @@ const updateProfileQAIntoDB = async (
   userId: Types.ObjectId,
   profileQA: QAInput[],
 ) => {
+
+  const cacheKey = `user_info:${userId}`;
+  await redisClient.del(cacheKey);
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {

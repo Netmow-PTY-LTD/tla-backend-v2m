@@ -9,7 +9,7 @@ const deleteProfileAccreditation = catchAsync(async (req, res) => {
 
   // Call the service function to retrieve the user's profile data from the database
   const result =
-    await accreditationService.deleteAccreditationIntoDB(accreditationId);
+    await accreditationService.deleteAccreditationIntoDB(req.user.userId, accreditationId);
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,

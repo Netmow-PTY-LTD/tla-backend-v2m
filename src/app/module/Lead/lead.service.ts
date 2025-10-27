@@ -2944,8 +2944,8 @@ const getAllLeadForLawyerPanel = async (
 
   // ----------------------- CACHE THE RESULT IN REDIS -----------------------
   // Cache the result for future requests
-  // Cache in Redis for 1 hour
-  await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 * 60 });
+  // Cache in Redis for 30 minutes
+  await redisClient.set(cacheKey, JSON.stringify(result), { EX: 30 * 60 });
 
 
 

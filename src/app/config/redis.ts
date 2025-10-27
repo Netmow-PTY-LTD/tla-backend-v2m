@@ -1,15 +1,14 @@
 import { createClient } from "redis";
-
-
+import config from ".";
 
 
 
 const client = createClient({
-    username: 'default',
-    password: 'xGUt441p3aymCq0Pbk6oGI9P01AfDzXL',
+    username: config.redis_username,
+    password: config.redis_password,
     socket: {
-        host: 'redis-12569.c10.us-east-1-2.ec2.redns.redis-cloud.com',
-        port: 12569
+        host: config.redis_host,
+        port: config.redis_port ? parseInt(config.redis_port) : undefined,
     }
 });
 
