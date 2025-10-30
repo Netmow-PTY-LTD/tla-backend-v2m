@@ -25,7 +25,7 @@ import { findLeadsWithinTravelTime } from './filterTravelTime';
 import { IZipCode } from '../Country/zipcode.interface';
 import { redisClient } from '../../config/redis.config';
 import { CacheKeys, TTL } from '../../config/cacheKeys';
-import { deleteKeysByPattern } from '../../utils/cacheManger';
+import { clearAllCache, deleteKeysByPattern } from '../../utils/cacheManger';
 
 
 
@@ -2756,8 +2756,9 @@ const getAllLeadForLawyerPanel = async (
     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
   }
   if (filters.credits?.length) {
+ 
 
-    console.log('Applying credit filters:', filters.credits);
+ 
     const creditConditions = filters.credits.map((range: string) => {
       switch (range) {
         case 'Free': return { credit: 0 };
@@ -2771,7 +2772,15 @@ const getAllLeadForLawyerPanel = async (
         default: return null;
       }
     }).filter(Boolean);
-    if (creditConditions.length) matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+    if (creditConditions.length) {
+      // matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+
+      matchStage.$or = matchStage.$or || [];
+      matchStage.$and = matchStage.$and || [];
+      matchStage.$and.push({ $or: creditConditions });
+
+
+    }
   }
   if (filters.location?.length) {
     matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };

@@ -339,8 +339,7 @@ leadSchema.index({ closeStatus: 1, isClosed: 1 });
 // For hired lead tracking
 leadSchema.index({ isHired: 1, hireStatus: 1 });
 
-// Text search on details and maybe keywords
-leadSchema.index({ additionalDetails: 'text' });
+
 
 
 // ----------------------------
