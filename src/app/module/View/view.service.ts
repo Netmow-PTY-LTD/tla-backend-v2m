@@ -13,7 +13,7 @@ import ProfileSocialMedia from '../User/profileSocialMedia';
 import ProfileCustomService from '../User/profileServiceCoustom.model';
 import { calculateLawyerBadge } from '../User/user.utils';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 
 

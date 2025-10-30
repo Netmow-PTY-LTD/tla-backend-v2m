@@ -23,7 +23,7 @@ import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationSe
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 import { findLeadsWithinTravelTime } from './filterTravelTime';
 import { IZipCode } from '../Country/zipcode.interface';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 
 
@@ -2414,7 +2414,7 @@ const getAllLeadForLawyerPanel = async (
   // Check cache
   const cachedData = await redisClient.get(cacheKey);
   if (cachedData) {
-    console.log('Cache hit');
+    console.log('Cache hit of lawyer panel leads for key:',);
     return JSON.parse(cachedData);
   }
 

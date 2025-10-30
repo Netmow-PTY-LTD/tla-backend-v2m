@@ -9,7 +9,7 @@ import CreditPackage from './creditPackage.model';
 import Transaction from './transaction.model';
 import PaymentMethod from './paymentMethod.model';
 import { SubscriptionType } from './paymentMethod.service';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version

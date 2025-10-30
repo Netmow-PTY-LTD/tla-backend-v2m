@@ -3,7 +3,7 @@ import CountryWiseMap from '../CountryWiseMap/countryWiseMap.model';
 import { ICountry } from './country.interface';
 import Country from './country.model';
 import { validateObjectId } from '../../utils/validateObjectId';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 
 const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours

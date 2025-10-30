@@ -21,7 +21,7 @@ import Experience from './experience.model';
 import Faq from './faq.model';
 import Agreement from './agreement.model';
 import { FOLDERS } from '../../constant';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 
 /**

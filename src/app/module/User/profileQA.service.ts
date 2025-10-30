@@ -3,7 +3,7 @@ import UserProfile from './user.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import ProfileQA from './ProfileQAS';
 import { PROFILE_QUESTIONS } from './profileQA.utils';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 interface QAInput {
   question: string;

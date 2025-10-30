@@ -1,4 +1,4 @@
-import { redisClient } from "../../config/redis";
+import { redisClient } from "../../config/redis.config";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
 import { HTTP_STATUS } from "../../constant/httpStatus";

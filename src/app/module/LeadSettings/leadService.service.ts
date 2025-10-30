@@ -15,7 +15,7 @@ import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationSe
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 import { IUserLocationServiceMap } from '../UserLocationServiceMap/userLocationServiceMap.interface';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 const createLeadService = async (
   userId: string,

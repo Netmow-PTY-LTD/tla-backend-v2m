@@ -9,7 +9,7 @@ import { ICountryServiceField } from './countryWiseServiceWiseField.interface';
 import { TUploadedFile } from '../../interface/file.interface';
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);

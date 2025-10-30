@@ -6,7 +6,7 @@ import { TUploadedFile } from '../../interface/file.interface';
 import { ICategory } from './category.interface';
 import Category from './category.model';
 import { FOLDERS } from '../../constant';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: TUploadedFile) => {
 
