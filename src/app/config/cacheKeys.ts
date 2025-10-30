@@ -1,4 +1,5 @@
 
+import crypto from 'crypto';
 
 // Define reusable TTLs (Time To Live)  (in seconds)
 export const TTL = {
@@ -26,14 +27,25 @@ export const CacheKeys = {
 
     // ---------- LEAD ----------
     LEAD_DETAIL: (leadId: string) => `lead:${leadId}:detail`,
-    LEAD_LIST_BY_USER: (userId: string) => `leads:user:${userId}:list`,
     // List by user with filters/options
-    LEAD_LIST_BY_USER_WITH_FILTERS: (userId: string, filters: object, options: object) => {
-        // Convert objects to a consistent string
-        const filtersKey = JSON.stringify(filters || {});
-        const optionsKey = JSON.stringify(options || {});
-        return `leads:user:${userId}:list:filters:${filtersKey}:options:${optionsKey}`;
+    // LEAD_LIST_BY_USER_WITH_FILTERS: (userId: string, filters: object, options: object) => {
+    //     // Convert objects to a consistent string
+    //     const filtersKey = JSON.stringify(filters || {});
+    //     const optionsKey = JSON.stringify(options || {});
+    //     return `leads:user:${userId}:list:filters:${filtersKey}:options:${optionsKey}`;
+    // },
+
+    LEAD_LIST_BY_USER_WITH_FILTERS: (userId: string, filters: object = {}, options: object = {}) => {
+        const dataString = JSON.stringify({ filters, options });
+
+        // Create a short MD5 hash (or SHA256 if you prefer)
+        const hash = crypto.createHash('md5').update(dataString).digest('hex');
+
+        return `leads:user:${userId}:filters:${hash}`;
     },
+
+    LEAD_LIST_BY_USER_PATTERN: (userId: string) => `leads:user:${userId}:filters:*`,
+
 
     // ---------- LOCATION ----------
     NEARBY_SERVICES: (city: string, serviceId: string) =>
@@ -62,7 +74,7 @@ export const CacheKeys = {
 
     LEAD_SERVICES_QUESTIONS: (userId: string) => `lead_services_with_questions:${userId}`,
 
-    
+
 
 };
 
