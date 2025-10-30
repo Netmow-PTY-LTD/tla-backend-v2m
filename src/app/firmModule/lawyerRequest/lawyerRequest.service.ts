@@ -5,24 +5,26 @@ import UserProfile from "../../module/User/user.model";
 import { FirmProfile } from "../Firm/firm.model";
 import FirmUser from "../FirmAuth/frimAuth.model";
 import { LawyerRequestAsMember, ILawyerRequestAsMember } from "./lawyerRequest.model";
+import { CacheKeys } from "../../config/cacheKeys";
+import { deleteCache } from "../../utils/cacheManger";
 
 const createLawyerRequest = async (userId: string, payload: Partial<ILawyerRequestAsMember>) => {
-    const user = await FirmUser.findById(userId).select('firmProfileId');
-    if (!user) return sendNotFoundResponse("User not found");
-    const data = { ...payload, lawyerId: userId, firmProfileId: user.firmProfileId };
-    return await LawyerRequestAsMember.create(data);
+  const user = await FirmUser.findById(userId).select('firmProfileId');
+  if (!user) return sendNotFoundResponse("User not found");
+  const data = { ...payload, lawyerId: userId, firmProfileId: user.firmProfileId };
+  return await LawyerRequestAsMember.create(data);
 };
 
 const listLawyerRequests = async (userId: string) => {
-    const user = await FirmUser.findById(userId).select('firmProfileId');
-    if (!user) return sendNotFoundResponse("User not found");
-    return await LawyerRequestAsMember.find({ firmProfileId: user.firmProfileId }).populate('lawyerId');
+  const user = await FirmUser.findById(userId).select('firmProfileId');
+  if (!user) return sendNotFoundResponse("User not found");
+  return await LawyerRequestAsMember.find({ firmProfileId: user.firmProfileId }).populate('lawyerId');
 };
 
 const getLawyerRequestById = async (id: string, userId: string) => {
-    const user = await FirmUser.findById(userId).select('firmProfileId');
-    if (!user) return sendNotFoundResponse("User not found");
-    return await LawyerRequestAsMember.findOne({ _id: id, firmProfileId: user.firmProfileId }).populate('lawyerId').populate('firmProfileId');
+  const user = await FirmUser.findById(userId).select('firmProfileId');
+  if (!user) return sendNotFoundResponse("User not found");
+  return await LawyerRequestAsMember.findOne({ _id: id, firmProfileId: user.firmProfileId }).populate('lawyerId').populate('firmProfileId');
 };
 
 
@@ -111,7 +113,7 @@ export const updateLawyerRequest = async (
     _id: id,
     firmProfileId: firmUser.firmProfileId,
     isActive: true,
-  });
+  }).populate("lawyerId");
   if (!request) return sendNotFoundResponse("Lawyer request not found");
 
   // --- Prepare update payload ---
@@ -132,14 +134,14 @@ export const updateLawyerRequest = async (
         lawyerProfileUpdate.firmMembershipStatus = "approved";
         lawyerProfileUpdate.joinedAt = new Date();
         lawyerProfileUpdate.isFirmMemberRequest = false;
-        firmUpdate.$addToSet = { lawyers: request.lawyerId };
+        firmUpdate.$addToSet = { lawyers: request.lawyerId._id };
         break;
 
       case "rejected":
         lawyerProfileUpdate.firmProfileId = null;
         lawyerProfileUpdate.firmMembershipStatus = "rejected";
         lawyerProfileUpdate.joinedAt = null;
-        firmUpdate.$pull = { lawyers: request.lawyerId };
+        firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
       case "cancelled":
@@ -148,14 +150,14 @@ export const updateLawyerRequest = async (
         lawyerProfileUpdate.joinedAt = null;
         updateData.cancelBy = new Types.ObjectId(userId);
         updateData.cancelAt = new Date();
-        firmUpdate.$pull = { lawyers: request.lawyerId };
+        firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
       case "left":
         lawyerProfileUpdate.firmProfileId = null;
         lawyerProfileUpdate.firmMembershipStatus = "left";
         lawyerProfileUpdate.joinedAt = null;
-        firmUpdate.$pull = { lawyers: request.lawyerId };
+        firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
       default:
@@ -180,6 +182,10 @@ export const updateLawyerRequest = async (
     .populate("lawyerId", "name email firmMembershipStatus")
     .populate("reviewedBy", "name role");
 
+  //   Invalidate cache for the lawyer's user info
+  await deleteCache(CacheKeys.USER_INFO((request.lawyerId as any).user.toString()));
+
+
   return updatedRequest;
 };
 
@@ -188,17 +194,23 @@ export const updateLawyerRequest = async (
 
 
 
-
 const deleteLawyerRequest = async (id: string, userId: string) => {
-    const user = await FirmUser.findById(userId).select('firmProfileId');
-    if (!user) return sendNotFoundResponse("User not found");
-    return await LawyerRequestAsMember.findOneAndDelete({ _id: id, firmProfileId: user.firmProfileId });
+  const user = await FirmUser.findById(userId).select('firmProfileId');
+  if (!user) return sendNotFoundResponse("User not found");
+  const deletedRequest = await LawyerRequestAsMember.findOneAndDelete({ _id: id, firmProfileId: user.firmProfileId }).populate('lawyerId');
+
+  //   Invalidate cache for the lawyer's user info
+  if (deletedRequest && deletedRequest.lawyerId) {
+       await deleteCache(CacheKeys.USER_INFO((deletedRequest.lawyerId as any).user.toString()));
+  }
+
+  return deletedRequest;
 };
 
 export const lawyerRequestAsMemberService = {
-    createLawyerRequest,
-    listLawyerRequests,
-    getLawyerRequestById,
-    updateLawyerRequest,
-    deleteLawyerRequest,
+  createLawyerRequest,
+  listLawyerRequests,
+  getLawyerRequestById,
+  updateLawyerRequest,
+  deleteLawyerRequest,
 };

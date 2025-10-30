@@ -1943,6 +1943,8 @@ const lawyerCancelMembershipRequest = async (
     .populate("firmProfileId", "firmName")
     .populate("lawyerId", "name email");
 
+  await deleteCache(CacheKeys.USER_INFO(lawyerUserId));
+
   return updatedRequest;
 };
 
@@ -2104,6 +2106,10 @@ const lawyerCancelMembership = async (
       .populate("lawyerId", "name email");
 
     console.log("Updated Request after leaving firm:", updatedRequest);
+
+    //  -- Invalidate user cache ---
+
+    await deleteCache(CacheKeys.USER_INFO(lawyerUserId));
 
     return {
       message: "Successfully left the firm",
