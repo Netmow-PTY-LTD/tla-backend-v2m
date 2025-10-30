@@ -21,10 +21,19 @@ export const CacheKeys = {
     USER_PROFILE: (userId: string) => `user:${userId}:profile`,
     USER_ACTIVITY: (userId: string) => `user:${userId}:activity`,
     USER_LOCATION: (userId: string) => `user:${userId}:location`,
+    USER_INFO: (userId: string) => `user_info:${userId}`,
+    SINGLE_USER_PROFILE: (userId: string) => `single_user_profile:${userId}`,
 
     // ---------- LEAD ----------
     LEAD_DETAIL: (leadId: string) => `lead:${leadId}:detail`,
     LEAD_LIST_BY_USER: (userId: string) => `leads:user:${userId}:list`,
+    // List by user with filters/options
+    LEAD_LIST_BY_USER_WITH_FILTERS: (userId: string, filters: object, options: object) => {
+        // Convert objects to a consistent string
+        const filtersKey = JSON.stringify(filters || {});
+        const optionsKey = JSON.stringify(options || {});
+        return `leads:user:${userId}:list:filters:${filtersKey}:options:${optionsKey}`;
+    },
 
     // ---------- LOCATION ----------
     NEARBY_SERVICES: (city: string, serviceId: string) =>
@@ -33,6 +42,28 @@ export const CacheKeys = {
 
     // ---------- SYSTEM / GLOBAL ----------
     SYSTEM_STATS: () => `system:stats`,
+
+    // ---------- COUNTRY ----------
+    ALL_COUNTRIES: () => `all_countries`,
+    PUBLIC_CATEGORIES: (countryQueryId: string) => `public_categories:${countryQueryId}`,
+
+    // ---------- TESTIMONIALS ----------
+    TESTIMONIALS: (page: number, limit: number, search?: string) =>
+        `testimonials:page${page}:limit${limit}:search:${search || 'all'}`,
+
+    // ---------- SERVICE QUESTIONS ----------
+    SERVICE_WISE_QUESTION: (serviceId: string, countryId: string) =>
+        `serviceWiseQuestion:${serviceId}:${countryId}`,
+
+    // ---------- COUNTRY WISE MAP ----------
+    COUNTRY_WISE_MAP: (countryId: string) => `countryWiseMap:${countryId}`,
+
+    //  -------------- lead service questions --------------
+
+    LEAD_SERVICES_QUESTIONS: (userId: string) => `lead_services_with_questions:${userId}`,
+
+    
+
 };
 
 
@@ -42,16 +73,3 @@ export const CacheKeys = {
 
 
 
-
-
-
-//  ---------- COUNTRY ----------
-
-const CACHE_KEY = 'all_countries';
-
-//  const cacheKey = `public_categories:${countryQueryId}`;
-
-// const cacheKey = `testimonials:page${page}:limit${limit}:search:${search || 'all'}`;
-
-//  const cacheKey = `user_info:${userId}`;
-//   const cacheKey = `serviceWiseQuestion:${serviceId}:${countryId}`;

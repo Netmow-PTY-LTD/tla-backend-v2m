@@ -24,7 +24,7 @@ import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.i
 import { findLeadsWithinTravelTime } from './filterTravelTime';
 import { IZipCode } from '../Country/zipcode.interface';
 import { redisClient } from '../../config/redis.config';
-import { TTL } from '../../config/cacheKeys';
+import { CacheKeys, TTL } from '../../config/cacheKeys';
 
 
 
@@ -2409,11 +2409,11 @@ const getAllLeadForLawyerPanel = async (
 
   // ----------------------- CACHE KEY -----------------------
 
-  const cacheKey = `leads_${userId}_${JSON.stringify(filters)}_${JSON.stringify(options)}`;
+  // const cacheKey = `leads_${userId}_${JSON.stringify(filters)}_${JSON.stringify(options)}`;
   // Check if the data is cached in Redis
 
   // Check cache
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.LEAD_LIST_BY_USER_WITH_FILTERS(userId, filters, options));
   if (cachedData) {
     console.log('Cache hit of lawyer panel leads for key:',);
     return JSON.parse(cachedData);
@@ -2946,7 +2946,7 @@ const getAllLeadForLawyerPanel = async (
   // ----------------------- CACHE THE RESULT IN REDIS -----------------------
   // Cache the result for future requests
   // Cache in Redis for 10 minutes
-  await redisClient.set(cacheKey, JSON.stringify(result), { EX: TTL.MEDIUM_10M });
+  await redisClient.set(CacheKeys.LEAD_LIST_BY_USER_WITH_FILTERS(userId, filters, options), JSON.stringify(result), { EX: TTL.MEDIUM_10M });
 
 
 

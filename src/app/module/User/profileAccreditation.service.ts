@@ -12,6 +12,7 @@ import UserProfile from './user.model';
 import { FOLDERS } from '../../constant';
 import mongoose from 'mongoose';
 import { redisClient } from '../../config/redis.config';
+import { CacheKeys } from '../../config/cacheKeys';
 
 // const updateProfileAccreditationIntoDB = async (
 //   id: string,
@@ -185,8 +186,8 @@ const deleteAccreditationIntoDB = async (userId: string, id: string) => {
   validateObjectId(id, 'Accreditation');
 
 
-  const cacheKey = `user_info:${userId}`;
-  await redisClient.del(cacheKey);
+
+  await redisClient.del(CacheKeys.USER_INFO(userId));
 
   const session = await mongoose.startSession();
   session.startTransaction();

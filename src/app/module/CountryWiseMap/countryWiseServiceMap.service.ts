@@ -10,7 +10,7 @@ import { TUploadedFile } from '../../interface/file.interface';
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 import { redisClient } from '../../config/redis.config';
-import { TTL } from '../../config/cacheKeys';
+import { CacheKeys, TTL } from '../../config/cacheKeys';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -51,10 +51,10 @@ const getSingleCountryWiseMapByIdFromDB = async (
 
   const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
   // Cache key for Redis
-  const cacheKey = `countryWiseMap:${countryId}`;
+  // const cacheKey = `countryWiseMap:${countryId}`;
 
   //  Try to get cached data
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.COUNTRY_WISE_MAP(countryId));
   if (cachedData) {
     console.log(' Returning cached CountryWiseMap');
     return JSON.parse(cachedData);
@@ -78,7 +78,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
     const populatedServices = records.flatMap((record) => record.serviceIds);
 
     //  Cache the result
-    await redisClient.set(cacheKey, JSON.stringify(populatedServices), { EX: TTL.EXTENDED_1D });
+    await redisClient.set(CacheKeys.COUNTRY_WISE_MAP(countryId), JSON.stringify(populatedServices), { EX: TTL.EXTENDED_1D });
     console.log(' Cached CountryWiseMap for 24 hours');
 
 

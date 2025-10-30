@@ -4,6 +4,7 @@ import { sendNotFoundResponse } from '../../errors/custom.error';
 import ProfileQA from './ProfileQAS';
 import { PROFILE_QUESTIONS } from './profileQA.utils';
 import { redisClient } from '../../config/redis.config';
+import { CacheKeys } from '../../config/cacheKeys';
 
 interface QAInput {
   question: string;
@@ -15,8 +16,9 @@ const updateProfileQAIntoDB = async (
   profileQA: QAInput[],
 ) => {
 
-  const cacheKey = `user_info:${userId}`;
-  await redisClient.del(cacheKey);
+ await redisClient.del(CacheKeys.USER_INFO(userId.toString()));
+
+
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {

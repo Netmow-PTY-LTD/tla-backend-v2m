@@ -14,9 +14,7 @@ import ProfileCustomService from '../User/profileServiceCoustom.model';
 import { calculateLawyerBadge } from '../User/user.utils';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import { redisClient } from '../../config/redis.config';
-import { TTL } from '../../config/cacheKeys';
-
-
+import { CacheKeys, TTL } from '../../config/cacheKeys';
 
 
 
@@ -31,10 +29,13 @@ const getSingleServiceWiseQuestionFromDB = async (
 
 
   // Create a deterministic cache key
-  const cacheKey = `serviceWiseQuestion:${serviceId}:${countryId}`;
+  // const cacheKey = `serviceWiseQuestion:${serviceId}:${countryId}`;
 
   //  Check Redis cache first
-  const cachedData = await redisClient.get(cacheKey);
+  // const cachedData = await redisClient.get(cacheKey);
+
+
+  const cachedData = await redisClient.get(CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId));
   if (cachedData) {
     console.log(' Returning cached ServiceWiseQuestion');
     return JSON.parse(cachedData);
@@ -146,11 +147,8 @@ const getSingleServiceWiseQuestionFromDB = async (
   ]);
 
 
-  await redisClient.set(cacheKey, JSON.stringify(result), { EX: TTL.EXTENDED_1D });
+  await redisClient.set(CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId), JSON.stringify(result), { EX: TTL.EXTENDED_1D });
   console.log(' Cached ServiceWiseQuestion for 24 hours');
-
-
-
 
 
 

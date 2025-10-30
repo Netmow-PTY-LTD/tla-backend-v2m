@@ -9,7 +9,6 @@ import CreditPackage from './creditPackage.model';
 import Transaction from './transaction.model';
 import PaymentMethod from './paymentMethod.model';
 import { SubscriptionType } from './paymentMethod.service';
-import { redisClient } from '../../config/redis.config';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -33,23 +32,8 @@ const updateCreditPackagesIntoDB = async (
 };
 
 const getCreditPackages = async () => {
-  // return await CreditPackage.find({ isActive: true });
-
-
-  // const CACHE_KEY = 'credit_packages';
-  // const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours (86,400 seconds)
-
-  // const cachedData = await redisClient.get(CACHE_KEY);
-  // if (cachedData) {
-  //   console.log(' Returning cached credit packages');
-  //   return JSON.parse(cachedData);
-  // }
-
-  // 2️ Fetch from DB
+ 
   const packages = await CreditPackage.find({ isActive: true });
-
-  // 3️ Cache the result
-  // await redisClient.set(CACHE_KEY, JSON.stringify(packages), { EX: CACHE_TTL_SECONDS });
 
   return packages;
 

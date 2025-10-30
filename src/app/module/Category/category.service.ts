@@ -7,7 +7,7 @@ import { ICategory } from './category.interface';
 import Category from './category.model';
 import { FOLDERS } from '../../constant';
 import { redisClient } from '../../config/redis.config';
-import { TTL } from '../../config/cacheKeys';
+import { CacheKeys, TTL } from '../../config/cacheKeys';
 
 const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: TUploadedFile) => {
 
@@ -47,10 +47,10 @@ const getAllCategoryFromDB = async () => {
 
 const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
 
-  const cacheKey = `public_categories:${countryQueryId}`;
+  // const cacheKey = `public_categories:${countryQueryId}`;
 
   // 1️ Try to get cached data
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.PUBLIC_CATEGORIES(countryQueryId));
   if (cachedData) {
     console.log(' Returning cached categories');
     return JSON.parse(cachedData);
@@ -117,7 +117,7 @@ const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
 
 
   // 4️ Cache the result
-  await redisClient.set(cacheKey, JSON.stringify(categories), { EX:TTL.EXTENDED_1D});
+  await redisClient.set(CacheKeys.PUBLIC_CATEGORIES(countryQueryId), JSON.stringify(categories), { EX: TTL.EXTENDED_1D });
   console.log(' Cached public categories for 24 hours');
 
 
