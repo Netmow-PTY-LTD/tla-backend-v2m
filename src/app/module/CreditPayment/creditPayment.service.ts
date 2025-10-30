@@ -9,6 +9,8 @@ import CreditPackage from './creditPackage.model';
 import Transaction from './transaction.model';
 import PaymentMethod from './paymentMethod.model';
 import { SubscriptionType } from './paymentMethod.service';
+import { deleteCache } from '../../utils/cacheManger';
+import { CacheKeys } from '../../config/cacheKeys';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2023-10-16', // Use your Stripe API version
@@ -98,6 +100,8 @@ const getCreditPackages = async () => {
 //   };
 // };
 
+
+
 const applyCoupon = async (
   couponCode: string,
 ): Promise<{ discountPercentage: number; valid: boolean }> => {
@@ -153,7 +157,7 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
 
   const result = await user.save();
 
-  // 🔄 Sync to Stripe if customer already exists
+  //  Sync to Stripe if customer already exists
   const defaultPaymentMethod = await PaymentMethod.findOne({
     userProfileId: user._id,
     isDefault: true,
@@ -177,6 +181,9 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
       },
     });
   }
+
+  //  REVALIDATE REDIS CACHE
+    await deleteCache(CacheKeys.USER_INFO(userId));
 
   return result;
 };

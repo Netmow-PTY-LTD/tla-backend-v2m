@@ -23,6 +23,23 @@ export const deleteCache = async (keys: string | string[]) => {
 
 
 
+/* 
+
+USES EXAMPLE:
+
+1. await deleteCache(CacheKeys.USER_INFO(userId));
+
+2. await deleteCache([
+  CacheKeys.USER_INFO(userId),
+  CacheKeys.USER_ACTIVITY(userId),
+  CacheKeys.USER_LOCATION(userId),
+]);
+
+
+*/
+
+
+
 
 export const clearAllCache = async () => {
   try {
