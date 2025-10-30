@@ -25,7 +25,7 @@ const loginValidationSchema = z.object({
 // Validation schema for refresh token in cookies
 const refreshTokenValidationSchema = z.object({
   cookies: z.object({
-    refreshToken: z.string({
+    firm_refreshToken: z.string({
       required_error: 'Refresh token is required!',
     }),
   }),
@@ -78,7 +78,7 @@ const resetPasswordValidationSchema = z.object({
 // Validation schema for logging out (requires refresh token in cookies)
 const logOutTokenValidationSchema = z.object({
   cookies: z.object({
-    refreshToken: z.string({
+    firm_refreshToken: z.string({
       required_error: 'Refresh token is required!',
     }),
   }),
