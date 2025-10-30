@@ -25,6 +25,7 @@ import { findLeadsWithinTravelTime } from './filterTravelTime';
 import { IZipCode } from '../Country/zipcode.interface';
 import { redisClient } from '../../config/redis.config';
 import { CacheKeys, TTL } from '../../config/cacheKeys';
+import { deleteKeysByPattern } from '../../utils/cacheManger';
 
 
 
@@ -234,6 +235,10 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       details: additionalDetails || '',
       answersHtml: formattedAnswers
     };
+
+    //  -------------------  Clear relevant caches -----------------------
+
+    await deleteKeysByPattern(CacheKeys.ALL_LEADS());
 
     return { leadUser, leadDetails };
 
