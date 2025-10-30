@@ -1082,7 +1082,7 @@ const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
 
     const lawyer = await User.findOne({ profile: lawyerId }).populate({
         path: 'profile',
-        model: 'LawyerProfile', // Replace with your actual lawyer profile model name
+        model: 'UserProfile', // Replace with your actual lawyer profile model name
     });
     if (!lawyer) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Lawyer not found');
 
