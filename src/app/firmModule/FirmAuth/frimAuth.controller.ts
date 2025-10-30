@@ -12,11 +12,11 @@ import { firmAuthService } from "./frimAuth.service";
 const firmRegister = catchAsync(async (req, res) => {
   const payload = req.body;
 
-  const { accessToken, refreshToken, userData, profileData } =
+  const { firm_accessToken, firm_refreshToken, userData, profileData } =
     await firmAuthService.firmRegisterUserIntoDB(payload);
 
   // Set refresh token in secure cookie
-  res.cookie("refreshToken", refreshToken, {
+  res.cookie("firm_refreshToken", firm_refreshToken, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
@@ -27,7 +27,7 @@ const firmRegister = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "Firm registered successfully.",
-    token: accessToken,
+    token: firm_accessToken,
     data: {
       user: userData,
       profile: profileData,
@@ -76,18 +76,16 @@ const updateCurrentUserInfo = catchAsync(async (req, res) => {
 
 
 
-
-
 const login = catchAsync(async (req, res) => {
   // Get login credentials (e.g., email and password) from the request body
   const payload = req.body;
 
   // Authenticate user and retrieve access token, refresh token, and user data
-  const { accessToken, refreshToken, userData } =
+  const { firm_accessToken, firm_refreshToken, userData } =
     await firmAuthService.loginUserIntoDB(payload);
 
   // Set the refresh token in a secure HTTP-only cookie
-  res.cookie('refreshToken', refreshToken, {
+  res.cookie('firm_refreshToken', firm_refreshToken, {
     httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
     // secure: config.NODE_ENV === 'production',
     secure: true, // Ensures cookie is only sent over HTTPS
@@ -99,7 +97,7 @@ const login = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'User logged in successfully.',
-    token: accessToken,
+    token: firm_accessToken,
     data: userData,
   });
 });
@@ -114,10 +112,10 @@ const login = catchAsync(async (req, res) => {
  */
 const refreshToken = catchAsync(async (req, res) => {
   // Extract the refresh token from cookies
-  const { refreshToken } = req.cookies;
+  const { firm_refreshToken } = req.cookies;
 
   // Generate a new access token using the refresh token
-  const result = await firmAuthService.refreshToken(refreshToken);
+  const result = await firmAuthService.refreshToken(firm_refreshToken);
 
   // Send the new access token in the response
   sendResponse(res, {
@@ -216,14 +214,15 @@ const resetPassword = catchAsync(async (req, res) => {
  */
 const logOut = catchAsync(async (req, res) => {
   // Extract the refresh token from cookies
-  const { refreshToken } = req.cookies;
+  const { firm_refreshToken } = req.cookies;
+
 
   // Invalidate the refresh token in the database or token store
-  const result = await firmAuthService.logOutToken(refreshToken);
+  const result = await firmAuthService.logOutToken(firm_refreshToken);
 
   // If the refresh token belongs to a valid user, clear it from cookies
   if (result.validUser) {
-    res.clearCookie('refreshToken', {
+    res.clearCookie('firm_refreshToken', {
       httpOnly: true, // Makes cookie inaccessible to JavaScript
       secure: true, // Ensures cookie is sent over HTTPS
       sameSite: 'none', // Allows cross-site usage (must be used with HTTPS)
