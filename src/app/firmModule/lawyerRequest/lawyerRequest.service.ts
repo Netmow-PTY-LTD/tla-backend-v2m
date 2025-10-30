@@ -113,7 +113,7 @@ export const updateLawyerRequest = async (
     _id: id,
     firmProfileId: firmUser.firmProfileId,
     isActive: true,
-  });
+  }).populate("lawyerId");
   if (!request) return sendNotFoundResponse("Lawyer request not found");
 
   // --- Prepare update payload ---
@@ -134,14 +134,14 @@ export const updateLawyerRequest = async (
         lawyerProfileUpdate.firmMembershipStatus = "approved";
         lawyerProfileUpdate.joinedAt = new Date();
         lawyerProfileUpdate.isFirmMemberRequest = false;
-        firmUpdate.$addToSet = { lawyers: request.lawyerId };
+        firmUpdate.$addToSet = { lawyers: request.lawyerId._id };
         break;
 
       case "rejected":
         lawyerProfileUpdate.firmProfileId = null;
         lawyerProfileUpdate.firmMembershipStatus = "rejected";
         lawyerProfileUpdate.joinedAt = null;
-        firmUpdate.$pull = { lawyers: request.lawyerId };
+        firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
       case "cancelled":
@@ -150,14 +150,14 @@ export const updateLawyerRequest = async (
         lawyerProfileUpdate.joinedAt = null;
         updateData.cancelBy = new Types.ObjectId(userId);
         updateData.cancelAt = new Date();
-        firmUpdate.$pull = { lawyers: request.lawyerId };
+        firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
       case "left":
         lawyerProfileUpdate.firmProfileId = null;
         lawyerProfileUpdate.firmMembershipStatus = "left";
         lawyerProfileUpdate.joinedAt = null;
-        firmUpdate.$pull = { lawyers: request.lawyerId };
+        firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
       default:
@@ -183,7 +183,7 @@ export const updateLawyerRequest = async (
     .populate("reviewedBy", "name role");
 
   //   Invalidate cache for the lawyer's user info
-  await deleteCache(CacheKeys.USER_INFO(request.lawyerId.toString()));
+  await deleteCache(CacheKeys.USER_INFO((request.lawyerId as any).user.toString()));
 
 
   return updatedRequest;
@@ -194,15 +194,14 @@ export const updateLawyerRequest = async (
 
 
 
-
 const deleteLawyerRequest = async (id: string, userId: string) => {
   const user = await FirmUser.findById(userId).select('firmProfileId');
   if (!user) return sendNotFoundResponse("User not found");
-  const deletedRequest = await LawyerRequestAsMember.findOneAndDelete({ _id: id, firmProfileId: user.firmProfileId });
+  const deletedRequest = await LawyerRequestAsMember.findOneAndDelete({ _id: id, firmProfileId: user.firmProfileId }).populate('lawyerId');
 
   //   Invalidate cache for the lawyer's user info
   if (deletedRequest && deletedRequest.lawyerId) {
-    await deleteCache(CacheKeys.USER_INFO(deletedRequest.lawyerId.toString()));
+       await deleteCache(CacheKeys.USER_INFO((deletedRequest.lawyerId as any).user.toString()));
   }
 
   return deletedRequest;
