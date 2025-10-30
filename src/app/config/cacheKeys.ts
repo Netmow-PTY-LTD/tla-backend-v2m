@@ -26,7 +26,8 @@ export const CacheKeys = {
     SINGLE_USER_PROFILE: (userId: string) => `single_user_profile:${userId}`,
 
     // ---------- LEAD ----------
-    LEAD_DETAIL: (leadId: string) => `lead:${leadId}:detail`,
+    LEAD_DETAIL: (leadId: string) => `leads:${leadId}:detail`,
+    ALL_LEADS: () => 'leads:*',
     // List by user with filters/options
     // LEAD_LIST_BY_USER_WITH_FILTERS: (userId: string, filters: object, options: object) => {
     //     // Convert objects to a consistent string
