@@ -2756,6 +2756,8 @@ const getAllLeadForLawyerPanel = async (
     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
   }
   if (filters.credits?.length) {
+
+    console.log('Applying credit filters:', filters.credits);
     const creditConditions = filters.credits.map((range: string) => {
       switch (range) {
         case 'Free': return { credit: 0 };

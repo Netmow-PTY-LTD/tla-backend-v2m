@@ -188,7 +188,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
 
 
-        // 4️⃣ Create FirmLicense linked to FirmProfile
+        // 4️ Create FirmLicense linked to FirmProfile
         const newLicense = await FirmLicense.create(
             [
                 {
@@ -285,7 +285,7 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
     const jwtPayload = {
         userId: user?._id,
         email: user?.email,
-        // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
+        // country: (user?.profile as any)?.country.slug, //  Fix TS error
         role: user?.role,
         accountStatus: user.accountStatus,
         firmProfileId: user.firmProfileId,
