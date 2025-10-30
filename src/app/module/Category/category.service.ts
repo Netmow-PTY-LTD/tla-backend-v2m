@@ -7,10 +7,11 @@ import { ICategory } from './category.interface';
 import Category from './category.model';
 import { FOLDERS } from '../../constant';
 import { redisClient } from '../../config/redis.config';
+import { TTL } from '../../config/cacheKeys';
 
 const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: TUploadedFile) => {
 
-  // ✅ Handle file upload if provided
+  //  Handle file upload if provided
   if (file?.buffer) {
     try {
       // const uploadedUrl = await uploadToSpaces(
@@ -46,7 +47,6 @@ const getAllCategoryFromDB = async () => {
 
 const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
 
-  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
   const cacheKey = `public_categories:${countryQueryId}`;
 
   // 1️ Try to get cached data
@@ -117,7 +117,7 @@ const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
 
 
   // 4️ Cache the result
-  await redisClient.set(cacheKey, JSON.stringify(categories), { EX: CACHE_TTL_SECONDS });
+  await redisClient.set(cacheKey, JSON.stringify(categories), { EX:TTL.EXTENDED_1D});
   console.log(' Cached public categories for 24 hours');
 
 

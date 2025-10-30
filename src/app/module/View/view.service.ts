@@ -14,10 +14,12 @@ import ProfileCustomService from '../User/profileServiceCoustom.model';
 import { calculateLawyerBadge } from '../User/user.utils';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import { redisClient } from '../../config/redis.config';
+import { TTL } from '../../config/cacheKeys';
 
 
 
-const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+
+
 const getSingleServiceWiseQuestionFromDB = async (
   serviceId: string,
   countryId: string,
@@ -144,7 +146,7 @@ const getSingleServiceWiseQuestionFromDB = async (
   ]);
 
 
-  await redisClient.set(cacheKey, JSON.stringify(result), { EX: CACHE_TTL_SECONDS });
+  await redisClient.set(cacheKey, JSON.stringify(result), { EX: TTL.EXTENDED_1D });
   console.log(' Cached ServiceWiseQuestion for 24 hours');
 
 

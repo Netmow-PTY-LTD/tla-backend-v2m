@@ -4,9 +4,10 @@ import { ICountry } from './country.interface';
 import Country from './country.model';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { redisClient } from '../../config/redis.config';
+import { TTL } from '../../config/cacheKeys';
 
 
-const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+
 const CACHE_KEY = 'all_countries';
 
 
@@ -56,7 +57,7 @@ const getAllCountryFromDB = async () => {
   const countries = await Country.find({});
 
   // 3️ Cache the result
-  await redisClient.set(CACHE_KEY, JSON.stringify(countries), { EX: CACHE_TTL_SECONDS });
+  await redisClient.set(CACHE_KEY, JSON.stringify(countries), { EX: TTL.EXTENDED_1D });
   console.log(' Cached all countries for 24 hours');
 
   return countries;

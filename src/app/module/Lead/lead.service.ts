@@ -24,6 +24,7 @@ import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.i
 import { findLeadsWithinTravelTime } from './filterTravelTime';
 import { IZipCode } from '../Country/zipcode.interface';
 import { redisClient } from '../../config/redis.config';
+import { TTL } from '../../config/cacheKeys';
 
 
 
@@ -2944,8 +2945,8 @@ const getAllLeadForLawyerPanel = async (
 
   // ----------------------- CACHE THE RESULT IN REDIS -----------------------
   // Cache the result for future requests
-  // Cache in Redis for 30 minutes
-  await redisClient.set(cacheKey, JSON.stringify(result), { EX: 30 * 60 });
+  // Cache in Redis for 10 minutes
+  await redisClient.set(cacheKey, JSON.stringify(result), { EX: TTL.MEDIUM_10M });
 
 
 

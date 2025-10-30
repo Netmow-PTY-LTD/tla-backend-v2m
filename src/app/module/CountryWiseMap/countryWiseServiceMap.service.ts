@@ -10,6 +10,7 @@ import { TUploadedFile } from '../../interface/file.interface';
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 import { redisClient } from '../../config/redis.config';
+import { TTL } from '../../config/cacheKeys';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
@@ -77,7 +78,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
     const populatedServices = records.flatMap((record) => record.serviceIds);
 
     //  Cache the result
-    await redisClient.set(cacheKey, JSON.stringify(populatedServices), { EX: CACHE_TTL_SECONDS });
+    await redisClient.set(cacheKey, JSON.stringify(populatedServices), { EX: TTL.EXTENDED_1D });
     console.log(' Cached CountryWiseMap for 24 hours');
 
 

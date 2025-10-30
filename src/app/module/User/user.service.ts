@@ -22,6 +22,8 @@ import Faq from './faq.model';
 import Agreement from './agreement.model';
 import { FOLDERS } from '../../constant';
 import { redisClient } from '../../config/redis.config';
+import { T } from '@faker-js/faker/dist/airline-DF6RqYmq';
+import { TTL } from '../../config/cacheKeys';
 
 
 /**
@@ -387,7 +389,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
   const finalUser = plainUser;
 
   // ----------------------- CACHE RESULT -----------------------
-  await redisClient.set(cacheKey, JSON.stringify(finalUser), { EX: 60 * 60 }); // cache for 1 hour
+  await redisClient.set(cacheKey, JSON.stringify(finalUser), { EX: TTL.MEDIUM_10M}); // cache for 1 hour
 
 
 

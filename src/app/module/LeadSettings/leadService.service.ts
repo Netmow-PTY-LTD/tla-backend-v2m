@@ -16,6 +16,7 @@ import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 import { IUserLocationServiceMap } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 import { redisClient } from '../../config/redis.config';
+import { TTL } from '../../config/cacheKeys';
 
 const createLeadService = async (
   userId: string,
@@ -313,7 +314,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
 
   //  Cache the result for future calls
 
-  await redisClient.set(cacheKey, JSON.stringify(response), { EX: 30 * 60 });
+  await redisClient.set(cacheKey, JSON.stringify(response), { EX: TTL.MEDIUM_10M });
 
   return response;
 

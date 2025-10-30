@@ -15,6 +15,7 @@ export const TTL = {
 };
 
 
+
 export const CacheKeys = {
     // ---------- USER ----------
     USER_PROFILE: (userId: string) => `user:${userId}:profile`,
@@ -36,3 +37,21 @@ export const CacheKeys = {
 
 
 
+
+
+
+
+
+
+
+
+//  ---------- COUNTRY ----------
+
+const CACHE_KEY = 'all_countries';
+
+//  const cacheKey = `public_categories:${countryQueryId}`;
+
+// const cacheKey = `testimonials:page${page}:limit${limit}:search:${search || 'all'}`;
+
+//  const cacheKey = `user_info:${userId}`;
+//   const cacheKey = `serviceWiseQuestion:${serviceId}:${countryId}`;
