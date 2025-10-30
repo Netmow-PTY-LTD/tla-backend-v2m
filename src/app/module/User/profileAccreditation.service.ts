@@ -11,7 +11,7 @@ import Accreditation from './ProfileAccreditation';
 import UserProfile from './user.model';
 import { FOLDERS } from '../../constant';
 import mongoose from 'mongoose';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 // const updateProfileAccreditationIntoDB = async (
 //   id: string,

@@ -1,4 +1,4 @@
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 
 import { IProfileSocialMedia } from './profileSocailMedia.interface';

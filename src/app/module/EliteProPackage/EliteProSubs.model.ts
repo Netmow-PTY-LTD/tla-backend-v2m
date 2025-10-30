@@ -75,17 +75,17 @@ EliteProPackageSchema.index({ slug: 1 });
 // Virtual: price as float in major currency units (e.g. 1250 -> 12.50)
 EliteProPackageSchema.virtual("priceFloat").get(function (this: IEliteProPackage) {
   if (!this.price) return 0;
-  return this.price.amount / 100;
+  return this.price.amount ?? 0;
 });
 
 // Virtual: formatted price using Intl
 EliteProPackageSchema.virtual("priceFormatted").get(function (this: IEliteProPackage) {
   try {
-    const major = (this.price?.amount ?? 0) / 100;
+    const major = this.price?.amount ?? 0;
     const currency = this.price?.currency ?? "USD";
     return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(major);
   } catch (e) {
-    return `${(this.price?.amount ?? 0) / 100} ${this.price?.currency ?? ""}`;
+    return `${this.price?.amount ?? 0} ${this.price?.currency ?? ""}`;
   }
 });
 
