@@ -126,6 +126,8 @@ import EliteProUserSubscription, { IEliteProUserSubscription } from '../CreditPa
 import UserSubscription, { IUserSubscription } from '../CreditPayment/subscriptions.model';
 import UserProfile from '../User/user.model';
 import mongoose, { mongo } from 'mongoose';
+import { CacheKeys } from '../../config/cacheKeys';
+import { deleteCache } from '../../utils/cacheManger';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion: '2024-06-20',
@@ -136,7 +138,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
   let event: Stripe.Event;
 
-  // 1️⃣ Verify webhook signature
+  // 1️ Verify webhook signature
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -145,7 +147,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
     );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error('❌ Webhook signature verification failed:', errorMessage);
+    console.error(' Webhook signature verification failed:', errorMessage);
     return res.status(400).send(`Webhook Error: ${errorMessage}`);
   }
 
@@ -160,7 +162,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         const type = invoice.metadata?.type as SubscriptionType;
         const subscriptionId = (invoice as any).subscription as string;
 
-        console.log('💰 Invoice payment succeeded from web hook:', {
+        console.log(' Invoice payment succeeded from web hook:', {
           userId,
           type,
           subscriptionId,
@@ -209,7 +211,9 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           await userProfile.save();
         }
 
-        console.log(`✅ User ${userId} ${type} subscription active`);
+          // --------------------  REVALIDATE REDIS CACHE -----------------------
+          await deleteCache(CacheKeys.USER_INFO(userId));
+        console.log(` User ${userId} ${type} subscription active`);
         break;
       }
 
@@ -254,7 +258,9 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           await userProfile.save();
         }
 
-        console.log(`❌ User ${userId} ${type} subscription payment failed`);
+        console.log(` User ${userId} ${type} subscription payment failed`);
+          // --------------------  REVALIDATE REDIS CACHE -----------------------
+          await deleteCache(CacheKeys.USER_INFO(userId));
         break;
       }
 
@@ -266,6 +272,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
         const type = subscription.metadata?.type as SubscriptionType;
+        const userId = subscription.metadata?.userId;
         if (!type) break;
 
         const subscriptionRecord =
@@ -306,7 +313,9 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           await userProfile.save();
         }
 
-        console.log(`🔻 User ${subscriptionRecord.userId} ${type} subscription canceled`);
+        console.log(` User ${subscriptionRecord.userId} ${type} subscription canceled`);
+          // --------------------  REVALIDATE REDIS CACHE -----------------------
+          await deleteCache(CacheKeys.USER_INFO(userId));
         break;
       }
 
@@ -315,12 +324,12 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
 
       default:
-        console.log(`⚙️ Unhandled event type: ${event.type}`);
+        console.log(` Unhandled event type: ${event.type}`);
     }
 
     res.status(200).send('OK');
   } catch (error) {
-    console.error('🚨 Error processing webhook:', error);
+    console.error(' Error processing webhook:', error);
     res.status(500).send('Webhook handler failed');
   }
 };

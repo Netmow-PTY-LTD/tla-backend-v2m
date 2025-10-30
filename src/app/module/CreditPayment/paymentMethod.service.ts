@@ -479,7 +479,7 @@ const createSubscription = async (
     });
   } catch (err: any) {
     if (!err.message.includes("already attached")) {
-      console.error("⚠️ PaymentMethod attach error:", err.message);
+      console.error(" PaymentMethod attach error:", err.message);
       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
     }
   }
@@ -509,7 +509,7 @@ const createSubscription = async (
         });
         if (confirmed.status === "succeeded") paymentSucceeded = true;
       } catch (err: any) {
-        console.error("⚠️ Payment failed:", err.message);
+        console.error(" Payment failed:", err.message);
         return {
           success: false,
           message: "Payment failed: " + err.message,
@@ -547,7 +547,7 @@ const createSubscription = async (
     ? new Date(invoiceLine.period.end * 1000)
     : undefined;
 
-  console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
+  
 
 
 
@@ -604,7 +604,7 @@ const createSubscription = async (
 
 
 
-  //  REVALIDATE REDIS CACHE
+  // --------------------  REVALIDATE REDIS CACHE -----------------------
   await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {

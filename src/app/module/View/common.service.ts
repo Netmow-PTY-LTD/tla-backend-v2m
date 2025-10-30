@@ -22,6 +22,8 @@ import { sendNotFoundResponse } from '../../errors/custom.error';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import { IUserSubscription } from '../CreditPayment/subscriptions.model';
 import { ISubscription } from '../SubscriptionPackage/subscriptionPack.model';
+import { CacheKeys } from '../../config/cacheKeys';
+import { deleteCache } from '../../utils/cacheManger';
 // import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
@@ -763,6 +765,15 @@ const createLawyerResponseAndSpendCredit = async (
         session,
       });
     });
+
+    // -------------------  REVALIDATE REDIS CACHE ---------------------
+    await deleteCache([
+
+      CacheKeys.USER_INFO(userId.toString()),
+    
+    ]);
+
+    // ------------------------------------------------------------
 
     // --- 4️ Emit socket notifications
     io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit('notification', {
