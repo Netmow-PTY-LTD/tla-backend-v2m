@@ -27,13 +27,7 @@ const getSingleServiceWiseQuestionFromDB = async (
   const serviceObjectId = new Types.ObjectId(serviceId);
   const countryObjectId = new Types.ObjectId(countryId);
 
-
-  // Create a deterministic cache key
-  // const cacheKey = `serviceWiseQuestion:${serviceId}:${countryId}`;
-
-  //  Check Redis cache first
-  // const cachedData = await redisClient.get(cacheKey);
-
+  // ----------------------- CHECK CACHE -----------------------
 
   const cachedData = await redisClient.get(CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId));
   if (cachedData) {
@@ -168,7 +162,7 @@ const getQuestionWiseOptionsFromDB = async (questionId: string) => {
   const result = await Option.find({
     questionId: questionId,
 
-  }).populate(['questionId', 'serviceId', 'countryId']); // ✅ fixed
+  }).populate(['questionId', 'serviceId', 'countryId']); //  fixed
 
   return result;
 };
