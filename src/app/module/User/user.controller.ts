@@ -14,6 +14,7 @@ import { profileFaqService } from './profileFaq.service';
 import { startQueryTimer } from '../../utils/queryTimer';
 import { agreementService } from './agreement.service';
 import { redisClient } from '../../config/redis.config';
+import { CacheKeys } from '../../config/cacheKeys';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -27,7 +28,7 @@ import { redisClient } from '../../config/redis.config';
 
 const updateProfile = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-    const cacheKey = `user_info:${userId}`;
+ 
   // const parsedData = JSON.parse(req.body.data);
   const parsedData = req.body.data ? JSON.parse(req.body.data) : {};
   const files = req.files as TUploadedFile[];
@@ -40,7 +41,7 @@ const updateProfile = catchAsync(async (req, res) => {
   });
 
   //  Revalidate cache after transaction commit
-  await redisClient.del(cacheKey);
+  await redisClient.del(CacheKeys.USER_INFO(userId));
   console.log(` Cache invalidated for user ${userId}`);
 
   let userProfileResult = null;

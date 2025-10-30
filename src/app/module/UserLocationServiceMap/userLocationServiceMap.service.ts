@@ -2,36 +2,49 @@ import mongoose from 'mongoose';
 
 
 import { UserLocationServiceMap } from './UserLocationServiceMap.model';
-import User from '../Auth/auth.model';
 import UserProfile from '../User/user.model';
 import { IUserLocationServiceMap } from './userLocationServiceMap.interface';
+import { deleteCache, removeLeadListCacheByUser } from '../../utils/cacheManger';
+import { CacheKeys } from '../../config/cacheKeys';
 
 /**
  * Create a new user location service map
  */
- const createUserLocationServiceMap = async (
-    userId: string | undefined,
+const createUserLocationServiceMap = async (
+  userId: string,
   payload: Partial<IUserLocationServiceMap>
 ) => {
-     const userProfile= await UserProfile.findOne({ user: userId }).select('_id');
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
 
-    if(!userProfile) {
-        throw new Error('User profile not found');
-    }
+  if (!userProfile) {
+    throw new Error('User profile not found');
+  }
   const doc = await UserLocationServiceMap.create({ ...payload, userProfileId: userProfile._id });
+
+
+  // -------------------  REVALIDATE REDIS CACHE ---------------------
+  await deleteCache([
+    CacheKeys.USER_INFO(userId.toString()),
+    CacheKeys.LEAD_SERVICES_QUESTIONS(userId)
+  ]
+  );
+
+  await removeLeadListCacheByUser(userId.toString());
+
+
   return doc;
 };
 
 /**
  * Get all maps for a user
  */
- const getAllUserLocationServiceMaps = async (userId: string | undefined) => {
+const getAllUserLocationServiceMaps = async (userId: string | undefined) => {
 
-    const userProfile= await UserProfile.findOne({ user: userId }).select('_id');
+  const userProfile = await UserProfile.findOne({ user: userId }).select('_id');
 
-    if(!userProfile) {
-        throw new Error('User profile not found');
-    }
+  if (!userProfile) {
+    throw new Error('User profile not found');
+  }
 
   const docs = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('serviceIds locationGroupId');
   return docs;
@@ -40,7 +53,7 @@ import { IUserLocationServiceMap } from './userLocationServiceMap.interface';
 /**
  * Get single map by ID
  */
- const getUserLocationServiceMapById = async (id: string) => {
+const getUserLocationServiceMapById = async (id: string) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
   const doc = await UserLocationServiceMap.findById(id).populate('serviceIds locationGroupId');
   return doc;
@@ -49,7 +62,8 @@ import { IUserLocationServiceMap } from './userLocationServiceMap.interface';
 /**
  * Update map by ID
  */
- const updateUserLocationServiceMapById = async (
+const updateUserLocationServiceMapById = async (
+  userId: string,
   id: string,
   payload: Partial<IUserLocationServiceMap>
 ) => {
@@ -59,15 +73,38 @@ import { IUserLocationServiceMap } from './userLocationServiceMap.interface';
 
 
   const doc = await UserLocationServiceMap.findByIdAndUpdate(id, payload, { new: true });
+
+
+  // -------------------  REVALIDATE REDIS CACHE ---------------------
+  await deleteCache([
+    CacheKeys.USER_INFO(userId.toString()),
+    CacheKeys.LEAD_SERVICES_QUESTIONS(userId)
+  ]
+  );
+
+  await removeLeadListCacheByUser(userId.toString());
+
   return doc;
 };
 
 /**
  * Delete map by ID
  */
- const deleteUserLocationServiceMapById = async (id: string) => {
+const deleteUserLocationServiceMapById = async (userId: string, id: string) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
   const doc = await UserLocationServiceMap.findByIdAndDelete(id);
+
+  // -------------------  REVALIDATE REDIS CACHE ---------------------
+  await deleteCache([
+    CacheKeys.USER_INFO(userId.toString()),
+    CacheKeys.LEAD_SERVICES_QUESTIONS(userId)
+  ]
+  );
+
+  await removeLeadListCacheByUser(userId.toString());
+
+
+
   return doc;
 };
 

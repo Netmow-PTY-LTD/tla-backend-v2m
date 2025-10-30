@@ -350,7 +350,6 @@ const ssoLogin = catchAsync(async (req, res) => {
 const cacheUserData = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
-  console.log("userId from auth controller:", userId);
 
   await authService.cacheUserData(userId);
 

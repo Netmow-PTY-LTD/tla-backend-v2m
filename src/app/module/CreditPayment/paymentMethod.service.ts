@@ -20,6 +20,8 @@ import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
 import mongoose from 'mongoose';
 import EliteProPackageModel from '../EliteProPackage/EliteProSubs.model';
 import EliteProUserSubscription, { IEliteProUserSubscription } from './EliteProUserSubscription';
+import { deleteCache } from '../../utils/cacheManger';
+import { CacheKeys } from '../../config/cacheKeys';
 
 
 
@@ -86,6 +88,9 @@ const removePaymentMethod = async (userId: string, paymentMethodId: string) => {
   //     await fallbackCard.save();
   //   }
   // }
+
+//  REVALIDATE REDIS CACHE
+  await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
     success: true,
@@ -154,6 +159,9 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     isDefault: true,
   });
 
+//  REVALIDATE REDIS CACHE
+  await deleteCache(CacheKeys.USER_INFO(userId));
+
   return {
     success: true,
     message: 'Card saved successfully',
@@ -181,7 +189,7 @@ const purchaseCredits = async (
   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
   if (!userProfile) return sendNotFoundResponse('User profile not found');
 
-  // 2️⃣ Check if account status is approved
+  // 2️ Check if account status is approved
   const accountStatus = (userProfile.user as IUser)?.accountStatus; // if using User ref
   // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
 
@@ -303,6 +311,9 @@ const purchaseCredits = async (
   userProfile.credits += creditPackage.credit;
   userProfile.autoTopUp = autoTopUp || false;
   await userProfile.save();
+
+  //  REVALIDATE REDIS CACHE
+  await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
     success: true,
@@ -468,7 +479,7 @@ const createSubscription = async (
     });
   } catch (err: any) {
     if (!err.message.includes("already attached")) {
-      console.error("⚠️ PaymentMethod attach error:", err.message);
+      console.error(" PaymentMethod attach error:", err.message);
       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
     }
   }
@@ -498,7 +509,7 @@ const createSubscription = async (
         });
         if (confirmed.status === "succeeded") paymentSucceeded = true;
       } catch (err: any) {
-        console.error("⚠️ Payment failed:", err.message);
+        console.error(" Payment failed:", err.message);
         return {
           success: false,
           message: "Payment failed: " + err.message,
@@ -536,7 +547,7 @@ const createSubscription = async (
     ? new Date(invoiceLine.period.end * 1000)
     : undefined;
 
-  console.log({ subscriptionPeriodStart, subscriptionPeriodEnd });
+  
 
 
 
@@ -593,6 +604,8 @@ const createSubscription = async (
 
 
 
+  // --------------------  REVALIDATE REDIS CACHE -----------------------
+  await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
     success: true,
@@ -678,6 +691,9 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
   console.info(
     `🔻 [Subscription Canceled] User: ${userId}, Type: ${type}, Subscription ID: ${subscription._id}`
   );
+
+//  REVALIDATE REDIS CACHE
+  await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
     success: true,
