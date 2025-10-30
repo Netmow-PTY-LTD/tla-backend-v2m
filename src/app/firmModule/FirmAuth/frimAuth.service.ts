@@ -215,20 +215,20 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
             firmProfileId: newUser.firmProfileId,
         };
 
-        const accessToken = createToken(
+        const firm_accessToken = createToken(
             jwtPayload,
             config.jwt_access_secret as StringValue,
             config.jwt_access_expires_in as StringValue
         );
 
-        const refreshToken = createToken(
+        const firm_refreshToken = createToken(
             jwtPayload,
             config.jwt_refresh_secret as StringValue,
             config.jwt_refresh_expires_in as StringValue
         );
 
         // 5) store verify token for email verification flow
-        newUser.verifyToken = accessToken;
+        newUser.verifyToken = firm_accessToken;
         await newUser.save({ session });
 
         // 6) commit
@@ -236,8 +236,8 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
         session.endSession();
 
         return {
-            accessToken,
-            refreshToken,
+            firm_accessToken,
+            firm_refreshToken,
             userData: newUser,
             profileData: newProfile,
         };
@@ -293,14 +293,14 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
 
 
     // Generate access token
-    const accessToken = createToken(
+    const firm_accessToken = createToken(
         jwtPayload,
         config.jwt_access_secret as StringValue,
         config.jwt_access_expires_in as StringValue,
     );
 
     // Generate refresh token
-    const refreshToken = createToken(
+    const firm_refreshToken = createToken(
         jwtPayload,
         config.jwt_refresh_secret as StringValue,
         config.jwt_refresh_expires_in as StringValue,
@@ -310,8 +310,8 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
     const userData = await FirmUser.findOne({ email: payload.email }).populate({ path: "permissions", populate: { path: "pageId", model: "Page" } });
     // Return tokens and user data
     return {
-        accessToken,
-        refreshToken,
+        firm_accessToken,
+        firm_refreshToken,
         userData,
     };
 };
@@ -348,14 +348,14 @@ const refreshToken = async (token: string) => {
         accountStatus: user.accountStatus,
     };
 
-    const accessToken = createToken(
+    const firm_accessToken = createToken(
         jwtPayload,
         config.jwt_access_secret as StringValue,
         config.jwt_access_expires_in as StringValue,
     );
 
     return {
-        accessToken,
+        firm_accessToken,
     };
 };
 
@@ -467,6 +467,9 @@ const forgetPassword = async (userEmail: string) => {
         resetUrl: resetUILink
 
     };
+
+
+
     await sendEmail({
         to: user.email,
         subject: 'Reset Your Password to Regain Access',
@@ -1114,6 +1117,7 @@ const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
 
     return { status: 'granted', redirectUrl, expiresIn: 120 };
 };
+
 
 
 export const firmAuthService = {
