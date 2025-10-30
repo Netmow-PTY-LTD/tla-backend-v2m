@@ -1,3 +1,4 @@
+import { CacheKeys } from '../../config/cacheKeys';
 import { redisClient } from '../../config/redis.config';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { IExperience } from './experience.interface';
@@ -9,8 +10,7 @@ const updateProfileExperienceIntoDB = async (
   payload: Partial<IExperience>,
 ) => {
 
-  const cacheKey = `user_info:${userId}`;
-  await redisClient.del(cacheKey);
+await redisClient.del(CacheKeys.USER_INFO(userId));
   
   const userProfile = await UserProfile.findOne({ user: userId });
 

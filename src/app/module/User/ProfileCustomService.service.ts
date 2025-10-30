@@ -1,3 +1,4 @@
+import { CacheKeys } from '../../config/cacheKeys';
 import { redisClient } from '../../config/redis.config';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { validateObjectId } from '../../utils/validateObjectId';
@@ -10,8 +11,7 @@ const updateProfileCustomServiceIntoDB = async (
   payload: Partial<IProfileCustomService> & { _id?: string },
 ) => {
 
-  const cacheKey = `user_info:${userId}`;
-  await redisClient.del(cacheKey);
+ await redisClient.del(CacheKeys.USER_INFO(userId));
   // Find the user's profile by user ID
   const userProfile = await UserProfile.findOne({ user: userId });
 
@@ -47,8 +47,10 @@ const updateProfileCustomServiceIntoDB = async (
 
 const deleteCustomServiceIntoDB = async (userId: string, id: string) => {
   validateObjectId(id, 'Custom Service ');
-   const cacheKey = `user_info:${userId}`;
-  await redisClient.del(cacheKey);
+
+
+await redisClient.del(CacheKeys.USER_INFO(userId));
+
   const customServiceDelete = await ProfileCustomService.findByIdAndDelete(id);
 
   return customServiceDelete;

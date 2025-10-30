@@ -1,4 +1,4 @@
-import { TTL } from "../../config/cacheKeys";
+import { CacheKeys, TTL } from "../../config/cacheKeys";
 import { redisClient } from "../../config/redis.config";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
@@ -10,7 +10,7 @@ import mongoose, { FilterQuery } from "mongoose";
 
 
 
-const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+
 
 
 
@@ -50,13 +50,10 @@ const createTestimonial = async (payload: any, file: TUploadedFile | undefined) 
 const getAllTestimonialsFromDB = async (params: GetAllParams) => {
   const { search, page = 1, limit = 10 } = params;
 
-  //  Create a unique cache key per page + search
-  const cacheKey = `testimonials:page${page}:limit${limit}:search:${search || 'all'}`;
-
 
 
   //  Try to get cached data
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.TESTIMONIALS(page, limit, search));
   if (cachedData) {
     console.log(' Returning cached testimonials');
     return JSON.parse(cachedData);
@@ -93,7 +90,7 @@ const getAllTestimonialsFromDB = async (params: GetAllParams) => {
 
 
   // 3️ Cache the result
-  await redisClient.set(cacheKey, JSON.stringify(queryResult), { EX: TTL.EXTENDED_1D });
+  await redisClient.set(CacheKeys.TESTIMONIALS(page, limit, search), JSON.stringify(queryResult), { EX: TTL.EXTENDED_1D });
   console.log(' Cached all testimonials for 24 hours');
 
 
@@ -226,8 +223,6 @@ export const deleteTestimonial = async (id: string) => {
     throw err;
   }
 };
-
-
 
 
 

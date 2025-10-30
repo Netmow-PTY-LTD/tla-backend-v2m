@@ -41,7 +41,7 @@ const getMap = catchAsync(async (req, res) => {
 });
 
 const updateMap = catchAsync(async (req, res) => {
-  const result = await userLocationServiceMapService.updateMap(req.params.id, req.body);
+  const result = await userLocationServiceMapService.updateMap(req.user?.userId, req.params.id, req.body);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: !!result,
@@ -51,7 +51,7 @@ const updateMap = catchAsync(async (req, res) => {
 });
 
 const deleteMap = catchAsync(async (req, res) => {
-  const result = await userLocationServiceMapService.deleteMap(req.params.id);
+  const result = await userLocationServiceMapService.deleteMap( req.user?.userId, req.params.id);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: !!result,

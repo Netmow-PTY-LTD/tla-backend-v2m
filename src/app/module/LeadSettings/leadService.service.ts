@@ -16,7 +16,8 @@ import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
 import { IUserLocationServiceMap } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 import { redisClient } from '../../config/redis.config';
-import { TTL } from '../../config/cacheKeys';
+import { CacheKeys, TTL } from '../../config/cacheKeys';
+import { deleteCache, removeLeadListCacheByUser } from '../../utils/cacheManger';
 
 const createLeadService = async (
   userId: string,
@@ -26,9 +27,18 @@ const createLeadService = async (
 ) => {
 
   //  Revalidate cache after transaction commit
-  const cacheKey = `lead_services_with_questions:${userId}`;
-  await redisClient.del(cacheKey);
-  console.log(` Cache invalidated for user ${userId}`);
+  // const cacheKey = `lead_services_with_questions:${userId}`;
+  // await redisClient.del(CacheKeys.LEAD_SERVICES_QUESTIONS(userId));
+  // console.log(` Cache invalidated for user ${userId}`);
+
+  // -------------------  REVALIDATE REDIS CACHE ---------------------
+  await deleteCache([
+    CacheKeys.USER_INFO(userId.toString()),
+    CacheKeys.LEAD_SERVICES_QUESTIONS(userId)
+  ]
+  );
+
+  await removeLeadListCacheByUser(userId.toString());
 
 
   const session = await mongoose.startSession();
@@ -212,10 +222,10 @@ const createLeadService = async (
 
 const getLeadServicesWithQuestions = async (userId: string) => {
 
-  const cacheKey = `lead_services_with_questions:${userId}`;
+  // const cacheKey = `lead_services_with_questions:${userId}`;
 
   //  Try to get from cache
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.LEAD_SERVICES_QUESTIONS(userId));
   if (cachedData) {
     console.log(' Returning cached data');
     return JSON.parse(cachedData);
@@ -314,7 +324,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
 
   //  Cache the result for future calls
 
-  await redisClient.set(cacheKey, JSON.stringify(response), { EX: TTL.MEDIUM_10M });
+  await redisClient.set(CacheKeys.LEAD_SERVICES_QUESTIONS(userId), JSON.stringify(response), { EX: TTL.MEDIUM_10M });
 
   return response;
 
@@ -361,9 +371,20 @@ const updateLocations = async (
 
 
   //  Revalidate cache after transaction commit
-  const cacheKey = `lead_services_with_questions:${userId}`;
-  await redisClient.del(cacheKey);
-  console.log(` Cache invalidated for user ${userId}`);
+  // const cacheKey = `lead_services_with_questions:${userId}`;
+  // await redisClient.del(CacheKeys.LEAD_SERVICES_QUESTIONS(userId));
+  // console.log(` Cache invalidated for user ${userId}`);
+
+  // -------------------  REVALIDATE REDIS CACHE ---------------------
+  await deleteCache([
+    CacheKeys.USER_INFO(userId.toString()),
+    CacheKeys.LEAD_SERVICES_QUESTIONS(userId)
+  ]
+  );
+
+  await removeLeadListCacheByUser(userId.toString());
+
+
 
   return result;
 };
@@ -384,11 +405,6 @@ const toggleOnlineEnabled = async (
 const deleteLeadService = async (userId: string, serviceId: string) => {
   validateObjectId(serviceId, 'Service ID');
 
-
-  //  Revalidate cache after transaction commit
-  const cacheKey = `lead_services_with_questions:${userId}`;
-  await redisClient.del(cacheKey);
-  console.log(` Cache invalidated for user ${userId}`);
 
   const session = await mongoose.startSession();
 
@@ -437,6 +453,16 @@ const deleteLeadService = async (userId: string, serviceId: string) => {
       );
 
       console.log('UserLocationServiceMap update result:', updateResult);
+
+      // -------------------  REVALIDATE REDIS CACHE ---------------------
+      await deleteCache([
+        CacheKeys.USER_INFO(userId.toString()),
+        CacheKeys.LEAD_SERVICES_QUESTIONS(userId)
+      ]
+      );
+
+      await removeLeadListCacheByUser(userId.toString());
+
     });
 
 
@@ -471,10 +497,8 @@ const updateLeadServiceAnswersIntoDB = async (
   }>,
 ) => {
 
-  //  Revalidate cache after transaction commit
-  const cacheKey = `lead_services_with_questions:${userId}`;
-  await redisClient.del(cacheKey);
-  console.log(` Cache invalidated for user ${userId}`);
+  
+
 
   //  Find the associated user profile
   const userProfile = await UserProfile.findOne({ user: userId });
@@ -545,6 +569,15 @@ const updateLeadServiceAnswersIntoDB = async (
     }
   }
 
+
+  // -------------------  REVALIDATE REDIS CACHE ---------------------
+  await deleteCache([
+    CacheKeys.USER_INFO(userId.toString()),
+    CacheKeys.LEAD_SERVICES_QUESTIONS(userId)
+  ]
+  );
+
+  await removeLeadListCacheByUser(userId.toString());
 
 
   return { message: 'Lead service answers and locations updated successfully' };

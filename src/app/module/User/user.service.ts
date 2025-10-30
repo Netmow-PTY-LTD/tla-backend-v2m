@@ -23,7 +23,7 @@ import Agreement from './agreement.model';
 import { FOLDERS } from '../../constant';
 import { redisClient } from '../../config/redis.config';
 import { T } from '@faker-js/faker/dist/airline-DF6RqYmq';
-import { TTL } from '../../config/cacheKeys';
+import { CacheKeys, TTL } from '../../config/cacheKeys';
 
 
 /**
@@ -144,7 +144,6 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
   };
 
 
-
   return result;
 
 
@@ -175,7 +174,7 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
 //   payload: Partial<IUserProfile>,
 //   file?: TUploadedFile,
 // ) => {
-//   // ✅ Handle file upload if provided
+//   //  Handle file upload if provided
 //   if (file?.buffer) {
 //     try {
 //       // const uploadedUrl = await uploadToSpaces(
@@ -303,12 +302,12 @@ const updateProfileIntoDB = async (
 const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
   // ----------------------- CACHE KEY -----------------------
-  const cacheKey = `user_profile:${userId}`;
+ 
 
   // ----------------------- CHECK CACHE -----------------------
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.SINGLE_USER_PROFILE(userId));
   if (cachedData) {
-    console.log('✅ Cache hit:', cacheKey);
+    console.log(' Cache hit:', CacheKeys.SINGLE_USER_PROFILE(userId));
     return JSON.parse(cachedData);
   }
 
@@ -389,7 +388,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
   const finalUser = plainUser;
 
   // ----------------------- CACHE RESULT -----------------------
-  await redisClient.set(cacheKey, JSON.stringify(finalUser), { EX: TTL.MEDIUM_10M}); // cache for 1 hour
+  await redisClient.set(CacheKeys.SINGLE_USER_PROFILE(userId), JSON.stringify(finalUser), { EX: TTL.MEDIUM_10M}); // cache for 10 minutes
 
 
 
@@ -420,13 +419,12 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
   }
 
 
-  // ----------------------- CACHE KEY -----------------------
-  const cacheKey = `user_info:${userId}`;
+
 
   // ----------------------- CHECK CACHE -----------------------
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.USER_INFO(userId));
   if (cachedData) {
-    console.log(' Cache hit:', cacheKey);
+    console.log(' Cache hit:', CacheKeys.USER_INFO(userId));
     return JSON.parse(cachedData);
   }
 
@@ -536,7 +534,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
 
   // ----------------------- CACHE RESULT -----------------------
-  await redisClient.set(cacheKey, JSON.stringify(plainUser), { EX: 60 * 60 }); // cache for 1 hour
+  await redisClient.set(CacheKeys.USER_INFO(userId), JSON.stringify(plainUser), { EX: TTL.MEDIUM_10M }); // cache for 10 minutes
 
 
 
@@ -560,12 +558,12 @@ export const getCurrentUserProfileInfoFromCache = async (userId:string) => {
 
 
   // ----------------------- CACHE KEY -----------------------
-  const cacheKey = `user_info:${userId}`;
+
 
   // ----------------------- CHECK CACHE -----------------------
-  const cachedData = await redisClient.get(cacheKey);
+  const cachedData = await redisClient.get(CacheKeys.USER_INFO(userId));
   if (cachedData) {
-    console.log(' Cache hit:', cacheKey);
+    console.log(' Cache hit:', CacheKeys.USER_INFO(userId));
     // return JSON.parse(cachedData);
 
     return;
@@ -674,7 +672,7 @@ export const getCurrentUserProfileInfoFromCache = async (userId:string) => {
 
 
   // ----------------------- CACHE RESULT -----------------------
-  await redisClient.set(cacheKey, JSON.stringify(plainUser), { EX: 60 * 60 }); // cache for 1 hour
+  await redisClient.set(CacheKeys.USER_INFO(userId), JSON.stringify(plainUser), { EX: 60 * 60 }); // cache for 1 hour
 
 
 

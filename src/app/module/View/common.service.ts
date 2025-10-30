@@ -22,6 +22,8 @@ import { sendNotFoundResponse } from '../../errors/custom.error';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import { IUserSubscription } from '../CreditPayment/subscriptions.model';
 import { ISubscription } from '../SubscriptionPackage/subscriptionPack.model';
+import { CacheKeys } from '../../config/cacheKeys';
+import { deleteCache, removeLeadListCacheByUser } from '../../utils/cacheManger';
 // import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
@@ -453,7 +455,7 @@ import { ISubscription } from '../SubscriptionPackage/subscriptionPack.model';
 //       });
 //     });
 
-//     // 📡 --------------- Emit socket notifications -----------------------------------------
+//     //  --------------- Emit socket notifications -----------------------------------------
 //     io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit(
 //       'notification',
 //       {
@@ -763,6 +765,16 @@ const createLawyerResponseAndSpendCredit = async (
         session,
       });
     });
+
+    // -------------------  REVALIDATE REDIS CACHE ---------------------
+    await deleteCache(
+
+      CacheKeys.USER_INFO(userId.toString()),
+    );
+
+    await removeLeadListCacheByUser(userId.toString());
+
+    // ------------------------------------------------------------
 
     // --- 4️ Emit socket notifications
     io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit('notification', {

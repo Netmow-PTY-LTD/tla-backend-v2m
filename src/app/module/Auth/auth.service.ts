@@ -8,9 +8,7 @@ import { StringValue } from 'ms';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-
 import UserProfile from '../User/user.model';
-
 import { sendEmail } from '../../emails/email.service';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { generateOtp } from './otp.utils';
