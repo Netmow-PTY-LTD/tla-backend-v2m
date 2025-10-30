@@ -1,4 +1,4 @@
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { IProfileCustomService } from './profileCustomService.interface';

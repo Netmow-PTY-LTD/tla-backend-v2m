@@ -9,7 +9,7 @@ import { TUploadedFile } from '../../interface/file.interface';
 
 import ProfilePhotos from './profilePhotos';
 import UserProfile from './user.model';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 const updateProfilePhotosIntoDB = async (
   userId: string,

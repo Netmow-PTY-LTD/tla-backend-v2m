@@ -13,7 +13,7 @@ export interface ISubscription extends Document {
   name: string;
   slug: string;
   price: IPrice;
-   monthlyCaseContacts: number;
+  monthlyCaseContacts: number;
   billingCycle: BillingCycle;
   features: string[];
   description?: string;
@@ -71,18 +71,18 @@ SubscriptionSchema.index({ slug: 1 });
 // Virtual: price as float in major currency units (e.g. 1250 -> 12.50)
 SubscriptionSchema.virtual("priceFloat").get(function (this: ISubscription) {
   if (!this.price) return 0;
-  return this.price.amount / 100;
+  return this.price.amount ?? 0;
 });
 
 // Virtual: formatted price using Intl (falls back to currency code)
 SubscriptionSchema.virtual("priceFormatted").get(function (this: ISubscription) {
   try {
-    const major = (this.price?.amount ?? 0) / 100;
+    const major = this.price?.amount ?? 0;
     const currency = this.price?.currency ?? "USD";
     // Use Intl.NumberFormat for proper currency formatting
     return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(major);
   } catch (e) {
-    return `${(this.price?.amount ?? 0) / 100} ${this.price?.currency ?? ""}`;
+    return `${this.price?.amount ?? 0} ${this.price?.currency ?? ""}`;
   }
 });
 

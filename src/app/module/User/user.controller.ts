@@ -13,7 +13,7 @@ import { profileExperienceService } from './profileExperience.service';
 import { profileFaqService } from './profileFaq.service';
 import { startQueryTimer } from '../../utils/queryTimer';
 import { agreementService } from './agreement.service';
-import { redisClient } from '../../config/redis';
+import { redisClient } from '../../config/redis.config';
 
 /**
  * @desc   Updates the user's profile data in the database.

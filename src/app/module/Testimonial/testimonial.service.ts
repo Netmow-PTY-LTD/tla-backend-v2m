@@ -1,4 +1,5 @@
-import { redisClient } from "../../config/redis";
+import { TTL } from "../../config/cacheKeys";
+import { redisClient } from "../../config/redis.config";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
 import { HTTP_STATUS } from "../../constant/httpStatus";
@@ -92,7 +93,7 @@ const getAllTestimonialsFromDB = async (params: GetAllParams) => {
 
 
   // 3️ Cache the result
-  await redisClient.set(cacheKey, JSON.stringify(queryResult), { EX: CACHE_TTL_SECONDS });
+  await redisClient.set(cacheKey, JSON.stringify(queryResult), { EX: TTL.EXTENDED_1D });
   console.log(' Cached all testimonials for 24 hours');
 
 
