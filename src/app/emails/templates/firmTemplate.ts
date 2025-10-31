@@ -222,39 +222,63 @@ export const firmRegisterEmail = (data: {
 
 
 
-//   firm claims email template
-export const firmClaimsEmail = (data: {
-    name: string;
-    claimDetails: string;
+//   newClaimNotificationEmail
+export const newClaimNotificationEmail = (data: {
+  claimId: string;
+  lawFirmName: string;
+  claimerName: string;
+  issueDescription: string;
 }) => {
-    const { name, claimDetails } = data;
+  const { claimId, lawFirmName, claimerName, issueDescription } = data;
 
-    return `
-    ${headerDesign}
+  return `
+  ${headerDesign}
 
-    <!-- Greeting -->
-    <tr>
-      <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          Your claim has been submitted successfully. Here are the details:
-        </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          <strong>Claim Details:</strong> ${claimDetails}
-        </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          We will review your claim and get back to you shortly.
-        </p>
-        <p style="font-size: 14px; color: #555;">
-          If you didn’t initiate this request, you can safely ignore this email.
-        </p>
-        <p style="font-size: 14px; margin-top: 20px;">
-          Best Regards,<br>
-          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
-        </p>
-      </td>
-    </tr>
+  <!-- Email Body -->
+  <tr>
+    <td style="padding: 0 30px;">
+      <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">
+        New Claim Submitted
+      </h2>
 
-   ${footerDesign}
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        A new claim has been submitted by a law firm on <strong>TheLawApp</strong>. Below are the details:
+      </p>
+
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+        <tr>
+          <td style="padding: 8px 0; font-size: 16px;"><strong>Claim ID:</strong></td>
+          <td style="padding: 8px 0; font-size: 16px; color: #555;">${claimId}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 16px;"><strong>Law Firm:</strong></td>
+          <td style="padding: 8px 0; font-size: 16px; color: #555;">${lawFirmName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 16px;"><strong>Claimer Name:</strong></td>
+          <td style="padding: 8px 0; font-size: 16px; color: #555;">${claimerName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 16px; vertical-align: top;"><strong>Issue Description:</strong></td>
+          <td style="padding: 8px 0; font-size: 16px; color: #555;">${issueDescription}</td>
+        </tr>
+      </table>
+
+      <p style="font-size: 16px; line-height: 1.6;">
+        Please review this claim in the admin dashboard and take the necessary action.
+      </p>
+
+      <p style="font-size: 14px; color: #777; margin-top: 25px;">
+        You are receiving this email because you are registered as an admin on TheLawApp platform.
+      </p>
+
+      <p style="font-size: 14px; margin-top: 20px;">
+        Best Regards,<br>
+        <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+      </p>
+    </td>
+  </tr>
+
+  ${footerDesign}
   `;
 };

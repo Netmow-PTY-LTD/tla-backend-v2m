@@ -2,7 +2,7 @@
 
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/settingsConfig";
-import { firmClaimsEmail, firmPasswordResetEmail, firmRegisterEmail, requestlawyerAsFirmMember } from "./templates/firmTemplate";
+import {  firmPasswordResetEmail, firmRegisterEmail, newClaimNotificationEmail, requestlawyerAsFirmMember } from "./templates/firmTemplate";
 import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 
@@ -96,8 +96,8 @@ export const sendEmail = async ({
     html = firmRegisterEmail(data)
   }
 
-  if(emailTemplate =='firm_claims'){
-    html = firmClaimsEmail(data)
+  if(emailTemplate =='new_claim_notification'){
+    html = newClaimNotificationEmail(data)
   }
 
 
