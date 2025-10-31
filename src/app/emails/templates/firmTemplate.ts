@@ -132,39 +132,65 @@ ${headerDesign}
 
 
 
-export const requestlawyerAsFirmMember =  (data: {
-    name: string;
-    requestUrl: string;
+export const requestlawyerAsFirmMember = (data: {
+  lawyerName: string;
+  lawyerEmail: string;
+  role: string;
+  requestUrl: string;
 }) => {
-    const { name, requestUrl } = data;
+  const { lawyerName, lawyerEmail, role, requestUrl } = data;
 
-    return `
-    ${headerDesign}
+  return `
+  ${headerDesign}
 
-    <!-- Greeting -->
-    <tr>
-      <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          You have been invited to join TheLawApp as a firm member. Click on the button below to accept the invitation.
-        </p>
-        <!-- Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${requestUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
-            Accept Invitation
-          </a>
-        </div>
-        <p style="font-size: 14px; color: #555;">
-          If you didn’t initiate this request, you can safely ignore this email.
-        </p>
-        <p style="font-size: 14px; margin-top: 20px;">
-          Best Regards,<br>
-          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
-        </p>
-      </td>
-    </tr>
+  <!-- Greeting -->
+  <tr>
+    <td style="padding: 0 30px;">
+      <h2 style="font-size: 24px; margin-bottom: 20px;">New Lawyer Registration Request</h2>
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        A new lawyer has requested to join your firm on <strong>TheLawApp</strong>.
+      </p>
 
-   ${footerDesign}
+      <!-- Lawyer Info -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+        <tr>
+          <td style="font-size: 15px; padding: 8px 0;"><strong>Name:</strong></td>
+          <td style="font-size: 15px; padding: 8px 0;">${lawyerName}</td>
+        </tr>
+        <tr>
+          <td style="font-size: 15px; padding: 8px 0;"><strong>Email:</strong></td>
+          <td style="font-size: 15px; padding: 8px 0;">${lawyerEmail}</td>
+        </tr>
+        <tr>
+          <td style="font-size: 15px; padding: 8px 0;"><strong>Role:</strong></td>
+          <td style="font-size: 15px; padding: 8px 0;">${role}</td>
+        </tr>
+      </table>
+
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Please review this request in your firm dashboard to approve or reject the new member.
+      </p>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin-bottom: 30px;">
+        <a href="${requestUrl}"
+           style="background-color:#FF7F27; color:#ffffff; text-decoration:none;
+                  padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+          Review Request
+        </a>
+      </div>
+
+      <p style="font-size: 14px; color: #555;">
+        If you believe this message was sent in error, you can safely ignore it.
+      </p>
+      <p style="font-size: 14px; margin-top: 20px;">
+        Best Regards,<br>
+        <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+      </p>
+    </td>
+  </tr>
+
+  ${footerDesign}
   `;
 };
 
