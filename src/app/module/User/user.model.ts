@@ -133,7 +133,7 @@ const userProfileSchema = new Schema<IUserProfile>(
     },
     //   firm related fields
     firmProfileId: { type: Schema.Types.ObjectId, ref: 'FirmProfile', default: null },
-    firmMembershipStatus: { type: String, enum: ['pending', 'approved', 'rejected', 'cancelled', 'left'], default: 'pending' },
+    firmMembershipStatus: { type: String, enum: ['pending', 'approved', 'rejected', 'cancelled', 'left', 'removed'], default: 'pending' },
 
     joinedAt: { type: Date, default: null },
     leftAt: { type: Date, default: null },
@@ -146,6 +146,16 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: Boolean,
       default: false,
     },
+
+    isFirmRemoved: {
+      type: Boolean,
+      default: false,
+    },
+    firmRemovedAt: {
+      type: Date,
+      default: null,
+    },
+
 
     //   access other user profiles
     isAccessibleByOtherUsers: {

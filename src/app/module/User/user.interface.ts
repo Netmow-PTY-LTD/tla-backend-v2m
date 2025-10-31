@@ -73,6 +73,8 @@ export interface IUserProfile {
   isFirmMemberRequest: boolean;
   activeFirmRequestId: Types.ObjectId | null;
   isAccessibleByOtherUsers?: boolean;
+  isFirmRemoved?: boolean;
+  firmRemovedAt?: Date | null;
 
   deletedAt?: Date | null;
 }

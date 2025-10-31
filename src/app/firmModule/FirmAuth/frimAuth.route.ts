@@ -95,4 +95,14 @@ router.post(
     firmAuthController.requestLawyerAccess,
 );
 
+router.post(
+    '/lawyer-remove-from-firm',
+    firmAuth(Firm_USER_ROLE.ADMIN, Firm_USER_ROLE.STAFF),
+    firmAuthController.lawyerRemoveFromFirm,
+);
+
+
+
+
+
 export const firmAuthRouter = router;
