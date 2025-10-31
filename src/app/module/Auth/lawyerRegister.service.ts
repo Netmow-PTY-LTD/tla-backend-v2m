@@ -21,6 +21,7 @@ import { FirmLicense } from '../../firmModule/FirmWiseCertLicense/cirtificateLic
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import AdminProfile from '../../firmModule/Admin/admin.model';
 import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
+import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
 
 
 // const lawyerRegisterUserIntoDB = async (payload: IUser) => {
@@ -505,10 +506,8 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
 
       const firm = await FirmProfile.findOne({ firmName: companyInfo?.companyName }).select('_id').session(session);
-      const firmAdmin = await FirmUser.findOne({ firmProfileId: firm?._id }).session(session);
-
+      const firmAdmin = await FirmUser.findOne({ firmProfileId: firm?._id, role: Firm_USER_ROLE.ADMIN, }).session(session);
       if (firmAdmin) {
-
         await sendEmail({
           to: firmAdmin.email,
           subject: 'New Lawyer Registration Request',
@@ -516,7 +515,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
             lawyerName: newProfile?.name,
             lawyerEmail: newUser.email,
             role: 'Lawyer',
-            requestUrl:`${config.firm_client_url}/dashboard/requests`
+            requestUrl: `${config.firm_client_url}/dashboard/requests`
           },
           emailTemplate: 'request_lawyer_as_firm_member',
         });
