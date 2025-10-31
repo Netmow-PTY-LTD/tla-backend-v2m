@@ -169,25 +169,25 @@ const leadSchema = new Schema<ILead>(
       type: Schema.Types.ObjectId,
       ref: 'UserProfile', // Client who created the lead
       required: true,
-      index: true, // ✅ Frequently used in lookups & filters
+      index: true, //  Frequently used in lookups & filters
     },
     countryId: {
       type: Schema.Types.ObjectId,
       ref: 'Country',
       required: true,
-      index: true, // ✅ Used for country-level filtering
+      index: true, //  Used for country-level filtering
     },
     serviceId: {
       type: Schema.Types.ObjectId,
       ref: 'Service',
       required: true,
-      index: true, // ✅ Used in lookups & service filters
+      index: true, //  Used in lookups & service filters
     },
     locationId: {
       type: Schema.Types.ObjectId,
       ref: 'ZipCode',
       required: true,
-      index: true, // ✅ Lookup & location-based filtering
+      index: true, //  Lookup & location-based filtering
     },
 
     // GeoJSON location for $geoNear
@@ -199,7 +199,7 @@ const leadSchema = new Schema<ILead>(
     additionalDetails: {
       type: String,
       default: '',
-      index: 'text', // ✅ For keyword text search
+      index: 'text', //  For keyword text search
     },
 
     budgetAmount: {
@@ -221,14 +221,14 @@ const leadSchema = new Schema<ILead>(
         'cancelled',
       ],
       default: 'approved',
-      index: true, // ✅ Frequently filtered
+      index: true, //  Frequently filtered
     },
 
     leadPriority: {
       type: String,
       enum: PRIORITY_OPTIONS,
       default: 'not_sure',
-      index: true, // ✅ Used for "urgent"/priority filtering
+      index: true, //  Used for "urgent"/priority filtering
     },
 
     responders: {
@@ -241,7 +241,7 @@ const leadSchema = new Schema<ILead>(
       type: String,
       enum: ['not_requested', 'requested', 'hired', 'rejected'],
       default: 'not_requested',
-      index: true, // ✅ Used in status-based queries
+      index: true, //  Used in status-based queries
     },
     isHired: {
       type: Boolean,

@@ -120,7 +120,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
         openCases: 1,
       },
     }, { session });
-    
+
     const leadDocs: any[] = [];
 
     for (const q of questions) {
@@ -3785,46 +3785,130 @@ const deleteLeadFromDB = async (id: string) => {
 //  lead closed
 
 
+// export const leadClosedIntoDB = async (
+//   userId: string,
+//   leadId: string,
+//   reason?: string
+// ) => {
+//   // Validate leadId
+//   validateObjectId(leadId, "Case");
+
+//   // Fetch the lead
+//   const lead = await Lead.findById(leadId);
+//   if (!lead) {
+
+//     return { success: false, message: "Case not found" };
+//   }
+
+//   // Fetch user profile of the requester
+//   const userProfile = await UserProfile.findOne({ user: userId }).select("_id");
+//   if (!userProfile) {
+//     return { success: false, message: "User profile not found" };
+//   }
+
+//   // Check if already closed
+//   if (lead.isClosed) {
+//     return { success: false, message: "Case is already closed" };
+//   }
+
+//   // Update closure fields
+//   lead.isClosed = true;
+//   lead.closeStatus = "closed";
+//   lead.status = "closed"; // Overall lead status
+//   lead.closedBy = new Types.ObjectId(userProfile._id);
+//   lead.closedAt = new Date();
+//   lead.leadClosedReason = reason || null;
+//   await lead.save();
+
+//   return {
+//     success: true,
+//     message: "Case closed successfully",
+//     lead,
+//   };
+// };
+
+
+
+
+
 export const leadClosedIntoDB = async (
   userId: string,
   leadId: string,
   reason?: string
 ) => {
-  // Validate leadId
-  validateObjectId(leadId, "Case");
+  const session = await mongoose.startSession();
 
-  // Fetch the lead
-  const lead = await Lead.findById(leadId);
-  if (!lead) {
+  try {
+    await session.withTransaction(async () => {
+      // Validate leadId
+      validateObjectId(leadId, "Case");
 
-    return { success: false, message: "Case not found" };
+      // Fetch the lead
+      const lead = await Lead.findById(leadId).session(session);
+      if (!lead) {
+
+        return { success: false, message: "Case not found" };
+      }
+
+      // Fetch user profile of the requester
+      const userProfile = await UserProfile.findOne({ user: userId })
+        .select("_id")
+        .session(session);
+
+      if (!userProfile) {
+        return { success: false, message: "User profile not found" };
+      }
+      // Check if already closed
+      if (lead.isClosed) {
+        return { success: false, message: "Case is already closed" };
+      }
+
+      // Update closure fields
+      lead.isClosed = true;
+      lead.closeStatus = "closed";
+      lead.status = "closed"; // Overall lead status
+      lead.closedBy = new Types.ObjectId(userProfile._id);
+      lead.closedAt = new Date();
+      lead.leadClosedReason = reason || null;
+      await lead.save({ session });
+
+      // Update case count in user profile
+      await UserProfile.findByIdAndUpdate(
+        lead.userProfileId,
+        {
+          $inc: {
+            closedCases: 1,
+            openCases: -1,
+          },
+        },
+        { session }
+      );
+    });
+
+    return {
+      success: true,
+      message: "Case closed successfully",
+    };
+  } catch (error: any) {
+    console.error(" Transaction failed:", error.message);
+    return {
+      success: false,
+      message: error.message || "Failed to close case",
+    };
+  } finally {
+    await session.endSession();
   }
-
-  // Fetch user profile of the requester
-  const userProfile = await UserProfile.findOne({ user: userId }).select("_id");
-  if (!userProfile) {
-    return { success: false, message: "User profile not found" };
-  }
-
-  // Check if already closed
-  if (lead.isClosed) {
-    return { success: false, message: "Case is already closed" };
-  }
-
-  // Update closure fields
-  lead.isClosed = true;
-  lead.closeStatus = "closed";
-  lead.status = "closed"; // Overall lead status
-  lead.closedBy = new Types.ObjectId(userProfile._id);
-  lead.closedAt = new Date();
-  lead.leadClosedReason = reason || null;
-  await lead.save();
-  return {
-    success: true,
-    message: "Case closed successfully",
-    lead,
-  };
 };
+
+
+
+
+
+
+
+
+
+
 
 
 
