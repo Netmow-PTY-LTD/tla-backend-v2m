@@ -25,6 +25,9 @@ import { FOLDERS } from "../../constant";
 import User from "../../module/Auth/auth.model";
 import { USER_STATUS } from "../../module/Auth/auth.constant";
 import { SsoToken } from "./SsoToken.model";
+import UserProfile from "../../module/User/user.model";
+import { redisClient } from "../../config/redis.config";
+import { CacheKeys } from "../../config/cacheKeys";
 
 
 
@@ -234,6 +237,28 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
         // 6) commit
         await session.commitTransaction();
         session.endSession();
+
+
+        //  Send email ONLY after successful commit
+        const data = {
+            name: newAdmin?.fullName,
+            loginUrl: `${config.firm_client_url}/login`,
+            password: userData.password,
+            email: userData.email,
+        };
+
+
+        await sendEmail({
+            to: userData.email,
+            subject: 'Welcome to TheLawApp! Your Company Registration is Complete',
+            data: data,
+            emailTemplate: "firm_registration",
+        });
+
+
+
+
+
 
         return {
             firm_accessToken,
@@ -474,7 +499,7 @@ const forgetPassword = async (userEmail: string) => {
         to: user.email,
         subject: 'Reset Your Password to Regain Access',
         data: restEmailData,
-        emailTemplate: 'password_reset',
+        emailTemplate: 'firm_password_reset',
     });
 
 };
@@ -1120,6 +1145,75 @@ const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
 
 
 
+//  lawyer remove from firm
+const lawyerRemoveFromFirm = async (userId: string, lawyerProfileId: string) => {
+    // Validate IDs
+    validateObjectId(userId, "User");
+    validateObjectId(lawyerProfileId, "Lawyer");
+
+    // Start a session
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        // Find firm user
+        const firmUser = await FirmUser.findById(userId).session(session);
+        if (!firmUser) throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm user not found");
+
+        // Find firm profile
+        const firm = await FirmProfile.findById(firmUser.firmProfileId).session(session);
+        if (!firm) throw new AppError(HTTP_STATUS.NOT_FOUND, "Firm not found");
+
+        // Find lawyer profile
+        const lawyerProfile = await UserProfile.findById(lawyerProfileId).session(session);
+        if (!lawyerProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "Lawyer not found");
+
+        // Remove lawyer from firm using $pull
+        await FirmProfile.updateOne(
+            { _id: firm._id },
+            { $pull: { lawyers: lawyerProfile._id } },
+            { session }
+        );
+
+        // Update lawyer’s firm-related fields
+        await UserProfile.updateOne(
+            { _id: lawyerProfile._id },
+            {
+                $set: {
+                    firmProfileId: null,                 // remove firm reference
+                    firmMembershipStatus: "removed",     // status reflects firm action
+                    isFirmRemoved: true,                 // mark as removed
+                    firmRemovedAt: new Date(),           // exact removal time
+                    activeFirmRequestId: null,           // clear pending requests
+                    isFirmMemberRequest: false,          // reset request flag
+                    isAccessibleByOtherUsers: false,     // reset access
+                },
+            },
+            { session }
+        );
+
+        // Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        await redisClient.del(CacheKeys.USER_INFO(lawyerProfile.user.toString()));
+        console.log(` Cache invalidated for user ${lawyerProfile.user.toString()}`);
+
+        return {
+            status: "success",
+            message: "Lawyer successfully removed from firm",
+            data: { firmId: firm._id, removedLawyerId: lawyerProfile._id },
+        };
+    } catch (error) {
+        // Rollback transaction on error
+        await session.abortTransaction();
+        session.endSession();
+        throw error; // propagate the error
+    }
+};
+
+
+
 export const firmAuthService = {
     firmRegisterUserIntoDB,
     loginUserIntoDB,
@@ -1137,4 +1231,5 @@ export const firmAuthService = {
     getUserInfoFromDB,
     updateCurrentUser,
     requestLawyerAccess,
+    lawyerRemoveFromFirm
 };

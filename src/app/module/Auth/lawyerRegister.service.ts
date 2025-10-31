@@ -17,6 +17,11 @@ import { LocationType } from '../LeadSettings/UserWiseLocation.constant';
 import { sendEmail } from '../../emails/email.service';
 import Service from '../Service/service.model';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
+import { FirmLicense } from '../../firmModule/FirmWiseCertLicense/cirtificateLicese.model';
+import { FirmProfile } from '../../firmModule/Firm/firm.model';
+import AdminProfile from '../../firmModule/Admin/admin.model';
+import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
+import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
 
 
 // const lawyerRegisterUserIntoDB = async (payload: IUser) => {
@@ -338,7 +343,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
       // await CompanyProfile.create([companyProfileMapData], { session });
 
-    const [lawyerRequest] = await LawyerRequestAsMember.create([{
+      const [lawyerRequest] = await LawyerRequestAsMember.create([{
         firmProfileId: companyInfo?.companyName,
         lawyerId: newProfile._id,
         status: 'pending',
@@ -493,6 +498,32 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       },
       emailTemplate: 'verify_email',
     });
+
+
+
+    //  lawyer firm member request email notification to firm admin
+    if (companyInfo?.companyTeam) {
+
+
+      const firm = await FirmProfile.findOne({ firmName: companyInfo?.companyName }).select('_id').session(session);
+      const firmAdmin = await FirmUser.findOne({ firmProfileId: firm?._id, role: Firm_USER_ROLE.ADMIN, }).session(session);
+      if (firmAdmin) {
+        await sendEmail({
+          to: firmAdmin.email,
+          subject: 'New Lawyer Registration Request',
+          data: {
+            lawyerName: newProfile?.name,
+            lawyerEmail: newUser.email,
+            role: 'Lawyer',
+            requestUrl: `${config.firm_client_url}/dashboard/requests`
+          },
+          emailTemplate: 'request_lawyer_as_firm_member',
+        });
+
+      }
+    }
+
+
 
     // Return the generated tokens and user data
     return {

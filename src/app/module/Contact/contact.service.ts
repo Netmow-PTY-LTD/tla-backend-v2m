@@ -15,6 +15,7 @@ import { IUser } from '../Auth/auth.interface';
 import User from '../Auth/auth.model';
 import { IUserProfile } from '../User/user.interface';
 import config from '../../config';
+import { USER_ROLE } from '../../constant';
 
 //  -------------------- old code  ---------------------------------
 // const sendContactMessage = async (
@@ -598,14 +599,47 @@ interface IEmail {
 
 
 const contactWithEmail = async (payload: IEmail) => {
+
+
+
+
+
+
   try {
-    await sendEmail({
-      to: "maksud.netmow@gmail.com",
-      // to: "rabby.netmow@gmail.com",
-      subject: `You have received a message from ${payload.name}`,
-      data: payload,
-      emailTemplate: "public-contact",
-    });
+
+
+
+
+    //  Send email notification to all admins
+    const admins = await User.find({ role: USER_ROLE.ADMIN })
+      .select("email")
+      .lean();
+
+    const adminEmails = admins.map((admin) => admin.email).filter(Boolean);
+
+    if (adminEmails.length > 0) {
+      await sendEmail({
+        to: adminEmails.join(','),
+        subject: `You have received a message from ${payload.name}`,
+        data: payload,
+        emailTemplate: "public-contact",
+      });
+    } else {
+      console.warn(" No admin emails found to notify for contact message.");
+    }
+
+
+
+    //   previous code
+
+
+    // await sendEmail({
+    //   to: "maksud.netmow@gmail.com",
+    //   // to: "rabby.netmow@gmail.com",
+    //   subject: `You have received a message from ${payload.name}`,
+    //   data: payload,
+    //   emailTemplate: "public-contact",
+    // });
 
     return {
       success: true,
