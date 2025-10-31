@@ -683,7 +683,7 @@ const createLawyerResponseAndSpendCredit = async (
       }
 
       // --- Update lead responders
-      await Lead.findOneAndUpdate(
+      const updatedLead = await Lead.findOneAndUpdate(
         { _id: leadId },
         [
           {
@@ -700,6 +700,15 @@ const createLawyerResponseAndSpendCredit = async (
         ],
         { new: true, session },
       );
+
+
+      // update case count in user profile
+      await UserProfile.findByIdAndUpdate(updatedLead?.userProfileId, {
+        $inc: {
+          responseCases: 1,
+        },
+      }, { new: true });
+
 
       // --- Log activity
       if (useCredit && creditTx) {

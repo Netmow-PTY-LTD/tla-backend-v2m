@@ -90,7 +90,7 @@ const getAllResponseFromDB = async () => {
                   $and: [
                     { $eq: ['$countryId', '$$countryId'] },
                     { $eq: ['$serviceId', '$$serviceId'] },
-                   
+
                   ],
                 },
               },
@@ -971,7 +971,7 @@ const sendHireRequest = async (
 
   await response.save();
 
-  // 5️⃣ Log activity
+  // 5️ Log activity
   await logActivity({
     createdBy: userProfile._id,
     activityNote: `Sent a hire request to the lawyer${hireMessage ? ` with message: "${hireMessage}"` : ""}`,
@@ -990,12 +990,12 @@ const sendHireRequest = async (
       ? (response.responseBy.user as IUser)?._id
       : response.responseBy.user;
 
-  // ✅ Ensure we never pass undefined
+  //  Ensure we never pass undefined
   if (!lawyerUserId) {
     throw new Error("Lawyer userId not found for notification!");
   }
 
-  // 6️⃣ Create notification
+  // 6️ Create notification
   await createNotification({
     userId: lawyerUserId,
     toUser: userProfile._id, // send notification to the lawyer
@@ -1034,17 +1034,17 @@ export const changeHireStatus = async (
   validateObjectId(responseId, "Response");
   const io = getIO();
 
-  // 1️⃣ Fetch the response
+  // 1️ Fetch the response
   const response = await LeadResponse.findById(responseId);
   if (!response) return { success: false, message: "Response not found" };
 
   if (!response.isHireRequested)
     return { success: false, message: "No hire request to update" };
-  // 2️⃣ Fetch the user profile
+  // 2️ Fetch the user profile
   const userProfile = await UserProfile.findOne({ user: userId }).populate("user");
   if (!userProfile) return { success: false, message: "User profile not found!" };
 
-  // 🚫 Prevent the requester from changing their own hire request
+  //  Prevent the requester from changing their own hire request
   if (response.hireRequestedBy?.toString() === userProfile?._id.toString())
     return { success: false, message: "You cannot change your own hire request" };
 
@@ -1053,7 +1053,7 @@ export const changeHireStatus = async (
 
 
 
-  // 3️⃣ If hire accepted, update Lead info
+  // 3️ If hire accepted, update Lead info
   if (hireDecision === "accepted") {
     const lead = await Lead.findById(response.leadId);
     if (!lead) return { success: false, message: "Associated case not found" };
@@ -1065,12 +1065,22 @@ export const changeHireStatus = async (
     lead.hiredBy = new Types.ObjectId(userProfile._id);
     lead.hiredAt = new Date();
     await lead.save();
+
+
+    // update case count in user profile
+    await UserProfile.findByIdAndUpdate(lead.userProfileId, {
+      $inc: {
+        hiredCases: 1,
+      },
+    }, { new: true });
+
+
   }
 
 
 
 
-  // 4️⃣ Update response
+  // 4️ Update response
   response.hireDecision = hireDecision;
   response.hireAcceptedBy =
     hireDecision === "accepted" ? new Types.ObjectId(userProfile._id) : null;
@@ -1078,7 +1088,7 @@ export const changeHireStatus = async (
   response.hireAcceptedAt = new Date();
   await response.save();
 
-  // 5️⃣ Update user profile type for lawyer only
+  // 5️ Update user profile type for lawyer only
   const userEmail = (userProfile.user as any)?.email;
   if ((userProfile.user as any)?.role === "lawyer") {
     const hireCount = await LeadResponse.countDocuments({

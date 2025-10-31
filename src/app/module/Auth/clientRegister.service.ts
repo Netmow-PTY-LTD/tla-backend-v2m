@@ -101,7 +101,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     newUser.profile = new Types.ObjectId(newProfile._id);
     await newUser.save({ session });
 
-    // ✅ if registration user type is client then create lead 
+    //  if registration user type is client then create lead 
 
     const creditInfo = await CountryWiseServiceWiseField.findOne({
       countryId,
@@ -126,7 +126,16 @@ const clientRegisterUserIntoDB = async (payload: any) => {
         { session },
       );
 
-      // ✅ Only insert selected answers from `questions` (frontend)
+
+      // update case count in user profile
+      await UserProfile.findByIdAndUpdate(newProfile._id, {
+        $inc: {
+          totalCases: 1,
+          openCases: 1,
+        },
+      }, { session });
+
+      //  Only insert selected answers from `questions` (frontend)
       const leadDocs: any[] = [];
 
       for (const q of questions) {
@@ -199,7 +208,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     }
 
-    // ✅ location  realated 
+    //  location  realated 
     const locationGroup = await ZipCode.findOne({
       countryId: newProfile?.country,
       zipCodeType: 'default',
