@@ -2,6 +2,7 @@
 
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/settingsConfig";
+import { firmPasswordResetEmail } from "./templates/firmTemplate";
 import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 
@@ -77,6 +78,11 @@ export const sendEmail = async ({
 
   if (emailTemplate == "lawyer_approved") {
     html = lawyerApprval(data)
+
+  }
+
+  if (emailTemplate == "firm_password_reset") {
+    html = firmPasswordResetEmail(data)
 
   }
 

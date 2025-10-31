@@ -475,7 +475,7 @@ const forgetPassword = async (userEmail: string) => {
         to: user.email,
         subject: 'Reset Your Password to Regain Access',
         data: restEmailData,
-        emailTemplate: 'password_reset',
+        emailTemplate: 'firm_password_reset',
     });
 
 };
