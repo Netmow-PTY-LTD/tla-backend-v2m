@@ -1115,12 +1115,12 @@ const requestLawyerAccess = async (userId: string, lawyerId?: string) => {
     if (!lawyer) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Lawyer not found');
 
     if ([lawyer.deletedAt, 'SUSPENDED', 'ARCHIVED', 'REJECTED'].includes(lawyer.accountStatus)) {
-        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Lawyer not accessible');
+        throw new AppError(HTTP_STATUS.FORBIDDEN, `You are not allowed to access this lawyer because the account is ${lawyer.accountStatus}`);
     }
 
     // Ensure lawyer.profile is populated and has isAccessibleByOtherUsers property
     if (!lawyer.profile || !(lawyer.profile as any).isAccessibleByOtherUsers) {
-        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Lawyer not accessible');
+        throw new AppError(HTTP_STATUS.FORBIDDEN, 'You are not allowed to login to this lawyer');
     }
 
     // Generate random token
