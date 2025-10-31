@@ -13,10 +13,12 @@ import { Claim } from "../../module/Claim/claim.model";
 import { AppError } from "../../errors/error";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { uploadToSpaces } from "../../config/upload";
-import { FOLDERS } from "../../constant";
+import { FOLDERS, USER_ROLE } from "../../constant";
 import { Notification } from "../../module/Notification/notification.model";
 import UserProfile from "../../module/User/user.model";
 import { sendNotFoundResponse } from "../../errors/custom.error";
+import { sendEmail } from "../../emails/email.service";
+import User from "../../module/Auth/auth.model";
 
 
 
@@ -289,7 +291,7 @@ const createClaimIntoDB = async (
       proofOwnFiles = await Promise.all(
         files.map((file) =>
           // uploadToSpaces(file.buffer as Buffer, file.originalname, normalizedLawFirmEmail, FOLDERS.CLAIMS)
-        
+
           uploadToSpaces(file.buffer as Buffer, file.originalname, {
             folder: FOLDERS.CLAIMS,
             entityId: normalizedLawFirmEmail,
@@ -325,6 +327,36 @@ const createClaimIntoDB = async (
 
     await session.commitTransaction();
     session.endSession();
+
+
+    //  Send email notification to all admins
+    const admins = await User.find({ role: USER_ROLE.ADMIN })
+      .select("email")
+      .lean();
+
+    const adminEmails = admins.map((admin) => admin.email).filter(Boolean);
+
+    if (adminEmails.length > 0) {
+      const emailData = {
+        subject: "New Claim Submitted – TheLawApp",
+        to: adminEmails.join(','),
+        data: {
+          claimId: created._id,
+          lawFirmName: normalizedFirmName,
+          claimerName: payload.claimerName,
+          issueDescription: payload.issueDescription,
+        },
+        emailTemplate: "new_claim_notification",
+      };
+
+      await sendEmail(emailData);
+    } else {
+      console.warn(" No admin emails found to notify for new claim");
+    }
+
+
+
+
 
     return created.toObject() as IClaim;
   } catch (err) {

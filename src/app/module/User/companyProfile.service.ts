@@ -11,6 +11,10 @@ import UserProfile from './user.model';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 import { Types } from 'mongoose';
 import { FOLDERS } from '../../constant';
+import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
+import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
+import { sendEmail } from '../../emails/email.service';
+import config from '../../config';
 
 const updateCompanyProfileIntoDB = async (
   userId: string,
@@ -39,7 +43,7 @@ const updateCompanyProfileIntoDB = async (
       //   userId,
       // );
 
-       const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
+      const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
         folder: FOLDERS.FIRMS,
         entityId: `logos_${userId}`,
       });
@@ -118,7 +122,7 @@ export const firmRequestAsMember = async (
   session.startTransaction();
 
   try {
-    // 🧩 Step 1: Get user profile inside transaction
+    //  Step 1: Get user profile inside transaction
     const userProfile = await UserProfile.findOne({ user: userId })
       .populate<{ user: { email: string } }>('user')
       .session(session);
@@ -129,7 +133,7 @@ export const firmRequestAsMember = async (
       return null;
     }
 
-    // 🧩 Step 2: Create membership request
+    //  Step 2: Create membership request
     const [newRequest] = await LawyerRequestAsMember.create(
       [
         {
@@ -145,14 +149,47 @@ export const firmRequestAsMember = async (
       { session }
     );
 
-    // 🧩 Step 3: Update user profile to mark request flag
+    //  Step 3: Update user profile to mark request flag
     userProfile.isFirmMemberRequest = true;
     userProfile.activeFirmRequestId = newRequest._id as Types.ObjectId;
     await userProfile.save({ session });
 
-    // ✅ Commit the transaction
+    //  Commit the transaction
     await session.commitTransaction();
     session.endSession();
+
+
+
+
+
+    //  Step 4: Notify the firm's admin by email
+    const firmAdmin = await FirmUser.findOne({
+      firmProfileId: payload.firmProfileId,
+      role: Firm_USER_ROLE.ADMIN,
+    });
+
+    if (firmAdmin && firmAdmin.email) {
+      await sendEmail({
+        to: firmAdmin.email,
+        subject: "New Lawyer Registration Request",
+        data: {
+          lawyerName: userProfile?.name ?? "Unnamed Lawyer",
+          lawyerEmail: userProfile.user?.email ?? "No email provided",
+          role: "Lawyer",
+          requestUrl: `${config.firm_client_url}/dashboard/requests`,
+        },
+        emailTemplate: "request_lawyer_as_firm_member",
+      });
+
+      console.log(` Sent lawyer request email to firm admin: ${firmAdmin.email}`);
+    } else {
+      console.warn(" No firm admin found for this firm profile ID:", payload.firmProfileId);
+    }
+
+
+
+
+
 
     // Return the created request (newRequest is the created document)
     return newRequest;

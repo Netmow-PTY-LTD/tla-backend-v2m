@@ -26,6 +26,8 @@ import User from "../../module/Auth/auth.model";
 import { USER_STATUS } from "../../module/Auth/auth.constant";
 import { SsoToken } from "./SsoToken.model";
 import UserProfile from "../../module/User/user.model";
+import { redisClient } from "../../config/redis.config";
+import { CacheKeys } from "../../config/cacheKeys";
 
 
 
@@ -235,6 +237,28 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
         // 6) commit
         await session.commitTransaction();
         session.endSession();
+
+
+        //  Send email ONLY after successful commit
+        const data = {
+            name: newAdmin?.fullName,
+            loginUrl: `${config.firm_client_url}/login`,
+            password: userData.password,
+            email: userData.email,
+        };
+
+
+        await sendEmail({
+            to: userData.email,
+            subject: 'Welcome to TheLawApp! Your Company Registration is Complete',
+            data: data,
+            emailTemplate: "firm_registration",
+        });
+
+
+
+
+
 
         return {
             firm_accessToken,
@@ -475,7 +499,7 @@ const forgetPassword = async (userEmail: string) => {
         to: user.email,
         subject: 'Reset Your Password to Regain Access',
         data: restEmailData,
-        emailTemplate: 'password_reset',
+        emailTemplate: 'firm_password_reset',
     });
 
 };
@@ -1171,6 +1195,9 @@ const lawyerRemoveFromFirm = async (userId: string, lawyerProfileId: string) => 
         // Commit transaction
         await session.commitTransaction();
         session.endSession();
+
+        await redisClient.del(CacheKeys.USER_INFO(lawyerProfile.user.toString()));
+        console.log(` Cache invalidated for user ${lawyerProfile.user.toString()}`);
 
         return {
             status: "success",
