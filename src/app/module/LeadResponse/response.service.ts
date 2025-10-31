@@ -971,7 +971,7 @@ const sendHireRequest = async (
 
   await response.save();
 
-  // 5️⃣ Log activity
+  // 5️ Log activity
   await logActivity({
     createdBy: userProfile._id,
     activityNote: `Sent a hire request to the lawyer${hireMessage ? ` with message: "${hireMessage}"` : ""}`,
@@ -990,12 +990,12 @@ const sendHireRequest = async (
       ? (response.responseBy.user as IUser)?._id
       : response.responseBy.user;
 
-  // ✅ Ensure we never pass undefined
+  //  Ensure we never pass undefined
   if (!lawyerUserId) {
     throw new Error("Lawyer userId not found for notification!");
   }
 
-  // 6️⃣ Create notification
+  // 6️ Create notification
   await createNotification({
     userId: lawyerUserId,
     toUser: userProfile._id, // send notification to the lawyer
