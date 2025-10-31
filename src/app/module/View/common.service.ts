@@ -20,7 +20,7 @@ import { IUser } from '../Auth/auth.interface';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
-import { IUserSubscription } from '../CreditPayment/subscriptions.model';
+import UserSubscription, { IUserSubscription } from '../CreditPayment/subscriptions.model';
 import { ISubscription } from '../SubscriptionPackage/subscriptionPack.model';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache, removeLeadListCacheByUser } from '../../utils/cacheManger';
@@ -558,6 +558,15 @@ const createLawyerResponseAndSpendCredit = async (
           useCredit = true; // limit exceeded
         } else {
           console.log(` Subscription contact used (${usedContacts + 1}/${contactLimit})`);
+          // Mark the subscription as used
+          await UserSubscription.findByIdAndUpdate(
+            subscription._id,
+            { $inc: { monthlyCaseContacts: 1 } },
+            { new: true },
+          );
+
+          useCredit = false; // within limit
+
         }
       } else {
         useCredit = true; // inactive subscription
