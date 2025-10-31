@@ -3838,7 +3838,9 @@ export const leadClosedIntoDB = async (
 ) => {
   const session = await mongoose.startSession();
 
+  let leadResponse: ILead | null = null;
   try {
+    
     await session.withTransaction(async () => {
       // Validate leadId
       validateObjectId(leadId, "Case");
@@ -3883,11 +3885,14 @@ export const leadClosedIntoDB = async (
         },
         { session }
       );
+
+      leadResponse = lead;
     });
 
     return {
       success: true,
       message: "Case closed successfully",
+      lead: leadResponse,
     };
   } catch (error: any) {
     console.error(" Transaction failed:", error.message);
