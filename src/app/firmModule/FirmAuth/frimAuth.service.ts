@@ -236,6 +236,28 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
         await session.commitTransaction();
         session.endSession();
 
+
+        //  Send email ONLY after successful commit
+        const data = {
+            name: newAdmin?.fullName,
+            loginUrl: `${config.firm_client_url}/login`,
+            password: userData.password,
+            email: userData.email,
+        };
+
+
+        await sendEmail({
+            to: userData.email,
+            subject: 'Welcome to TheLawApp! Your Company Registration is Complete',
+            data: data,
+            emailTemplate: "firm_registration",
+        });
+
+
+
+
+
+
         return {
             firm_accessToken,
             firm_refreshToken,
