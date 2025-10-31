@@ -94,12 +94,12 @@ const footerDesign = `
 //  Rest password email template
 
 export const firmPasswordResetEmail = (data: {
-  name: string;
-  resetUrl: string;
+    name: string;
+    resetUrl: string;
 }) => {
-  const { name, resetUrl } = data;
- 
-  return `
+    const { name, resetUrl } = data;
+
+    return `
 ${headerDesign}
 
     <!-- Greeting -->
@@ -115,6 +115,136 @@ ${headerDesign}
             Reset password
           </a>
         </div>
+        <p style="font-size: 14px; color: #555;">
+          If you didn’t initiate this request, you can safely ignore this email.
+        </p>
+        <p style="font-size: 14px; margin-top: 20px;">
+          Best Regards,<br>
+          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+        </p>
+      </td>
+    </tr>
+
+   ${footerDesign}
+  `;
+};
+
+
+
+
+export const requestlawyerAsFirmMember =  (data: {
+    name: string;
+    requestUrl: string;
+}) => {
+    const { name, requestUrl } = data;
+
+    return `
+    ${headerDesign}
+
+    <!-- Greeting -->
+    <tr>
+      <td style="padding: 0 30px;">
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          You have been invited to join TheLawApp as a firm member. Click on the button below to accept the invitation.
+        </p>
+        <!-- Button -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <a href="${requestUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+            Accept Invitation
+          </a>
+        </div>
+        <p style="font-size: 14px; color: #555;">
+          If you didn’t initiate this request, you can safely ignore this email.
+        </p>
+        <p style="font-size: 14px; margin-top: 20px;">
+          Best Regards,<br>
+          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+        </p>
+      </td>
+    </tr>
+
+   ${footerDesign}
+  `;
+};
+
+
+
+
+// firm Register email template
+export const firmRegisterEmail = (data: {
+    name: string;
+    loginUrl: string;
+    password: string;
+    email: string;
+}) => {
+    const { name, loginUrl, password, email } = data;
+
+    return `
+    ${headerDesign}
+
+    <!-- Greeting -->
+    <tr>
+      <td style="padding: 0 30px;">
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          Welcome to TheLawApp! Your account has been created successfully.
+        </p>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          You can log in using the following credentials:
+        </p>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          <strong>Email:</strong> ${email}<br>
+          <strong>Password:</strong> ${password}
+        </p>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          Click the button below to log in to your account.
+        </p>
+        <!-- Button -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <a href="${loginUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+            Log In
+          </a>
+        </div>
+        <p style="font-size: 14px; color: #555;">
+          If you didn’t initiate this request, you can safely ignore this email.
+        </p>
+        <p style="font-size: 14px; margin-top: 20px;">
+          Best Regards,<br>
+          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+        </p>
+      </td>
+    </tr>
+
+   ${footerDesign}
+  `;
+};
+
+
+
+//   firm claims email template
+export const firmClaimsEmail = (data: {
+    name: string;
+    claimDetails: string;
+}) => {
+    const { name, claimDetails } = data;
+
+    return `
+    ${headerDesign}
+
+    <!-- Greeting -->
+    <tr>
+      <td style="padding: 0 30px;">
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          Your claim has been submitted successfully. Here are the details:
+        </p>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          <strong>Claim Details:</strong> ${claimDetails}
+        </p>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+          We will review your claim and get back to you shortly.
+        </p>
         <p style="font-size: 14px; color: #555;">
           If you didn’t initiate this request, you can safely ignore this email.
         </p>

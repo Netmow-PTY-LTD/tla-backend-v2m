@@ -2,7 +2,7 @@
 
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/settingsConfig";
-import { firmPasswordResetEmail } from "./templates/firmTemplate";
+import { firmClaimsEmail, firmPasswordResetEmail, firmRegisterEmail, requestlawyerAsFirmMember } from "./templates/firmTemplate";
 import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
 
 
@@ -85,6 +85,22 @@ export const sendEmail = async ({
     html = firmPasswordResetEmail(data)
 
   }
+  
+
+  if (emailTemplate == "request_lawyer_as_firm_member") {
+    html = requestlawyerAsFirmMember(data)
+
+  }
+
+  if(emailTemplate =='firm_registration'){
+    html = firmRegisterEmail(data)
+  }
+
+  if(emailTemplate =='firm_claims'){
+    html = firmClaimsEmail(data)
+  }
+
+
 
   const mailOptions = {
     // from: config.mailgun_from_email_address, // e.g. "My App <noreply@yourdomain.com>"
