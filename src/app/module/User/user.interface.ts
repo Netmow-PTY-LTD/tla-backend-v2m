@@ -38,6 +38,13 @@ export interface IUserProfile {
 
   billingAddress?: IBillingAddress;
 
+  // case related fields
+  totalCases?: number;
+  openCases?: number;
+  closedCases?: number;
+  hiredCases?: number;
+  responseCases?: number;
+
   // Stripe identifiers (safe)
   subscriptionId: Types.ObjectId | null;
   eliteProSubscriptionId: Types.ObjectId | null;

@@ -113,6 +113,14 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       { session },
     );
 
+    // update case count in user profile
+    await UserProfile.findByIdAndUpdate(userProfile._id, {
+      $inc: {
+        totalCases: 1,
+        openCases: 1,
+      },
+    }, { session });
+    
     const leadDocs: any[] = [];
 
     for (const q of questions) {
@@ -2756,9 +2764,9 @@ const getAllLeadForLawyerPanel = async (
     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
   }
   if (filters.credits?.length) {
- 
 
- 
+
+
     const creditConditions = filters.credits.map((range: string) => {
       switch (range) {
         case 'Free': return { credit: 0 };

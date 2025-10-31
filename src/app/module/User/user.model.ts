@@ -91,6 +91,13 @@ const userProfileSchema = new Schema<IUserProfile>(
       vatNumber: String,
     },
 
+    //  case related fields
+    totalCases: { type: Number, default: 0 },
+    openCases: { type: Number, default: 0 },
+    closedCases: { type: Number, default: 0 },
+    hiredCases: { type: Number, default: 0 },
+    responseCases: { type: Number, default: 0 },
+
 
     // Stripe identifiers (safe)
     subscriptionId: { type: Schema.Types.ObjectId, ref: 'UserSubscription', default: null },
