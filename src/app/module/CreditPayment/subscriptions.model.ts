@@ -16,6 +16,7 @@ export interface IUserSubscription extends Document {
   subscriptionPackageId: Types.ObjectId; // Reference to SubscriptionPackage
   stripeSubscriptionId: string; // Stripe subscription ID
   status: SubscriptionStatus;
+  monthlyCaseContacts: number;
   subscriptionPeriodStart?: Date;
   subscriptionPeriodEnd?: Date;
   autoRenew?: boolean;
@@ -35,6 +36,7 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
     },
     subscriptionPeriodStart: { type: Date },
     subscriptionPeriodEnd: { type: Date },
+    monthlyCaseContacts: { type: Number, default: 0 },
     autoRenew: { type: Boolean, default: true },
   },
   { timestamps: true }
