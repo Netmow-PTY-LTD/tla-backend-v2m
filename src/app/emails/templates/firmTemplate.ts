@@ -148,7 +148,7 @@ export const requestlawyerAsFirmMember = (data: {
     <td style="padding: 0 30px;">
       <h2 style="font-size: 24px; margin-bottom: 20px;">New Lawyer Registration Request</h2>
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-        A new lawyer has requested to join your firm on <strong>TheLawApp</strong>.
+        A new lawyer has requested to join your company on <strong>TheLawApp</strong>.
       </p>
 
       <!-- Lawyer Info -->
@@ -168,7 +168,7 @@ export const requestlawyerAsFirmMember = (data: {
       </table>
 
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
-        Please review this request in your firm dashboard to approve or reject the new member.
+        Please review this request in your company dashboard to approve or reject the new member.
       </p>
 
       <!-- CTA Button -->
@@ -197,7 +197,7 @@ export const requestlawyerAsFirmMember = (data: {
 
 
 
-// firm Register email template
+// company Register email template
 export const firmRegisterEmail = (data: {
     name: string;
     loginUrl: string;

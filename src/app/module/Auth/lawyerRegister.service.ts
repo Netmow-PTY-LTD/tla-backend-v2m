@@ -504,10 +504,14 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     //  lawyer firm member request email notification to firm admin
     if (companyInfo?.companyTeam) {
 
+   
 
-      const firm = await FirmProfile.findOne({ firmName: companyInfo?.companyName }).select('_id').session(session);
-      const firmAdmin = await FirmUser.findOne({ firmProfileId: firm?._id, role: Firm_USER_ROLE.ADMIN, }).session(session);
+
+      const firmAdmin = await FirmUser.findOne({ firmProfileId: companyInfo?.companyName, role: Firm_USER_ROLE.ADMIN, });
+ 
+
       if (firmAdmin) {
+
         await sendEmail({
           to: firmAdmin.email,
           subject: 'New Lawyer Registration Request',
