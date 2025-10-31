@@ -26,6 +26,8 @@ import User from "../../module/Auth/auth.model";
 import { USER_STATUS } from "../../module/Auth/auth.constant";
 import { SsoToken } from "./SsoToken.model";
 import UserProfile from "../../module/User/user.model";
+import { redisClient } from "../../config/redis.config";
+import { CacheKeys } from "../../config/cacheKeys";
 
 
 
@@ -1193,6 +1195,9 @@ const lawyerRemoveFromFirm = async (userId: string, lawyerProfileId: string) => 
         // Commit transaction
         await session.commitTransaction();
         session.endSession();
+
+        await redisClient.del(CacheKeys.USER_INFO(lawyerProfile.user.toString()));
+        console.log(` Cache invalidated for user ${lawyerProfile.user.toString()}`);
 
         return {
             status: "success",
