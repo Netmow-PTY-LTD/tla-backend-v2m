@@ -388,7 +388,7 @@ const requestLawyerAccess = catchAsync(async (req, res) => {
 //  lawyer-remove-from-firm
 const lawyerRemoveFromFirm = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const lawyerId = req.body.lawyerProfileId;
+  const lawyerProfileId = req.body.lawyerProfileId;
   const result = await firmAuthService.lawyerRemoveFromFirm(userId, lawyerProfileId);
 
   sendResponse(res, {
