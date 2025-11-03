@@ -10,6 +10,7 @@ import { firmViewRouter } from "../firmModule/View/view.router";
 import { adminRoutes } from "../firmModule/Admin/admin.route";
 import { firmSettingsRouter } from "../firmModule/Settings/settings.route";
 import { lawyerRequestAsMemberRouter } from "../firmModule/lawyerRequest/lawyerRequest.route";
+import { firmLawyerRouter } from "../firmModule/lawyer/lawyer.routes";
 
 
 const firmRoute = Router();
@@ -60,7 +61,11 @@ const moduleRoutes = [
   {
     path: '/lawyer-request',
     route: lawyerRequestAsMemberRouter,
-  }
+  },
+  {
+    path: '/lawyer',
+    route: firmLawyerRouter,
+  },
 
 ];
 
