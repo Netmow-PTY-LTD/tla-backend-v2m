@@ -682,7 +682,7 @@ const cacheUserData = async (userId: string) => {
     sortOrder: 'asc' | 'desc';
   } = {
     page: 1,
-    limit: 100,
+    limit: 500,
     sortBy: 'createdAt',
     sortOrder: 'desc',
   };
