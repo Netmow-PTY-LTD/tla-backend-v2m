@@ -15,7 +15,7 @@ const addLawyer = catchAsync(async (req, res) => {
         statusCode: HTTP_STATUS.CREATED,
         success: true,
         message: 'Lawyer added successfully.',
-        data: { lawyer: newLawyer },
+        data: newLawyer,
     });
 });
 
@@ -24,7 +24,5 @@ const addLawyer = catchAsync(async (req, res) => {
 
 export const firmLawyerController = {
     addLawyer,
-
-
 
 };

@@ -147,10 +147,7 @@ const addLawyer = async (userId: string, payload: any) => {
         session.endSession();
 
         // Return the generated tokens and user data
-        return {
-
-            userData: newUser,
-        };
+        return newUser;
 
 
 
