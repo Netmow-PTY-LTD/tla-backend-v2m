@@ -5,7 +5,7 @@ import User from "../../module/Auth/auth.model";
 import { IUser } from "../../module/Auth/auth.interface";
 import ZipCode from "../../module/Country/zipcode.model";
 import UserProfile from "../../module/User/user.model";
-import { REGISTER_USER_TYPE } from "../../module/Auth/auth.constant";
+import { REGISTER_USER_TYPE, USER_STATUS } from "../../module/Auth/auth.constant";
 import { LawyerServiceMap } from "../../module/User/lawyerServiceMap.model";
 import { LocationType } from "../../module/UserLocationServiceMap/userLocationServiceMap.interface";
 import { UserLocationServiceMap } from "../../module/UserLocationServiceMap/UserLocationServiceMap.model";
@@ -81,6 +81,7 @@ const addLawyer = async (userId: string, payload: any) => {
             address: zipCode?.zipcode,
             zipCode: zipCode?._id,
             lawyerContactEmail: newUser?.email,
+            isAccessibleByOtherUsers: true,
 
         };
 
@@ -89,6 +90,7 @@ const addLawyer = async (userId: string, payload: any) => {
 
         // Link the profile to the newly created user
         newUser.profile = new Types.ObjectId(newProfile._id);
+        newUser.accountStatus = USER_STATUS.APPROVED;
         await newUser.save({ session });
 
 
