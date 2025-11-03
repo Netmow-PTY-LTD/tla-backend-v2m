@@ -838,12 +838,12 @@ const getUserInfoFromDB = async (userId: string) => {
                 {
                     path: 'contactInfo.country',
                     model: 'Country',
-                    select: 'name isoCode', // select only required fields
+                    select: 'name slug isoCode', // select only required fields
                 },
                 {
                     path: 'contactInfo.city',
                     model: 'City',
-                    select: 'name',
+                    select: 'name slug',
                 },
                 {
                     path: 'contactInfo.zipCode',
