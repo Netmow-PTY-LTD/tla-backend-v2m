@@ -2936,6 +2936,598 @@ const TRAVEL_SPEEDS: Record<string, number> = {
 
 //  -------------------------------  finally optimization code ---------------------------
 
+// const getAllLeadForLawyerPanel = async (
+//   userId: string,
+//   filters: any = {},
+//   options: {
+//     page: number;
+//     limit: number;
+//     sortBy: string;
+//     sortOrder: 'asc' | 'desc';
+//   }
+// ): Promise<any> => {
+//   const userProfile = await UserProfile.findOne({ user: userId }).select('_id serviceIds country');
+//   if (!userProfile) {
+//     return {
+//       data: [],
+//       pagination: { total: 0, page: options.page, limit: options.limit, totalPage: 0 },
+//       leadCount: {},
+//     };
+//   }
+
+
+
+
+//   const page = options.page || 1;
+//   const limit = options.limit || 10;
+//   const skip = (page - 1) * limit;
+//   const sortField = options.sortBy || 'createdAt';
+//   const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+
+
+
+
+//   // ----------------------- CACHE KEY -----------------------
+
+//   // const cacheKey = `leads_${userId}_${JSON.stringify(filters)}_${JSON.stringify(options)}`;
+//   // Check if the data is cached in Redis
+
+//   // Check cache
+//   const cachedData = await redisClient.get(CacheKeys.LEAD_LIST_BY_USER_WITH_FILTERS(userId, filters, options));
+//   if (cachedData) {
+//     console.log('Cache hit of lawyer panel leads for key:',);
+//     return JSON.parse(cachedData);
+//   }
+
+
+
+
+
+
+//   // ----------------------- FETCH USER LOCATION SERVICE MAPPINGS -----------------------
+//   const userLocationService = await UserLocationServiceMap.find({ userProfileId: userProfile._id }).populate('locationGroupId');
+
+
+
+//   // ----------------------- SEPARATE BY LOCATION TYPE -----------------------
+//   const locationServiceByType: Record<string, mongoose.Types.ObjectId[]> = {
+//     [LocationType.NATION_WIDE]: [],
+//     [LocationType.DISTANCE_WISE]: [],
+//     [LocationType.TRAVEL_TIME]: [],
+//     [LocationType.DRAW_ON_AREA]: [],
+//   };
+
+
+//   // Fill service IDs by location type, remove duplicates
+//   userLocationService.forEach(loc => {
+//     if (loc.serviceIds && loc.serviceIds.length > 0) {
+//       const type = loc.locationType as keyof typeof locationServiceByType;
+//       const currentSet = new Set(locationServiceByType[type].map(id => id.toString()));
+//       loc.serviceIds.forEach((id: any) => currentSet.add(id.toString()));
+//       locationServiceByType[type] = Array.from(currentSet).map(id => new mongoose.Types.ObjectId(id));
+//     }
+//   });
+
+
+
+
+
+
+//   // service IDs by location type
+//   const nationwideServiceIds = locationServiceByType[LocationType.NATION_WIDE];
+//   const distanceWiseServiceIds = locationServiceByType[LocationType.DISTANCE_WISE];
+//   const travelTimeServiceIds = locationServiceByType[LocationType.TRAVEL_TIME];
+//   const drawOnAreaServiceIds = locationServiceByType[LocationType.DRAW_ON_AREA];
+
+
+
+
+
+
+
+//   // // ----------------------- MATCH STAGE -----------------------
+//   const matchStage: any = {
+//     countryId: new mongoose.Types.ObjectId(userProfile.country),
+//     userProfileId: { $ne: userProfile._id },
+//     responders: { $ne: userProfile._id },
+//     status: 'approved',
+//   };
+
+
+
+
+//   // ----------------------- BUILD MATCH CONDITIONS -----------------------
+//   const conditions: any[] = [];
+
+
+
+
+//   if (!filters.coordinates) {
+
+
+//     // 1 Nationwide (ignore locationId)
+//     if (nationwideServiceIds.length > 0) {
+//       conditions.push({ serviceId: { $in: nationwideServiceIds } });
+//     }
+
+
+
+//     if (distanceWiseServiceIds.length > 0) {
+//       // Step 1: Collect distance-wise location entries
+//       const distanceWiseLocations = userLocationService.filter(
+//         (l) => l.locationType === LocationType.DISTANCE_WISE
+//       );
+
+//       let nearbyLeadIds: mongoose.Types.ObjectId[] = [];
+
+//       // Step 2: Loop through each location to find nearby leads
+//       for (const loc of distanceWiseLocations) {
+//         const locationGroup = loc.locationGroupId as IZipCode;
+//         const coords = locationGroup.location?.coordinates;
+
+//         if (!coords || coords.length < 2) continue;
+
+//         const [lng, lat] = coords;
+//         const rangeInKm = loc.rangeInKm || 5;
+//         const radiusInMeters = rangeInKm * 1000;
+
+//         // Step 3: Use $geoNear to find nearby leads filtered by serviceIds
+//         const nearbyLeads = await Lead.aggregate([
+//           {
+//             $geoNear: {
+//               near: { type: 'Point', coordinates: [lng, lat] },
+//               distanceField: 'distance',
+//               maxDistance: radiusInMeters,
+//               spherical: true,
+//               query: { serviceId: { $in: distanceWiseServiceIds } }, // <-- filter by serviceIds
+//             },
+//           },
+//           { $project: { _id: 1 } }, // only get lead IDs
+//         ]);
+
+//         // Step 4: Push found lead IDs
+//         nearbyLeadIds.push(...nearbyLeads.map((l) => l._id));
+//       }
+
+//       // Step 5: Deduplicate all nearby lead IDs
+//       nearbyLeadIds = Array.from(
+//         new Set(nearbyLeadIds.map((id) => id.toString()))
+//       ).map((id) => new mongoose.Types.ObjectId(id));
+
+//       // Step 6: Add query condition
+//       if (nearbyLeadIds.length > 0) {
+//         conditions.push({
+//           _id: { $in: nearbyLeadIds },
+//         });
+//       }
+//     }
+
+
+
+
+
+//     if (travelTimeServiceIds.length > 0) {
+//       // Step 1: Collect travel-time locations
+//       const travelTimeLocations = userLocationService.filter(
+//         (l) => l.locationType === LocationType.TRAVEL_TIME
+//       );
+
+//       let travelTimeLeadIds: mongoose.Types.ObjectId[] = [];
+
+//       // Step 2: Loop through each travel-time location
+//       for (const loc of travelTimeLocations) {
+//         const locationGroup = loc.locationGroupId as IZipCode;
+//         const coords = locationGroup.location?.coordinates;
+
+//         if (!coords || coords.length < 2) continue;
+
+//         const [lng, lat] = coords;
+
+//         // Step 2a: Determine max distance based on travel mode
+//         const travelMode = loc.travelmode || 'driving'; // default driving
+//         const travelTimeInMinutes = Number(loc.traveltime) || 30;
+//         const speed = TRAVEL_SPEEDS[travelMode] || TRAVEL_SPEEDS['driving'];
+//         const radiusInMeters = travelTimeInMinutes * speed; // approximate radius
+
+//         // Step 3: Use $geoNear to find nearby leads within travel-time radius
+//         const nearbyLeads = await Lead.aggregate([
+//           {
+//             $geoNear: {
+//               near: { type: 'Point', coordinates: [lng, lat] },
+//               distanceField: 'distance',
+//               maxDistance: radiusInMeters,
+//               spherical: true,
+//               query: { serviceId: { $in: travelTimeServiceIds } },
+//             },
+//           },
+//           { $project: { _id: 1 } },
+//         ]);
+
+//         // Step 4: Collect lead IDs
+//         travelTimeLeadIds.push(...nearbyLeads.map((l) => l._id));
+//       }
+
+//       // Step 5: Deduplicate
+//       travelTimeLeadIds = Array.from(
+//         new Set(travelTimeLeadIds.map((id) => id.toString()))
+//       ).map((id) => new mongoose.Types.ObjectId(id));
+
+//       // Step 6: Add to conditions
+//       if (travelTimeLeadIds.length > 0) {
+//         conditions.push({
+//           _id: { $in: travelTimeLeadIds },
+//         });
+//       }
+
+
+//     }
+
+
+//     // 4 Draw-on-area
+//     if (drawOnAreaServiceIds.length > 0) {
+//       // Step 1: Get all user locations of type DRAW_ON_AREA
+//       const drawAreaLocations = userLocationService
+//         .filter((loc) => loc.locationType === LocationType.DRAW_ON_AREA)
+//         .map((loc) => loc.locationGroupId) // extract the location group (ZipCode)
+//         .filter(Boolean); // remove null or undefined
+
+//       // Step 2: Extract location IDs
+//       const locationIds: mongoose.Types.ObjectId[] = drawAreaLocations
+//         .map((loc: any) => loc._id)
+//         .filter(Boolean);
+
+//       // Step 3: Push query condition if any locations exist
+//       if (locationIds.length > 0) {
+//         conditions.push({
+//           serviceId: { $in: drawOnAreaServiceIds },
+//           locationId: { $in: locationIds },
+//         });
+//       }
+//     }
+
+
+//   }
+
+
+
+//   if (filters.coordinates) {
+//     const {
+//       locationType,
+//       coord,
+//       rangeInKm = 5,
+//       serviceIds = [],
+//       polygon,
+//       travelmode = "driving",
+//       traveltime = 15,
+//     } = filters.coordinates;
+
+//     if (
+//       coord &&
+//       (!Array.isArray(coord) || coord.length !== 2 || isNaN(coord[0]) || isNaN(coord[1]))
+//     ) {
+//       throw new Error("Invalid coordinates provided for location filtering");
+//     }
+
+//     const supportedTypes = ["draw_on_area", "travel_time", "nation_wide", "distance_wise"];
+
+//     if (locationType && supportedTypes.includes(locationType)) {
+//       let nearbyLocationIds: Types.ObjectId[] = [];
+
+//       // ------------------ DISTANCE-WISE ------------------
+//       if (locationType === "distance_wise") {
+//         const radiusInMeters = rangeInKm * 1000;
+
+//         const nearbyLeads = await Lead.aggregate([
+//           {
+//             $geoNear: {
+//               near: { type: "Point", coordinates: [coord[0], coord[1]] },
+//               distanceField: "distance",
+//               maxDistance: radiusInMeters,
+//               spherical: true,
+//               query: serviceIds.length > 0 ? { serviceId: { $in: serviceIds } } : {},
+//             },
+//           },
+//           { $project: { _id: 1 } },
+//         ]);
+
+//         nearbyLocationIds = nearbyLeads.map((l) => l._id);
+//       }
+
+//       // ------------------ DRAW-ON-AREA ------------------
+//       else if (locationType === "draw_on_area" && polygon) {
+//         const nearbyZips = await ZipCode.find({
+//           location: {
+//             $geoWithin: { $geometry: polygon },
+//           },
+//         }).select("_id");
+
+//         nearbyLocationIds = nearbyZips.map((z) => new mongoose.Types.ObjectId(z._id));
+//       }
+
+//       // ------------------ TRAVEL-TIME ------------------
+//       else if (locationType === "travel_time") {
+//         if (!coord || coord.length !== 2) {
+//           throw new Error("Coordinates required for travel-time filter");
+//         }
+
+//         const speed = TRAVEL_SPEEDS[travelmode] || TRAVEL_SPEEDS["driving"];
+//         const radiusInMeters = traveltime * speed;
+
+//         const nearbyLeads = await Lead.aggregate([
+//           {
+//             $geoNear: {
+//               near: { type: "Point", coordinates: [coord[0], coord[1]] },
+//               distanceField: "distance",
+//               maxDistance: radiusInMeters,
+//               spherical: true,
+//               query: serviceIds.length > 0 ? { serviceId: { $in: serviceIds } } : {},
+//             },
+//           },
+//           { $project: { _id: 1 } },
+//         ]);
+
+//         nearbyLocationIds = nearbyLeads.map((l) => l._id);
+//       }
+
+//       // ------------------ NATION-WIDE ------------------
+//       else if (locationType === "nation_wide") {
+//         if (serviceIds.length > 0) {
+//           conditions.push({ serviceId: { $in: serviceIds } });
+//         }
+//       }
+
+//       // Deduplicate and add to conditions
+//       if (nearbyLocationIds.length > 0) {
+//         nearbyLocationIds = Array.from(
+//           new Set(nearbyLocationIds.map((id) => id.toString()))
+//         ).map((id) => new mongoose.Types.ObjectId(id));
+
+//         conditions.push({ _id: { $in: nearbyLocationIds } });
+//       }
+//     }
+//   }
+
+
+
+
+//   // // 5 If no mappings, prevent match
+
+//   if (conditions.length === 0) {
+//     matchStage._id = { $exists: false };
+//   } else {
+//     matchStage.$or = conditions;
+//   }
+
+
+
+
+
+
+
+
+//   // ----------------------- ADDITIONAL FILTERS -----------------------
+//   if (filters.spotlight?.length) matchStage.leadPriority = { $in: filters.spotlight };
+//   if (filters.services?.length) {
+//     matchStage.serviceId = { $in: filters.services.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+//   if (filters.credits?.length) {
+
+
+
+//     const creditConditions = filters.credits.map((range: string) => {
+//       switch (range) {
+//         case 'Free': return { credit: 0 };
+//         case '1-5 credits': return { credit: { $gte: 1, $lte: 5 } };
+//         case '5-10 credits': return { credit: { $gte: 5, $lte: 10 } };
+//         case '10-20 credits': return { credit: { $gte: 10, $lte: 20 } };
+//         case '20-30 credits': return { credit: { $gte: 20, $lte: 30 } };
+//         case '30-40 credits': return { credit: { $gte: 30, $lte: 40 } };
+//         case '40-50 credits': return { credit: { $gte: 40, $lte: 50 } };
+//         case '50-100 credits': return { credit: { $gte: 50, $lte: 100 } };
+//         default: return null;
+//       }
+//     }).filter(Boolean);
+//     if (creditConditions.length) {
+//       // matchStage.$or = [...(matchStage.$or || []), ...creditConditions];
+
+//       matchStage.$or = matchStage.$or || [];
+//       matchStage.$and = matchStage.$and || [];
+//       matchStage.$and.push({ $or: creditConditions });
+
+
+//     }
+//   }
+//   if (filters.location?.length) {
+//     matchStage.locationId = { $in: filters.location.map((id: string) => new mongoose.Types.ObjectId(id)) };
+//   }
+//   if (filters.leadSubmission) {
+//     let startDate: Date | null = null;
+//     switch (filters.leadSubmission) {
+//       case 'last_1_hour': startDate = new Date(Date.now() - 60 * 60 * 1000); break;
+//       case 'last_24_hours': startDate = new Date(); startDate.setHours(0, 0, 0, 0); break;
+//       case 'last_48_hours': startDate = new Date(); startDate.setDate(startDate.getDate() - 1); break;
+//       case 'last_3_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 3); break;
+//       case 'last_7_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 7); break;
+//       case 'last_14_days': startDate = new Date(); startDate.setDate(startDate.getDate() - 14); break;
+//     }
+//     if (startDate) matchStage.createdAt = { $gte: startDate };
+//   }
+
+
+
+//   /* 
+
+//   business logic:
+
+//   **leadService
+
+//   1. current logged-in lawyer leadservice 
+//   2. based leadservice selected options true data filter 
+
+
+//   **leadserviceanswers
+//   1. leadserviceanswers filter by lead id
+//   2. 
+
+
+//   **lead serviceanswers and Leadservice 
+
+//  1. match with leadservice selected options and leadserviceanswers selected options wise match data fetch
+
+//  *finally
+
+//   1. leadservice with leadserviceanswers array data fetch
+//   2. based lead service and leadAnswer show lead data fetch
+//   3. if no leadservice selected options true data means no lead show
+
+
+//   */
+
+
+
+
+
+
+
+//   // ----------------------- AGGREGATION PIPELINE -----------------------
+//   const aggregationPipeline: any[] = [
+//     { $match: matchStage },
+
+//     // Apply sorting
+//     { $sort: { [sortField]: sortOrder } }, // <- Add this line
+
+//     // Lookups
+//     { $lookup: { from: 'zipcodes', localField: 'locationId', foreignField: '_id', as: 'locationId' } },
+
+//     // {
+//     //   $lookup: {
+//     //     from: 'zipcodes',
+//     //     let: { locationId: '$locationId' }, // Pass the lead's locationId
+//     //     pipeline: [
+//     //       { $match: { $expr: { $eq: ['$_id', '$$locationId'] } } },
+//     //       { $project: { _id: 1, zipCode: 1 } }, // Only _id and zipCode
+//     //     ],
+//     //     as: 'locationId',
+//     //   },
+//     // },
+//     { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'userprofiles', localField: 'userProfileId', foreignField: '_id', as: 'userProfileId' } },
+//     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'users', localField: 'userProfileId.user', foreignField: '_id', as: 'userProfileId.user' } },
+//     { $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceId' } },
+//     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+
+//     { $lookup: { from: 'userprofiles', localField: 'responders', foreignField: '_id', as: 'responders' } },
+
+//     // ----------------------- LEAD SERVICE & ANSWERS -----------------------
+//     {
+//       $lookup: {
+//         from: 'leadserviceanswers',
+//         let: { leadId: '$_id' },
+//         pipeline: [
+//           { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
+//           { $match: { isSelected: true } },
+//         ],
+//         as: 'leadServiceAnswers',
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'userwiseservicewisequestionwiseoptions',
+//         let: { serviceId: '$serviceId._id' },
+//         pipeline: [
+//           { $match: { $expr: { $and: [{ $eq: ['$userProfileId', userProfile._id] }, { $eq: ['$isSelected', true] }, { $eq: ['$countryId', new mongoose.Types.ObjectId(userProfile.country)] }] } } },
+//         ],
+//         as: 'lawyerLeadServices',
+//       },
+//     },
+//     {
+//       $addFields: {
+//         matchedAnswers: {
+//           $filter: {
+//             input: '$leadServiceAnswers',
+//             as: 'answer',
+//             cond: {
+//               $anyElementTrue: {
+//                 $map: {
+//                   input: '$lawyerLeadServices',
+//                   as: 'lawyer',
+//                   in: {
+//                     $and: [
+//                       { $eq: ['$$answer.serviceId', '$$lawyer.serviceId'] },
+//                       { $eq: ['$$answer.questionId', '$$lawyer.questionId'] },
+//                       { $eq: ['$$answer.optionId', '$$lawyer.optionId'] },
+//                     ],
+//                   },
+//                 },
+//               },
+//             },
+//           },
+//         },
+//       },
+//     },
+
+//     // Only include leads with matched answers
+
+//     { $match: { 'matchedAnswers.0': { $exists: true } } },
+
+
+//     // ----------------------- REMOVE UNUSED FIELDS -----------
+//     {
+//       $project: {
+//         leadServiceAnswers: 0,
+//         lawyerLeadServices: 0,
+//         matchedAnswers: 0,
+//       },
+//     },
+
+
+
+//   ];
+
+//   if (filters.keyword) {
+//     aggregationPipeline.push({
+//       $match: {
+//         $or: [
+//           { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+//           { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+//         ],
+//       },
+//     });
+//   }
+
+//   let leads = await Lead.aggregate(aggregationPipeline);
+
+
+//   // ----------------------- PAGINATION -----------------------
+//   const total = leads.length;
+//   const paginatedLeads = leads.slice(skip, skip + limit);
+
+//   const result = {
+//     data: paginatedLeads,
+//     pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+//     leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
+//   };
+
+
+//   // ----------------------- CACHE THE RESULT IN REDIS -----------------------
+//   // Cache the result for future requests
+//   // Cache in Redis for 10 minutes
+//   await redisClient.set(CacheKeys.LEAD_LIST_BY_USER_WITH_FILTERS(userId, filters, options), JSON.stringify(result), { EX: TTL.MEDIUM_10M });
+
+
+
+//   return result;
+// };
+
+
+
+//   --- try for optimize again -----------------------
+
 const getAllLeadForLawyerPanel = async (
   userId: string,
   filters: any = {},
@@ -3475,16 +4067,29 @@ const getAllLeadForLawyerPanel = async (
 
     { $match: { 'matchedAnswers.0': { $exists: true } } },
 
-
-    // ----------------------- REMOVE UNUSED FIELDS -----------
     {
-      $project: {
-        leadServiceAnswers: 0,
-        lawyerLeadServices: 0,
-        matchedAnswers: 0,
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+          // Optionally: remove unused fields or reshape data
+          {
+            $project: {
+              leadServiceAnswers: 0,
+              lawyerLeadServices: 0,
+              matchedAnswers: 0,
+            },
+          },
+        ],
+        totalCount: [{ $count: 'count' }],
       },
     },
-
+    {
+      $project: {
+        data: 1,
+        total: { $ifNull: [{ $arrayElemAt: ['$totalCount.count', 0] }, 0] },
+      },
+    },
 
 
   ];
@@ -3500,17 +4105,17 @@ const getAllLeadForLawyerPanel = async (
     });
   }
 
-  let leads = await Lead.aggregate(aggregationPipeline);
+  const leadsResult = await Lead.aggregate(aggregationPipeline);
+  const leads = leadsResult[0]?.data || [];
+  const total = leadsResult[0]?.total || 0;
 
-
-  // ----------------------- PAGINATION -----------------------
-  const total = leads.length;
-  const paginatedLeads = leads.slice(skip, skip + limit);
+  const totalPage = Math.ceil(total / limit);
 
   const result = {
-    data: paginatedLeads,
-    pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
-    leadCount: { urgent: paginatedLeads.filter(l => l.leadPriority === 'urgent').length },
+    data: leads,
+    pagination: { total, page, limit, totalPage },
+    leadCount: { urgent: leads.filter((l: any) => l.leadPriority === 'urgent').length },
+   
   };
 
 
@@ -3843,7 +4448,7 @@ export const leadClosedIntoDB = async (
 
   let leadResponse: ILead | null = null;
   try {
-    
+
     await session.withTransaction(async () => {
       // Validate leadId
       validateObjectId(leadId, "Case");
