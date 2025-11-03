@@ -682,7 +682,7 @@ const cacheUserData = async (userId: string) => {
     sortOrder: 'asc' | 'desc';
   } = {
     page: 1,
-    limit: 500,
+    limit: 100,
     sortBy: 'createdAt',
     sortOrder: 'desc',
   };
@@ -695,11 +695,19 @@ const cacheUserData = async (userId: string) => {
   */
 
 
+let leadServices = null;
+  for (let page = 1; page <= 5; page++) {
+    options.page = page;
+    leadServices = await leadService.getAllLeadForLawyerPanel(userId, filters, options);
+    // Here, you would typically cache the leadData using a caching service like Redis.
+  }
+
+
   // Here, you would typically cache the data using a caching service like Redis.
 
-  const [userProfileInfo, leadData, leadServices] = await Promise.all([
+  const [userProfileInfo, leadData] = await Promise.all([
     getCurrentUserProfileInfoFromCache(userId),
-    leadService.getAllLeadForLawyerPanel(userId, filters, options),
+    // leadService.getAllLeadForLawyerPanel(userId, filters, options),
     LeadServiceService.getLeadServicesWithQuestions(userId),
   ]);
 
