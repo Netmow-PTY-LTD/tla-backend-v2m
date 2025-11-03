@@ -36,7 +36,7 @@ const addLawyer = async (userId: string, payload: any) => {
         }
 
         // Separate the profile data from the user data
-        const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
+        const { profile, lawyerServiceMap, ...userData } = payload;
 
         // Create the user document in the database
         const [newUser] = await User.create([userData], { session });
