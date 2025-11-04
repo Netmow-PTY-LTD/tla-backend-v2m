@@ -17,6 +17,11 @@ const blogSchema = new Schema(
       type: String,
       required: true,
     },
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: 'BlogCategory',
+      default: null,
+    },
     tags: [String],
 
     status: {
