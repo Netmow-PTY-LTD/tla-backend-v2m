@@ -369,35 +369,7 @@ const changeEmail = catchAsync(async (req, res) => {
 });
 
 
-// request-lawyer-access
 
-const requestLawyerAccess = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
-  const lawyerId = req.body.lawyerId;
-  const result = await firmAuthService.requestLawyerAccess(userId, lawyerId);
-
-  sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Lawyer access requested successfully.',
-    data: result,
-  });
-});
-
-
-//  lawyer-remove-from-firm
-const lawyerRemoveFromFirm = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
-  const lawyerProfileId = req.body.lawyerProfileId;
-  const result = await firmAuthService.lawyerRemoveFromFirm(userId, lawyerProfileId);
-
-  sendResponse(res, {
-    statusCode: HTTP_STATUS.OK,
-    success: true,
-    message: 'Lawyer removed from firm successfully.',
-    data: result,
-  });
-});
 
 
 
@@ -418,6 +390,5 @@ export const firmAuthController = {
   changeEmail,
   userInfo,
   updateCurrentUserInfo,
-  requestLawyerAccess,
-  lawyerRemoveFromFirm
+ 
 };
