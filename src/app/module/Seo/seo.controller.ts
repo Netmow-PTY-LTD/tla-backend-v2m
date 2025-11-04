@@ -41,7 +41,8 @@ const getAllSeo = catchAsync(async (req, res) => {
 const updateSeo = catchAsync(async (req, res) => {
   const { seoId } = req.params;
   const payload = req.body;
-  const result = await seoService.updateSeoIntoDB(seoId, payload);
+    const metaImage = req.file;
+  const result = await seoService.updateSeoIntoDB(seoId, payload, metaImage as Express.Multer.File);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
