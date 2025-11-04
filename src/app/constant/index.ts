@@ -37,6 +37,7 @@ export const FOLDERS = {
   TESTIMONIALS: 'testimonials',                   // testimonials uploads (evidence, documents)
   AGREEMENTS: 'agreements',                   // agreements uploads (evidence, documents)
   ACCREDITATIONS: 'accreditations',                   // accreditations uploads (evidence, documents)
+  METAIMAGES: 'metaimages',                   // SEO meta images
 } as const;
 
 export type TFolder = (typeof FOLDERS)[keyof typeof FOLDERS];

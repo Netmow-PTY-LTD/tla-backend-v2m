@@ -112,7 +112,7 @@ export const uploadToSpaces = async (
   originalName: string,
   options: UploadOptions = {}
 ): Promise<string> => {
-  const { folder = FOLDERS.PROFILES, entityId = 'unknown', subFolder } = options;
+  const { folder = FOLDERS.PROFILES, entityId , subFolder } = options;
 
   const fileExt = path.extname(originalName);
   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
@@ -120,7 +120,7 @@ export const uploadToSpaces = async (
   // Construct folder path
   const parts = ['thelawapp', folder];
   if (subFolder) parts.push(subFolder);
-  parts.push(entityId);
+  if (entityId) parts.push(entityId);
 
   const filePath = `${parts.join('/')}/${uuidv4()}${fileExt}`;
 

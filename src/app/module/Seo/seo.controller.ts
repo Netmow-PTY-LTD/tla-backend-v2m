@@ -1,11 +1,14 @@
 import { HTTP_STATUS } from '../../constant/httpStatus';
+import { TUploadedFile } from '../../interface/file.interface';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { seoService } from './seo.service';
 
 const createSeo = catchAsync(async (req, res) => {
   const seoData = req.body;
-  const result = await seoService.CreateSeoIntoDB(seoData);
+  const metaImage = req.file;
+
+  const result = await seoService.CreateSeoIntoDB(metaImage as TUploadedFile, seoData);
   sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
