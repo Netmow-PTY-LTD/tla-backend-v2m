@@ -27,6 +27,7 @@ import { claimRouter } from '../module/Claim/claim.route';
 import { testimonialRoutes } from '../module/Testimonial/testimonial.route';
 import { userLocationServiceMapRouter } from '../module/UserLocationServiceMap/userLocationServiceMap.route';
 import { adminFirmRouter } from '../module/FirmManagement/firm.route';
+import { seoRouter } from '../module/Seo/seo.route';
 
 const router = Router();
 
@@ -139,6 +140,10 @@ const moduleRoutes = [
   {
     path: '/firms',
     route: adminFirmRouter,
+  },
+  {
+    path: '/seo',
+    route: seoRouter,
   },
   {
     path: '/',
