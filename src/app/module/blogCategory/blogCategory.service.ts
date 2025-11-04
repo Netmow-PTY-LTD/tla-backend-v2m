@@ -2,7 +2,7 @@ import { BlogCategory } from './blogCategory.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 
-import { IBlogCategory, IBlogCategoryCreate, IBlogCategoryUpdate } from './blogCategory.types';
+import {  IBlogCategoryCreate, IBlogCategoryUpdate } from './blogCategory.types';
 
 const createBlogCategory = async (data: IBlogCategoryCreate) => {
     const blogCategory = await BlogCategory.create(data);
