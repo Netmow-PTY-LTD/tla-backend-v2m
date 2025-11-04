@@ -1,6 +1,5 @@
 import { Types } from "mongoose";
 import { sendNotFoundResponse } from "../../errors/custom.error";
-import { IUserProfile } from "../../module/User/user.interface";
 import UserProfile from "../../module/User/user.model";
 import { FirmProfile } from "../Firm/firm.model";
 import FirmUser from "../FirmAuth/frimAuth.model";
@@ -18,7 +17,7 @@ const createLawyerRequest = async (userId: string, payload: Partial<ILawyerReque
 const listLawyerRequests = async (userId: string) => {
   const user = await FirmUser.findById(userId).select('firmProfileId');
   if (!user) return sendNotFoundResponse("User not found");
-  return await LawyerRequestAsMember.find({ firmProfileId: user.firmProfileId }).populate('lawyerId');
+  return await LawyerRequestAsMember.find({ firmProfileId: user.firmProfileId }).populate('lawyerId').sort({ createdAt: -1 });
 };
 
 const getLawyerRequestById = async (id: string, userId: string) => {
