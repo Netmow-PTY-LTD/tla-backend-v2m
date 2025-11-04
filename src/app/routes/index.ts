@@ -28,6 +28,7 @@ import { testimonialRoutes } from '../module/Testimonial/testimonial.route';
 import { userLocationServiceMapRouter } from '../module/UserLocationServiceMap/userLocationServiceMap.route';
 import { adminFirmRouter } from '../module/FirmManagement/firm.route';
 import { seoRouter } from '../module/Seo/seo.route';
+import { blogRouter } from '../module/blog/blog.route';
 
 const router = Router();
 
@@ -144,6 +145,10 @@ const moduleRoutes = [
   {
     path: '/seo',
     route: seoRouter,
+  },
+  {
+    path: '/blog',
+    route: blogRouter,
   },
   {
     path: '/',
