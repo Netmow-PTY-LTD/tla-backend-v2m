@@ -31,7 +31,7 @@ export interface ISubscription extends Document {
 
 const PriceSchema = new Schema<IPrice>(
   {
-    amount: { type: Number, required: true, min: 0 }, // cents
+    amount: { type: Number, required: true, min: 0 }, 
     currency: { type: String, required: true, uppercase: true, default: "USD" },
   },
   { _id: false }
