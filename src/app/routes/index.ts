@@ -29,6 +29,7 @@ import { userLocationServiceMapRouter } from '../module/UserLocationServiceMap/u
 import { adminFirmRouter } from '../module/FirmManagement/firm.route';
 import { seoRouter } from '../module/Seo/seo.route';
 import { blogRouter } from '../module/blog/blog.route';
+import { blogCategoryRoutes } from '../module/blogCategory/blogCategory.route';
 
 const router = Router();
 
@@ -149,6 +150,10 @@ const moduleRoutes = [
   {
     path: '/blog',
     route: blogRouter,
+  },
+  {
+    path: '/blog-category',
+    route: blogCategoryRoutes,
   },
   {
     path: '/',
