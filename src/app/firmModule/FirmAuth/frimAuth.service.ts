@@ -28,6 +28,7 @@ import { SsoToken } from "./SsoToken.model";
 import UserProfile from "../../module/User/user.model";
 import { redisClient } from "../../config/redis.config";
 import { CacheKeys } from "../../config/cacheKeys";
+import { IFirmProfile } from "../Firm/firm.interface";
 
 
 
@@ -241,7 +242,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
         //  Send email ONLY after successful commit
         const data = {
-            name: newAdmin?.fullName,
+            firmName: newProfile?.firmName,
             loginUrl: `${config.firm_client_url}/login`,
             password: userData.password,
             email: userData.email,
@@ -250,7 +251,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
         await sendEmail({
             to: userData.email,
-            subject: 'Welcome to TheLawApp! Your Company Registration is Complete',
+            subject: 'Welcome to TheLawApp - Your Account has been Successfully Created',
             data: data,
             emailTemplate: "firm_registration",
         });
@@ -443,7 +444,11 @@ const changePasswordIntoDB = async (
 
 const forgetPassword = async (userEmail: string) => {
     // Check if the user exists by email
-    const user = await FirmUser.isUserExistsByEmail(userEmail);
+    // const user = await FirmUser.isUserExistsByEmail(userEmail);
+    const user = await FirmUser.findOne({ email: userEmail })
+        .select('-password +profileModel') // include profileModel explicitly
+        .populate('profile')
+        .populate('firmProfileId')
 
     if (!user) {
         throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
@@ -471,7 +476,7 @@ const forgetPassword = async (userEmail: string) => {
         // username: user.username,
         email: user?.email,
         role: user?.role,
-        // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
+        // country: (user?.profile as any)?.country.slug, //  Fix TS error
         accountStatus: user.accountStatus,
     };
 
@@ -487,9 +492,11 @@ const forgetPassword = async (userEmail: string) => {
 
     // Prepare email content for password reset
     const restEmailData = {
-        // name: userProfile?.name,
-        name: 'user',
-        resetUrl: resetUILink
+
+        resetUrl: resetUILink,
+        firmName: (user.firmProfileId as unknown as IFirmProfile).firmName,
+        firmUserName: user.name
+
 
     };
 
@@ -497,7 +504,7 @@ const forgetPassword = async (userEmail: string) => {
 
     await sendEmail({
         to: user.email,
-        subject: 'Reset Your Password to Regain Access',
+        subject: 'Password Reset Request for TheLawApp Company Account',
         data: restEmailData,
         emailTemplate: 'firm_password_reset',
     });
@@ -1039,5 +1046,5 @@ export const firmAuthService = {
     changeEmail,
     getUserInfoFromDB,
     updateCurrentUser,
-    
+
 };
