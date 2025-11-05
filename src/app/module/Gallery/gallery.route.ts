@@ -13,13 +13,8 @@ router.get('/list', galleryController.getGalleries);
 router.get('/:galleryId', galleryController.getGalleryById);
 
 // Protected - admin only
-router.post('/add', auth(USER_ROLE.ADMIN), upload.single('galleryImage'), 
-//  (req: Request, res: Response, next: NextFunction) => {
-//     req.body = JSON.parse(req.body.data);
-//     next();
-// },  
-validateRequest(createGalleryZod), galleryController.createGallery);
-router.put('/:galleryId/update', auth(USER_ROLE.ADMIN),  upload.single('galleryImage'),  validateRequest(updateGalleryZod), galleryController.updateGallery);
+router.post('/add', auth(USER_ROLE.ADMIN), upload.single('galleryImage'), validateRequest(createGalleryZod), galleryController.createGallery);
+router.put('/:galleryId/update', auth(USER_ROLE.ADMIN), upload.single('galleryImage'), validateRequest(updateGalleryZod), galleryController.updateGallery);
 router.delete('/:galleryId/delete', auth(USER_ROLE.ADMIN), galleryController.deleteGallery);
 
 export const galleryRouter = router;
