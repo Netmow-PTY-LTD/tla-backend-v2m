@@ -45,6 +45,7 @@ export interface IFirmProfile extends Document {
     taxId?: string;
     currency?: string;
     notes?: string;
+    vatTaxId?: string;
   };
 
   // Credits & Billing
