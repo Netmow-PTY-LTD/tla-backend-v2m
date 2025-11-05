@@ -445,7 +445,10 @@ const changePasswordIntoDB = async (
 const forgetPassword = async (userEmail: string) => {
     // Check if the user exists by email
     // const user = await FirmUser.isUserExistsByEmail(userEmail);
-    const user = await FirmUser.findOne({email:userEmail}).populate('profile').populate('firmProfileId')
+    const user = await FirmUser.findOne({ email: userEmail })
+        .select('-password +profileModel') // include profileModel explicitly
+        .populate('profile')
+        .populate('firmProfileId')
 
     if (!user) {
         throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
