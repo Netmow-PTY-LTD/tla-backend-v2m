@@ -200,12 +200,12 @@ export const requestlawyerAsFirmMember = (data: {
 
 // company Register email template
 export const firmRegisterEmail = (data: {
-    name: string;
+    firmName: string;
     loginUrl: string;
     password: string;
     email: string;
 }) => {
-    const { name, loginUrl, password, email } = data;
+    const { firmName, loginUrl, password, email } = data;
 
     return `
     ${headerDesign}
@@ -213,7 +213,7 @@ export const firmRegisterEmail = (data: {
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${name},</h2>
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmName},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
           Welcome to <strong>TheLawApp!</strong> Your <strong>Law Firm</strong> account has been created successfully. You are now ready to access the platform and manage your firm's cases, staff, and clients.
         </p>
