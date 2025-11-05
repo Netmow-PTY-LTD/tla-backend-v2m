@@ -30,6 +30,7 @@ import { adminFirmRouter } from '../module/FirmManagement/firm.route';
 import { seoRouter } from '../module/Seo/seo.route';
 import { blogRouter } from '../module/blog/blog.route';
 import { blogCategoryRoutes } from '../module/blogCategory/blogCategory.route';
+import { galleryRouter } from '../module/Gallery/gallery.route';
 
 const router = Router();
 
@@ -150,6 +151,10 @@ const moduleRoutes = [
   {
     path: '/blog',
     route: blogRouter,
+  },
+  {
+    path: '/gallery',
+    route: galleryRouter,
   },
   {
     path: '/blog-category',
