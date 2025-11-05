@@ -268,7 +268,7 @@ export const newClaimNotificationEmail = (data: {
       </h2>
 
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-        A new claim has been submitted by a law firm on <strong>TheLawApp</strong>. Below are the details:
+        A new claim has been submitted by your <strong>Law Firm</strong> on <strong>TheLawApp</strong>. Below are the details:
       </p>
 
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
@@ -291,16 +291,17 @@ export const newClaimNotificationEmail = (data: {
       </table>
 
       <p style="font-size: 16px; line-height: 1.6;">
-        Please review this claim in the admin dashboard and take the necessary action.
+        Please review the claim details in the <strong>Admin Dashboard</strong> and take the necessary actions accordingly.
+
       </p>
 
       <p style="font-size: 14px; color: #777; margin-top: 25px;">
-        You are receiving this email because you are registered as an admin on TheLawApp platform.
+       You are receiving this email because you are registered as an administrator for <strong>${lawFirmName}</strong> on <strong>TheLawApp</strong> platform.
       </p>
 
       <p style="font-size: 14px; margin-top: 20px;">
         Best Regards,<br>
-        <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+        <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong> </span>
       </p>
     </td>
   </tr>

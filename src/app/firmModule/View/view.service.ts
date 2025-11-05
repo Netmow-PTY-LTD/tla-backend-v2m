@@ -338,7 +338,7 @@ const createClaimIntoDB = async (
 
     if (adminEmails.length > 0) {
       const emailData = {
-        subject: "New Claim Submitted – TheLawApp",
+        subject: "New Claim Submitted on TheLawApp",
         to: adminEmails.join(','),
         data: {
           claimId: created._id,
