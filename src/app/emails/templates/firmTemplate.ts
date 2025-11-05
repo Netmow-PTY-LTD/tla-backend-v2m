@@ -212,19 +212,19 @@ export const firmRegisterEmail = (data: {
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${name},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          Welcome to TheLawApp! Your account has been created successfully.
+          Welcome to <strong>TheLawApp!</strong> Your <strong>Law Firm</strong> account has been created successfully. You are now ready to access the platform and manage your firm's cases, staff, and clients.
         </p>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          You can log in using the following credentials:
+          Your account details are as follows:
         </p>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
           <strong>Email:</strong> ${email}<br>
           <strong>Password:</strong> ${password}
         </p>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          Click the button below to log in to your account.
+         To log in and get started, click the button below:
         </p>
         <!-- Button -->
         <div style="text-align: center; margin-bottom: 30px;">
@@ -233,11 +233,11 @@ export const firmRegisterEmail = (data: {
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
-          If you didn’t initiate this request, you can safely ignore this email.
+       If you did not initiate this registration request, please disregard this email.
         </p>
         <p style="font-size: 14px; margin-top: 20px;">
           Best Regards,<br>
-          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+          <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong></span>
         </p>
       </td>
     </tr>
