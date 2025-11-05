@@ -94,10 +94,11 @@ const footerDesign = `
 //  Rest password email template
 
 export const firmPasswordResetEmail = (data: {
-    name: string;
+    firmName: string;
+    firmUserName: string;
     resetUrl: string;
 }) => {
-    const { name, resetUrl } = data;
+    const { firmName, firmUserName, resetUrl } = data;
 
     return `
 ${headerDesign}
@@ -105,22 +106,22 @@ ${headerDesign}
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmUserName} of ${firmName},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          You have requested us to send a link to reset your password for your TheLawApp account. Click on the button below to proceed.
+         We have received a request to reset the password for your <strong>TheLawApp</strong> Law Firm account. To proceed with resetting your password, please click the button below.
         </p>
         <!-- Button -->
         <div style="text-align: center; margin-bottom: 30px;">
           <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
-            Reset password
+            Reset Password
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
-          If you didn’t initiate this request, you can safely ignore this email.
+         If you did not request this password reset, you can safely ignore this email.
         </p>
         <p style="font-size: 14px; margin-top: 20px;">
           Best Regards,<br>
-          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+          <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong></span>
         </p>
       </td>
     </tr>
@@ -250,12 +251,13 @@ export const firmRegisterEmail = (data: {
 
 //   newClaimNotificationEmail
 export const newClaimNotificationEmail = (data: {
+  adminName:string;
   claimId: string;
   lawFirmName: string;
   claimerName: string;
   issueDescription: string;
 }) => {
-  const { claimId, lawFirmName, claimerName, issueDescription } = data;
+  const { claimId, lawFirmName, claimerName, issueDescription ,adminName } = data;
 
   return `
   ${headerDesign}
@@ -264,8 +266,10 @@ export const newClaimNotificationEmail = (data: {
   <tr>
     <td style="padding: 0 30px;">
       <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">
-        New Claim Submitted
+        Dear ${adminName}
       </h2>
+
+       
 
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
         A new claim has been submitted by your <strong>Law Firm</strong> on <strong>TheLawApp</strong>. Below are the details:

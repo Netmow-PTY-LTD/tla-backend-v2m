@@ -250,7 +250,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
         await sendEmail({
             to: userData.email,
-            subject: 'Welcome to TheLawApp! Your Company Registration is Complete',
+            subject: 'Welcome to TheLawApp - Your Account has been Successfully Created',
             data: data,
             emailTemplate: "firm_registration",
         });
@@ -497,7 +497,7 @@ const forgetPassword = async (userEmail: string) => {
 
     await sendEmail({
         to: user.email,
-        subject: 'Reset Your Password to Regain Access',
+        subject: 'Password Reset Request for TheLawApp Company Account',
         data: restEmailData,
         emailTemplate: 'firm_password_reset',
     });
