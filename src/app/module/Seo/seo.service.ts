@@ -27,6 +27,7 @@ const CreateSeoIntoDB = async (file: TUploadedFile, payload: ISeo) => {
         const metaImageUrl = await uploadToSpaces(fileBuffer, originalName, {
             folder: FOLDERS.SEO,
             entityId: FOLDERS.METAIMAGES,
+            customFileName: payload.slug
         });
 
         payload.metaImage = metaImageUrl;
@@ -74,6 +75,8 @@ const updateSeoIntoDB = async (
             newFileUrl = await uploadToSpaces(fileBuffer, originalName, {
                 folder: FOLDERS.SEO,
                 entityId: FOLDERS.METAIMAGES,
+                customFileName: payload.slug
+
             });
 
             payload.metaImage = newFileUrl;
