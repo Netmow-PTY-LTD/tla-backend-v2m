@@ -28,6 +28,7 @@ import { SsoToken } from "./SsoToken.model";
 import UserProfile from "../../module/User/user.model";
 import { redisClient } from "../../config/redis.config";
 import { CacheKeys } from "../../config/cacheKeys";
+import { IFirmProfile } from "../Firm/firm.interface";
 
 
 
@@ -443,7 +444,8 @@ const changePasswordIntoDB = async (
 
 const forgetPassword = async (userEmail: string) => {
     // Check if the user exists by email
-    const user = await FirmUser.isUserExistsByEmail(userEmail);
+    // const user = await FirmUser.isUserExistsByEmail(userEmail);
+    const user = await FirmUser.findOne({email:userEmail}).populate('profile').populate('firmProfileId')
 
     if (!user) {
         throw new AppError(HTTP_STATUS.NOT_FOUND, 'This user is not found !');
@@ -471,7 +473,7 @@ const forgetPassword = async (userEmail: string) => {
         // username: user.username,
         email: user?.email,
         role: user?.role,
-        // country: (user?.profile as any)?.country.slug, // ✅ Fix TS error
+        // country: (user?.profile as any)?.country.slug, //  Fix TS error
         accountStatus: user.accountStatus,
     };
 
@@ -487,9 +489,11 @@ const forgetPassword = async (userEmail: string) => {
 
     // Prepare email content for password reset
     const restEmailData = {
-        // name: userProfile?.name,
-        name: 'user',
-        resetUrl: resetUILink
+
+        resetUrl: resetUILink,
+        firmName: (user.firmProfileId as unknown as IFirmProfile).firmName,
+        firmUserName: user.name
+
 
     };
 
@@ -1039,5 +1043,5 @@ export const firmAuthService = {
     changeEmail,
     getUserInfoFromDB,
     updateCurrentUser,
-    
+
 };
