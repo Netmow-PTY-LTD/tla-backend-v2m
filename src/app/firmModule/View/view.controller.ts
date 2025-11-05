@@ -15,7 +15,7 @@ const getSingleFirmProfileBySlug = catchAsync(async (req, res) => {
 
   const result = await viewService.getSingleFirmProfileBySlug(slug);
   const queryTime = timer.endQueryTimer();
-  console.log("result1 ===>", result);
+
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
@@ -26,7 +26,7 @@ const getSingleFirmProfileBySlug = catchAsync(async (req, res) => {
     });
   }
 
-  console.log("result ===>", result);
+
 
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
