@@ -94,10 +94,11 @@ const footerDesign = `
 //  Rest password email template
 
 export const firmPasswordResetEmail = (data: {
-    name: string;
+    firmName: string;
+    firmUserName: string;
     resetUrl: string;
 }) => {
-    const { name, resetUrl } = data;
+    const { firmName, firmUserName, resetUrl } = data;
 
     return `
 ${headerDesign}
@@ -105,22 +106,22 @@ ${headerDesign}
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmUserName} of ${firmName},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          You have requested us to send a link to reset your password for your TheLawApp account. Click on the button below to proceed.
+         We have received a request to reset the password for your <strong>TheLawApp</strong> Law Firm account. To proceed with resetting your password, please click the button below.
         </p>
         <!-- Button -->
         <div style="text-align: center; margin-bottom: 30px;">
           <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
-            Reset password
+            Reset Password
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
-          If you didn’t initiate this request, you can safely ignore this email.
+         If you did not request this password reset, you can safely ignore this email.
         </p>
         <p style="font-size: 14px; margin-top: 20px;">
           Best Regards,<br>
-          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+          <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong></span>
         </p>
       </td>
     </tr>
@@ -199,12 +200,12 @@ export const requestlawyerAsFirmMember = (data: {
 
 // company Register email template
 export const firmRegisterEmail = (data: {
-    name: string;
+    firmName: string;
     loginUrl: string;
     password: string;
     email: string;
 }) => {
-    const { name, loginUrl, password, email } = data;
+    const { firmName, loginUrl, password, email } = data;
 
     return `
     ${headerDesign}
@@ -212,19 +213,19 @@ export const firmRegisterEmail = (data: {
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmName},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          Welcome to TheLawApp! Your account has been created successfully.
+          Welcome to <strong>TheLawApp!</strong> Your <strong>Law Firm</strong> account has been created successfully. You are now ready to access the platform and manage your firm's cases, staff, and clients.
         </p>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          You can log in using the following credentials:
+          Your account details are as follows:
         </p>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
           <strong>Email:</strong> ${email}<br>
           <strong>Password:</strong> ${password}
         </p>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-          Click the button below to log in to your account.
+         To log in and get started, click the button below:
         </p>
         <!-- Button -->
         <div style="text-align: center; margin-bottom: 30px;">
@@ -233,11 +234,11 @@ export const firmRegisterEmail = (data: {
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
-          If you didn’t initiate this request, you can safely ignore this email.
+       If you did not initiate this registration request, please disregard this email.
         </p>
         <p style="font-size: 14px; margin-top: 20px;">
           Best Regards,<br>
-          <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+          <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong></span>
         </p>
       </td>
     </tr>
@@ -250,12 +251,13 @@ export const firmRegisterEmail = (data: {
 
 //   newClaimNotificationEmail
 export const newClaimNotificationEmail = (data: {
+  adminName:string;
   claimId: string;
   lawFirmName: string;
   claimerName: string;
   issueDescription: string;
 }) => {
-  const { claimId, lawFirmName, claimerName, issueDescription } = data;
+  const { claimId, lawFirmName, claimerName, issueDescription ,adminName } = data;
 
   return `
   ${headerDesign}
@@ -264,11 +266,13 @@ export const newClaimNotificationEmail = (data: {
   <tr>
     <td style="padding: 0 30px;">
       <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">
-        New Claim Submitted
+        Dear ${adminName}
       </h2>
 
+       
+
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-        A new claim has been submitted by a law firm on <strong>TheLawApp</strong>. Below are the details:
+        A new claim has been submitted by your <strong>Law Firm</strong> on <strong>TheLawApp</strong>. Below are the details:
       </p>
 
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
@@ -291,16 +295,17 @@ export const newClaimNotificationEmail = (data: {
       </table>
 
       <p style="font-size: 16px; line-height: 1.6;">
-        Please review this claim in the admin dashboard and take the necessary action.
+        Please review the claim details in the <strong>Admin Dashboard</strong> and take the necessary actions accordingly.
+
       </p>
 
       <p style="font-size: 14px; color: #777; margin-top: 25px;">
-        You are receiving this email because you are registered as an admin on TheLawApp platform.
+       You are receiving this email because you are registered as an administrator for <strong>${lawFirmName}</strong> on <strong>TheLawApp</strong> platform.
       </p>
 
       <p style="font-size: 14px; margin-top: 20px;">
         Best Regards,<br>
-        <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
+        <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong> </span>
       </p>
     </td>
   </tr>
