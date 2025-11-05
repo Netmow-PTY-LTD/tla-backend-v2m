@@ -16,6 +16,7 @@ const firmProfileSchema = new Schema<IFirmProfile>(
     logo: { type: String },
     registrationNumber: { type: String },
     vatTaxId: { type: String },
+    brandColor: { type: String ,trim:true },
     yearEstablished: { type: Number },
     legalFocusAreas: { type: [String], default: [] },
     // Contact info

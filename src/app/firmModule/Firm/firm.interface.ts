@@ -8,6 +8,7 @@ export interface IFirmProfile extends Document {
   logo?: string;
   registrationNumber?: string;
   vatTaxId?: string;
+  brandColor?: string;
   yearEstablished?: number;
   legalFocusAreas: string[];
 
