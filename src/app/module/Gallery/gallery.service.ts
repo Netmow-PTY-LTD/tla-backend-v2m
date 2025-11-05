@@ -9,8 +9,8 @@ import { TUploadedFile } from '../../interface/file.interface';
 const createGallery = async (data: any, file?: TUploadedFile) => {
 	if (file?.buffer) {
 		const imageUrl = await uploadToSpaces(file.buffer, file.originalname, {
-			folder: FOLDERS.MEDIA,
-			entityId: `gallery_${Date.now()}`,
+			folder: FOLDERS.GALLERY,
+			customFileName:data.title
 		});
 		data.image = imageUrl;
 	}
@@ -43,8 +43,9 @@ const updateGallery = async (id: string, data: any, file?: TUploadedFile) => {
 
 		if (file?.buffer) {
 			const uploadedUrl = await uploadToSpaces(file.buffer, file.originalname, {
-				folder: FOLDERS.MEDIA,
-				entityId: `gallery_${Date.now()}`,
+				folder: FOLDERS.GALLERY,
+                customFileName:data.title
+				
 			});
 			data.image = uploadedUrl;
 			newFileUrl = uploadedUrl;

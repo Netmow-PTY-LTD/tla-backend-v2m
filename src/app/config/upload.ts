@@ -105,6 +105,7 @@ interface UploadOptions {
   folder?: TFolder;        // Main folder (profiles, lawyer, client...)
   entityId?: string;       // userId, lawyerId, clientId, etc.
   subFolder?: string;      // Optional subfolder like 'documents', 'images'
+  customFileName?: string; 
 }
 
 export const uploadToSpaces = async (
@@ -112,7 +113,7 @@ export const uploadToSpaces = async (
   originalName: string,
   options: UploadOptions = {}
 ): Promise<string> => {
-  const { folder = FOLDERS.PROFILES, entityId , subFolder } = options;
+  const { folder = FOLDERS.PROFILES, entityId, subFolder, customFileName } = options;
 
   const fileExt = path.extname(originalName);
   const mimeType = mime.lookup(fileExt) || 'application/octet-stream';
@@ -122,7 +123,14 @@ export const uploadToSpaces = async (
   if (subFolder) parts.push(subFolder);
   if (entityId) parts.push(entityId);
 
-  const filePath = `${parts.join('/')}/${uuidv4()}${fileExt}`;
+  // const filePath = `${parts.join('/')}/${uuidv4()}${fileExt}`;
+
+  const fileName =customFileName
+    ? `${customFileName}${fileExt}`
+    : `${uuidv4()}${fileExt}`;
+
+  const filePath = `${parts.join('/')}/${fileName}`;
+
 
   // Upload to S3 / DigitalOcean Spaces
   const command = new PutObjectCommand({
