@@ -94,13 +94,13 @@ const footerDesign = `
 //  Rest password email template
 
 export const firmPasswordResetEmail = (data: {
-    firmName: string;
-    firmUserName: string;
-    resetUrl: string;
+  firmName: string;
+  firmUserName: string;
+  resetUrl: string;
 }) => {
-    const { firmName, firmUserName, resetUrl } = data;
+  const { firmName, firmUserName, resetUrl } = data;
 
-    return `
+  return `
 ${headerDesign}
 
     <!-- Greeting -->
@@ -200,20 +200,21 @@ export const requestlawyerAsFirmMember = (data: {
 
 // company Register email template
 export const firmRegisterEmail = (data: {
-    firmName: string;
-    loginUrl: string;
-    password: string;
-    email: string;
+  // firmName: string;
+  firmAdmin: string;
+  loginUrl: string;
+  password: string;
+  email: string;
 }) => {
-    const { firmName, loginUrl, password, email } = data;
+  const { firmAdmin, loginUrl, password, email } = data;
 
-    return `
+  return `
     ${headerDesign}
 
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmName},</h2>
+        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmAdmin},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
           Welcome to <strong>TheLawApp!</strong> Your <strong>Law Firm</strong> account has been created successfully. You are now ready to access the platform and manage your firm's cases, staff, and clients.
         </p>
@@ -251,13 +252,13 @@ export const firmRegisterEmail = (data: {
 
 //   newClaimNotificationEmail
 export const newClaimNotificationEmail = (data: {
-  adminName:string;
+  adminName: string;
   claimId: string;
   lawFirmName: string;
   claimerName: string;
   issueDescription: string;
 }) => {
-  const { claimId, lawFirmName, claimerName, issueDescription ,adminName } = data;
+  const { claimId, lawFirmName, claimerName, issueDescription, adminName } = data;
 
   return `
   ${headerDesign}
