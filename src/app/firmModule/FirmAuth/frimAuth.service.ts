@@ -242,7 +242,8 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
         //  Send email ONLY after successful commit
         const data = {
-            firmName: newProfile?.firmName,
+            // firmName: newProfile?.firmName,
+            firmAdmin: newUser?.name,
             loginUrl: `${config.firm_client_url}/login`,
             password: userData.password,
             email: userData.email,
