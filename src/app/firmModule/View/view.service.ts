@@ -331,30 +331,58 @@ const createClaimIntoDB = async (
 
     //  Send email notification to all admins
     const admins = await User.find({ role: USER_ROLE.ADMIN })
-      .select("email")
+      .select("email profile")
+      .populate({ path: "profile", select: "name" })
       .lean();
 
-    const adminEmails = admins.map((admin) => admin.email).filter(Boolean);
+    // keep admin objects that have an email so we can access both email and profile
+    const adminsWithEmail = admins.filter((admin) => !!admin.email);
 
-    if (adminEmails.length > 0) {
-      const emailData = {
-        subject: "New Claim Submitted on TheLawApp",
-        to: adminEmails.join(','),
-        data: {
-          claimId: created._id,
-          lawFirmName: normalizedFirmName,
-          claimerName: payload.claimerName,
-          issueDescription: payload.issueDescription,
-        },
-        emailTemplate: "new_claim_notification",
-      };
 
-      await sendEmail(emailData);
+    // if (adminsWithEmail.length > 0) {
+    //   const emailData = {
+    //     subject: "New Claim Submitted on TheLawApp",
+    //     to: adminsWithEmail.map(a => a.email).join(','),
+    //     data: {
+    //       claimId: created._id,
+    //       lawFirmName: normalizedFirmName,
+    //       claimerName: payload.claimerName,
+    //       issueDescription: payload.issueDescription,
+    //     },
+    //     emailTemplate: "new_claim_notification",
+    //   };
+
+    //   await sendEmail(emailData);
+    // } else {
+    //   console.warn(" No admin emails found to notify for new claim");
+    // }
+
+    if (adminsWithEmail.length > 0) {
+      // Send all emails in parallel
+      await Promise.all(
+        adminsWithEmail.map(admin => {
+          const profile = (admin as any).profile;
+          const adminName = profile?.name || "Admin";
+
+          const emailData = {
+            subject: "New Claim Submitted on TheLawApp",
+            to: admin.email, // single admin email
+            data: {
+              adminName, // single admin name
+              claimId: created._id,
+              lawFirmName: normalizedFirmName,
+              claimerName: payload.claimerName,
+              issueDescription: payload.issueDescription,
+            },
+            emailTemplate: "new_claim_notification",
+          };
+
+          return sendEmail(emailData);
+        })
+      );
     } else {
-      console.warn(" No admin emails found to notify for new claim");
+      console.warn("No admin emails found to notify for new claim");
     }
-
-
 
 
 
