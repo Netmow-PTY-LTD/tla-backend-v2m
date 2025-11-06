@@ -3,6 +3,7 @@ import { TUploadedFile } from '../../interface/file.interface';
 import { Blog } from './blog.model';
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
+import { Types } from 'mongoose';
 
 
 interface IBlog {
@@ -10,7 +11,7 @@ interface IBlog {
   slug?: string;
   content: string;
   bannerImage?: string;
-  category?: string; // BlogCategory ObjectId
+  category?:  Types.ObjectId[]; // BlogCategory ObjectId
   tags?: string[];
   status?: 'draft' | 'published' | 'archived';
   isFeatured?: boolean;

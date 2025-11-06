@@ -21,11 +21,13 @@ const blogSchema = new Schema(
       type: String,
       trim: true
     },
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: 'BlogCategory',
-      default: null,
-    },
+    category: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'BlogCategory',
+        default: null,
+      }
+    ],
     tags: [String],
 
     status: {
@@ -42,6 +44,15 @@ const blogSchema = new Schema(
       default: 0,
     },
     publishedAt: Date,
+
+    // === SEO Fields ===
+    seo: {
+      metaTitle: { type: String, trim: true },
+      metaDescription: { type: String, trim: true },
+      metaKeywords: [String],
+      metaImage: { type: String, trim: true },
+    },
+
   },
   {
     timestamps: true,
