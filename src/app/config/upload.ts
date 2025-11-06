@@ -105,7 +105,7 @@ interface UploadOptions {
   folder?: TFolder;        // Main folder (profiles, lawyer, client...)
   entityId?: string;       // userId, lawyerId, clientId, etc.
   subFolder?: string;      // Optional subfolder like 'documents', 'images'
-  customFileName?: string; 
+  customFileName?: string;
 }
 
 export const uploadToSpaces = async (
@@ -125,7 +125,7 @@ export const uploadToSpaces = async (
 
   // const filePath = `${parts.join('/')}/${uuidv4()}${fileExt}`;
 
-  const fileName =customFileName
+  const fileName = customFileName
     ? `${customFileName}${fileExt}`
     : `${uuidv4()}${fileExt}`;
 
@@ -144,8 +144,22 @@ export const uploadToSpaces = async (
   await s3Client.send(command);
 
   // Construct public URL
+  // const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
+  // return `https://${config.do_spaces_bucket}.${endpoint}/${filePath}`;
+
+  // Construct Public URL
   const endpoint = config.do_spaces_endpoint!.replace(/^https?:\/\//, '');
-  return `https://${config.do_spaces_bucket}.${endpoint}/${filePath}`;
+  const baseUrl = config.custom_cdn_domain
+    ? config.custom_cdn_domain.replace(/\/$/, '') // remove trailing slash
+    : `https://${config.do_spaces_bucket}.${endpoint}`;
+
+  return `${baseUrl}/${filePath}`;
+
+
+
+
+
+
 };
 
 
