@@ -35,5 +35,6 @@ export default {
   redis_port: process.env.REDIS_PORT,
   redis_password: process.env.REDIS_PASSWORD,
   redis_username: process.env.REDIS_USERNAME,
+  custom_cdn_domain:process.env.CUSTOM_CDN_DOMAIN
 
 };
