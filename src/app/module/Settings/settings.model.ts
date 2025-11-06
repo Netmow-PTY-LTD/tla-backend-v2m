@@ -4,6 +4,8 @@ import { IAppSettings } from './settings.interface';
 const settingsSchema = new Schema(
   {
     siteName: { type: String, default: 'The LawApp' },
+    appLogo: { type: String, default: '' },
+    favicon: { type: String, default: '' },
     maintenanceMode: { type: Boolean, default: false },
     emailProviderEnabled: { type: Boolean, default: true },
     smsProviderEnabled: { type: Boolean, default: false },
@@ -18,24 +20,3 @@ const settingsSchema = new Schema(
 
 export const AppSettings = model<IAppSettings>('AppSettings', settingsSchema);
 
-//   law firm certification type model  - it will be next time use dedicated module   just temporary stay here
-
-// const lawFirmCertificationSchema = new Schema(
-//   {
-//     countryId: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
-//     type: {
-//       type: String,
-//       required: true,
-//       enum: ['mandatory', 'optional'],
-//     },
-//     certificationName: { type: String, required: true },
-//     logo: { type: String },
-//   },
-//   { timestamps: true },
-// );
-
-// // Model
-// export const LawFirmCertification = model(
-//   'LawFirmCertification',
-//   lawFirmCertificationSchema,
-// );

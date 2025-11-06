@@ -1,5 +1,7 @@
 export interface IAppSettings {
   siteName: string;
+  favicon: string;
+  appLogo: string;
   maintenanceMode: boolean;
   emailProviderEnabled: boolean;
   smsProviderEnabled: boolean;
@@ -8,5 +10,6 @@ export interface IAppSettings {
   responseLimitPerLead: number;
   stripeLiveMode: boolean;
   autoRefundIfLeadInactive: boolean;
-  
+
+
 }

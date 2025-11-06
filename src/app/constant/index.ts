@@ -41,6 +41,7 @@ export const FOLDERS = {
   SEO: 'seo',                   // SEO uploads (evidence, documents)
   GALLERY: 'gallery',                   // gallery uploads (evidence, documents)
   BLOG: 'blog',                   // blog uploads (evidence, documents)
+  APP_SETTINGS:'app_settings'
 } as const;
 
 export type TFolder = (typeof FOLDERS)[keyof typeof FOLDERS];
