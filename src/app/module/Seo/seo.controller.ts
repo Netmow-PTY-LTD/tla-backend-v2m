@@ -41,7 +41,7 @@ const getAllSeo = catchAsync(async (req, res) => {
 const updateSeo = catchAsync(async (req, res) => {
   const { seoId } = req.params;
   const payload = req.body;
-    const metaImage = req.file;
+  const metaImage = req.file;
   const result = await seoService.updateSeoIntoDB(seoId, payload, metaImage as Express.Multer.File);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -64,6 +64,29 @@ const deleteSeo = catchAsync(async (req, res) => {
 });
 
 
+const getSingleSeoBySlug = catchAsync(async (req, res) => {
+  const { slug } = req.params;
+  const result = await seoService.getSeoBySlugFromDB(slug as string);
+
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'SEO content not found.',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'SEO content retrieved successfully.',
+    data: result,
+  });
+});
+
+
 
 export const seoController = {
   createSeo,
@@ -71,4 +94,5 @@ export const seoController = {
   getAllSeo,
   updateSeo,
   deleteSeo,
+  getSingleSeoBySlug,
 };

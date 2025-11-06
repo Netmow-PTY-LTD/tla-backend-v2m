@@ -18,4 +18,10 @@ router.patch('/:seoId/update', upload.single('metaImage'), (req: Request, res: R
 }, auth(USER_ROLE.ADMIN), seoController.updateSeo);
 router.delete('/:seoId/delete', auth(USER_ROLE.ADMIN), seoController.deleteSeo);
 
+//  public api
+
+router.get('/by-slug/:slug', seoController.getSingleSeoBySlug);
+
+
+
 export const seoRouter = router;

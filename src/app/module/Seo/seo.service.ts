@@ -46,6 +46,11 @@ const getSingleSeoFromDB = async (id: string): Promise<SeoDocument | null> => {
     return result;
 };
 
+const getSeoBySlugFromDB = async (slug: string): Promise<SeoDocument | null> => {
+    const result = await Seo.findOne({ slug });
+    return result;
+};
+
 const getAllSeoFromDB = async (query: Record<string, any>): Promise<SeoDocument[]> => {
     const result = await Seo.find(query);
     return result;
@@ -143,6 +148,7 @@ const deleteSeoFromDB = async (id: string) => {
 export const seoService = {
     CreateSeoIntoDB,
     getSingleSeoFromDB,
+    getSeoBySlugFromDB,
     getAllSeoFromDB,
     updateSeoIntoDB,
     deleteSeoFromDB,
