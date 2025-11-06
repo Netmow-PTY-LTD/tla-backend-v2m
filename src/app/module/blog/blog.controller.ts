@@ -3,10 +3,12 @@ import sendResponse from '../../utils/sendResponse';
 import catchAsync from '../../utils/catchAsync';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { blogService } from './blog.service';
+import { TUploadedFile } from '../../interface/file.interface';
 
 const createBlog = catchAsync(async (req, res) => {
     const blogData = req.body;
-    const result = await blogService.createBlog(blogData);
+    const file=req.file;
+    const result = await blogService.createBlogInDB(blogData,file as TUploadedFile);
     sendResponse(res, {
         statusCode: HTTP_STATUS.CREATED,
         success: true,
@@ -16,7 +18,7 @@ const createBlog = catchAsync(async (req, res) => {
 });
 
 const getBlogs = catchAsync(async (req, res) => {
-    const result = await blogService.getBlogs(req.query);
+    const result = await blogService.getBlogsFromDB(req.query);
     sendResponse(res, {
         statusCode: HTTP_STATUS.OK,
         success: true,
@@ -27,7 +29,7 @@ const getBlogs = catchAsync(async (req, res) => {
 
 const getBlogById = catchAsync(async (req, res) => {
     const { blogId } = req.params;
-    const result = await blogService.getBlogById(blogId);
+    const result = await blogService.getBlogByIdFromDB(blogId);
     sendResponse(res, {
         statusCode: HTTP_STATUS.OK,
         success: true,
@@ -39,7 +41,8 @@ const getBlogById = catchAsync(async (req, res) => {
 const updateBlog = catchAsync(async (req, res) => {
     const { blogId } = req.params;
     const payload = req.body;
-    const result = await blogService.updateBlog(blogId, payload);
+    const file=req.file;
+    const result = await blogService.updateBlogInDB(blogId, payload,file as TUploadedFile);
     sendResponse(res, {
         statusCode: HTTP_STATUS.OK,
         success: true,
@@ -50,7 +53,7 @@ const updateBlog = catchAsync(async (req, res) => {
 
 const deleteBlog = catchAsync(async (req, res) => {
     const { blogId } = req.params;
-    const result = await blogService.deleteBlog(blogId);
+    const result = await blogService.deleteBlogFromDB(blogId);
     sendResponse(res, {
         statusCode: HTTP_STATUS.OK,
         success: true,
