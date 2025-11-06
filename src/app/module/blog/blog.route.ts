@@ -7,13 +7,19 @@ import { upload } from '../../config/upload';
 
 const router = Router();
 
-router.post('/add', auth(USER_ROLE.ADMIN), upload.single('bannerImage'), (req: Request, res: Response, next: NextFunction) => {
+router.post('/add', auth(USER_ROLE.ADMIN), upload.fields([
+    { name: 'bannerImage', maxCount: 1 },
+    { name: 'metaImage', maxCount: 1 },
+]), (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
     next();
 }, blogController.createBlog);
 router.get('/list', blogController.getBlogs);
 router.get('/:blogId', blogController.getBlogById);
-router.put('/:blogId/update', auth(USER_ROLE.ADMIN), upload.single('bannerImage'), (req: Request, res: Response, next: NextFunction) => {
+router.put('/:blogId/update', auth(USER_ROLE.ADMIN), upload.fields([
+    { name: 'bannerImage', maxCount: 1 },
+    { name: 'metaImage', maxCount: 1 },
+]), (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
     next();
 }, blogController.updateBlog);
