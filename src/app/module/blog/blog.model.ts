@@ -17,6 +17,10 @@ const blogSchema = new Schema(
       type: String,
       required: true,
     },
+    bannerImage: {
+      type: String,
+      trim: true
+    },
     category: {
       type: Schema.Types.ObjectId,
       ref: 'BlogCategory',

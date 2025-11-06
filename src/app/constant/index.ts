@@ -40,6 +40,7 @@ export const FOLDERS = {
   METAIMAGES: 'metaimages',                   // SEO meta images
   SEO: 'seo',                   // SEO uploads (evidence, documents)
   GALLERY: 'gallery',                   // gallery uploads (evidence, documents)
+  BLOG: 'blog',                   // blog uploads (evidence, documents)
 } as const;
 
 export type TFolder = (typeof FOLDERS)[keyof typeof FOLDERS];
