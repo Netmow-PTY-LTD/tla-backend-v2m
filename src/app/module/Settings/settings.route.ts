@@ -11,7 +11,7 @@ import { upload } from '../../config/upload';
 const router = Router();
 
 router.get('/',
-    auth(USER_ROLE.ADMIN),
+   
     settingsController.getAppSettings);
 router.patch('/',
     auth(USER_ROLE.ADMIN),
