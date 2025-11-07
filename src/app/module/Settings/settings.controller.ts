@@ -27,6 +27,8 @@ const updateAppSettings = catchAsync(async (req: Request, res: Response) => {
 
   const currentSettings = await settingsService.getSettings();
 
+  console.log('check payload ==>',payload)
+
   // ===== APP LOGO =====
   if (files?.appLogo?.[0]) {
     // New file uploaded
@@ -40,7 +42,7 @@ const updateAppSettings = catchAsync(async (req: Request, res: Response) => {
     if (currentSettings.appLogo) {
       await deleteFromSpace(currentSettings.appLogo).catch(console.error);
     }
-  } else if (payload.appLogo === '' || payload.appLogo === null) {
+  } else if (payload.appLogo === '' || payload.appLogo === 'null') {
     // Frontend requested to remove logo
     if (currentSettings.appLogo) {
       await deleteFromSpace(currentSettings.appLogo).catch(console.error);
@@ -64,7 +66,7 @@ const updateAppSettings = catchAsync(async (req: Request, res: Response) => {
     if (currentSettings.favicon) {
       await deleteFromSpace(currentSettings.favicon).catch(console.error);
     }
-  } else if (payload.favicon === '' || payload.favicon === null) {
+  } else if (payload.favicon === '' || payload.favicon === "null") {
     // Frontend requested to remove favicon
     if (currentSettings.favicon) {
       await deleteFromSpace(currentSettings.favicon).catch(console.error);
