@@ -14,6 +14,7 @@ const settingsSchema = new Schema(
     responseLimitPerLead: { type: Number, default: 5 },
     stripeLiveMode: { type: Boolean, default: false },
     autoRefundIfLeadInactive: { type: Boolean, default: true },
+    robots: { type: String, default: 'noindex, nofollow' },
   },
   { timestamps: true },
 );
