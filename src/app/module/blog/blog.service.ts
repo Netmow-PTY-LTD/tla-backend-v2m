@@ -280,7 +280,15 @@ const updateBlogInDB = async (
       // Delete old meta image
       if (existingBlog.seo?.metaImage)
         deleteFromSpace(existingBlog.seo.metaImage).catch(console.error);
+    } else {
+      // Keep existing meta image if not updated
+      if (existingBlog.seo?.metaImage) {
+        payload.seo = payload.seo || {};
+        payload.seo.metaImage = existingBlog.seo.metaImage;
+      }
     }
+
+
 
     const updatedBlog = await Blog.findByIdAndUpdate(id, payload, {
       new: true,
