@@ -47,10 +47,18 @@ const deleteCode = async (id: string) => {
   return deleted;
 };
 
+
+
+
+const getAllCodes = async () => {
+  return await HeaderFooterCode.find({}).lean(); // fetch all codes without pagination
+};
+
 export const headerFooterCodeService = {
   createCode,
   getCodes,
   getCodeById,
   updateCode,
   deleteCode,
+  getAllCodes
 };

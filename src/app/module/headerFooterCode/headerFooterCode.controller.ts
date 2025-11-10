@@ -59,10 +59,22 @@ const deleteCode = catchAsync(async (req, res) => {
   });
 });
 
+
+const getAllCodesPublic = catchAsync(async (req, res) => {
+  const result = await headerFooterCodeService.getAllCodes(); // fetch all codes without pagination
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Header/Footer codes fetched successfully for public use.',
+    data: result,
+  });
+});
+
 export const headerFooterCodeController = {
   createCode,
   getCodes,
   getCodeById,
   updateCode,
   deleteCode,
+   getAllCodesPublic, // add this
 };

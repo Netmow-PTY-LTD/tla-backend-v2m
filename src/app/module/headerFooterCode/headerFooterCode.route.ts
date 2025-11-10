@@ -12,4 +12,7 @@ router.get('/:id', headerFooterCodeController.getCodeById);
 router.patch('/:id/update', auth(USER_ROLE.ADMIN), headerFooterCodeController.updateCode);
 router.delete('/:id/delete', auth(USER_ROLE.ADMIN), headerFooterCodeController.deleteCode);
 
+// Public endpoint for landing page (no pagination)
+router.get('/public/header-footer', headerFooterCodeController.getAllCodesPublic);
+
 export const headerFooterCodeRoutes = router;
