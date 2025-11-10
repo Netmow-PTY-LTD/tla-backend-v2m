@@ -144,6 +144,7 @@ import { Blog } from './blog.model';
 import { TUploadedFile } from '../../interface/file.interface';
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 
 export interface IBlog {
@@ -211,7 +212,20 @@ const getBlogsFromDB = async (query: Record<string, any>) => {
   if (query.tags) filter.tags = { $in: query.tags };
   if (query.category) filter.category = query.category;
 
-  return await Blog.find(filter).sort({ publishedAt: -1 });
+  const queryBuilder = new QueryBuilder(Blog.find(filter), query)
+    .filter()
+    .search(['title', 'content'])
+    .sort()
+    .paginate()
+    .fields();
+
+  const blogs = await queryBuilder.modelQuery;
+  const count = await queryBuilder.countTotal();
+
+  return {
+    data: blogs,
+    meta: count
+  };
 };
 
 // === GET SINGLE BLOG ===
