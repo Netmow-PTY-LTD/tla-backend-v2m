@@ -264,6 +264,10 @@ const updateBlogInDB = async (
         deleteFromSpace(existingBlog.bannerImage).catch(console.error);
     }
 
+    console.log('payload1 ==>', payload)
+
+    console.log('files?.bannerImage?.[0] ===>', files?.bannerImage?.[0])
+    console.log('files?.metaImage?.[0] ===>', files?.metaImage?.[0])
     // Upload new meta image
     if (files?.metaImage?.[0]) {
       const newMetaUrl = await uploadToSpaces(
@@ -280,7 +284,16 @@ const updateBlogInDB = async (
       // Delete old meta image
       if (existingBlog.seo?.metaImage)
         deleteFromSpace(existingBlog.seo.metaImage).catch(console.error);
+    } else {
+      // Keep existing meta image if not updated
+      if (existingBlog.seo?.metaImage) {
+        payload.seo = payload.seo || {};
+        payload.seo.metaImage = existingBlog.seo.metaImage;
+      }
     }
+
+
+    console.log('payload2 ==>', payload)
 
     const updatedBlog = await Blog.findByIdAndUpdate(id, payload, {
       new: true,
