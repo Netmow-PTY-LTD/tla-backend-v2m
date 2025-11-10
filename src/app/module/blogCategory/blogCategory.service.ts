@@ -1,7 +1,7 @@
 import { BlogCategory } from './blogCategory.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
-
+import QueryBuilder from '../../builder/QueryBuilder';
 import {  IBlogCategoryCreate, IBlogCategoryUpdate } from './blogCategory.types';
 
 const createBlogCategory = async (data: IBlogCategoryCreate) => {
@@ -9,9 +9,21 @@ const createBlogCategory = async (data: IBlogCategoryCreate) => {
     return blogCategory;
 };
 
-const getBlogCategories = async () => {
-    const blogCategories = await BlogCategory.find();
-    return blogCategories;
+const getBlogCategories = async (query: Record<string, any> = {}) => {
+    const queryBuilder = new QueryBuilder(BlogCategory.find(), query)
+        .filter()
+        .search(['name', 'description'])
+        .sort()
+        .paginate()
+        .fields();
+
+    const blogCategories = await queryBuilder.modelQuery;
+    const count = await queryBuilder.countTotal();
+
+    return {
+        data: blogCategories,
+        meta: count
+    };
 };
 
 const getBlogCategoryById = async (id: string) => {
