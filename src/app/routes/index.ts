@@ -31,6 +31,7 @@ import { seoRouter } from '../module/Seo/seo.route';
 import { blogRouter } from '../module/blog/blog.route';
 import { blogCategoryRoutes } from '../module/blogCategory/blogCategory.route';
 import { galleryRouter } from '../module/Gallery/gallery.route';
+import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterCode.route';
 
 const router = Router();
 
@@ -159,6 +160,10 @@ const moduleRoutes = [
   {
     path: '/blog-category',
     route: blogCategoryRoutes,
+  },
+  {
+    path: '/header-footer-codes',
+    route: headerFooterCodeRoutes,
   },
   {
     path: '/',
