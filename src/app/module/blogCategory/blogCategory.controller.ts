@@ -15,7 +15,7 @@ const createBlogCategory = catchAsync(async (req, res) => {
 });
 
 const getBlogCategories = catchAsync(async (req, res) => {
-  const blogCategories = await blogCategoryService.getBlogCategories();
+  const blogCategories = await blogCategoryService.getBlogCategories(req.query);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
