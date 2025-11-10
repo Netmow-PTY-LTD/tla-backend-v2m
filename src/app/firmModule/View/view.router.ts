@@ -42,6 +42,12 @@ router.get(
   viewController.getAllFirmLawyerNotification
 );
 
+router.get(
+  '/firm-stats',
+  viewController.firmStats
+);
+
+
 
 
 export const firmViewRouter = router;

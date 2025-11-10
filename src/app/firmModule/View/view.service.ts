@@ -452,6 +452,30 @@ const getLawyerNotificationsFromDB = async (
 
 
 
+const getFirmStats = async () => {
+  try {
+    // Run all queries in parallel for better performance
+    const [lawyerCount, clientCount, lawFirmCount] = await Promise.all([
+      User.countDocuments({ regUserType: 'lawyer', role: USER_ROLE.USER, deletedAt: null }),
+      User.countDocuments({ regUserType: 'client', role: USER_ROLE.USER, deletedAt: null }),
+      FirmProfile.countDocuments({})
+    ]);
+
+    return {
+      lawyers: lawyerCount,
+      clients: clientCount,
+      lawFirms: lawFirmCount
+    };
+  } catch (error) {
+    console.error('Error fetching firm stats:', error);
+    return {
+      lawyers: 0,
+      clients: 0,
+      lawFirms: 0
+    };
+  }
+};
+
 
 
 
@@ -460,7 +484,8 @@ export const viewService = {
   checkFirmName,
   getAllFirmFromDB,
   createClaimIntoDB,
-  getLawyerNotificationsFromDB
+  getLawyerNotificationsFromDB,
+  getFirmStats
 };
 
 
