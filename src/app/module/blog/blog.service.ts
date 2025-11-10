@@ -264,10 +264,6 @@ const updateBlogInDB = async (
         deleteFromSpace(existingBlog.bannerImage).catch(console.error);
     }
 
-    console.log('payload1 ==>', payload)
-
-    console.log('files?.bannerImage?.[0] ===>', files?.bannerImage?.[0])
-    console.log('files?.metaImage?.[0] ===>', files?.metaImage?.[0])
     // Upload new meta image
     if (files?.metaImage?.[0]) {
       const newMetaUrl = await uploadToSpaces(
@@ -293,7 +289,6 @@ const updateBlogInDB = async (
     }
 
 
-    console.log('payload2 ==>', payload)
 
     const updatedBlog = await Blog.findByIdAndUpdate(id, payload, {
       new: true,
