@@ -100,7 +100,8 @@ const getBlogs = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Blogs retrieved successfully.',
-    data: result,
+    pagination:result.meta,
+    data: result.data,
   });
 });
 

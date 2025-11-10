@@ -20,7 +20,8 @@ const getBlogCategories = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Blog categories fetched successfully.',
-    data: blogCategories,
+    pagination: blogCategories.meta,
+    data: blogCategories.data,
   });
 });
 
