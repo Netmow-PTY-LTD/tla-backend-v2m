@@ -137,6 +137,20 @@ const getAllFirmLawyerNotification = catchAsync(async (req, res) => {
 });
 
 
+const firmStats = catchAsync(async (req, res) => {
+  const query = req.query;
+  const result = await viewService.getFirmStats();
+
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Stats retrieved successfully.',
+    data: result,
+  });
+});
+
+
 
 
 
@@ -153,6 +167,7 @@ export const viewController = {
   checkFirmName,
   getAllFirm,
   createClaimRequest,
-  getAllFirmLawyerNotification
+  getAllFirmLawyerNotification,
+  firmStats
 
 };
