@@ -15,7 +15,7 @@ router.post('/add', auth(USER_ROLE.ADMIN), upload.fields([
     next();
 }, blogController.createBlog);
 router.get('/list', blogController.getBlogs);
-router.get('/:blogId', blogController.getBlogById);
+router.get('/:slug', blogController.getBlogById);
 router.put('/:blogId/update', auth(USER_ROLE.ADMIN), upload.fields([
     { name: 'bannerImage', maxCount: 1 },
     { name: 'metaImage', maxCount: 1 },

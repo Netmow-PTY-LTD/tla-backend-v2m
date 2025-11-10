@@ -106,8 +106,8 @@ const getBlogs = catchAsync(async (req, res) => {
 });
 
 const getBlogById = catchAsync(async (req, res) => {
-  const { blogId } = req.params;
-  const result = await blogService.getBlogByIdFromDB(blogId);
+  const { slug } = req.params;
+  const result = await blogService.getBlogBySlugFromDB(slug);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,

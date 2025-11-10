@@ -229,8 +229,8 @@ const getBlogsFromDB = async (query: Record<string, any>) => {
 };
 
 // === GET SINGLE BLOG ===
-const getBlogByIdFromDB = async (id: string) => {
-  return await Blog.findById(id).populate('category');
+const getBlogBySlugFromDB = async (slug: string) => {
+  return await Blog.findOne({ slug }).populate('category');
 };
 
 // === UPDATE BLOG ===
@@ -324,7 +324,7 @@ const deleteBlogFromDB = async (id: string) => {
 export const blogService = {
   createBlogInDB,
   getBlogsFromDB,
-  getBlogByIdFromDB,
+  getBlogBySlugFromDB,
   updateBlogInDB,
   deleteBlogFromDB,
 };
