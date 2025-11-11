@@ -15,8 +15,8 @@ export const deleteCache = async (keys: string | string[]) => {
     keysArray.forEach((key) => pipeline.del(key));
 
     const results = await pipeline.exec(); // execute pipeline
-    console.log(`Deleted cache keys: ${keysArray.join(', ')}`);
-    console.log('Redis results:', results);
+    // console.log(`Deleted cache keys: ${keysArray.join(', ')}`);
+    // console.log('Redis results:', results);
   } catch (err) {
     console.error(`Error deleting cache keys: ${keys}`, err);
   }

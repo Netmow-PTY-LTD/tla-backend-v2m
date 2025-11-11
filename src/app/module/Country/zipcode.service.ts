@@ -36,7 +36,7 @@ const CreateZipCodeIntoDB = async (payload: IZipCode) => {
 //       return exactMatch;
 //     }
 
-//     console.log('exactMatch', exactMatch)
+//   
 //     // Partial match with limit if many results
 //     zipCodesQuery = ZipCode.find({
 //       ...filter,

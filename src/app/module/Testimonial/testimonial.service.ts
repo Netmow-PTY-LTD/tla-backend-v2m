@@ -55,7 +55,7 @@ const getAllTestimonialsFromDB = async (params: GetAllParams) => {
   //  Try to get cached data
   const cachedData = await redisClient.get(CacheKeys.TESTIMONIALS(page, limit, search));
   if (cachedData) {
-    console.log(' Returning cached testimonials');
+    
     return JSON.parse(cachedData);
   }
 
@@ -91,7 +91,7 @@ const getAllTestimonialsFromDB = async (params: GetAllParams) => {
 
   // 3️ Cache the result
   await redisClient.set(CacheKeys.TESTIMONIALS(page, limit, search), JSON.stringify(queryResult), { EX: TTL.EXTENDED_1D });
-  console.log(' Cached all testimonials for 24 hours');
+
 
 
   return queryResult;

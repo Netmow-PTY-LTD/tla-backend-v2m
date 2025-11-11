@@ -307,7 +307,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
   // ----------------------- CHECK CACHE -----------------------
   const cachedData = await redisClient.get(CacheKeys.SINGLE_USER_PROFILE(userId));
   if (cachedData) {
-    console.log(' Cache hit:', CacheKeys.SINGLE_USER_PROFILE(userId));
+
     return JSON.parse(cachedData);
   }
 
@@ -424,7 +424,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
   // ----------------------- CHECK CACHE -----------------------
   const cachedData = await redisClient.get(CacheKeys.USER_INFO(userId));
   if (cachedData) {
-    console.log(' Cache hit:', CacheKeys.USER_INFO(userId));
+
     return JSON.parse(cachedData);
   }
 
@@ -563,7 +563,7 @@ export const getCurrentUserProfileInfoFromCache = async (userId:string) => {
   // ----------------------- CHECK CACHE -----------------------
   const cachedData = await redisClient.get(CacheKeys.USER_INFO(userId));
   if (cachedData) {
-    console.log(' Cache hit:', CacheKeys.USER_INFO(userId));
+   
     // return JSON.parse(cachedData);
 
     return;

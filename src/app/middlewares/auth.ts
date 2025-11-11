@@ -112,7 +112,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
 //       // ----------------------------
 //       try {
 //         const ssoDecoded = jwt.verify(token, process.env.SSO_SECRET as string) as JwtPayload;
-//         console.log('Lawyer SSO token verified:', ssoDecoded);
+//    
 
 //         // Attach SSO user context to request
 //         req.user = {

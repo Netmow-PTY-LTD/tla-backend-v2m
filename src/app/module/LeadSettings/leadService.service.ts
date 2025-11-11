@@ -29,7 +29,7 @@ const createLeadService = async (
   //  Revalidate cache after transaction commit
   // const cacheKey = `lead_services_with_questions:${userId}`;
   // await redisClient.del(CacheKeys.LEAD_SERVICES_QUESTIONS(userId));
-  // console.log(` Cache invalidated for user ${userId}`);
+
 
   // -------------------  REVALIDATE REDIS CACHE ---------------------
   await deleteCache([
@@ -227,7 +227,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   //  Try to get from cache
   const cachedData = await redisClient.get(CacheKeys.LEAD_SERVICES_QUESTIONS(userId));
   if (cachedData) {
-    console.log(' Returning cached data');
+  
     return JSON.parse(cachedData);
   }
 
@@ -373,7 +373,7 @@ const updateLocations = async (
   //  Revalidate cache after transaction commit
   // const cacheKey = `lead_services_with_questions:${userId}`;
   // await redisClient.del(CacheKeys.LEAD_SERVICES_QUESTIONS(userId));
-  // console.log(` Cache invalidated for user ${userId}`);
+
 
   // -------------------  REVALIDATE REDIS CACHE ---------------------
   await deleteCache([
@@ -452,7 +452,7 @@ const deleteLeadService = async (userId: string, serviceId: string) => {
         { session }
       );
 
-      console.log('UserLocationServiceMap update result:', updateResult);
+    
 
       // -------------------  REVALIDATE REDIS CACHE ---------------------
       await deleteCache([

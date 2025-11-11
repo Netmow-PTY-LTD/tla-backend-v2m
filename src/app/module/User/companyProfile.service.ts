@@ -181,7 +181,7 @@ export const firmRequestAsMember = async (
         emailTemplate: "request_lawyer_as_firm_member",
       });
 
-      console.log(` Sent lawyer request email to firm admin: ${firmAdmin.email}`);
+
     } else {
       console.warn(" No firm admin found for this firm profile ID:", payload.firmProfileId);
     }

@@ -969,7 +969,7 @@ type PaginatedResult<T> = {
 //   const conditions: any[] = [];
 
 
-//   console.log('Filters received:', filters.coordinates);
+
 
 //   if (!filters.coordinates) {
 
@@ -3567,7 +3567,7 @@ const getAllLeadForLawyerPanel = async (
   // Check cache
   const cachedData = await redisClient.get(CacheKeys.LEAD_LIST_BY_USER_WITH_FILTERS(userId, filters, options));
   if (cachedData) {
-    console.log('Cache hit of lawyer panel leads for key:',);
+    
     return JSON.parse(cachedData);
   }
 

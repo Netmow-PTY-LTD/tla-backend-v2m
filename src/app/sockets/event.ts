@@ -7,7 +7,7 @@ import { createNotification } from '../module/Notification/notification.utils';
 export const registerNotificationEvents = (socket: Socket, io: Server) => {
   socket.on('join_room', (roomId) => {
     socket.join(roomId);
-    console.log(`📦 Joined room: ${roomId}`);
+    console.log(` Joined room: ${roomId}`);
   });
 
   socket.on('notify', ({ roomId, message }) => {
@@ -27,25 +27,25 @@ export const registerSocketEvents = (socket: Socket, io: Server) => {
   // Join user-specific room
   socket.on('join_user_room', (userId: string) => {
     socket.join(userId);
-    console.log(`✅ User joined room: ${userId}`);
+    console.log(` User joined room: ${userId}`);
   });
 
   // Join response room
   socket.on('join_response_room', (roomId: string) => {
     socket.join(roomId);
-    console.log(`✅ Joined response room: ${roomId}`);
+    console.log(` Joined response room: ${roomId}`);
   });
 
   // Sample backend event to emit a notification
   socket.on('send_notification', ({ toUserId, text }) => {
     io.to(toUserId).emit('notification', { text });
-    console.log(`🔔 Sent notification to ${toUserId}:`, text);
+    console.log(` Sent notification to ${toUserId}:`, text);
   });
 
   // Sample backend event to emit response to room
   socket.on('send_response_room_message', ({ roomId, text }) => {
     io.to(roomId).emit('response_room_message', { text });
-    console.log(`💬 Sent response to room ${roomId}:`, text);
+    console.log(` Sent response to room ${roomId}:`, text);
   });
 };
 
@@ -58,7 +58,7 @@ export const registerSocketEvents = (socket: Socket, io: Server) => {
 //   // Join a response room
 //   socket.on("join-response", (responseId: string) => {
 //     socket.join(`response:${responseId}`);
-//     console.log(`👥 User joined response:${responseId}`);
+//     console.log(` User joined response:${responseId}`);
 //   });
 
 //   // Join a generic chat room
@@ -93,7 +93,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
   socket.on('join-room', (roomName: string) => {
     if (!roomName) return;
     socket.join(roomName);
-    console.log(`👥 Socket ${socket.id} joined room: ${roomName}`);
+    console.log(` Socket ${socket.id} joined room: ${roomName}`);
   });
 
 
@@ -103,12 +103,12 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
 
 
 
-  // ✅ Join a response chat room
+  //  Join a response chat room
   socket.on("joinRoom", async ({ responseId, userId }) => {
     if (!responseId || !userId) return;
     const roomName = `response:${responseId}`;
     socket.join(roomName);
-    console.log(`👥 User ${userId} joined room: ${roomName}`);
+    console.log(` User ${userId} joined room: ${roomName}`);
 
     // Fetch unread messages for this user
     try {
@@ -124,14 +124,14 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
         socket.emit("unread-messages", unreadMessages);
       }
     } catch (err) {
-      console.error("❌ Failed to fetch unread messages", err);
+      console.error(" Failed to fetch unread messages", err);
     }
 
 
   });
 
 
-  // ✅ Send and save a chat message
+  //  Send and save a chat message
   socket.on("message", async ({ responseId, from, message, to }) => {
     if (!responseId || !from || !message?.trim()) return;
 
@@ -224,13 +224,13 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
     }
   });
 
-  // ✅ Typing indicator
+  //  Typing indicator
   socket.on("typing", ({ responseId, userId }) => {
     if (!responseId || !userId) return;
     socket.to(`response:${responseId}`).emit("typing", { userId });
   });
 
-  // ✅ Message read receipt
+  //  Message read receipt
   socket.on("message-read", async ({ responseId, messageId, userId }) => {
 
     if (!responseId || !messageId || !userId) return;

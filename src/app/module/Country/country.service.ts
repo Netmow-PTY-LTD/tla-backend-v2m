@@ -49,7 +49,7 @@ const getAllCountryFromDB = async () => {
 
   const cachedData = await redisClient.get(CacheKeys.ALL_COUNTRIES());
   if (cachedData) {
-    console.log(' Returning cached countries');
+   
     return JSON.parse(cachedData);
   }
 
@@ -58,7 +58,7 @@ const getAllCountryFromDB = async () => {
 
   // 3️ Cache the result
   await redisClient.set(CacheKeys.ALL_COUNTRIES(), JSON.stringify(countries), { EX: TTL.EXTENDED_1D });
-  console.log(' Cached all countries for 24 hours');
+
 
   return countries;
 

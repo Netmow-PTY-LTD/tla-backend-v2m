@@ -279,7 +279,7 @@ const lawyerRemoveFromFirm = async (userId: string, lawyerProfileId: string) => 
         session.endSession();
 
         await redisClient.del(CacheKeys.USER_INFO(lawyerProfile.user.toString()));
-        console.log(` Cache invalidated for user ${lawyerProfile.user.toString()}`);
+
 
         return {
             status: "success",
