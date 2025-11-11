@@ -31,7 +31,7 @@ const getSingleServiceWiseQuestionFromDB = async (
 
   const cachedData = await redisClient.get(CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId));
   if (cachedData) {
-    console.log(' Returning cached ServiceWiseQuestion');
+
     return JSON.parse(cachedData);
   }
 
@@ -142,7 +142,7 @@ const getSingleServiceWiseQuestionFromDB = async (
 
 
   await redisClient.set(CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId), JSON.stringify(result), { EX: TTL.EXTENDED_1D });
-  console.log(' Cached ServiceWiseQuestion for 24 hours');
+
 
 
 

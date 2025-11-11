@@ -88,7 +88,7 @@ export async function getZipsByCountry(countryId: string): Promise<CachedZip[]> 
   const cacheExpired = !zipCacheTimestamps[countryId] || now - zipCacheTimestamps[countryId] > ZIP_CACHE_TTL;
 
   if (!zipCache[countryId] || cacheExpired) {
-    console.log(`Fetching zips for country ${countryId} from DB...`);
+ 
     const zips = await ZipCode.find({ countryId }).select('location');
     zipCache[countryId] = zips
       .filter(z => z.location && Array.isArray(z.location.coordinates))
@@ -98,7 +98,7 @@ export async function getZipsByCountry(countryId: string): Promise<CachedZip[]> 
       }));
     zipCacheTimestamps[countryId] = now;
   } else {
-    console.log(`Using cached zips for country ${countryId}`);
+   
   }
 
   return zipCache[countryId];

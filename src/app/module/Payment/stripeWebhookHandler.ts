@@ -162,11 +162,11 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         const type = invoice.metadata?.type as SubscriptionType;
         const subscriptionId = (invoice as any).subscription as string;
 
-        console.log(' Invoice payment succeeded from web hook:', {
-          userId,
-          type,
-          subscriptionId,
-        });
+        // console.log(' Invoice payment succeeded from web hook:', {
+        //   userId,
+        //   type,
+        //   subscriptionId,
+        // });
         if (!userId || !type || !subscriptionId) break;
 
         // Fetch the subscription record
@@ -213,7 +213,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
           // --------------------  REVALIDATE REDIS CACHE -----------------------
           await deleteCache(CacheKeys.USER_INFO(userId));
-        console.log(` User ${userId} ${type} subscription active`);
+  
         break;
       }
 
@@ -258,7 +258,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           await userProfile.save();
         }
 
-        console.log(` User ${userId} ${type} subscription payment failed`);
+        // console.log(` User ${userId} ${type} subscription payment failed`);
           // --------------------  REVALIDATE REDIS CACHE -----------------------
           await deleteCache(CacheKeys.USER_INFO(userId));
         break;
@@ -313,7 +313,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           await userProfile.save();
         }
 
-        console.log(` User ${subscriptionRecord.userId} ${type} subscription canceled`);
+        // console.log(` User ${subscriptionRecord.userId} ${type} subscription canceled`);
           // --------------------  REVALIDATE REDIS CACHE -----------------------
           await deleteCache(CacheKeys.USER_INFO(userId));
         break;
@@ -324,7 +324,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
 
       default:
-        console.log(` Unhandled event type: ${event.type}`);
+        // console.log(` Unhandled event type: ${event.type}`);
     }
 
     res.status(200).send('OK');

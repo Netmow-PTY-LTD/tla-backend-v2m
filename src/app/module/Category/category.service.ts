@@ -52,7 +52,7 @@ const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
   // 1️ Try to get cached data
   const cachedData = await redisClient.get(CacheKeys.PUBLIC_CATEGORIES(countryQueryId));
   if (cachedData) {
-    console.log(' Returning cached categories');
+ 
     return JSON.parse(cachedData);
   }
 
@@ -118,7 +118,7 @@ const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
 
   // 4️ Cache the result
   await redisClient.set(CacheKeys.PUBLIC_CATEGORIES(countryQueryId), JSON.stringify(categories), { EX: TTL.EXTENDED_1D });
-  console.log(' Cached public categories for 24 hours');
+
 
 
   return categories;

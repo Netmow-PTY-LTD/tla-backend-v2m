@@ -557,7 +557,7 @@ const createLawyerResponseAndSpendCredit = async (
         if (usedContacts >= contactLimit) {
           useCredit = true; // limit exceeded
         } else {
-          console.log(` Subscription contact used (${usedContacts + 1}/${contactLimit})`);
+         
           // Mark the subscription as used
           await UserSubscription.findByIdAndUpdate(
             subscription._id,
@@ -577,7 +577,7 @@ const createLawyerResponseAndSpendCredit = async (
 
     // --- 2️ Handle credit validation & auto-purchase suggestion
     if (useCredit) {
-      console.log(' Using credit for contact initiation');
+
 
       if (user.credits < credit) {
         const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
@@ -2031,7 +2031,7 @@ const lawyerCancelMembershipRequest = async (
 //     .populate("lawyerId", "name email");
 
 
-//     console.log("Updated Request after leaving firm:", updatedRequest);
+
 
 
 //   return {
@@ -2123,7 +2123,7 @@ const lawyerCancelMembership = async (
       .populate("firmProfileId", "firmName")
       .populate("lawyerId", "name email");
 
-    console.log("Updated Request after leaving firm:", updatedRequest);
+  
 
     //  -- Invalidate user cache ---
 
