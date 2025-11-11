@@ -330,10 +330,27 @@ const deleteBlogFromDB = async (id: string) => {
   }
 };
 
+
+
+// === GET RECENT BLOGS ===
+const getRecentBlogsFromDB = async (limit: number = 5) => {
+  const blogs = await Blog.find({ status: 'published' })
+    .sort({ publishedAt: -1 }) // newest first
+    .limit(limit)
+    .populate('category');
+
+  return blogs;
+};
+
+
+
+
+
 export const blogService = {
   createBlogInDB,
   getBlogsFromDB,
   getBlogBySlugFromDB,
   updateBlogInDB,
   deleteBlogFromDB,
+  getRecentBlogsFromDB
 };

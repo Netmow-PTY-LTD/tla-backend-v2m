@@ -100,7 +100,7 @@ const getBlogs = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Blogs retrieved successfully.',
-    pagination:result.meta,
+    pagination: result.meta,
     data: result.data,
   });
 });
@@ -141,10 +141,30 @@ const deleteBlog = catchAsync(async (req, res) => {
   });
 });
 
+
+
+
+// === GET RECENT BLOGS CONTROLLER ===
+export const getRecentBlogs = catchAsync(async (req, res) => {
+  const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 5;
+
+  const blogs = await blogService.getRecentBlogsFromDB(limit);
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Recent blogs retrieved successfully.',
+    data: blogs,
+  });
+});
+
+
+
 export const blogController = {
   createBlog,
   getBlogs,
   getBlogById,
   updateBlog,
   deleteBlog,
+  getRecentBlogs
 };
