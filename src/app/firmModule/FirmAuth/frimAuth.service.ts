@@ -759,11 +759,6 @@ const sendOtp = async ({
     otpStore[email] = { otp, expiresAt };
 
 
-    console.log({
-        email,
-        username: 'user',
-        expiresInMinutes: 3, // default to 3 minutes
-    })
 
     await sendEmail({
         to: email,

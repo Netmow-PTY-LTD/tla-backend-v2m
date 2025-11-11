@@ -56,7 +56,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
   //  Try to get cached data
   const cachedData = await redisClient.get(CacheKeys.COUNTRY_WISE_MAP(countryId));
   if (cachedData) {
-    console.log(' Returning cached CountryWiseMap');
+
     return JSON.parse(cachedData);
   }
 
@@ -79,7 +79,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
 
     //  Cache the result
     await redisClient.set(CacheKeys.COUNTRY_WISE_MAP(countryId), JSON.stringify(populatedServices), { EX: TTL.EXTENDED_1D });
-    console.log(' Cached CountryWiseMap for 24 hours');
+   
 
 
     return populatedServices;

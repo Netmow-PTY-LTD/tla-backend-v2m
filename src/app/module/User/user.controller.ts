@@ -42,7 +42,7 @@ const updateProfile = catchAsync(async (req, res) => {
 
   //  Revalidate cache after transaction commit
   await redisClient.del(CacheKeys.USER_INFO(userId));
-  console.log(` Cache invalidated for user ${userId}`);
+
 
   let userProfileResult = null;
   let companyProfileResult = null;

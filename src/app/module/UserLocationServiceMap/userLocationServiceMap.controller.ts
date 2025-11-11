@@ -9,7 +9,7 @@ import { userLocationServiceMapService } from './userLocationServiceMap.service'
 
 const createMap = catchAsync(async (req, res) => {
     const userId=req.user?.userId;
-    console.log('User ID:', userId);
+ 
   const result = await userLocationServiceMapService.createMap(userId, req.body);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,

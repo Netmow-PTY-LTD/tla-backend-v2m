@@ -458,7 +458,7 @@ const getFirmStats = async () => {
     const [lawyerCount, clientCount, lawFirmCount] = await Promise.all([
       User.countDocuments({ regUserType: 'lawyer', role: USER_ROLE.USER, deletedAt: null }),
       User.countDocuments({ regUserType: 'client', role: USER_ROLE.USER, deletedAt: null }),
-      FirmProfile.countDocuments({})
+      FirmProfile.countDocuments({status:'approved'})
     ]);
 
     return {
