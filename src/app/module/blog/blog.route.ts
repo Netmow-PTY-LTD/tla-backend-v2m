@@ -7,6 +7,7 @@ import { upload } from '../../config/upload';
 
 const router = Router();
 
+router.get('/recent', blogController.getRecentBlogs);
 router.post('/add', auth(USER_ROLE.ADMIN), upload.fields([
     { name: 'bannerImage', maxCount: 1 },
     { name: 'metaImage', maxCount: 1 },
@@ -24,6 +25,6 @@ router.put('/:blogId/update', auth(USER_ROLE.ADMIN), upload.fields([
     next();
 }, blogController.updateBlog);
 router.delete('/:blogId/delete', auth(USER_ROLE.ADMIN), blogController.deleteBlog);
-router.get('/recent', blogController.getRecentBlogs);
+
 
 export const blogRouter = router;
