@@ -17,6 +17,10 @@ const blogSchema = new Schema(
       type: String,
       required: true,
     },
+    shortDescription: {
+      type: String,
+
+    },
     bannerImage: {
       type: String,
       trim: true
