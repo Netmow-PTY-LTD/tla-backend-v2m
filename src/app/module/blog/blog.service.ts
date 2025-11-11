@@ -150,6 +150,7 @@ import QueryBuilder from '../../builder/QueryBuilder';
 export interface IBlog {
   title: string;
   slug?: string;
+  shortDescription: string;
   content: string;
   bannerImage?: string;
   category?: Types.ObjectId[];
