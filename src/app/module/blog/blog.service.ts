@@ -212,7 +212,7 @@ const getBlogsFromDB = async (query: Record<string, any>) => {
   if (query.tags) filter.tags = { $in: query.tags };
   if (query.category) filter.category = query.category;
 
-  const queryBuilder = new QueryBuilder(Blog.find(filter), query)
+  const queryBuilder = new QueryBuilder(Blog.find(filter).populate('category'), query)
     .filter()
     .search(['title', 'content'])
     .sort()
