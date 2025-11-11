@@ -71,4 +71,43 @@ blogSchema.pre('validate', function (next) {
   next();
 });
 
+
+
+// For create/save
+blogSchema.pre('save', function (next) {
+  if (this.isModified('status')) {
+    if (this.status === 'published' && !this.publishedAt) {
+      this.publishedAt = new Date();
+    } else if (this.status !== 'published') {
+      this.publishedAt = undefined;
+    }
+  }
+  next();
+});
+
+// For update (findOneAndUpdate / findByIdAndUpdate)
+blogSchema.pre('findOneAndUpdate', function (next) {
+  const update = this.getUpdate() as any;
+
+  if (update.status) {
+    if (update.status === 'published') {
+      if (!update.publishedAt) {
+        update.publishedAt = new Date();
+      }
+    } else {
+      update.publishedAt = undefined;
+    }
+    this.setUpdate(update);
+  }
+
+  next();
+});
+
+
+
+
+
+
+
+
 export const Blog = model('Blog', blogSchema);
