@@ -339,6 +339,8 @@ const getRecentBlogsFromDB = async (limit: number = 5) => {
     .limit(limit)
     .populate('category');
 
+    console.log('check data ===>',blogs)
+
   return blogs;
 };
 
