@@ -74,7 +74,7 @@ const footerDesign = `
       </tr>
     </table>
         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
-            You are receiving this email because you registered on TheLawApp as a legal professional.</p>
+           You are receiving this email because you are connected with TheLawApp.</p>
         <p style="margin: 0;">
           <a href="${config.client_url}/privacy-policy" style="color: #999; margin-right: 5px;">Privacy Policy</a> •
           <a href="${config.client_url}/terms" style="color: #999; margin-left: 5px; margin-right: 5px;">Terms</a> •
@@ -271,15 +271,15 @@ export const congratulationsLawyerPromotion = (data: {
     <!-- Greeting & Message -->
     
     <tr>
-      <td style="padding: 30px; color: #333;">
-        <h2 style="margin: 0 0 20px; font-size: 24px; color: #333;">${greeting}</h2>
+      <td style="padding: 20px 30px; color: #333;">
+        <h2 style="margin: 0 0 10px; font-size: 20px; color: #333;">${greeting}</h2>
 
-        <p style="margin: 0 0 15px; font-size: 15px; color: #555;">
+        <p style="margin: 0 0 10px; font-size: 15px; color: #555;">
           We’re excited to let you know that your profile has officially been recognized as a
           <strong>${role}</strong> on <strong>${appName}</strong>.
         </p>
 
-        <p style="margin: 0 0 10px; font-size: 15px; color: #555;">
+        <p style="margin: 0 0 2px; font-size: 15px;  font-weight: 600; color: #555;">
           Here’s what you unlock:
         </p>
 
@@ -291,9 +291,9 @@ export const congratulationsLawyerPromotion = (data: {
 
     <!-- CTA Button -->
     <tr>
-      <td align="center" style="padding: 30px 0;">
+      <td align="center" style="padding: 15px 0;">
         <a href="${dashboardUrl}" 
-          style="background-color: #f68c1f; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+          style="background-color: #f68c1f; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
           Go to Dashboard
         </a>
       </td>
@@ -302,15 +302,16 @@ export const congratulationsLawyerPromotion = (data: {
     <!-- Support Message -->
     <tr>
       <td style="padding: 0 30px 20px; font-size: 15px; color: #555;">
-        If you need help setting up your account or understanding how leads work, our support team is here to help.
-        <br><br>
-        Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.
+      
+         <p style=" margin-bottom: 4px;"  > If you need help setting up your account or understanding how leads work, our support team is here to help. </p>
+         <p> Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey. </p>
+      
       </td>
     </tr>
 
     <!-- Signoff -->
     <tr>
-      <td style="padding: 0 30px 30px; font-size: 16px; color: #333;">
+      <td style="padding: 0 30px 10px; font-size: 16px; color: #333;">
         Best Regards, <br>
         <strong style="color: #f68c1f;">${appName} Team</strong>
       </td>
