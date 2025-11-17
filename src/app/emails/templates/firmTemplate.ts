@@ -74,7 +74,7 @@ const footerDesign = `
       </tr>
     </table>
         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
-            You are receiving this email because you registered on TheLawApp as a legal professional.</p>
+             You are receiving this email because you are connected with TheLawApp.</p>
         <p style="margin: 0;">
           <a href="${config.client_url}/privacy-policy" style="color: #999; margin-right: 5px;">Privacy Policy</a> •
           <a href="${config.client_url}/terms" style="color: #999; margin-left: 5px; margin-right: 5px;">Terms</a> •
@@ -104,22 +104,22 @@ export const firmPasswordResetEmail = (data: {
 ${headerDesign}
 
     <!-- Greeting -->
-    <tr>
+  <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmUserName} of ${firmName},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Dear ${firmUserName} of ${firmName},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;">
          We have received a request to reset the password for your <strong>TheLawApp</strong> Law Firm account. To proceed with resetting your password, please click the button below.
         </p>
         <!-- Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
             Reset Password
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
          If you did not request this password reset, you can safely ignore this email.
         </p>
-        <p style="font-size: 14px; margin-top: 20px;">
+        <p style="font-size: 14px; margin-top: 10px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong></span>
         </p>
@@ -147,36 +147,36 @@ export const requestlawyerAsFirmMember = (data: {
   <!-- Greeting -->
   <tr>
     <td style="padding: 0 30px;">
-      <h2 style="font-size: 24px; margin-bottom: 20px;">New Lawyer Registration Request</h2>
-      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+      <h2 style="font-size: 20px; margin-bottom: 8px;">New Lawyer Registration Request</h2>
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 15px;">
         A new lawyer has requested to join your company on <strong>TheLawApp</strong>.
       </p>
 
       <!-- Lawyer Info -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
         <tr>
-          <td style="font-size: 15px; padding: 8px 0;"><strong>Name:</strong></td>
-          <td style="font-size: 15px; padding: 8px 0;">${lawyerName}</td>
+          <td style="font-size: 15px; padding: 4px 0;"><strong>Name:</strong></td>
+          <td style="font-size: 15px; padding: 4px 0;">${lawyerName}</td>
         </tr>
         <tr>
-          <td style="font-size: 15px; padding: 8px 0;"><strong>Email:</strong></td>
-          <td style="font-size: 15px; padding: 8px 0;">${lawyerEmail}</td>
+          <td style="font-size: 15px; padding: 4px 0;"><strong>Email:</strong></td>
+          <td style="font-size: 15px; padding: 4px 0;">${lawyerEmail}</td>
         </tr>
         <tr>
-          <td style="font-size: 15px; padding: 8px 0;"><strong>Role:</strong></td>
-          <td style="font-size: 15px; padding: 8px 0;">${role}</td>
+          <td style="font-size: 15px; padding: 4px 0;"><strong>Role:</strong></td>
+          <td style="font-size: 15px; padding: 4px 0;">${role}</td>
         </tr>
       </table>
 
-      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 15px;">
         Please review this request in your company dashboard to approve or reject the new member.
       </p>
 
       <!-- CTA Button -->
-      <div style="text-align: center; margin-bottom: 30px;">
+      <div style="text-align: center; margin-bottom: 15px;">
         <a href="${requestUrl}"
            style="background-color:#FF7F27; color:#ffffff; text-decoration:none;
-                  padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+                  padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
           Review Request
         </a>
       </div>
@@ -184,7 +184,7 @@ export const requestlawyerAsFirmMember = (data: {
       <p style="font-size: 14px; color: #555;">
         If you believe this message was sent in error, you can safely ignore it.
       </p>
-      <p style="font-size: 14px; margin-top: 20px;">
+      <p style="font-size: 14px; margin-top: 15px;">
         Best Regards,<br>
         <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
       </p>
@@ -212,32 +212,32 @@ export const firmRegisterEmail = (data: {
     ${headerDesign}
 
     <!-- Greeting -->
-    <tr>
+       <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmAdmin},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Dear ${firmAdmin},</h2>
+        <p style="font-size: 16px; line-height: 1.5;">
           Welcome to <strong>TheLawApp!</strong> Your <strong>Law Firm</strong> account has been created successfully. You are now ready to access the platform and manage your firm's cases, staff, and clients.
         </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
           Your account details are as follows:
         </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
           <strong>Email:</strong> ${email}<br>
           <strong>Password:</strong> ${password}
         </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
          To log in and get started, click the button below:
         </p>
         <!-- Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${loginUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+        <div style="text-align: center; margin:10px 0;">
+          <a href="${loginUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
             Log In
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
        If you did not initiate this registration request, please disregard this email.
         </p>
-        <p style="font-size: 14px; margin-top: 20px;">
+        <p style="font-size: 14px; margin-top: 10px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong></span>
         </p>
@@ -264,19 +264,19 @@ export const newClaimNotificationEmail = (data: {
   ${headerDesign}
 
   <!-- Email Body -->
-  <tr>
+ <tr>
     <td style="padding: 0 30px;">
-      <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">
+      <h2 style="font-size: 20px; margin-bottom: 8px; color: #222;">
         Dear ${adminName}
       </h2>
 
        
 
-      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
         A new claim has been submitted by your <strong>Law Firm</strong> on <strong>TheLawApp</strong>. Below are the details:
       </p>
 
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
         <tr>
           <td style="padding: 8px 0; font-size: 16px;"><strong>Claim ID:</strong></td>
           <td style="padding: 8px 0; font-size: 16px; color: #555;">${claimId}</td>
@@ -300,11 +300,11 @@ export const newClaimNotificationEmail = (data: {
 
       </p>
 
-      <p style="font-size: 14px; color: #777; margin-top: 25px;">
+      <p style="font-size: 14px; color: #777; margin-top: 10px;">
        You are receiving this email because you are registered as an administrator for <strong>${lawFirmName}</strong> on <strong>TheLawApp</strong> platform.
       </p>
 
-      <p style="font-size: 14px; margin-top: 20px;">
+      <p style="font-size: 14px; margin-top: 10px;">
         Best Regards,<br>
         <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong> </span>
       </p>

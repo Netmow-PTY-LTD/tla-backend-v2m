@@ -557,7 +557,7 @@ const createLawyerResponseAndSpendCredit = async (
         if (usedContacts >= contactLimit) {
           useCredit = true; // limit exceeded
         } else {
-         
+
           // Mark the subscription as used
           await UserSubscription.findByIdAndUpdate(
             subscription._id,
@@ -580,9 +580,10 @@ const createLawyerResponseAndSpendCredit = async (
 
 
       if (user.credits < credit) {
-        const creditPackages = await CreditPackage.find({ isActive: true }).sort({ credit: 1 });
+        const creditPackages = await CreditPackage.find({ isActive: true, }).sort({ credit: 1 });
         const requiredCredits = Math.max(0, credit - user.credits);
-        const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits);
+        // Find first package with enough credits and price > 0
+        const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits && pkg.price > 0);
 
         const savedCards = await PaymentMethod.find({
           userProfileId: user._id,
@@ -2123,7 +2124,7 @@ const lawyerCancelMembership = async (
       .populate("firmProfileId", "firmName")
       .populate("lawyerId", "name email");
 
-  
+
 
     //  -- Invalidate user cache ---
 
