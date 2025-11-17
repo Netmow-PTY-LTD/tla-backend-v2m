@@ -1226,7 +1226,7 @@ export const interactionEmail = (data: {
   return `
 ${headerDesign}
      <tr>
-      <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
+      <td style="padding: 20px 25px 4px; font-size: 20px; font-weight: bold; color: #333;">
         Hello ${name},
       </td>
     </tr>
@@ -1234,11 +1234,11 @@ ${headerDesign}
     <!-- Message Section -->
     <tr>
       <td style="padding: 0 25px;">
-        <p style="font-size: 16px; color: #555; margin: 20px 0 10px;">
+        <p style="font-size:16px;color:#555;margin: 0;">
           You’ve received a new message through <strong>${appName}</strong>. Here’s a quick preview:
         </p>
 
-        <table width="100%" cellpadding="0" cellspacing="0" style="; border-radius: 6px; padding: 15px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:6px;padding:15px">
           <tr>
             <td style="font-size: 16px; color: #888; padding-bottom: 6px;">
               <strong>${senderName}</strong> • ${timestamp}
@@ -1255,8 +1255,8 @@ ${headerDesign}
 
     <!-- Button -->
     <tr>
-      <td align="center" style="padding: 30px 0;">
-        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block; text-decoration: none;">
+      <td align="center" style="padding: 15px 0;">
+        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block; text-decoration: none;">
           View Full Conversation
         </a>
       </td>
@@ -1265,15 +1265,16 @@ ${headerDesign}
     <!-- Support Info -->
     <tr>
       <td style="padding: 0 25px 20px; font-size: 15px; color: #555; line-height: 1.6;">
-        Need help or have questions? Our support team is here to assist you anytime.
-        <br><br>
-        Thank you for using <strong>${appName}</strong> to stay connected.
+                   <p style=" margin-bottom: 4px;"  > Need help or have questions? Our support team is here to assist you anytime.  </p>
+   
+        <p > Thank you for using <strong>${appName}</strong> to stay connected. </p>
+      
       </td>
     </tr>
 
     <!-- Sign-off -->
     <tr>
-      <td style="padding: 0 25px 30px; font-size: 16px; color: #333;">
+      <td style="padding: 0 25px 10px; font-size: 16px; color: #333;">
         Warm regards,<br>
         <strong style="color: #f68c1f;">${appName} Team</strong>
       </td>
