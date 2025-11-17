@@ -147,33 +147,33 @@ export const requestlawyerAsFirmMember = (data: {
   <!-- Greeting -->
   <tr>
     <td style="padding: 0 30px;">
-      <h2 style="font-size: 24px; margin-bottom: 20px;">New Lawyer Registration Request</h2>
-      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+      <h2 style="font-size: 24px; margin-bottom: 8px;">New Lawyer Registration Request</h2>
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 15px;">
         A new lawyer has requested to join your company on <strong>TheLawApp</strong>.
       </p>
 
       <!-- Lawyer Info -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
         <tr>
-          <td style="font-size: 15px; padding: 8px 0;"><strong>Name:</strong></td>
-          <td style="font-size: 15px; padding: 8px 0;">${lawyerName}</td>
+          <td style="font-size: 15px; padding: 4px 0;"><strong>Name:</strong></td>
+          <td style="font-size: 15px; padding: 4px 0;">${lawyerName}</td>
         </tr>
         <tr>
-          <td style="font-size: 15px; padding: 8px 0;"><strong>Email:</strong></td>
-          <td style="font-size: 15px; padding: 8px 0;">${lawyerEmail}</td>
+          <td style="font-size: 15px; padding: 4px 0;"><strong>Email:</strong></td>
+          <td style="font-size: 15px; padding: 4px 0;">${lawyerEmail}</td>
         </tr>
         <tr>
-          <td style="font-size: 15px; padding: 8px 0;"><strong>Role:</strong></td>
-          <td style="font-size: 15px; padding: 8px 0;">${role}</td>
+          <td style="font-size: 15px; padding: 4px 0;"><strong>Role:</strong></td>
+          <td style="font-size: 15px; padding: 4px 0;">${role}</td>
         </tr>
       </table>
 
-      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 15px;">
         Please review this request in your company dashboard to approve or reject the new member.
       </p>
 
       <!-- CTA Button -->
-      <div style="text-align: center; margin-bottom: 30px;">
+      <div style="text-align: center; margin-bottom: 15px;">
         <a href="${requestUrl}"
            style="background-color:#FF7F27; color:#ffffff; text-decoration:none;
                   padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
@@ -184,7 +184,7 @@ export const requestlawyerAsFirmMember = (data: {
       <p style="font-size: 14px; color: #555;">
         If you believe this message was sent in error, you can safely ignore it.
       </p>
-      <p style="font-size: 14px; margin-top: 20px;">
+      <p style="font-size: 14px; margin-top: 15px;">
         Best Regards,<br>
         <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
       </p>
