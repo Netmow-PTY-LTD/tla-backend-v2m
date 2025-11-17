@@ -176,7 +176,7 @@ export const requestlawyerAsFirmMember = (data: {
       <div style="text-align: center; margin-bottom: 15px;">
         <a href="${requestUrl}"
            style="background-color:#FF7F27; color:#ffffff; text-decoration:none;
-                  padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+                  padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
           Review Request
         </a>
       </div>

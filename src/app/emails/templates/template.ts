@@ -1558,14 +1558,14 @@ export const emailVerificationTemplate = (data: {
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <h2 style="font-size: 22px; margin-bottom: 8px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;">
           Thank you for registering with <strong>TheLawApp</strong>. Please verify your email address to activate your account and access your ${role} dashboard.
         </p>
 
         <!-- Verify Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${verifyUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <a href="${verifyUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
             Verify Email
           </a>
         </div>
@@ -1574,7 +1574,7 @@ export const emailVerificationTemplate = (data: {
           If you did not create this account, you can safely ignore this email.
         </p>
 
-        <p style="font-size: 14px; margin-top: 20px; margin-bottom: 20px;">
+        <p style="font-size: 14px; margin-top: 15px; margin-bottom: 10px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
         </p>
