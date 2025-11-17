@@ -1780,13 +1780,13 @@ export const otpEmail = (data: {
 ${headerDesign}
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${username},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Hi ${username},</h2>
+        <p style="font-size: 16px; line-height: 1.5;">
           Here is your <strong>One Time Password (OTP)</strong>.<br>
           Please enter this code to verify your email address for TheLawApp:
         </p>
-        <div style="text-align: center; margin: 30px 0;">
-          <div style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 10px; background-color:#f8f6fc; padding: 12px 20px; border-radius: 6px;">
+        <div style="text-align: center; margin: 15px 0;">
+          <div style="display: inline-block; font-size: 24px; font-weight: bold; letter-spacing: 10px; background-color:#f8f6fc; padding: 12px 20px; border-radius: 6px;">
             ${otp.split('').join('&nbsp;')}
           </div>
         </div>
