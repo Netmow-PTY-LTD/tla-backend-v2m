@@ -212,32 +212,32 @@ export const firmRegisterEmail = (data: {
     ${headerDesign}
 
     <!-- Greeting -->
-    <tr>
+       <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Dear ${firmAdmin},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Dear ${firmAdmin},</h2>
+        <p style="font-size: 16px; line-height: 1.5;">
           Welcome to <strong>TheLawApp!</strong> Your <strong>Law Firm</strong> account has been created successfully. You are now ready to access the platform and manage your firm's cases, staff, and clients.
         </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
           Your account details are as follows:
         </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
           <strong>Email:</strong> ${email}<br>
           <strong>Password:</strong> ${password}
         </p>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
          To log in and get started, click the button below:
         </p>
         <!-- Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${loginUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+        <div style="text-align: center; margin:10px 0;">
+          <a href="${loginUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
             Log In
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
        If you did not initiate this registration request, please disregard this email.
         </p>
-        <p style="font-size: 14px; margin-top: 20px;">
+        <p style="font-size: 14px; margin-top: 10px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong></span>
         </p>
