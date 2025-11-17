@@ -147,7 +147,7 @@ export const requestlawyerAsFirmMember = (data: {
   <!-- Greeting -->
   <tr>
     <td style="padding: 0 30px;">
-      <h2 style="font-size: 24px; margin-bottom: 8px;">New Lawyer Registration Request</h2>
+      <h2 style="font-size: 20px; margin-bottom: 8px;">New Lawyer Registration Request</h2>
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 15px;">
         A new lawyer has requested to join your company on <strong>TheLawApp</strong>.
       </p>

@@ -824,19 +824,21 @@ ${headerDesign}
         <!-- Body Content -->
         <tr>
             <td style="font-size: 16px; padding: 0 20px; line-height: 1.6; color: #333;">
-                Welcome to <strong>TheLawApp!</strong> We're thrilled to have you join our growing network of legal
-                professionals.
+             
+                <p style=" margin-bottom: 4px;"  > Welcome to <strong>TheLawApp!</strong> We're thrilled to have you join our growing network of legal
+                professionals.  </p>
 
-                <br /><br />
-                You’ve successfully created your account as a <strong>${paracticeArea}</strong>. You can now:
+                <p style=" margin-bottom: 4px;"  >  You’ve successfully created your account as a <strong>${paracticeArea}</strong>. You can now:  </p>
                 <ul>
                     <li>Start receiving legal inquiries</li>
                     <li>Review leads and reply directly</li>
                     <li>Build your reputation on the platform</li>
                 </ul>
 
-                To get started, visit your dashboard and complete your profile to improve your visibility and trust
-                score.
+                  <p style=" margin-bottom: 4px;"  >  To get started, visit your dashboard and complete your profile to improve your visibility and trust
+                score.  </p>
+
+
             </td>
         </tr>
 
@@ -844,7 +846,7 @@ ${headerDesign}
         <tr>
             <td align="center" style="padding: 30px 20px;">
                 <a href="${dashboardUrl}"
-                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 16px;">
                     Go to Dashboard
                 </a>
             </td>
@@ -853,16 +855,20 @@ ${headerDesign}
         <!-- Support Message -->
         <tr>
             <td style="font-size: 15px; color: #555; line-height: 1.5;padding: 0 20px ;">
-                If you need help setting up your account or understanding how leads work, our support team is here to
-                help.
-                <br /><br />
-                Thank you for joining TheLawApp — we're excited to support your legal journey.
+                
+
+                 <p style=" margin-bottom: 4px;"  > If you need help setting up your account or understanding how leads work, our support team is here to
+                help. </p>
+
+                 <p style=" margin-bottom: 4px;"  >  Thank you for joining TheLawApp — we're excited to support your legal journey. </p>
+
+               
             </td>
         </tr>
 
         <!-- Signoff -->
         <tr>
-            <td style="font-size: 16px; padding:0 20px; padding-top: 30px; padding-bottom: 30px;">
+            <td style="font-size: 16px; padding:0 20px; padding-top: 15px; padding-bottom: 10px;">
                 Best Regards, <br />
                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
             </td>
@@ -1423,15 +1429,14 @@ ${headerDesign}
             <td style="font-size: 15px; color: #333;"><strong>Email:</strong></td>
             <td style="font-size: 15px; color: #555;">${email}</td>
           </tr>
-          ${
-            phone
-              ? `
+          ${phone
+      ? `
           <tr>
             <td style="font-size: 15px; color: #333;"><strong>Phone:</strong></td>
             <td style="font-size: 15px; color: #555;">${phone}</td>
           </tr>`
-              : ''
-          }
+      : ''
+    }
           <tr>
             <td colspan="2" style="padding-top: 15px; font-size: 15px; color: #333;"><strong>Message:</strong></td>
           </tr>
@@ -1558,7 +1563,7 @@ export const emailVerificationTemplate = (data: {
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 22px; margin-bottom: 8px;">Hi ${name},</h2>
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Hi ${name},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;">
           Thank you for registering with <strong>TheLawApp</strong>. Please verify your email address to activate your account and access your ${role} dashboard.
         </p>
