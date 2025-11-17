@@ -1699,20 +1699,20 @@ ${headerDesign}
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
           You have requested us to send a link to reset your password for your TheLawApp account. Click on the button below to proceed.
         </p>
         <!-- Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+        <div style="text-align: center; margin: 15px 0;">
+          <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
             Reset password
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
           If you didn’t initiate this request, you can safely ignore this email.
         </p>
-        <p style="font-size: 14px; margin-top: 20px;">
+        <p style="font-size: 14px; margin-top: 15px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
         </p>
