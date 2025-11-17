@@ -264,19 +264,19 @@ export const newClaimNotificationEmail = (data: {
   ${headerDesign}
 
   <!-- Email Body -->
-  <tr>
+ <tr>
     <td style="padding: 0 30px;">
-      <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">
+      <h2 style="font-size: 20px; margin-bottom: 8px; color: #222;">
         Dear ${adminName}
       </h2>
 
        
 
-      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
         A new claim has been submitted by your <strong>Law Firm</strong> on <strong>TheLawApp</strong>. Below are the details:
       </p>
 
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
         <tr>
           <td style="padding: 8px 0; font-size: 16px;"><strong>Claim ID:</strong></td>
           <td style="padding: 8px 0; font-size: 16px; color: #555;">${claimId}</td>
@@ -300,11 +300,11 @@ export const newClaimNotificationEmail = (data: {
 
       </p>
 
-      <p style="font-size: 14px; color: #777; margin-top: 25px;">
+      <p style="font-size: 14px; color: #777; margin-top: 10px;">
        You are receiving this email because you are registered as an administrator for <strong>${lawFirmName}</strong> on <strong>TheLawApp</strong> platform.
       </p>
 
-      <p style="font-size: 14px; margin-top: 20px;">
+      <p style="font-size: 14px; margin-top: 10px;">
         Best Regards,<br>
         <span style="color:#FF7F27; font-weight: bold;"><strong>TheLawApp</strong> <strong>Team</strong> </span>
       </p>
