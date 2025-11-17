@@ -632,7 +632,7 @@ export const welcomeLeadSubmitted = (data: {
 
     <!-- Case Summary (Lead Answer included here) -->
     <tr>
-      <td style="padding: 0 25px 25px;">
+      <td style="padding: 0 25px 20px;">
         <h3>📝 Case Summary</h3>
         ${leadAnswer}
         <p><strong>What type of case is this for?</strong><br>${caseType}</p>
@@ -1032,25 +1032,25 @@ ${headerDesign}
              <p style=" margin-bottom: 4px;"  >  Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.  </p>
                
                  <p style=" margin-bottom: 4px;"  >  Your account has been successfully created. You can now:  </p>
-                <ul>
+                <ul style="margin: 0;">
                     <li>Search for legal services tailored to your needs</li>
                     <li>Send inquiries and receive offers from verified lawyers</li>
                     <li>Track your legal requests in one convenient place</li>
                 </ul>
 
                
-                 <p style=" margin-bottom: 4px;"  > Here are your login details:  </p>
+                 <p style="margin-bottom:4px;margin-top: 10px;font-weight: 600;"  > Here are your login details:  </p>
                 <strong>Email:</strong> ${email}<br />
                 <strong>Password:</strong> ${defaultPassword}
 
-                 <p style=" margin-bottom: 4px;"  > For security, we recommend updating your password after your first login.  </p>
+                 <p style=" margin-bottom: 4px; margin-top: 4px;"  > For security, we recommend updating your password after your first login.  </p>
                
             </td>
         </tr>
 
         <!-- CTA Button -->
         <tr>
-            <td align="center" style="padding: 15px ;">
+            <td align="center" style="padding: 20px ;">
                 <a href="${dashboardUrl}"
                     style="background-color: #f68c1f; color: white; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 16px;">
                     Go to Dashboard
