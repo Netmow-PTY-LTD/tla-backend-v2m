@@ -438,7 +438,8 @@ export const sendContactMessage = async (
         message: emailText,
         name: toUser?.profile?.name || 'User',
         userRole: toUser?.regUserType || 'client',
-        dashboardUrl: `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        // dashboardUrl: `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        dashboardUrl: sendingLink ? `/client/dashboard/my-cases/${leadId}` : `/lawyer/dashboard/my-responses?responseId=${responseId}`,
         senderName: sentByUserName || 'User',
         timestamp: new Date().toLocaleString(),
       };
