@@ -3567,7 +3567,7 @@ const getAllLeadForLawyerPanel = async (
   // Check cache
   const cachedData = await redisClient.get(CacheKeys.LEAD_LIST_BY_USER_WITH_FILTERS(userId, filters, options));
   if (cachedData) {
-    
+
     return JSON.parse(cachedData);
   }
 
@@ -4067,6 +4067,48 @@ const getAllLeadForLawyerPanel = async (
 
     { $match: { 'matchedAnswers.0': { $exists: true } } },
 
+    // {
+    //   $facet: {
+    //     data: [
+    //       { $skip: skip },
+    //       { $limit: limit },
+    //       // Optionally: remove unused fields or reshape data
+    //       {
+    //         $project: {
+    //           leadServiceAnswers: 0,
+    //           lawyerLeadServices: 0,
+    //           matchedAnswers: 0,
+    //         },
+    //       },
+    //     ],
+    //     totalCount: [{ $count: 'count' }],
+    //   },
+    // },
+    // {
+    //   $project: {
+    //     data: 1,
+    //     total: { $ifNull: [{ $arrayElemAt: ['$totalCount.count', 0] }, 0] },
+    //   },
+    // },
+
+
+  ];
+
+  if (filters.keyword) {
+    aggregationPipeline.push({
+      $match: {
+        $or: [
+          { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
+          { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
+        ],
+      },
+    });
+  }
+
+
+
+  aggregationPipeline.push(
+
     {
       $facet: {
         data: [
@@ -4089,21 +4131,10 @@ const getAllLeadForLawyerPanel = async (
         data: 1,
         total: { $ifNull: [{ $arrayElemAt: ['$totalCount.count', 0] }, 0] },
       },
-    },
+    }
 
 
-  ];
-
-  if (filters.keyword) {
-    aggregationPipeline.push({
-      $match: {
-        $or: [
-          { 'userProfileId.name': { $regex: new RegExp(filters.keyword, 'i') } },
-          { additionalDetails: { $regex: new RegExp(filters.keyword, 'i') } },
-        ],
-      },
-    });
-  }
+  )
 
   const leadsResult = await Lead.aggregate(aggregationPipeline);
   const leads = leadsResult[0]?.data || [];
@@ -4115,7 +4146,7 @@ const getAllLeadForLawyerPanel = async (
     data: leads,
     pagination: { total, page, limit, totalPage },
     leadCount: { urgent: leads.filter((l: any) => l.leadPriority === 'urgent').length },
-   
+
   };
 
 
