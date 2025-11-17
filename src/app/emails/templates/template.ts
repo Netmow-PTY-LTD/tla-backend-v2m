@@ -74,7 +74,7 @@ const footerDesign = `
       </tr>
     </table>
         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
-            You are receiving this email because you registered on TheLawApp as a legal professional.</p>
+           You are receiving this email because you are connected with TheLawApp.</p>
         <p style="margin: 0;">
           <a href="${config.client_url}/privacy-policy" style="color: #999; margin-right: 5px;">Privacy Policy</a> •
           <a href="${config.client_url}/terms" style="color: #999; margin-left: 5px; margin-right: 5px;">Terms</a> •
@@ -271,15 +271,15 @@ export const congratulationsLawyerPromotion = (data: {
     <!-- Greeting & Message -->
     
     <tr>
-      <td style="padding: 30px; color: #333;">
-        <h2 style="margin: 0 0 20px; font-size: 24px; color: #333;">${greeting}</h2>
+      <td style="padding: 20px 30px; color: #333;">
+        <h2 style="margin: 0 0 10px; font-size: 20px; color: #333;">${greeting}</h2>
 
-        <p style="margin: 0 0 15px; font-size: 15px; color: #555;">
+        <p style="margin: 0 0 10px; font-size: 15px; color: #555;">
           We’re excited to let you know that your profile has officially been recognized as a
           <strong>${role}</strong> on <strong>${appName}</strong>.
         </p>
 
-        <p style="margin: 0 0 10px; font-size: 15px; color: #555;">
+        <p style="margin: 0 0 2px; font-size: 15px;  font-weight: 600; color: #555;">
           Here’s what you unlock:
         </p>
 
@@ -291,9 +291,9 @@ export const congratulationsLawyerPromotion = (data: {
 
     <!-- CTA Button -->
     <tr>
-      <td align="center" style="padding: 30px 0;">
+      <td align="center" style="padding: 15px 0;">
         <a href="${dashboardUrl}" 
-          style="background-color: #f68c1f; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+          style="background-color: #f68c1f; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
           Go to Dashboard
         </a>
       </td>
@@ -302,15 +302,16 @@ export const congratulationsLawyerPromotion = (data: {
     <!-- Support Message -->
     <tr>
       <td style="padding: 0 30px 20px; font-size: 15px; color: #555;">
-        If you need help setting up your account or understanding how leads work, our support team is here to help.
-        <br><br>
-        Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.
+      
+         <p style=" margin-bottom: 4px;"  > If you need help setting up your account or understanding how leads work, our support team is here to help. </p>
+         <p> Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey. </p>
+      
       </td>
     </tr>
 
     <!-- Signoff -->
     <tr>
-      <td style="padding: 0 30px 30px; font-size: 16px; color: #333;">
+      <td style="padding: 0 30px 10px; font-size: 16px; color: #333;">
         Best Regards, <br>
         <strong style="color: #f68c1f;">${appName} Team</strong>
       </td>
@@ -625,14 +626,14 @@ export const welcomeLeadSubmitted = (data: {
 
     <!-- Intro Message -->
     <tr>
-      <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
+      <td style="padding: 0 25px 0px; font-size: 15px; color: #555;">
         We're reviewing your case details and matching you with the right lawyer. You’ll be contacted shortly by a qualified legal professional.
       </td>
     </tr>
 
     <!-- Case Summary (Lead Answer included here) -->
     <tr>
-      <td style="padding: 0 25px 25px;">
+      <td style="padding: 0 25px 20px;">
         <h3>📝 Case Summary</h3>
         ${leadAnswer}
         <p><strong>What type of case is this for?</strong><br>${caseType}</p>
@@ -646,8 +647,8 @@ export const welcomeLeadSubmitted = (data: {
 
     <!-- CTA Button -->
     <tr>
-      <td align="center" style="padding: 30px 0;">
-        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+      <td align="center" style="padding:15px 0;">
+        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
           Go to Dashboard
         </a>
       </td>
@@ -656,15 +657,14 @@ export const welcomeLeadSubmitted = (data: {
     <!-- Support Message -->
     <tr>
       <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
-        If you need help setting up your account or understanding how leads work, our support team is here to help.
-        <br><br>
-        Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.
+       <p style=" margin-bottom: 4px;"  > If you need help setting up your account or understanding how leads work, our support team is here to help.  </p>       
+       <p style=" margin-bottom: 4px;"  >  Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.  </p>   
       </td>
     </tr>
 
     <!-- Sign-off -->
     <tr>
-      <td style="padding: 0 25px 30px; font-size: 16px; color: #333;">
+      <td style="padding: 0 25px 10px; font-size: 16px; color: #333;">
         Best Regards,<br>
         <strong style="color: #f68c1f;">${appName} Team</strong>
       </td>
@@ -824,19 +824,21 @@ ${headerDesign}
         <!-- Body Content -->
         <tr>
             <td style="font-size: 16px; padding: 0 20px; line-height: 1.6; color: #333;">
-                Welcome to <strong>TheLawApp!</strong> We're thrilled to have you join our growing network of legal
-                professionals.
+             
+                <p style=" margin-bottom: 4px;"  > Welcome to <strong>TheLawApp!</strong> We're thrilled to have you join our growing network of legal
+                professionals.  </p>
 
-                <br /><br />
-                You’ve successfully created your account as a <strong>${paracticeArea}</strong>. You can now:
+                <p style=" margin-bottom: 4px;"  >  You’ve successfully created your account as a <strong>${paracticeArea}</strong>. You can now:  </p>
                 <ul>
                     <li>Start receiving legal inquiries</li>
                     <li>Review leads and reply directly</li>
                     <li>Build your reputation on the platform</li>
                 </ul>
 
-                To get started, visit your dashboard and complete your profile to improve your visibility and trust
-                score.
+                  <p style=" margin-bottom: 4px;"  >  To get started, visit your dashboard and complete your profile to improve your visibility and trust
+                score.  </p>
+
+
             </td>
         </tr>
 
@@ -844,7 +846,7 @@ ${headerDesign}
         <tr>
             <td align="center" style="padding: 30px 20px;">
                 <a href="${dashboardUrl}"
-                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 16px;">
                     Go to Dashboard
                 </a>
             </td>
@@ -853,16 +855,20 @@ ${headerDesign}
         <!-- Support Message -->
         <tr>
             <td style="font-size: 15px; color: #555; line-height: 1.5;padding: 0 20px ;">
-                If you need help setting up your account or understanding how leads work, our support team is here to
-                help.
-                <br /><br />
-                Thank you for joining TheLawApp — we're excited to support your legal journey.
+                
+
+                 <p style=" margin-bottom: 4px;"  > If you need help setting up your account or understanding how leads work, our support team is here to
+                help. </p>
+
+                 <p style=" margin-bottom: 4px;"  >  Thank you for joining TheLawApp — we're excited to support your legal journey. </p>
+
+               
             </td>
         </tr>
 
         <!-- Signoff -->
         <tr>
-            <td style="font-size: 16px; padding:0 20px; padding-top: 30px; padding-bottom: 30px;">
+            <td style="font-size: 16px; padding:0 20px; padding-top: 15px; padding-bottom: 10px;">
                 Best Regards, <br />
                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
             </td>
@@ -1024,30 +1030,30 @@ ${headerDesign}
         <!-- Body Content -->
         <tr>
             <td style="font-size: 16px; line-height: 1.6; color: #333; padding: 0 20px;">
-                Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.
-                <br /><br />
-                Your account has been successfully created. You can now:
-                <ul>
+             <p style=" margin-bottom: 4px;"  >  Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.  </p>
+               
+                 <p style=" margin-bottom: 4px;"  >  Your account has been successfully created. You can now:  </p>
+                <ul style="margin: 0;">
                     <li>Search for legal services tailored to your needs</li>
                     <li>Send inquiries and receive offers from verified lawyers</li>
                     <li>Track your legal requests in one convenient place</li>
                 </ul>
 
-                Here are your login details:
-                <br />
+               
+                 <p style="margin-bottom:4px;margin-top: 10px;font-weight: 600;"  > Here are your login details:  </p>
                 <strong>Email:</strong> ${email}<br />
                 <strong>Password:</strong> ${defaultPassword}
 
-                <br /><br />
-                For security, we recommend updating your password after your first login.
+                 <p style=" margin-bottom: 4px; margin-top: 4px;"  > For security, we recommend updating your password after your first login.  </p>
+               
             </td>
         </tr>
 
         <!-- CTA Button -->
         <tr>
-            <td align="center" style="padding: 30px ;">
+            <td align="center" style="padding: 20px ;">
                 <a href="${dashboardUrl}"
-                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 16px;">
                     Go to Dashboard
                 </a>
             </td>
@@ -1056,15 +1062,16 @@ ${headerDesign}
         <!-- Support Message -->
         <tr>
             <td style="font-size: 15px; color: #555; line-height: 1.5; padding: 0 20px;">
-                If you need assistance or have any questions, our support team is here to help.
-                <br /><br />
-                Thank you for choosing TheLawApp — we’re here to simplify your legal journey.
+             <p style=" margin-bottom: 4px;"  >  If you need assistance or have any questions, our support team is here to help.  </p>
+            
+              
+               <p style=" margin-bottom: 4px;"  > Thank you for choosing TheLawApp — we’re here to simplify your legal journey.  </p>
             </td>
         </tr>
 
         <!-- Signoff -->
         <tr>
-            <td style="padding: 30px 20px;; font-size: 16px;">
+            <td style="padding: 15px 20px;; font-size: 16px;">
                 Best Regards, <br />
                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
             </td>
@@ -1219,7 +1226,7 @@ export const interactionEmail = (data: {
   return `
 ${headerDesign}
      <tr>
-      <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
+      <td style="padding: 20px 25px 4px; font-size: 20px; font-weight: bold; color: #333;">
         Hello ${name},
       </td>
     </tr>
@@ -1227,11 +1234,11 @@ ${headerDesign}
     <!-- Message Section -->
     <tr>
       <td style="padding: 0 25px;">
-        <p style="font-size: 16px; color: #555; margin: 20px 0 10px;">
+        <p style="font-size:16px;color:#555;margin: 0;">
           You’ve received a new message through <strong>${appName}</strong>. Here’s a quick preview:
         </p>
 
-        <table width="100%" cellpadding="0" cellspacing="0" style="; border-radius: 6px; padding: 15px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:6px;padding:15px">
           <tr>
             <td style="font-size: 16px; color: #888; padding-bottom: 6px;">
               <strong>${senderName}</strong> • ${timestamp}
@@ -1248,8 +1255,8 @@ ${headerDesign}
 
     <!-- Button -->
     <tr>
-      <td align="center" style="padding: 30px 0;">
-        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block; text-decoration: none;">
+      <td align="center" style="padding: 15px 0;">
+        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block; text-decoration: none;">
           View Full Conversation
         </a>
       </td>
@@ -1258,15 +1265,16 @@ ${headerDesign}
     <!-- Support Info -->
     <tr>
       <td style="padding: 0 25px 20px; font-size: 15px; color: #555; line-height: 1.6;">
-        Need help or have questions? Our support team is here to assist you anytime.
-        <br><br>
-        Thank you for using <strong>${appName}</strong> to stay connected.
+                   <p style=" margin-bottom: 4px;"  > Need help or have questions? Our support team is here to assist you anytime.  </p>
+   
+        <p > Thank you for using <strong>${appName}</strong> to stay connected. </p>
+      
       </td>
     </tr>
 
     <!-- Sign-off -->
     <tr>
-      <td style="padding: 0 25px 30px; font-size: 16px; color: #333;">
+      <td style="padding: 0 25px 10px; font-size: 16px; color: #333;">
         Warm regards,<br>
         <strong style="color: #f68c1f;">${appName} Team</strong>
       </td>
@@ -1406,14 +1414,14 @@ ${headerDesign}
 
     <!-- Heading -->
     <tr>
-      <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
+      <td style="padding: 20px 25px 0px; font-size: 20px; font-weight: bold; color: #333;">
         New Contact Request
       </td>
     </tr>
 
     <!-- Details -->
     <tr>
-      <td style="padding: 0 25px;">
+      <td style="padding: 10px 25px;">
         <table width="100%" cellpadding="0" cellspacing="0" ">
           <tr>
             <td style="font-size: 15px; color: #333;"><strong>Name:</strong></td>
@@ -1423,15 +1431,14 @@ ${headerDesign}
             <td style="font-size: 15px; color: #333;"><strong>Email:</strong></td>
             <td style="font-size: 15px; color: #555;">${email}</td>
           </tr>
-          ${
-            phone
-              ? `
+          ${phone
+      ? `
           <tr>
             <td style="font-size: 15px; color: #333;"><strong>Phone:</strong></td>
             <td style="font-size: 15px; color: #555;">${phone}</td>
           </tr>`
-              : ''
-          }
+      : ''
+    }
           <tr>
             <td colspan="2" style="padding-top: 15px; font-size: 15px; color: #333;"><strong>Message:</strong></td>
           </tr>
@@ -1558,14 +1565,14 @@ export const emailVerificationTemplate = (data: {
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;">
           Thank you for registering with <strong>TheLawApp</strong>. Please verify your email address to activate your account and access your ${role} dashboard.
         </p>
 
         <!-- Verify Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${verifyUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <a href="${verifyUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
             Verify Email
           </a>
         </div>
@@ -1574,7 +1581,7 @@ export const emailVerificationTemplate = (data: {
           If you did not create this account, you can safely ignore this email.
         </p>
 
-        <p style="font-size: 14px; margin-top: 20px; margin-bottom: 20px;">
+        <p style="font-size: 14px; margin-top: 15px; margin-bottom: 10px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
         </p>
@@ -1692,20 +1699,20 @@ ${headerDesign}
     <!-- Greeting -->
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${name},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Hi ${name},</h2>
+        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 10px;">
           You have requested us to send a link to reset your password for your TheLawApp account. Click on the button below to proceed.
         </p>
         <!-- Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:5px; font-size:16px; display:inline-block;">
+        <div style="text-align: center; margin: 15px 0;">
+          <a href="${resetUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
             Reset password
           </a>
         </div>
         <p style="font-size: 14px; color: #555;">
           If you didn’t initiate this request, you can safely ignore this email.
         </p>
-        <p style="font-size: 14px; margin-top: 20px;">
+        <p style="font-size: 14px; margin-top: 15px;">
           Best Regards,<br>
           <span style="color:#FF7F27; font-weight: bold;">TheLawApp Team</span>
         </p>
@@ -1773,13 +1780,13 @@ export const otpEmail = (data: {
 ${headerDesign}
     <tr>
       <td style="padding: 0 30px;">
-        <h2 style="font-size: 24px; margin-bottom: 20px;">Hi ${username},</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">Hi ${username},</h2>
+        <p style="font-size: 16px; line-height: 1.5;">
           Here is your <strong>One Time Password (OTP)</strong>.<br>
           Please enter this code to verify your email address for TheLawApp:
         </p>
-        <div style="text-align: center; margin: 30px 0;">
-          <div style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 10px; background-color:#f8f6fc; padding: 12px 20px; border-radius: 6px;">
+        <div style="text-align: center; margin: 15px 0;">
+          <div style="display: inline-block; font-size: 24px; font-weight: bold; letter-spacing: 10px; background-color:#f8f6fc; padding: 12px 20px; border-radius: 6px;">
             ${otp.split('').join('&nbsp;')}
           </div>
         </div>

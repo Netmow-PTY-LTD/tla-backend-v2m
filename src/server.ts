@@ -16,9 +16,30 @@ async function main() {
     initializeSockets(io);
 
     // Start server
-    server.listen(config.port, () => {
-      console.log(`🚀 Server running on port ${config.port}`);
-    });
+    // server.listen(config.port, () => {
+
+    //   console.log(`🚀 Server running on port ${config.port}`);
+    // });
+
+    // Determine environment
+    const isDev = process.env.NODE_ENV === "development";
+
+    // Bind host only in dev (0.0.0.0), safe in production (127.0.0.1)
+    const host = isDev ? "0.0.0.0" : "127.0.0.1";
+
+    // Start server with type-safe options
+    server.listen(
+      {
+        port: config.port,
+        host,
+      },
+      () => {
+        console.log(
+          `🚀 Server running => http://${host}:${config.port}  [${isDev ? "DEV" : "PROD"} MODE]`
+        );
+      }
+    );
+
 
   } catch (err) {
     console.error('❌ Failed to start server:', err);
