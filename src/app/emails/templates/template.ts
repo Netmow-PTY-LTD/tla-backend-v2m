@@ -1029,30 +1029,30 @@ ${headerDesign}
         <!-- Body Content -->
         <tr>
             <td style="font-size: 16px; line-height: 1.6; color: #333; padding: 0 20px;">
-                Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.
-                <br /><br />
-                Your account has been successfully created. You can now:
+             <p style=" margin-bottom: 4px;"  >  Welcome to <strong>TheLawApp!</strong> We're excited to have you onboard.  </p>
+               
+                 <p style=" margin-bottom: 4px;"  >  Your account has been successfully created. You can now:  </p>
                 <ul>
                     <li>Search for legal services tailored to your needs</li>
                     <li>Send inquiries and receive offers from verified lawyers</li>
                     <li>Track your legal requests in one convenient place</li>
                 </ul>
 
-                Here are your login details:
-                <br />
+               
+                 <p style=" margin-bottom: 4px;"  > Here are your login details:  </p>
                 <strong>Email:</strong> ${email}<br />
                 <strong>Password:</strong> ${defaultPassword}
 
-                <br /><br />
-                For security, we recommend updating your password after your first login.
+                 <p style=" margin-bottom: 4px;"  > For security, we recommend updating your password after your first login.  </p>
+               
             </td>
         </tr>
 
         <!-- CTA Button -->
         <tr>
-            <td align="center" style="padding: 30px ;">
+            <td align="center" style="padding: 15px ;">
                 <a href="${dashboardUrl}"
-                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px;">
+                    style="background-color: #f68c1f; color: white; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 16px;">
                     Go to Dashboard
                 </a>
             </td>
@@ -1061,15 +1061,16 @@ ${headerDesign}
         <!-- Support Message -->
         <tr>
             <td style="font-size: 15px; color: #555; line-height: 1.5; padding: 0 20px;">
-                If you need assistance or have any questions, our support team is here to help.
-                <br /><br />
-                Thank you for choosing TheLawApp — we’re here to simplify your legal journey.
+             <p style=" margin-bottom: 4px;"  >  If you need assistance or have any questions, our support team is here to help.  </p>
+            
+              
+               <p style=" margin-bottom: 4px;"  > Thank you for choosing TheLawApp — we’re here to simplify your legal journey.  </p>
             </td>
         </tr>
 
         <!-- Signoff -->
         <tr>
-            <td style="padding: 30px 20px;; font-size: 16px;">
+            <td style="padding: 15px 20px;; font-size: 16px;">
                 Best Regards, <br />
                 <strong style="color: #f68c1f;">TheLawApp Team</strong>
             </td>
