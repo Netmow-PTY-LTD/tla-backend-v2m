@@ -625,7 +625,7 @@ export const welcomeLeadSubmitted = (data: {
 
     <!-- Intro Message -->
     <tr>
-      <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
+      <td style="padding: 0 25px 0px; font-size: 15px; color: #555;">
         We're reviewing your case details and matching you with the right lawyer. You’ll be contacted shortly by a qualified legal professional.
       </td>
     </tr>
@@ -646,8 +646,8 @@ export const welcomeLeadSubmitted = (data: {
 
     <!-- CTA Button -->
     <tr>
-      <td align="center" style="padding: 30px 0;">
-        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+      <td align="center" style="padding:15px 0;">
+        <a href="${dashboardUrl}" style="background-color: #f68c1f; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
           Go to Dashboard
         </a>
       </td>
@@ -656,15 +656,14 @@ export const welcomeLeadSubmitted = (data: {
     <!-- Support Message -->
     <tr>
       <td style="padding: 0 25px 20px; font-size: 15px; color: #555;">
-        If you need help setting up your account or understanding how leads work, our support team is here to help.
-        <br><br>
-        Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.
+       <p style=" margin-bottom: 4px;"  > If you need help setting up your account or understanding how leads work, our support team is here to help.  </p>       
+       <p style=" margin-bottom: 4px;"  >  Thank you for joining <strong>${appName}</strong> — we're excited to support your legal journey.  </p>   
       </td>
     </tr>
 
     <!-- Sign-off -->
     <tr>
-      <td style="padding: 0 25px 30px; font-size: 16px; color: #333;">
+      <td style="padding: 0 25px 10px; font-size: 16px; color: #333;">
         Best Regards,<br>
         <strong style="color: #f68c1f;">${appName} Team</strong>
       </td>
