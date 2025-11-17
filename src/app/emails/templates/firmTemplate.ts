@@ -74,7 +74,7 @@ const footerDesign = `
       </tr>
     </table>
         <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
-            You are receiving this email because you registered on TheLawApp as a legal professional.</p>
+             You are receiving this email because you are connected with TheLawApp.</p>
         <p style="margin: 0;">
           <a href="${config.client_url}/privacy-policy" style="color: #999; margin-right: 5px;">Privacy Policy</a> •
           <a href="${config.client_url}/terms" style="color: #999; margin-left: 5px; margin-right: 5px;">Terms</a> •

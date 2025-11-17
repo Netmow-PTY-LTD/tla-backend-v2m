@@ -1414,14 +1414,14 @@ ${headerDesign}
 
     <!-- Heading -->
     <tr>
-      <td style="padding: 20px 25px 10px; font-size: 20px; font-weight: bold; color: #333;">
+      <td style="padding: 20px 25px 0px; font-size: 20px; font-weight: bold; color: #333;">
         New Contact Request
       </td>
     </tr>
 
     <!-- Details -->
     <tr>
-      <td style="padding: 0 25px;">
+      <td style="padding: 10px 25px;">
         <table width="100%" cellpadding="0" cellspacing="0" ">
           <tr>
             <td style="font-size: 15px; color: #333;"><strong>Name:</strong></td>
