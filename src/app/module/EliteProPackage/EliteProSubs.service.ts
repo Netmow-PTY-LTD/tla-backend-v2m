@@ -43,7 +43,7 @@ const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackag
   // 3️ Create Stripe Price
   const stripePrice = await stripe.prices.create({
     product: stripeProduct.id,
-    unit_amount: payload.price.amount, // amount in cents
+    unit_amount: (payload.price?.amount) * 100, // amount in cents
     currency: payload.price.currency.toLowerCase(),
     recurring: interval ? { interval } : undefined, // only for recurring plans
   });
@@ -63,7 +63,7 @@ const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackag
 
 const getAllEliteProSubscriptionsFromDB = async (query: Record<string, any>) => {
 
-  const pageQuery = new QueryBuilder(EliteProPackageModel.find({isActive: true}), query).search([
+  const pageQuery = new QueryBuilder(EliteProPackageModel.find({ isActive: true }), query).search([
     "name",
     "slug",
     "description"
@@ -107,10 +107,12 @@ const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEl
         break;
     }
 
+
+
     // Create a new Stripe Price for the existing product
     const stripePrice = await stripe.prices.create({
       product: existing.stripeProductId, // use existing product
-      unit_amount: payload.price?.amount || existing.price.amount,
+      unit_amount: (payload.price?.amount ?? existing.price.amount) * 100,  // amount in cents
       currency: (payload.price?.currency || existing.price.currency).toLowerCase(),
       recurring: interval ? { interval } : undefined,
     });
@@ -137,14 +139,27 @@ const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEl
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 const deleteEliteProSubscriptionFromDB = async (id: string) => {
   if (!id) throw new Error("Elite pro ID is required");
 
-  // 1️⃣ Find existing package
+  // 1️ Find existing package
   const existing = await EliteProPackageModel.findById(id);
   if (!existing) throw new Error("Elite pro not found");
 
-  // 2️⃣ Deactivate on Stripe (Product + Prices)
+  // 2️ Deactivate on Stripe (Product + Prices)
   try {
     if (existing.stripeProductId) {
       // Get all related Stripe prices
@@ -168,7 +183,7 @@ const deleteEliteProSubscriptionFromDB = async (id: string) => {
     throw new Error("Failed to archive subscription on Stripe");
   }
 
-  // 3️⃣ Soft delete in MongoDB (mark inactive)
+  // 3️ Soft delete in MongoDB (mark inactive)
   existing.isActive = false;
   existing.deletedAt = new Date();
   await existing.save();
