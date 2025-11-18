@@ -12,9 +12,10 @@ import { SubscriptionType } from './paymentMethod.service';
 import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  // apiVersion: '2023-10-16', // Use your Stripe API version
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+ apiVersion: '2025-05-28.basil',
 });
+
 
 const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
   const packageCreate = await CreditPackage.create(payload);

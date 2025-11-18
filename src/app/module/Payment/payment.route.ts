@@ -10,7 +10,7 @@ router.post(
     express.raw({ type: 'application/json' }), // 👈 important!
     (req, res, next) => {
         Promise.resolve(stripeWebhookHandler(req, res))
-            .then(() => undefined)
+            // .then(() => undefined)
             .catch(next);
     }
 );
