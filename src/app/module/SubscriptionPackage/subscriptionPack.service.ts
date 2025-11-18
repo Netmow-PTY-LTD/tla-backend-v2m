@@ -39,7 +39,7 @@ const createSubscriptionIntoDB = async (
   // if (payload.billingCycle === "monthly") interval = "month";
   // else if (payload.billingCycle === "yearly") interval = "year";
 
-    // 2️⃣ Determine Stripe interval for recurring payment
+  // 2️ Determine Stripe interval for recurring payment
   let interval: "week" | "month" | "year" | undefined = undefined;
   switch (payload.billingCycle) {
     case "weekly":
@@ -56,7 +56,7 @@ const createSubscriptionIntoDB = async (
   // 3️ Create Stripe Price
   const stripePrice = await stripe.prices.create({
     product: stripeProduct.id,
-    unit_amount: payload.price.amount, // amount in cents
+    unit_amount: (payload.price?.amount) * 100,  // amount in cents
     currency: payload.price.currency.toLowerCase(),
     recurring: interval ? { interval } : undefined, // only for recurring plans
   });
@@ -75,7 +75,7 @@ const createSubscriptionIntoDB = async (
 
 
 const getAllSubscriptionsFromDB = async (query: Record<string, any>) => {
-  const pageQuery = new QueryBuilder(SubscriptionPackage.find({isActive: true}), query)
+  const pageQuery = new QueryBuilder(SubscriptionPackage.find({ isActive: true }), query)
     .search(SUBSCRIPTION_FIELDS.SEARCHABLE)
     .filter()
     .sort()
@@ -109,8 +109,8 @@ const updateSubscriptionIntoDB = async (
 
   // Only create new Stripe Price if billingCycle, amount, or currency changed
   if (
-    payload.billingCycle || 
-    payload.price?.amount !== undefined || 
+    payload.billingCycle ||
+    payload.price?.amount !== undefined ||
     payload.price?.currency
   ) {
     let interval: "week" | "month" | "year" | undefined;
@@ -130,7 +130,7 @@ const updateSubscriptionIntoDB = async (
     // Create a new Stripe Price for the existing product
     const stripePrice = await stripe.prices.create({
       product: existing.stripeProductId, // use existing product
-      unit_amount: payload.price?.amount || existing.price.amount,
+      unit_amount: (payload.price?.amount ?? existing.price.amount) * 100,  // amount in cents
       currency: (payload.price?.currency || existing.price.currency).toLowerCase(),
       recurring: interval ? { interval } : undefined,
     });
@@ -156,11 +156,11 @@ const updateSubscriptionIntoDB = async (
 const deleteSubscriptionFromDB = async (id: string) => {
   if (!id) throw new Error("Subscription ID is required");
 
-  // 1️⃣ Find the existing subscription package
+  // 1️ Find the existing subscription package
   const existing = await SubscriptionPackage.findById(id);
   if (!existing) throw new Error("Subscription package not found");
 
-  // 2️⃣ Deactivate (archive) from Stripe
+  // 2️ Deactivate (archive) from Stripe
   try {
     if (existing.stripeProductId) {
       // List all related prices for this product
@@ -184,7 +184,7 @@ const deleteSubscriptionFromDB = async (id: string) => {
     throw new Error("Failed to archive subscription package on Stripe");
   }
 
-  // 3️⃣ Soft delete in MongoDB
+  // 3️ Soft delete in MongoDB
   existing.isActive = false;
   existing.deletedAt = new Date();
   await existing.save();
