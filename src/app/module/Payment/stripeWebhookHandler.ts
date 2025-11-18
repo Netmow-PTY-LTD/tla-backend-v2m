@@ -130,7 +130,7 @@ import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache } from '../../utils/cacheManger';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  // apiVersion: '2024-06-20',
+ // apiVersion: '2025-05-28',
 });
 
 export const stripeWebhookHandler = async (req: Request, res: Response) => {

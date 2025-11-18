@@ -26,7 +26,7 @@ import { CacheKeys } from '../../config/cacheKeys';
 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  // apiVersion: '2023-10-16', // Use your Stripe API version
+   // apiVersion: '2025-05-28', // Use your Stripe API version
 });
 
 const getPaymentMethods = async (userId: string) => {
