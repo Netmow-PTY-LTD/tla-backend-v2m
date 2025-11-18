@@ -129,12 +129,14 @@ import mongoose, { mongo } from 'mongoose';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache } from '../../utils/cacheManger';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
- // apiVersion: '2025-05-28',
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+ apiVersion: '2025-05-28.basil',
 });
 
 export const stripeWebhookHandler = async (req: Request, res: Response) => {
-  const sig = req.headers['stripe-signature'] as string;
+  const sig = req.headers['stripe-signature']!;
+
+  
 
   let event: Stripe.Event;
 

@@ -4,8 +4,8 @@ import Stripe from "stripe";
 import QueryBuilder from "../../builder/QueryBuilder";
 import SubscriptionPackage, { ISubscription } from "./subscriptionPack.model";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  // apiVersion: '2023-10-16', // Use your Stripe API version
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+ apiVersion: '2025-05-28.basil',
 });
 
 
