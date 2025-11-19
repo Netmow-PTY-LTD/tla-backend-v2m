@@ -11,7 +11,8 @@ import apiNotFound from './app/middlewares/apiNotFound';
 import { logServerInfo } from './app/utils/serverInfo';
 import { userSocketsMap } from './app/sockets';
 import firmRoute from './app/routes/firmRoute';
-import { paymentRoutes } from './app/module/Payment/payment.route';
+import bodyParser from 'body-parser';
+import { stripeWebhookHandler } from './app/module/CreditPayment/stripeWebhookHandler';
 
 
 // Create Express app
@@ -20,7 +21,19 @@ const app: Application = express();
 //  payment method
 
 // IMPORTANT: Do not use express.json() before webhook route!
-app.use('/api/payment', paymentRoutes);
+// app.use('/api/payment', paymentRoutes);
+
+app.post(
+  '/webhook',
+  bodyParser.raw({ type: "application/json" }),
+  (req, res, next) => {
+    Promise.resolve(stripeWebhookHandler(req, res))
+      // .then(() => undefined)
+      .catch(next);
+  }
+);
+
+
 
 // Middlewares
 app.use(express.json());
