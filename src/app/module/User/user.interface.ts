@@ -75,6 +75,7 @@ export interface IUserProfile {
   isAccessibleByOtherUsers?: boolean;
   isFirmRemoved?: boolean;
   firmRemovedAt?: Date | null;
+  foundingMember?: boolean;
 
   deletedAt?: Date | null;
 }
