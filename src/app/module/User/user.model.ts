@@ -163,6 +163,13 @@ const userProfileSchema = new Schema<IUserProfile>(
       default: false,
     },
 
+    foundingMember: {
+      type: Boolean,
+      default: false,
+    },
+
+
+
     deletedAt: {
       type: Date,
       default: null,
