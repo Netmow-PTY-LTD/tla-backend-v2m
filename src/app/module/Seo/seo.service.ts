@@ -1,4 +1,4 @@
-import { F } from '@faker-js/faker/dist/airline-DF6RqYmq';
+
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 import { TUploadedFile } from '../../interface/file.interface';
@@ -27,7 +27,7 @@ const CreateSeoIntoDB = async (file: TUploadedFile, payload: ISeo) => {
         const metaImageUrl = await uploadToSpaces(fileBuffer, originalName, {
             folder: FOLDERS.SEO,
             entityId: FOLDERS.METAIMAGES,
-            customFileName: payload.slug
+            customFileName: `${payload.slug}-${Date.now()}`
         });
 
         payload.metaImage = metaImageUrl;
@@ -61,6 +61,7 @@ const getAllSeoFromDB = async (query: Record<string, any>): Promise<SeoDocument[
 const updateSeoIntoDB = async (
     id: string,
     payload: Partial<ISeo>,
+    // eslint-disable-next-line no-undef
     file?: Express.Multer.File,
 ) => {
     const session = await mongoose.startSession();
@@ -80,12 +81,14 @@ const updateSeoIntoDB = async (
             newFileUrl = await uploadToSpaces(fileBuffer, originalName, {
                 folder: FOLDERS.SEO,
                 entityId: FOLDERS.METAIMAGES,
-                customFileName: payload.slug
+             customFileName: `${payload.slug}-${Date.now()}`
 
             });
 
             payload.metaImage = newFileUrl;
         }
+
+       
 
         // Step 2: Update SEO record
         const updatedSeo = await Seo.findByIdAndUpdate(id, payload, {
