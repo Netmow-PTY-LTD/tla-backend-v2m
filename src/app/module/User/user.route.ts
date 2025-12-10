@@ -18,7 +18,7 @@ router.get(
 );
 router.get(
   '/list',
-  auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN,USER_ROLE.USER),
   userProfileController.getAllUserProfile,
 );
 
