@@ -46,6 +46,7 @@ export interface IUser {
   profile: Types.ObjectId;
   lawyerServiceMap: ILawyerServiceMap &{ addressInfo:IAddressInfo};
   companyInfo?: ICompanyProfile;
+  createdBy:Types.ObjectId;
 }
 
 export interface UserModel extends Model<IUser> {

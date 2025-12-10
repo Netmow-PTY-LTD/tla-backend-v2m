@@ -23,7 +23,7 @@ import { IUser } from "../Auth/auth.interface";
 
 
 
-const lawyerRegisterUserIntoDB = async (payload: IUser) => {
+const lawyerRegisterUserIntoDB = async (userId:string, payload: IUser) => {
   // Start a database session for the transaction
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -38,7 +38,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     // Separate the profile data from the user data
     const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
     // Create the user document in the database
-    const [newUser] = await User.create([userData], { session });
+    const [newUser] = await User.create([{...userData,createdBy:userId}], { session });
     const addressInfo = lawyerServiceMap?.addressInfo
 
     let zipCode;
@@ -183,7 +183,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     });
 
 
-
     // -------------------------- Generate the access token for the user -----------------------------------
     const jwtPayload = {
       userId: newUser._id,
@@ -200,13 +199,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       jwtPayload,
       config.jwt_access_secret as StringValue,
       config.jwt_access_expires_in as StringValue,
-    );
-
-    // Generate the refresh token for the user
-    const refreshToken = createToken(
-      jwtPayload,
-      config.jwt_refresh_secret as StringValue,
-      config.jwt_refresh_expires_in as StringValue,
     );
 
     //  Save accessToken in DB for email verification
@@ -233,16 +225,10 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     });
 
 
-
     //  lawyer firm member request email notification to firm admin
     if (companyInfo?.companyTeam) {
-
-   
-
-
       const firmAdmin = await FirmUser.findOne({ firmProfileId: companyInfo?.companyName, role: Firm_USER_ROLE.ADMIN, });
  
-
       if (firmAdmin) {
 
         await sendEmail({
@@ -264,8 +250,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
     // Return the generated tokens and user data
     return {
-      accessToken,
-      refreshToken,
       userData: newUser,
     };
   } catch (error) {
