@@ -32,6 +32,7 @@ import { blogRouter } from '../module/blog/blog.route';
 import { blogCategoryRoutes } from '../module/blogCategory/blogCategory.route';
 import { galleryRouter } from '../module/Gallery/gallery.route';
 import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterCode.route';
+import { dataEntryRouter } from '../module/data-entry/dataEntry.route';
 
 const router = Router();
 
@@ -164,6 +165,10 @@ const moduleRoutes = [
   {
     path: '/header-footer-codes',
     route: headerFooterCodeRoutes,
+  },
+  {
+    path: '/data-entry',
+    route: dataEntryRouter,
   },
   {
     path: '/',
