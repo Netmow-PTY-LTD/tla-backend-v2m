@@ -22,7 +22,7 @@ import Faq from './faq.model';
 import Agreement from './agreement.model';
 import { FOLDERS } from '../../constant';
 import { redisClient } from '../../config/redis.config';
-import { T } from '@faker-js/faker/dist/airline-DF6RqYmq';
+
 import { CacheKeys, TTL } from '../../config/cacheKeys';
 
 
@@ -50,6 +50,7 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
   if (query.accountStatus) filters.accountStatus = query.accountStatus;
   if (query.isVerifiedAccount !== undefined) filters.isVerifiedAccount = query.isVerifiedAccount;
   if (query.isPhoneVerified !== undefined) filters.isPhoneVerified = query.isPhoneVerified;
+  if (query.createdBy !== undefined) filters.createdBy = new mongoose.Types.ObjectId(query.createdBy);
 
 
 
