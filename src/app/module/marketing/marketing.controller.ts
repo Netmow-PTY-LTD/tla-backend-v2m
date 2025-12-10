@@ -1,7 +1,10 @@
+
+
 import HTTP_STATUS from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
-import { dataEntryService } from "./dataEntry.service";
+import { marketingService } from "./marketing.service";
+
 
 const lawyerRegister = catchAsync(async (req, res) => {
   // Extract user registration data from the request body
@@ -9,7 +12,7 @@ const lawyerRegister = catchAsync(async (req, res) => {
 
   // Register the user and receive tokens along with user data
   const { accessToken, refreshToken, userData } =
-    await dataEntryService.lawyerRegisterUserIntoDB(payload);
+    await marketingService.lawyerRegisterUserIntoDB(payload);
 
   // Store the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
@@ -31,6 +34,6 @@ const lawyerRegister = catchAsync(async (req, res) => {
 
 
 
-export const dataEntryController = {
+export const marketingController = {
  lawyerRegister
 };

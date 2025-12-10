@@ -68,7 +68,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
         }
       } catch (err: unknown) {
-        console.error("ZipCode save error:", err);
+        console.error("Zip Code save error:", err);
       }
     }
 
@@ -281,6 +281,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
 
 
-export const dataEntryService = {
+export const marketingService = {
 lawyerRegisterUserIntoDB
 };

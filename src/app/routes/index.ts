@@ -32,7 +32,7 @@ import { blogRouter } from '../module/blog/blog.route';
 import { blogCategoryRoutes } from '../module/blogCategory/blogCategory.route';
 import { galleryRouter } from '../module/Gallery/gallery.route';
 import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterCode.route';
-import { dataEntryRouter } from '../module/data-entry/dataEntry.route';
+import { marketingRouter } from '../module/marketing/marketing.route';
 
 const router = Router();
 
@@ -167,8 +167,8 @@ const moduleRoutes = [
     route: headerFooterCodeRoutes,
   },
   {
-    path: '/data-entry',
-    route: dataEntryRouter,
+    path: '/marketing',
+    route: marketingRouter,
   },
   {
     path: '/',
