@@ -3,7 +3,6 @@ import { IUser, UserModel } from './auth.interface';
 import bcrypt from 'bcryptjs'; // instead of 'bcrypt'
 import config from '../../config';
 import {
-  PHONE_VERIFICATION_STATUS,
   USER_STATUS,
 } from './auth.constant';
 import { USER_ROLE } from '../../constant';
@@ -90,6 +89,7 @@ const userSchema = new mongoose.Schema(
     pendingEmail: { type: String, lowercase: true, trim: true },
     emailChangeToken: { type: String },
     emailChangeTokenExpires: { type: Date },
+    createdBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
     versionKey: false,

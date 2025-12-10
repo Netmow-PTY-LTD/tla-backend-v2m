@@ -279,7 +279,8 @@ const getAllUserProfile = catchAsync(async (req, res) => {
       : req.query.isPhoneVerified === "false"
         ? false
         : undefined,
-
+ // createdBy filter (userId reference)
+  createdBy: req.query.createdBy as string | undefined,
     //  sorting support
     sortBy: (req.query.sortBy as string) || "createdAt",
     sortOrder: req.query.sortOrder === "asc" ? "asc" : "desc",
