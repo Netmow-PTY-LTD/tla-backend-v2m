@@ -68,7 +68,7 @@ router.patch(
 
 router.patch(
   '/update/default/:userId',
-  auth(USER_ROLE.ADMIN),
+ auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   upload.single('file'), // single file
  userProfileController.updateDefaultProfile
 );
