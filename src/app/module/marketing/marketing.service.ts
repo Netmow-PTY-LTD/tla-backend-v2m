@@ -177,9 +177,9 @@ const lawyerRegisterUserIntoDB = async (userId:string, payload: IUser) => {
 
     await sendEmail({
       to: newUser.email,
-      subject: 'Thank you for registering as a lawyer',
+      subject: 'Your Lawyer Account Has Been Activated on TheLawApp',
       data: commonEmailData,
-      emailTemplate: "welcome_to_lawyer",
+      emailTemplate: "welcome_to_lawyer_by_marketer",
     });
 
 

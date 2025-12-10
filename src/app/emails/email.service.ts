@@ -3,7 +3,7 @@
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/settingsConfig";
 import {  firmPasswordResetEmail, firmRegisterEmail, newClaimNotificationEmail, requestlawyerAsFirmMember } from "./templates/firmTemplate";
-import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLeadSubmitted } from "./templates/template";
+import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLawyerEmailByMarketing, welcomeLeadSubmitted } from "./templates/template";
 
 
 interface SendEmailParams {
@@ -48,6 +48,9 @@ export const sendEmail = async ({
 
   if (emailTemplate == "welcome_to_lawyer") {
     html = welcomeLawyerEmail(data)
+  }
+  if (emailTemplate == "welcome_to_lawyer_by_marketer") {
+    html = welcomeLawyerEmailByMarketing(data)
   }
   if (emailTemplate === "contact") {
     html = interactionEmail(data)

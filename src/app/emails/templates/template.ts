@@ -1844,3 +1844,108 @@ ${headerDesign}
       ${footerDesign}
 `;
 };
+
+
+
+
+export const welcomeLawyerEmailByMarketing = (data: {
+  name: string;
+  email: string;
+  defaultPassword: string;
+  paracticeArea: string;
+  dashboardUrl?: string;
+}) => {
+  const {
+    name,
+    email,
+    defaultPassword,
+    paracticeArea,
+    dashboardUrl = `${process.env.CLIENT_SITE_URL}/lawyer/dashboard`,
+  } = data;
+
+  const appName = "TheLawApp";
+
+  return `
+${headerDesign}
+
+<!-- Greeting -->
+<tr>
+  <td style="font-size: 20px; font-weight: bold; padding: 10px 20px;">
+    Hello ${name},
+  </td>
+</tr>
+
+<!-- Body Content -->
+<tr>
+  <td style="font-size: 16px; padding: 0 20px; line-height: 1.6; color: #333;">
+
+    <p style="margin-bottom: 6px;">
+      We’re pleased to inform you that the <strong>${appName} Marketing Team</strong> has successfully
+      registered you as a <strong>${paracticeArea}</strong> on our platform.
+    </p>
+
+    <p style="margin-bottom: 6px;">
+      Your account is now active, and you can immediately access your lawyer dashboard to manage leads,
+      respond to client inquiries, and complete your professional profile.
+    </p>
+
+    <p style="margin-bottom: 6px;">
+      Below are your login credentials:
+    </p>
+
+    <div style="background: #f7f7f7; padding: 12px 16px; border-radius: 6px; margin-bottom: 10px;">
+      <p style="margin: 4px 0;"><strong>Email:</strong> ${email}</p>
+      <p style="margin: 4px 0;"><strong>Password:</strong> ${defaultPassword}</p>
+    </div>
+
+    <p style="margin-bottom: 6px;">
+      For security purposes, we strongly recommend updating your password after your first login.
+    </p>
+
+    <p style="margin-bottom: 6px;">
+      If you have any questions or need assistance, feel free to reply directly to this email —
+      our team is always ready to help.
+    </p>
+
+  </td>
+</tr>
+
+<!-- CTA Button -->
+<tr>
+  <td align="center" style="padding: 30px 20px;">
+    <a href="${dashboardUrl}"
+      style="background-color: #f68c1f; color: white; text-decoration: none; padding: 10px 16px;
+      border-radius: 6px; font-size: 16px;">
+      Go to Your Dashboard
+    </a>
+  </td>
+</tr>
+
+<!-- Support Message -->
+<tr>
+  <td style="font-size: 15px; color: #555; line-height: 1.5; padding: 0 20px;">
+
+    <p style="margin-bottom: 4px;">
+      Our goal is to help you grow your legal practice by connecting you with clients seeking
+      trustworthy legal professionals.
+    </p>
+
+    <p style="margin-bottom: 4px;">
+      Thank you for choosing <strong>${appName}</strong>. We look forward to supporting 
+      your professional journey.
+    </p>
+
+  </td>
+</tr>
+
+<!-- Signoff -->
+<tr>
+  <td style="font-size: 16px; padding: 0 20px; padding-top: 15px; padding-bottom: 10px;">
+    Best Regards, <br />
+    <strong style="color: #f68c1f;">TheLawApp Team</strong>
+  </td>
+</tr>
+
+${footerDesign}
+`;
+};
