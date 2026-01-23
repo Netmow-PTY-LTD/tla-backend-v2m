@@ -45,6 +45,7 @@ const allowedOrigins = [
   `${config.client_url}`,
   `${config.firm_client_url}`,
   'https://thelawapp.netlify.app',
+  'https://company-thelawapp.netlify.app',
 ];
 
 app.use(
