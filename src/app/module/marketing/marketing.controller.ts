@@ -30,10 +30,9 @@ const lawyerRegister = catchAsync(async (req, res) => {
 const updateLawyer = catchAsync(async (req, res) => {
   const payload = req.body;
   const currentUserId = req.user.userId;
-  payload.updatedBy = currentUserId;
   const userId = req.params.id;
 
-  const result = await marketingService.updateLawyerIntoDB(userId, payload);
+  const result = await marketingService.updateLawyerIntoDB(currentUserId, userId, payload);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -58,7 +57,9 @@ const getLawyer = catchAsync(async (req, res) => {
 
 const deleteLawyer = catchAsync(async (req, res) => {
   const userId = req.params.id;
-  await marketingService.deleteLawyerFromDB(userId);
+  const performBy = req.user.userId;
+
+  await marketingService.deleteLawyerFromDB(userId, performBy);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,

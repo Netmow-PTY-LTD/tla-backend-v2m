@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from "mongoose";
 import User from "../Auth/auth.model";
 import { AppError } from "../../errors/error";
@@ -271,7 +272,7 @@ const updateLawyerIntoDB = async (currentUserId: string, id: string, payload: IU
   session.startTransaction();
 
   try {
-    const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
+    const { profile, lawyerServiceMap, ...userData } = payload;
 
     const user = await User.findById(id).session(session);
 
@@ -281,12 +282,12 @@ const updateLawyerIntoDB = async (currentUserId: string, id: string, payload: IU
 
     // Update User
     if (Object.keys(userData).length > 0) {
-      await User.findByIdAndUpdate(id, {...userData,updatedBy:currentUserId}, { session, new: true });
+      await User.findByIdAndUpdate(id, { ...userData, updatedBy: currentUserId }, { session, new: true });
     }
 
     // Update Profile
     if (profile) {
-      await UserProfile.findOneAndUpdate({ user: id }, {...profile,updatedBy:currentUserId}, { session, new: true });
+      await UserProfile.findOneAndUpdate({ user: id }, { ...profile, updatedBy: currentUserId }, { session, new: true });
     }
 
     // Update LawyerServiceMap and Address
@@ -339,10 +340,10 @@ const updateLawyerIntoDB = async (currentUserId: string, id: string, payload: IU
         lawyerServiceMapData.zipCode = zipCode._id;
       }
 
-      const updatedLawyerServiceMap = await LawyerServiceMap.findOneAndUpdate(
+   await LawyerServiceMap.findOneAndUpdate(
         { userProfile: user.profile },
         {
-          ...lawyerServiceMapData,updatedBy:currentUserId
+          ...lawyerServiceMapData, updatedBy: currentUserId
         },
         { session, new: true, upsert: true } // Upsert if somehow missing
       );
@@ -423,7 +424,7 @@ const getLawyerFromDB = async (id: string) => {
 };
 
 
-const deleteLawyerFromDB = async (id: string) => {
+const deleteLawyerFromDB = async (id: string, performBy: string) => {
   const user = await User.findById(id);
 
   if (!user) {
@@ -432,6 +433,10 @@ const deleteLawyerFromDB = async (id: string) => {
 
   // Soft delete
   user.deletedAt = new Date();
+
+  // Set deletedBy
+  user.deletedBy = new mongoose.Types.ObjectId(performBy);
+
   // Optionally set status to archived if that's the business logic, but deletedAt is key.
   user.accountStatus = USER_STATUS.ARCHIVED;
 
