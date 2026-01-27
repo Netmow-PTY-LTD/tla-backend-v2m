@@ -287,7 +287,7 @@ const updateLawyerIntoDB = async (currentUserId: string, id: string, payload: IU
 
     // Update Profile
     if (profile) {
-      await UserProfile.findOneAndUpdate({ user: id }, { ...profile, updatedBy: currentUserId }, { session, new: true });
+      await UserProfile.findOneAndUpdate({ user: id }, { ...profile, phone:userData.phone, updatedBy: currentUserId }, { session, new: true });
     }
 
     // Update LawyerServiceMap and Address
