@@ -31,6 +31,7 @@ export interface IUserProfile {
   bio?: string;
   phone: string;
   address?: string;
+  full_address?: string;
   languages?: string[];
   // new field
   businessName?: string;
@@ -78,4 +79,7 @@ export interface IUserProfile {
   foundingMember?: boolean;
 
   deletedAt?: Date | null;
+  createdBy: Types.ObjectId;
+  updatedBy: Types.ObjectId;
+  deletedBy: Types.ObjectId;
 }

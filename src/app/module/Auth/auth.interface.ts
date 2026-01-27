@@ -35,7 +35,7 @@ export interface IUser {
   passwordChangedAt?: Date;
   verifyCode?: string;
   verifyToken?: string;
-  phoneNo?: string;
+  phone?: string;
   isPhoneVerified: PhoneVerificationStatus;
   accountStatus: UserStatus;
   googleId?: string;
@@ -47,6 +47,8 @@ export interface IUser {
   lawyerServiceMap: ILawyerServiceMap &{ addressInfo:IAddressInfo};
   companyInfo?: ICompanyProfile;
   createdBy:Types.ObjectId;
+   updatedBy:Types.ObjectId;
+  deletedBy:Types.ObjectId;
 }
 
 export interface UserModel extends Model<IUser> {

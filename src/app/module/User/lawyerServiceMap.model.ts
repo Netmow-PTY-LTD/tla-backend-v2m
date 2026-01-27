@@ -1,4 +1,4 @@
-import { Schema, model, Types } from 'mongoose';
+import mongoose, { Schema, model, Types } from 'mongoose';
 import { ILawyerServiceMap } from './lawyerServiceMap.interface';
 
 const lawyerServiceMapSchema = new Schema(
@@ -22,7 +22,7 @@ const lawyerServiceMapSchema = new Schema(
     },
     zipCode: {
       type: Types.ObjectId,
-      ref: 'Service',
+      ref: 'ZipCode',
       required: true,
     },
     // rangeInKm: {
@@ -46,6 +46,15 @@ const lawyerServiceMapSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
   },
   { versionKey: false, timestamps: true },
 );
