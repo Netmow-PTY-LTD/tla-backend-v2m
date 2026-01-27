@@ -90,6 +90,8 @@ const userSchema = new mongoose.Schema(
     emailChangeToken: { type: String },
     emailChangeTokenExpires: { type: Date },
     createdBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    deletedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
     versionKey: false,
