@@ -10,7 +10,7 @@ import { REGISTER_USER_TYPE, USER_STATUS } from "../Auth/auth.constant";
 import { LawyerServiceMap } from "../User/lawyerServiceMap.model";
 import { LocationType } from "../UserLocationServiceMap/userLocationServiceMap.interface";
 import { UserLocationServiceMap } from "../UserLocationServiceMap/UserLocationServiceMap.model";
-import { createLeadService } from "../Auth/lawyerRegister.utils";
+import { createLeadService, updateLeadService } from "../Auth/lawyerRegister.utils";
 import Service from "../Service/service.model";
 import config from "../../config";
 import { sendEmail } from "../../emails/email.service";
@@ -381,7 +381,7 @@ const updateLawyerIntoDB = async (currentUserId: string, id: string, payload: IU
 
       // Update Lead Service
       if (lawyerServiceMap.services) {
-        await createLeadService(user._id, lawyerServiceMap.services, session);
+        await updateLeadService(user._id, lawyerServiceMap.services, session);
       }
     }
 
