@@ -22,7 +22,7 @@ const lawyerServiceMapSchema = new Schema(
     },
     zipCode: {
       type: Types.ObjectId,
-      ref: 'Service',
+      ref: 'ZipCode',
       required: true,
     },
     // rangeInKm: {
