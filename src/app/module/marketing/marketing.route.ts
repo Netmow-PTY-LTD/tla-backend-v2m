@@ -10,10 +10,30 @@ const router = Router();
 
 router.post(
   "/create-lawyer",
-  auth(USER_ROLE.ADMIN,USER_ROLE.USER),           
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   marketingController.lawyerRegister
 );
 
 
+
+
+router.patch(
+  "/edit-lawyer/:id",
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  marketingController.updateLawyer
+);
+
+
+router.get(
+  "/lawyer/:id",
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  marketingController.getLawyer
+);
+
+router.delete(
+  "/lawyer/:id",
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  marketingController.deleteLawyer
+);
 
 export const marketingRouter = router;

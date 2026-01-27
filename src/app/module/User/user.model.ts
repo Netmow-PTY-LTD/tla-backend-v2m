@@ -72,6 +72,10 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
     },
+    full_address: {
+      type: String,
+      trim: true,
+    },
     phone: {
       type: String,
       trim: true,
@@ -168,12 +172,14 @@ const userProfileSchema = new Schema<IUserProfile>(
       default: false,
     },
 
-
-
     deletedAt: {
       type: Date,
       default: null,
     },
+
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
     versionKey: false,
