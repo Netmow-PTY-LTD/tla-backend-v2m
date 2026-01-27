@@ -35,7 +35,7 @@ export interface IUser {
   passwordChangedAt?: Date;
   verifyCode?: string;
   verifyToken?: string;
-  phoneNo?: string;
+  phone?: string;
   isPhoneVerified: PhoneVerificationStatus;
   accountStatus: UserStatus;
   googleId?: string;

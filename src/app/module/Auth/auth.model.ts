@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    phoneNo: {
+    phone: {
       type: String,
     },
     verifyCode: {

@@ -77,6 +77,7 @@ const lawyerRegisterUserIntoDB = async (userId:string, payload: IUser) => {
     const profileData = {
       ...profile,
       user: newUser._id,
+      phone: userData?.phone  || newUser?.phone,
       address: zipCode?.zipcode,
       zipCode: zipCode?._id,
       lawyerContactEmail: newUser?.email,
