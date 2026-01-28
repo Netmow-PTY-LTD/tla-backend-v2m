@@ -26,10 +26,13 @@ export interface IBlog {
     metaKeywords?: string[];
     metaImage?: string;
   };
+  createdBy?: Types.ObjectId;
+  updatedBy?: Types.ObjectId;
 }
 
 // === CREATE BLOG ===
 const createBlogInDB = async (
+  userId: string,
   payload: IBlog,
   files?: { [fieldname: string]: TUploadedFile[] }
 ) => {
@@ -62,7 +65,7 @@ const createBlogInDB = async (
     payload.seo.metaImage = metaImageUrl;
   }
 
-  const blog = new Blog(payload);
+  const blog = new Blog({ ...payload, createdBy: new Types.ObjectId(userId) });
   return await blog.save();
 };
 
@@ -97,6 +100,7 @@ const getBlogBySlugFromDB = async (slug: string) => {
 
 // === UPDATE BLOG ===
 const updateBlogInDB = async (
+  userId: string,
   id: string,
   payload: Partial<IBlog>,
   files?: { [fieldname: string]: TUploadedFile[] }
@@ -150,12 +154,14 @@ const updateBlogInDB = async (
       }
     }
 
-
-
-    const updatedBlog = await Blog.findByIdAndUpdate(id, payload, {
-      new: true,
-      session,
-    });
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      id,
+      { ...payload, updatedBy: new Types.ObjectId(userId) },
+      {
+        new: true,
+        session,
+      }
+    );
 
     await session.commitTransaction();
     session.endSession();
@@ -174,7 +180,7 @@ const deleteBlogFromDB = async (id: string) => {
   session.startTransaction();
 
   try {
-    const blog = await Blog.findByIdAndDelete(id, { session });
+    const blog = await Blog.findByIdAndDelete(id).session(session);
     if (!blog) throw new Error('Blog not found');
 
     if (blog.bannerImage) await deleteFromSpace(blog.bannerImage);
@@ -191,8 +197,6 @@ const deleteBlogFromDB = async (id: string) => {
   }
 };
 
-
-
 // === GET RECENT BLOGS ===
 const getRecentBlogsFromDB = async (limit: number = 5) => {
   const blogs = await Blog.find({ status: 'published' })
@@ -200,14 +204,8 @@ const getRecentBlogsFromDB = async (limit: number = 5) => {
     .limit(limit)
     .populate('category');
 
-
-
   return blogs;
 };
-
-
-
-
 
 export const blogService = {
   createBlogInDB,

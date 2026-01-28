@@ -10,8 +10,9 @@ import { HTTP_STATUS } from '../../constant/httpStatus';
 const createBlog = catchAsync(async (req, res) => {
   const blogData = req.body;
   const files = req.files as { [fieldname: string]: TUploadedFile[] } | undefined;
+  const user = req.user;
 
-  const result = await blogService.createBlogInDB(blogData, files);
+  const result = await blogService.createBlogInDB(user._id, blogData, files);
   sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -46,8 +47,9 @@ const updateBlog = catchAsync(async (req, res) => {
   const { blogId } = req.params;
   const payload = req.body;
   const files = req.files as { [fieldname: string]: TUploadedFile[] } | undefined;
+  const user = req.user;
 
-  const result = await blogService.updateBlogInDB(blogId, payload, files);
+  const result = await blogService.updateBlogInDB(user._id, blogId, payload, files);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -58,6 +60,7 @@ const updateBlog = catchAsync(async (req, res) => {
 
 const deleteBlog = catchAsync(async (req, res) => {
   const { blogId } = req.params;
+
   const result = await blogService.deleteBlogFromDB(blogId);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
