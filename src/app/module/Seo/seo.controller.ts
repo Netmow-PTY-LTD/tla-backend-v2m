@@ -7,8 +7,9 @@ import { seoService } from './seo.service';
 const createSeo = catchAsync(async (req, res) => {
   const seoData = req.body;
   const metaImage = req.file;
+  const userId = req.user?.userId;
 
-  const result = await seoService.CreateSeoIntoDB(metaImage as TUploadedFile, seoData);
+  const result = await seoService.CreateSeoIntoDB(userId, metaImage as TUploadedFile, seoData);
   sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -42,7 +43,9 @@ const updateSeo = catchAsync(async (req, res) => {
   const { seoId } = req.params;
   const payload = req.body;
   const metaImage = req.file;
-  const result = await seoService.updateSeoIntoDB(seoId, payload, metaImage as Express.Multer.File);
+  const userId = req.user?.userId;
+
+  const result = await seoService.updateSeoIntoDB(userId, seoId, payload, metaImage as Express.Multer.File);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
