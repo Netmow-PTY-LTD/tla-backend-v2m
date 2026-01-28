@@ -123,3 +123,258 @@ blogSchema.pre('findOneAndUpdate', function (next) {
 
 
 export const Blog = model('Blog', blogSchema);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// /* eslint-disable @typescript-eslint/no-explicit-any */
+// import mongoose, { Schema, model } from 'mongoose';
+
+// /* ================= IMAGE META ================= */
+// const imageMetaSchema = new Schema(
+//   {
+//     url: { type: String, required: true, trim: true },
+//     alt: {
+//       type: String,
+//       required: true,
+//       trim: true,
+//       maxlength: 125,
+//     },
+//     title: { type: String, trim: true },
+//     description: {
+//       type: String,
+//       trim: true,
+//       maxlength: 255,
+//     },
+//   },
+//   { _id: false }
+// );
+
+
+
+// //  ===================== Faq schema =====================
+
+// const faqSchema = new Schema(
+//   {
+//     question: {
+//       type: String,
+//       required: true,
+//       trim: true,
+//       maxlength: 300,
+//     },
+//     answer: {
+//       type: String,
+//       required: true,
+//       trim: true,
+//     },
+//   },
+//   { _id: false }
+// );
+
+
+
+
+// /* ================= BLOG ================= */
+// const blogSchema = new Schema(
+//   {
+//     /* ---------- CONTENT ---------- */
+//     title: {
+//       type: String,
+//       required: true,
+//       trim: true,
+//       index: true,
+//     },
+
+//     slug: {
+//       type: String,
+//       required: true,
+//       unique: true,
+//       lowercase: true,
+//       index: true,
+//     },
+
+//     content: {
+//       type: String,
+//       required: true,
+//     },
+
+//     excerpt: {
+//       type: String,
+//       trim: true,
+//       maxlength: 300,
+//     },
+
+//     /* ---------- AUTHORS ---------- */
+//     authors: [
+//       {
+//         type: Schema.Types.ObjectId,
+//         ref: 'User',
+//         index: true,
+//       },
+//     ],
+
+//     /* ---------- IMAGES ---------- */
+//     featuredImage: {
+//       type: imageMetaSchema,
+//       required: true,
+//     },
+
+//     contentImages: {
+//       type: [imageMetaSchema],
+//       default: [],
+//     },
+
+//     /* ---------- TAXONOMY ---------- */
+//     category: [
+//       {
+//         type: Schema.Types.ObjectId,
+//         ref: 'BlogCategory',
+//         index: true,
+//       },
+//     ],
+
+//     tags: {
+//       type: [String],
+//       index: true,
+//     },
+
+//     /* ---------- STATUS ---------- */
+//     status: {
+//       type: String,
+//       enum: ['draft', 'published', 'archived'],
+//       default: 'draft',
+//       index: true,
+//     },
+
+//     isFeatured: {
+//       type: Boolean,
+//       default: false,
+//       index: true,
+//     },
+
+//     publishedAt: {
+//       type: Date,
+//       index: true,
+//     },
+
+//     /* ---------- ANALYTICS ---------- */
+//     viewCount: {
+//       type: Number,
+//       default: 0,
+//     },
+
+//     readingTime: Number, // minutes
+//     wordCount: Number,
+
+//     /* ---------- SEO ---------- */
+//     seo: {
+//       metaTitle: { type: String, trim: true },
+//       metaDescription: { type: String, trim: true, maxlength: 160 },
+//       metaKeywords: [String],
+//       metaImage: { type: String, trim: true },
+
+//       canonicalUrl: { type: String, trim: true },
+
+//       noIndex: { type: Boolean, default: false },
+//       noFollow: { type: Boolean, default: false },
+
+//       schemaType: {
+//         type: String,
+//         enum: ['Article', 'BlogPosting', 'NewsArticle'],
+//         default: 'BlogPosting',
+//       },
+//     },
+
+//     /* ---------- SOFT DELETE ---------- */
+//     deletedAt: {
+//       type: Date,
+//       default: null,
+//       index: true,
+//     },
+
+//     /* ---------- AUDIT ---------- */
+//     createdBy: { type: Schema.Types.ObjectId, ref: 'User', index: true },
+//     updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+//     deletedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+//   },
+//   {
+//     timestamps: true,
+//   }
+// );
+
+
+
+
+
+
+// blogSchema.pre('validate', async function (next) {
+//   if (!this.slug && this.title) {
+//     const baseSlug = this.title.toLowerCase().replace(/[\s\W-]+/g, '-');
+//     let slug = baseSlug;
+//     let count = 1;
+
+//     while (await mongoose.models.Blog.exists({ slug })) {
+//       slug = `${baseSlug}-${count++}`;
+//     }
+
+//     this.slug = slug;
+//   }
+//   next();
+// });
+
+
+
+// blogSchema.pre('save', function (next) {
+//   if (this.isModified('content')) {
+//     const words = this.content.split(/\s+/).length;
+//     this.wordCount = words;
+//     this.readingTime = Math.ceil(words / 200);
+//   }
+//   next();
+// });
+
+
+
+// blogSchema.pre('save', function (next) {
+//   if (this.isModified('status')) {
+//     if (this.status === 'published' && !this.publishedAt) {
+//       this.publishedAt = new Date();
+//     }
+//     if (this.status !== 'published') {
+//       this.publishedAt = undefined;
+//     }
+//   }
+
+//   if (this.featuredImage?.url) {
+//     this.seo = this.seo || {};
+//     this.seo.metaImage = this.featuredImage.url;
+//   }
+
+//   next();
+// });
+
+
+
+
+// blogSchema.index({ title: 'text', content: 'text', tags: 'text' });
+// blogSchema.index({ status: 1, publishedAt: -1 });
+// blogSchema.index({ isFeatured: 1, publishedAt: -1 });
+
+
+// export const Blog = model('Blog', blogSchema);
+
+
+
