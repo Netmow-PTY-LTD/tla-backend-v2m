@@ -1,4 +1,5 @@
-import { Schema, model } from 'mongoose';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import mongoose, { Schema, model } from 'mongoose';
 
 const blogSchema = new Schema(
   {
@@ -56,6 +57,17 @@ const blogSchema = new Schema(
       metaKeywords: [String],
       metaImage: { type: String, trim: true },
     },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
+
 
   },
   {

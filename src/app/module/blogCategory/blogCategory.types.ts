@@ -6,6 +6,10 @@ export interface IBlogCategory {
   description?: string;
   parentCategory?: Types.ObjectId | null;
   isActive?: boolean;
+  createdBy?: Types.ObjectId;
+  updatedBy?: Types.ObjectId;
+  deletedBy?: Types.ObjectId;
+  deletedAt?: Date;
 }
 
 export interface IBlogCategoryCreate {

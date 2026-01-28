@@ -2,13 +2,18 @@ import { BlogCategory } from './blogCategory.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import QueryBuilder from '../../builder/QueryBuilder';
-import {  IBlogCategoryCreate, IBlogCategoryUpdate } from './blogCategory.types';
+import { IBlogCategoryCreate, IBlogCategoryUpdate } from './blogCategory.types';
+import { Types } from 'mongoose';
 
-const createBlogCategory = async (data: IBlogCategoryCreate) => {
-    const blogCategory = await BlogCategory.create(data);
+const createBlogCategory = async (userId: string, data: IBlogCategoryCreate) => {
+    const blogCategory = await BlogCategory.create({
+        ...data,
+        createdBy: new Types.ObjectId(userId)
+    });
     return blogCategory;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getBlogCategories = async (query: Record<string, any> = {}) => {
     const queryBuilder = new QueryBuilder(BlogCategory.find(), query)
         .filter()
@@ -34,11 +39,18 @@ const getBlogCategoryById = async (id: string) => {
     return blogCategory;
 };
 
-const updateBlogCategory = async (id: string, data: IBlogCategoryUpdate) => {
-    const updatedBlogCategory = await BlogCategory.findByIdAndUpdate(id, data, {
-        new: true,
-        runValidators: true,
-    });
+const updateBlogCategory = async (userId: string, id: string, data: IBlogCategoryUpdate) => {
+    const updatedBlogCategory = await BlogCategory.findByIdAndUpdate(
+        id,
+        {
+            ...data,
+            updatedBy: new Types.ObjectId(userId)
+        },
+        {
+            new: true,
+            runValidators: true,
+        }
+    );
     if (!updatedBlogCategory) {
         throw new AppError(HTTP_STATUS.NOT_FOUND, 'Blog category not found');
     }
