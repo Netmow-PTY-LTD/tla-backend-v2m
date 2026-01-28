@@ -5,6 +5,8 @@ import { ZodError } from 'zod';
 import config from '../config';
 import { TErrorSources } from '../interface/error';
 import { AppError, error } from '../errors/error';
+import logger from '../utils/logger';
+import errorTrackingService from '../services/errorTracking.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): any => {
@@ -56,6 +58,34 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): any => {
       },
     ];
   }
+
+  // Detailed error logging with context
+  interface AuthRequest {
+    user?: {
+      userId?: string;
+      _id?: string;
+      email?: string;
+    };
+  }
+  const userInfo = (req as AuthRequest).user;
+  errorTrackingService.logError({
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    endpoint: req.originalUrl,
+    statusCode,
+    errorMessage: message,
+    errorStack: err.stack,
+    userId: userInfo?.userId || userInfo?._id,
+    userEmail: userInfo?.email,
+    requestBody: req.body,
+    requestParams: req.params,
+    requestQuery: req.query,
+  });
+
+  // Basic logging
+  logger.error(
+    `Method: ${req.method} | URL: ${req.originalUrl} | Message: ${message} | Stack: ${err.stack}`
+  );
 
   //ultimate return
   return res.status(statusCode).json({

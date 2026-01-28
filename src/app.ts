@@ -4,6 +4,9 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import logger from './app/utils/logger';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
 import router from './app/routes';
 import config from './app/config';
@@ -38,6 +41,16 @@ app.post(
 // Middlewares
 app.use(express.json());
 app.use(cookieParser());
+app.use(helmet());
+
+// Logging middleware
+app.use(
+  morgan('combined', {
+    stream: {
+      write: (message) => logger.info(message.trim()),
+    },
+  })
+);
 
 const allowedOrigins = [
   'http://localhost:3000',

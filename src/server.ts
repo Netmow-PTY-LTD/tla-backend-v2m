@@ -3,13 +3,14 @@ import mongoose from 'mongoose';
 import config from './app/config';
 import { server, io } from './app';
 import { initializeSockets, setSocketServerInstance } from './app/sockets';
+import logger from './app/utils/logger';
 
 
 
 async function main() {
   try {
     await mongoose.connect(config.database_url as string);
-    console.log('✅ Connected to MongoDB');
+    logger.info('✅ Connected to MongoDB');
 
     // Set and initialize sockets
     setSocketServerInstance(io);
@@ -34,7 +35,7 @@ async function main() {
         host,
       },
       () => {
-        console.log(
+        logger.info(
           `🚀 Server running => http://${host}:${config.port}  [${isDev ? "DEV" : "PROD"} MODE]`
         );
       }
@@ -42,7 +43,7 @@ async function main() {
 
 
   } catch (err) {
-    console.error('❌ Failed to start server:', err);
+    logger.error(`❌ Failed to start server: ${err}`);
     process.exit(1);
   }
 }
@@ -51,16 +52,16 @@ main();
 
 // Graceful shutdown handling
 process.on('unhandledRejection', (reason) => {
-  console.error('❗ Unhandled Rejection:', reason);
+  logger.error(`❗ Unhandled Rejection: ${reason}`);
   shutdown();
 });
 
 process.on('uncaughtException', (err) => {
-  console.error('❗ Uncaught Exception:', err);
+  logger.error(`❗ Uncaught Exception: ${err}`);
   shutdown();
 });
 
 function shutdown() {
-  console.log('⛔ Shutting down...');
+  logger.warn('⛔ Shutting down...');
   server.close(() => process.exit(1));
 }
