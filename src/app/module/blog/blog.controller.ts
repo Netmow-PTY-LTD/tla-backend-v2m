@@ -12,7 +12,7 @@ const createBlog = catchAsync(async (req, res) => {
   const files = req.files as { [fieldname: string]: TUploadedFile[] } | undefined;
   const user = req.user;
 
-  const result = await blogService.createBlogInDB(user._id, blogData, files);
+  const result = await blogService.createBlogInDB(user.userId, blogData, files);
   sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -49,7 +49,7 @@ const updateBlog = catchAsync(async (req, res) => {
   const files = req.files as { [fieldname: string]: TUploadedFile[] } | undefined;
   const user = req.user;
 
-  const result = await blogService.updateBlogInDB(user._id, blogId, payload, files);
+  const result = await blogService.updateBlogInDB(user.userId, blogId, payload, files);
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
