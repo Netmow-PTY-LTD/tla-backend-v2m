@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const blogCategorySchema = new Schema(
   {
@@ -27,6 +27,14 @@ const blogCategorySchema = new Schema(
       type: Boolean,
       default: true,
     },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
     timestamps: true,

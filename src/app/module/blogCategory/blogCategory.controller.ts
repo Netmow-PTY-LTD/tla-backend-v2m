@@ -5,7 +5,8 @@ import { blogCategoryService } from './blogCategory.service';
 
 const createBlogCategory = catchAsync(async (req, res) => {
   const blogCategoryData = req.body;
-  const newBlogCategory = await blogCategoryService.createBlogCategory(blogCategoryData);
+  const user = req.user;
+  const newBlogCategory = await blogCategoryService.createBlogCategory(user.userId, blogCategoryData);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.CREATED,
     success: true,
@@ -39,7 +40,8 @@ const getBlogCategoryById = catchAsync(async (req, res) => {
 const updateBlogCategory = catchAsync(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
-  const updatedBlogCategory = await blogCategoryService.updateBlogCategory(id, updateData);
+  const user = req.user;
+  const updatedBlogCategory = await blogCategoryService.updateBlogCategory(user.userId, id, updateData);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
