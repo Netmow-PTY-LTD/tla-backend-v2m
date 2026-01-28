@@ -307,7 +307,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name slug bio address profilePicture profileType autoTopUp credits serviceIds country phone designation languages  law_society_member_number practising_certificate_number foundingMember ',
+        'name slug bio address profilePicture gender profileType autoTopUp credits serviceIds country phone designation languages  law_society_member_number practising_certificate_number foundingMember ',
       populate: [
         { path: 'serviceIds', select: 'name slug' },
         { path: 'country', select: 'name' },
@@ -357,6 +357,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     name,
     slug: slugResult,
     designation: user.profile.designation || '',
+    gender: user.profile.gender || '',
     bio: user.profile.bio || '',
     address: user.profile.address || '',
     profilePicture: user.profile.profilePicture || '',
@@ -393,6 +394,7 @@ interface CompanyProfileQuery {
 const getAllPublicCompanyProfilesIntoDB = async (query: CompanyProfileQuery) => {
   const { page = 1, limit = 10, search, countryId, ZipCodeId, cityId } = query;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filter: Record<string, any> = { status: 'approved', deletedAt: null };
 
   if (countryId) filter["contactInfo.country"] = countryId;
