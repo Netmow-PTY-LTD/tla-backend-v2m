@@ -8,7 +8,7 @@ import { upload } from '../../config/upload';
 const router = Router();
 
 router.get('/recent', blogController.getRecentBlogs);
-router.post('/add', auth(USER_ROLE.ADMIN), upload.fields([
+router.post('/add', auth(USER_ROLE.ADMIN ,USER_ROLE.USER), upload.fields([
     { name: 'featuredImage', maxCount: 1 },
     { name: 'metaImage', maxCount: 1 },
 ]), (req: Request, res: Response, next: NextFunction) => {
@@ -17,14 +17,14 @@ router.post('/add', auth(USER_ROLE.ADMIN), upload.fields([
 }, blogController.createBlog);
 router.get('/list', blogController.getBlogs);
 router.get('/:slug', blogController.getBlogById);
-router.put('/:blogId/update', auth(USER_ROLE.ADMIN), upload.fields([
+router.put('/:blogId/update', auth(USER_ROLE.ADMIN,USER_ROLE.USER), upload.fields([
     { name: 'featuredImage', maxCount: 1 },
     { name: 'metaImage', maxCount: 1 },
 ]), (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
     next();
 }, blogController.updateBlog);
-router.delete('/:blogId/delete', auth(USER_ROLE.ADMIN), blogController.deleteBlog);
+router.delete('/:blogId/delete', auth(USER_ROLE.ADMIN,USER_ROLE.USER), blogController.deleteBlog);
 
 
 export const blogRouter = router;
