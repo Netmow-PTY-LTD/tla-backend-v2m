@@ -6,26 +6,26 @@ import { TUploadedFile } from '../../interface/file.interface';
 import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
 import { FOLDERS } from '../../constant';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { BlogDocument, ImageMeta, BlogSEO } from './blog.types';
 
 
 export interface IBlog {
   title: string;
   slug?: string;
-  shortDescription: string;
+  excerpt?: string;
   content: string;
-  bannerImage?: string;
+  featuredImage: ImageMeta;
+  authors?: string[];
   category?: Types.ObjectId[];
   tags?: string[];
   status?: 'draft' | 'published' | 'archived';
   isFeatured?: boolean;
   publishedAt?: Date;
   viewCount?: number;
-  seo?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    metaKeywords?: string[];
-    metaImage?: string;
-  };
+  readingTime?: number;
+  wordCount?: number;
+  seo?: BlogSEO;
+  seoSchema?: Record<string, any> | null;
   createdBy?: Types.ObjectId;
   updatedBy?: Types.ObjectId;
 }
@@ -36,18 +36,27 @@ const createBlogInDB = async (
   payload: IBlog,
   files?: { [fieldname: string]: TUploadedFile[] }
 ) => {
-  // Upload banner image
-  if (files?.bannerImage?.[0]) {
-    const bannerImageUrl = await uploadToSpaces(
-      files.bannerImage[0].buffer as Buffer,
-      files.bannerImage[0].originalname,
+  // Upload featured image
+  if (files?.featuredImage?.[0]) {
+    const featuredImageUrl = await uploadToSpaces(
+      files.featuredImage[0].buffer as Buffer,
+      files.featuredImage[0].originalname,
       {
         folder: FOLDERS.BLOG,
         customFileName:
           payload.slug || payload.title.replace(/\s+/g, '-').toLowerCase(),
       }
     );
-    payload.bannerImage = bannerImageUrl;
+
+    // If payload already has featuredImage (alt, title, desc), preserve them and add url
+    if (payload.featuredImage) {
+      payload.featuredImage.url = featuredImageUrl;
+    } else {
+      payload.featuredImage = {
+        url: featuredImageUrl,
+        alt: payload.title,
+      };
+    }
   }
 
   // Upload meta image
@@ -109,25 +118,36 @@ const updateBlogInDB = async (
   session.startTransaction();
 
   try {
-    const existingBlog = await Blog.findById(id).session(session);
+    const existingBlog = await Blog.findById(id).session(session) as BlogDocument | null;
     if (!existingBlog) throw new Error('Blog not found');
 
-    // Upload new banner image
-    if (files?.bannerImage?.[0]) {
-      const newBannerUrl = await uploadToSpaces(
-        files.bannerImage[0].buffer as Buffer,
-        files.bannerImage[0].originalname,
+    // Upload new featured image
+    if (files?.featuredImage?.[0]) {
+      const newFeaturedImageUrl = await uploadToSpaces(
+        files.featuredImage[0].buffer as Buffer,
+        files.featuredImage[0].originalname,
         {
           folder: FOLDERS.BLOG,
           customFileName:
-            payload.slug || payload.title?.replace(/\s+/g, '-').toLowerCase(),
+            payload.slug || payload.title?.replace(/\s+/g, '-').toLowerCase() || existingBlog.title.replace(/\s+/g, '-').toLowerCase(),
         }
       );
-      payload.bannerImage = newBannerUrl;
 
-      // Delete old banner
-      if (existingBlog.bannerImage)
-        deleteFromSpace(existingBlog.bannerImage).catch(console.error);
+      // Preserve metadata from payload if provided, otherwise fallback to existing
+      if (payload.featuredImage) {
+        payload.featuredImage.url = newFeaturedImageUrl;
+      } else {
+        payload.featuredImage = {
+          url: newFeaturedImageUrl,
+          alt: existingBlog.featuredImage?.alt || payload.title || existingBlog.title,
+          title: existingBlog.featuredImage?.title,
+          description: existingBlog.featuredImage?.description,
+        };
+      }
+
+      // Delete old featured image
+      if (existingBlog.featuredImage?.url)
+        deleteFromSpace(existingBlog.featuredImage.url).catch(console.error);
     }
 
     // Upload new meta image
@@ -137,7 +157,7 @@ const updateBlogInDB = async (
         files.metaImage[0].originalname,
         {
           folder: FOLDERS.BLOG,
-          customFileName: `${payload.slug || payload.title?.replace(/\s+/g, '-').toLowerCase()}-meta`,
+          customFileName: `${payload.slug || payload.title?.replace(/\s+/g, '-').toLowerCase() || existingBlog.title.replace(/\s+/g, '-').toLowerCase()}-meta`,
         }
       );
       payload.seo = payload.seo || {};
@@ -180,10 +200,10 @@ const deleteBlogFromDB = async (id: string) => {
   session.startTransaction();
 
   try {
-    const blog = await Blog.findByIdAndDelete(id).session(session);
+    const blog = await Blog.findByIdAndDelete(id).session(session) as BlogDocument | null;
     if (!blog) throw new Error('Blog not found');
 
-    if (blog.bannerImage) await deleteFromSpace(blog.bannerImage);
+    if (blog.featuredImage?.url) await deleteFromSpace(blog.featuredImage.url);
     if (blog.seo?.metaImage) await deleteFromSpace(blog.seo.metaImage);
 
     await session.commitTransaction();
@@ -215,6 +235,19 @@ export const blogService = {
   deleteBlogFromDB,
   getRecentBlogsFromDB
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

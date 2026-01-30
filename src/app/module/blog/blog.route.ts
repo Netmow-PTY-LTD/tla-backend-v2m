@@ -9,7 +9,7 @@ const router = Router();
 
 router.get('/recent', blogController.getRecentBlogs);
 router.post('/add', auth(USER_ROLE.ADMIN), upload.fields([
-    { name: 'bannerImage', maxCount: 1 },
+    { name: 'featuredImage', maxCount: 1 },
     { name: 'metaImage', maxCount: 1 },
 ]), (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
@@ -18,7 +18,7 @@ router.post('/add', auth(USER_ROLE.ADMIN), upload.fields([
 router.get('/list', blogController.getBlogs);
 router.get('/:slug', blogController.getBlogById);
 router.put('/:blogId/update', auth(USER_ROLE.ADMIN), upload.fields([
-    { name: 'bannerImage', maxCount: 1 },
+    { name: 'featuredImage', maxCount: 1 },
     { name: 'metaImage', maxCount: 1 },
 ]), (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
