@@ -176,29 +176,29 @@ blogSchema.pre('save', function (next) {
 });
 
 
-blogSchema.pre('findOneAndUpdate', function (next) {
-  const update = this.getUpdate() as any;
+// blogSchema.pre('findOneAndUpdate', function (next) {
+//   const update = this.getUpdate() as any;
 
-  // Extract featuredImage URL from $set or top-level update
-  const featuredImageUrl =
-    update?.featuredImage?.url ||
-    update?.$set?.featuredImage?.url;
+//   // Extract featuredImage URL from $set or top-level update
+//   const featuredImageUrl =
+//     update?.featuredImage?.url ||
+//     update?.$set?.featuredImage?.url;
 
-  if (featuredImageUrl) {
-    // Ensure $set exists
-    update.$set = update.$set || {};
+//   if (featuredImageUrl) {
+//     // Ensure $set exists
+//     update.$set = update.$set || {};
 
-    // Ensure seo exists in $set
-    update.$set.seo = update.$set.seo || {};
+//     // Ensure seo exists in $set
+//     update.$set.seo = update.$set.seo || {};
 
-    // Only set metaImage if it does not exist or is empty
-    if (!update.$set.seo.metaImage) {
-      update.$set.seo.metaImage = featuredImageUrl;
-    }
-  }
+//     // Only set metaImage if it does not exist or is empty
+//     if (!update.$set.seo.metaImage) {
+//       update.$set.seo.metaImage = featuredImageUrl;
+//     }
+//   }
 
-  next();
-});
+//   next();
+// });
 
 
 

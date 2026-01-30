@@ -129,25 +129,28 @@ const updateBlogInDB = async (
         {
           folder: FOLDERS.BLOG,
           customFileName:
-            payload.slug || payload.title?.replace(/\s+/g, '-').toLowerCase() || existingBlog.title.replace(/\s+/g, '-').toLowerCase(),
+            payload.slug ||
+            payload.title?.replace(/\s+/g, '-').toLowerCase() ||
+            existingBlog.title.replace(/\s+/g, '-').toLowerCase(),
         }
       );
 
       // Preserve metadata from payload if provided, otherwise fallback to existing
-      if (payload.featuredImage) {
-        payload.featuredImage.url = newFeaturedImageUrl;
-      } else {
-        payload.featuredImage = {
-          url: newFeaturedImageUrl,
-          alt: existingBlog.featuredImage?.alt || payload.title || existingBlog.title,
-          title: existingBlog.featuredImage?.title,
-          description: existingBlog.featuredImage?.description,
-        };
-      }
+      payload.featuredImage = {
+        ...(existingBlog.featuredImage as any).toObject?.() || existingBlog.featuredImage,
+        ...payload.featuredImage,
+        url: newFeaturedImageUrl,
+      };
 
       // Delete old featured image
       if (existingBlog.featuredImage?.url)
         deleteFromSpace(existingBlog.featuredImage.url).catch(console.error);
+    } else if (payload.featuredImage) {
+      // If metadata is updated but no new file, preserve existing URL and other fields
+      payload.featuredImage = {
+        ...(existingBlog.featuredImage as any).toObject?.() || existingBlog.featuredImage,
+        ...payload.featuredImage,
+      };
     }
 
     // Upload new meta image
@@ -157,21 +160,28 @@ const updateBlogInDB = async (
         files.metaImage[0].originalname,
         {
           folder: FOLDERS.BLOG,
-          customFileName: `${payload.slug || payload.title?.replace(/\s+/g, '-').toLowerCase() || existingBlog.title.replace(/\s+/g, '-').toLowerCase()}-meta`,
+          customFileName: `${payload.slug ||
+            payload.title?.replace(/\s+/g, '-').toLowerCase() ||
+            existingBlog.title.replace(/\s+/g, '-').toLowerCase()
+            }-meta`,
         }
       );
-      payload.seo = payload.seo || {};
-      payload.seo.metaImage = newMetaUrl;
+
+      payload.seo = {
+        ...(existingBlog.seo as any)?.toObject?.() || existingBlog.seo || {},
+        ...payload.seo,
+        metaImage: newMetaUrl,
+      };
 
       // Delete old meta image
       if (existingBlog.seo?.metaImage)
         deleteFromSpace(existingBlog.seo.metaImage).catch(console.error);
-    } else {
-      // Keep existing meta image if not updated
-      if (existingBlog.seo?.metaImage) {
-        payload.seo = payload.seo || {};
-        payload.seo.metaImage = existingBlog.seo.metaImage;
-      }
+    } else if (payload.seo) {
+      // If SEO is updated but no new meta image, preserve existing meta image and other fields
+      payload.seo = {
+        ...(existingBlog.seo as any)?.toObject?.() || existingBlog.seo || {},
+        ...payload.seo,
+      };
     }
 
     const updatedBlog = await Blog.findByIdAndUpdate(
