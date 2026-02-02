@@ -46,7 +46,11 @@ const userProfileSchema = new Schema<IUserProfile>(
       trim: true,
       default: ''
     },
-    languages: [{ type: String }],
+    languages: {
+      type: [String],
+      default: ["English"]
+    },
+
     profileType: {
       type: String,
       enum: Object.values(USER_PROFILE),
