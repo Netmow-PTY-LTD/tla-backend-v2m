@@ -119,11 +119,13 @@ const getAllLeadForLawyerPanel = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
   // Parse complex searchKeyword JSON safely
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let parsedKeyword: any = {};
   try {
     parsedKeyword = req?.query?.searchKeyword
       ? JSON.parse(req.query.searchKeyword as string)
       : {};
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   } catch (error) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
@@ -167,12 +169,28 @@ const getAllLeadForLawyerPanel = catchAsync(async (req, res) => {
   const pagination = result.pagination || {};
   const leadCount = result.leadCount || {};
 
+
+  const isFiltering =
+    !!filters.keyword ||
+    !!filters.spotlight ||
+    !!filters.view ||
+    !!filters.leadSubmission ||
+    !!filters.location ||
+    (Array.isArray(filters.services) && filters.services.length > 0) ||
+    (Array.isArray(filters.credits) && filters.credits.length > 0);
+
+
+
+
   sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: data.length > 0,
-    message: data.length > 0
-      ? 'All Case is retrieved successfully'
-      : 'Case not found.',
+    message:
+      data.length > 0
+        ? 'All cases retrieved successfully'
+        : isFiltering
+          ? 'Your searched data was not found.'
+          : 'Thousands of cases are waiting for you—update your profile with your skills and start bidding on matching cases.',
     queryTime,
     pagination,
     counts: leadCount,
