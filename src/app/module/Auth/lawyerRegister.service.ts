@@ -329,10 +329,11 @@ import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 
 
 
-const lawyerRegisterUserIntoDB = async (payload: IUser) => {
-  // Start a database session for the transaction
-  const session = await mongoose.startSession();
-  session.startTransaction();
+const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoose.ClientSession) => {
+  // Use existing session or start a new one
+  const session = externalSession || await mongoose.startSession();
+
+  if (!externalSession) session.startTransaction();
 
   try {
     // Check if the user already exists by email
@@ -549,9 +550,10 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
 
     // Commit the transaction (save changes to the database)
-    await session.commitTransaction();
-    session.endSession();
-
+    if (!externalSession) {
+      await session.commitTransaction();
+      session.endSession();
+    }
 
 
     //  lawyer firm member request email notification to firm admin
@@ -589,9 +591,10 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
       userData: newUser,
     };
   } catch (error) {
-    // If an error occurs, abort the transaction to avoid incomplete data
-    await session.abortTransaction();
-    session.endSession();
+    if (!externalSession) {
+      await session.abortTransaction();
+      session.endSession();
+    }
     throw error;
   }
 };
@@ -696,37 +699,82 @@ const verifyLawyerRegistrationEmail = async (draftId: string, code: string) => {
 
 
 
+
+
+
 const commitLawyerRegistration = async (draftId: string) => {
-  const draft = await LawyerRegistrationDraft.findById(draftId);
-  if (!draft) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, 'Draft not found');
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const draft = await LawyerRegistrationDraft
+      .findById(draftId)
+      .session(session);
+
+    if (!draft) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'Draft not found');
+    }
+
+    if (!draft.verification.isEmailVerified) {
+      throw new AppError(
+        HTTP_STATUS.FORBIDDEN,
+        'Email is not verified. Please verify your email first'
+      );
+    }
+
+
+
+    const registrationPayload = {
+      email: draft.email,
+      password: draft.password,
+      role: draft.role,
+      regUserType: draft.regUserType,
+      profile: draft.profile,
+      companyInfo: draft.companyInfo,
+      lawyerServiceMap: draft.lawyerServiceMap,
+      isVerifiedAccount: true, // Mark as verified because draft email was verified
+    } as unknown as IUser;
+
+
+
+
+    // ✅ Create real user (must accept session internally)
+    const result = await lawyerRegisterUserIntoDB(
+      registrationPayload,
+      session
+    );
+
+    // ✅ Cleanup draft data
+    await LawyerRegistrationDraft.findByIdAndDelete(draftId).session(session);
+    await EmailVerificationDraft.deleteMany({
+      lawyerDraftId: draftId
+    }).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  if (!draft.verification.isEmailVerified) {
-    throw new AppError(HTTP_STATUS.FORBIDDEN, 'Email is not verified. Please verify your email first');
-  }
-
-  // Convert draft to IUser payload format for lawyerRegisterUserIntoDB
-  const registrationPayload = {
-    email: draft.email,
-    password: draft.password,
-    role: draft.role,
-    regUserType: draft.regUserType,
-    profile: draft.profile,
-    companyInfo: draft.companyInfo,
-    lawyerServiceMap: draft.lawyerServiceMap,
-    isVerifiedAccount: true, // Mark as verified because draft email was verified
-  } as unknown as IUser;
-
-  // call existing registration logic
-  const result = await lawyerRegisterUserIntoDB(registrationPayload);
-
-  // Mark draft as committed or delete it? Phase 4 doesn't specify, but deleting or marking as used is good.
-  await LawyerRegistrationDraft.findByIdAndDelete(draftId);
-  await EmailVerificationDraft.deleteMany({ lawyerDraftId: draftId });
-
-  return result;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const lawyerRegisterService = {
   lawyerRegisterUserIntoDB,
