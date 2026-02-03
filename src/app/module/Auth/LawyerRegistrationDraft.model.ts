@@ -77,6 +77,7 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
       companyName: {
         type: Schema.Types.ObjectId,
         ref: 'Company',
+        set: (val: string) => (val === '' ? undefined : val),
        
       },
       companySize: { type: String },
