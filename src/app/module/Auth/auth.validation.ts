@@ -128,7 +128,7 @@ const lawyerRegistrationDraftBodySchema = z.object({
   }),
 
   companyInfo: z.object({
-    companyName: objectId.optional(),
+    companyName: z.any(),
     companySize: z.string().optional(),
     companyTeam: z.boolean().optional(),
     website: z.string().url().optional().or(z.literal('')),
