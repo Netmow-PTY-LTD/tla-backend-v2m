@@ -216,8 +216,11 @@ const leadDetailsSchema = z.object({
 
 // ================= Question Option =================
 const checkedOptionDetailSchema = z.object({
+
   optionId: z.string(),
-  label: z.string()
+  label: z.string(),
+  is_checked: z.boolean(),
+  idExtraData: z.string().optional(),
 });
 
 // ================= Question =================
