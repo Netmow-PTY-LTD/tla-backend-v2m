@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, model } from 'mongoose';
 
 /* ================= INTERFACES ================= */
 
-export interface ILawyerRegistrationTempData extends Document {
+export interface ILawyerRegistrationDraft extends Document {
   step: number;
   regUserType: string;
   username: string;
@@ -49,7 +49,7 @@ export interface ILawyerRegistrationTempData extends Document {
 
 /* ================= SCHEMA ================= */
 
-const LawyerRegistrationTempDataSchema = new Schema<ILawyerRegistrationTempData>(
+const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
   {
     step: { type: Number, required: true },
 
@@ -125,9 +125,9 @@ const LawyerRegistrationTempDataSchema = new Schema<ILawyerRegistrationTempData>
 
 /* ================= MODEL ================= */
 
-export const LawyerRegistrationTempData = model<
-  ILawyerRegistrationTempData
+export const LawyerRegistrationDraft = model<
+  ILawyerRegistrationDraft
 >(
-  'LawyerRegistrationTempData',
-  LawyerRegistrationTempDataSchema
+  'LawyerRegistrationDraft',
+  LawyerRegistrationDraftSchema
 );
