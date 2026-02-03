@@ -1,4 +1,4 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model, Types, Document } from 'mongoose';
 
 
 // ================= Address =================
@@ -18,7 +18,7 @@ export interface LeadDetails {
   phone: string;
   zipCode: string;
   budgetAmount: string;
-  leadPriority: 'low' | 'normal' | 'urgent';
+  leadPriority: string;
   additionalDetails?: string;
 }
 
@@ -46,6 +46,18 @@ export interface CreateLeadPayload {
   questions: LeadQuestion[];
 }
 
+export interface IClientRegistrationDraft extends Document {
+  countryId: Types.ObjectId;
+  serviceId: Types.ObjectId;
+  addressInfo: AddressInfo;
+  leadDetails: LeadDetails;
+  questions: LeadQuestion[];
+  verification: {
+    isEmailVerified: boolean;
+    verifiedAt: Date | null;
+  };
+}
+
 
 
 
@@ -54,7 +66,7 @@ export interface CreateLeadPayload {
 
 const addressInfoSchema = new Schema(
   {
-    countryId: { type: Types.ObjectId, ref: 'Country', required: true },
+    countryId: { type: Schema.Types.ObjectId, ref: 'Country', required: true },
     countryCode: { type: String, required: true },
     zipcode: { type: String, required: true },
     postalCode: { type: String, required: true },
@@ -73,7 +85,6 @@ const leadDetailsSchema = new Schema(
     budgetAmount: { type: String, required: true },
     leadPriority: {
       type: String,
-      enum: ['low', 'normal', 'urgent'],
       required: true
     },
     additionalDetails: { type: String }
@@ -92,7 +103,7 @@ const checkedOptionDetailSchema = new Schema(
 const leadQuestionSchema = new Schema(
   {
     questionId: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Question',
       required: true
     },
@@ -109,15 +120,15 @@ const leadQuestionSchema = new Schema(
 
 // ================= Main Lead Schema =================
 
-const clientRegistrationDraftSchema = new Schema(
+const clientRegistrationDraftSchema = new Schema<IClientRegistrationDraft>(
   {
     countryId: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Country',
       required: true
     },
     serviceId: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Service',
       required: true
     },
@@ -132,11 +143,16 @@ const clientRegistrationDraftSchema = new Schema(
     questions: {
       type: [leadQuestionSchema],
       required: true
+    },
+    verification: {
+      isEmailVerified: { type: Boolean, default: false },
+      verifiedAt: { type: Date, default: null }
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    collection: 'client_registration_temp_data'
   }
 );
 
-export const ClientRegistrationDraft = model('ClientRegistrationDraft', clientRegistrationDraftSchema);
+export const ClientRegistrationDraft = model<IClientRegistrationDraft>('ClientRegistrationDraft', clientRegistrationDraftSchema);

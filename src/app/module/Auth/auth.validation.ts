@@ -219,11 +219,40 @@ const leadQuestionSchema = z.object({
 
 // ================= Main Payload =================
 const createLeadSchema = z.object({
-  countryId: z.string(),
-  serviceId: z.string(),
-  addressInfo: addressInfoSchema,
-  leadDetails: leadDetailsSchema,
-  questions: z.array(leadQuestionSchema).min(1)
+  body: z.object({
+    countryId: z.string(),
+    serviceId: z.string(),
+    addressInfo: addressInfoSchema,
+    leadDetails: leadDetailsSchema,
+    questions: z.array(leadQuestionSchema).min(1)
+  })
+});
+
+const clientRegistrationDraftSchema = z.object({
+  body: z.object({
+    countryId: z.string(),
+    serviceId: z.string(),
+    addressInfo: addressInfoSchema,
+    leadDetails: leadDetailsSchema,
+    questions: z.array(leadQuestionSchema).min(1)
+  }),
+});
+
+const updateClientRegistrationDraftSchema = z.object({
+  body: clientRegistrationDraftSchema.shape.body.partial(),
+});
+
+const clientRegistrationVerifyEmailSchema = z.object({
+  body: z.object({
+    draftId: z.string({ required_error: 'Draft ID is required' }),
+    code: z.string({ required_error: 'Verification code is required' }),
+  }),
+});
+
+const clientRegistrationCommitSchema = z.object({
+  body: z.object({
+    draftId: z.string({ required_error: 'Draft ID is required' }),
+  }),
 });
 
 // ================= Inferred Type =================
@@ -261,6 +290,10 @@ export const authZodValidation = {
   updateLawyerRegistrationDraftSchema,
   lawyerRegistrationVerifyEmailSchema,
   lawyerRegistrationCommitSchema,
-  createLeadSchema
+  createLeadSchema,
+  clientRegistrationDraftSchema,
+  updateClientRegistrationDraftSchema,
+  clientRegistrationVerifyEmailSchema,
+  clientRegistrationCommitSchema
 
 };

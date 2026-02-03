@@ -21,11 +21,15 @@ import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWis
 import Option from '../Option/option.model';
 import ServiceWiseQuestion from '../Question/question.model';
 import { generateRandomPassword } from './generateRandomPassword';
+import { ClientRegistrationDraft, IClientRegistrationDraft } from './clientRegistrationDraft.model';
+import { EmailVerificationDraft } from './EmailVerificationDraft.model';
+import { generateOtp } from './otp.utils';
+import bcrypt from 'bcryptjs';
 
 
-const clientRegisterUserIntoDB = async (payload: any) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose.ClientSession) => {
+  const session = externalSession || await mongoose.startSession();
+  if (!externalSession) session.startTransaction();
 
   let leadUser: any = null;
 
@@ -34,7 +38,7 @@ const clientRegisterUserIntoDB = async (payload: any) => {
     const { leadDetails, addressInfo, countryId, serviceId, questions } = payload;
 
     // findout existing user
-    const existingUser = await User.isUserExistsByEmail(payload.email);
+    const existingUser = await User.isUserExistsByEmail(leadDetails.email);
     if (existingUser) {
       throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
     }
@@ -351,6 +355,147 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
     };
   } catch (error) {
+    if (!externalSession) {
+      await session.abortTransaction();
+      session.endSession();
+    }
+    throw error;
+  }
+};
+
+const clientRegistrationDraftInDB = async (payload: IClientRegistrationDraft) => {
+  // 1. Create ClientRegistrationDraft
+  const result = await ClientRegistrationDraft.create(payload);
+
+  // 2. Generate OTP
+  const otp = generateOtp();
+
+  // 3. Hash OTP
+  const hashedOtp = await bcrypt.hash(otp, Number(config.bcrypt_salt_rounds));
+
+  // 4. Save OTP in EmailVerificationDraft and link it to the draft
+  await EmailVerificationDraft.create({
+    email: payload.leadDetails.email,
+    otp: hashedOtp,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000), // OTP expires in 10 minutes
+    clientDraftId: result._id,
+  });
+
+  // 5. Send email
+  const verifyUrl = `${config.client_url}/verify-client-registration?email=${payload.leadDetails.email}&otp=${otp}&draftId=${result._id}`;
+
+  await sendEmail({
+    to: payload.leadDetails.email,
+    subject: 'Verification Link for Client Registration',
+    data: {
+      name: payload.leadDetails.name || 'User',
+      verifyUrl: verifyUrl,
+      role: 'Client',
+    },
+    emailTemplate: 'verify_email',
+  });
+
+  return result;
+};
+
+const updateClientRegistrationDraftInDB = async (draftId: string, payload: Partial<IClientRegistrationDraft>) => {
+  const result = await ClientRegistrationDraft.findByIdAndUpdate(draftId, payload, { new: true });
+  if (!result) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'Draft not found');
+  }
+  return result;
+};
+
+const verifyClientRegistrationEmail = async (draftId: string, code: string) => {
+  const draft = await ClientRegistrationDraft.findById(draftId);
+  if (!draft) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'Draft not found');
+  }
+
+  const otpRecord = await EmailVerificationDraft.findOne({
+    clientDraftId: draftId,
+    isUsed: false,
+  });
+
+  if (!otpRecord) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'Verification record not found or already verified');
+  }
+
+  if (new Date(otpRecord.expiresAt) < new Date()) {
+    throw new AppError(HTTP_STATUS.GONE, 'Verification code has expired');
+  }
+
+  if (otpRecord.attempts >= 5) {
+    throw new AppError(HTTP_STATUS.TOO_MANY_REQUESTS, 'Too many failed attempts. please request a new code');
+  }
+
+  const isMatched = await bcrypt.compare(code, otpRecord.otp);
+  if (!isMatched) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+    throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'Invalid verification code');
+  }
+
+  otpRecord.isUsed = true;
+  await otpRecord.save();
+
+  // Update draft verification status
+  if (draft.verification) {
+    draft.verification.isEmailVerified = true;
+    draft.verification.verifiedAt = new Date();
+  }
+  await draft.save();
+
+  return { message: 'Email verified successfully' };
+};
+
+const commitClientRegistration = async (draftId: string) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const draft = await ClientRegistrationDraft
+      .findById(draftId)
+      .session(session);
+
+    if (!draft) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'Draft not found');
+    }
+
+    if (!draft.verification?.isEmailVerified) {
+      throw new AppError(
+        HTTP_STATUS.FORBIDDEN,
+        'Email is not verified. Please verify your email first'
+      );
+    }
+
+    // Prepare payload for clientRegisterUserIntoDB
+    const registrationPayload = {
+      countryId: draft.countryId,
+      serviceId: draft.serviceId,
+      addressInfo: draft.addressInfo,
+      leadDetails: draft.leadDetails,
+      questions: draft.questions,
+    };
+
+    // ✅ Create real user (must accept session internally)
+    const result = await clientRegisterUserIntoDB(
+      registrationPayload,
+      session
+    );
+
+    // ✅ Cleanup draft data
+    await ClientRegistrationDraft.findByIdAndDelete(draftId).session(session);
+    await EmailVerificationDraft.deleteMany({
+      clientDraftId: draftId
+    }).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return result;
+  } catch (error) {
     await session.abortTransaction();
     session.endSession();
     throw error;
@@ -359,6 +504,10 @@ const clientRegisterUserIntoDB = async (payload: any) => {
 
 export const clientRegisterService = {
   clientRegisterUserIntoDB,
+  clientRegistrationDraftInDB,
+  updateClientRegistrationDraftInDB,
+  verifyClientRegistrationEmail,
+  commitClientRegistration,
 };
 
 
