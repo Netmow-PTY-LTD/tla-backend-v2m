@@ -209,7 +209,7 @@ const leadDetailsSchema = z.object({
   email: z.string().email(),
   phone: z.string(),
   zipCode: z.string(),
-  budgetAmount: z.string(),
+  budgetAmount: z.number(),
   leadPriority: z.string(),
   additionalDetails: z.string().optional()
 });
