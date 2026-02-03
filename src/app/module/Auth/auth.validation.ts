@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { profileValidationSchema } from '../User/user.validation';
+import mongoose from 'mongoose';
 
 
 // Validation schema for creating or updating a user
@@ -103,6 +104,82 @@ export const accountStatusChangeValidationSchema = z.object({
 
 
 
+const objectId = z
+  .string()
+  .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+    message: 'Invalid ObjectId',
+  });
+
+export const lawyerRegistrationDraftSchema = z.object({
+  body: z.object({
+    step: z.number().int().min(1),
+
+    regUserType: z.string().min(1),
+    username: z.string().min(3),
+    email: z.string().email(),
+    role: z.string(),
+    password: z.string().min(6),
+
+    profile: z.object({
+      name: z.string().min(1),
+      gender: z.string(),
+      phone: z.string(),
+      country: objectId,
+      profileType: z.string(),
+      law_society_member_number: z.string().optional(),
+      practising_certificate_number: z.string().optional(),
+    }),
+
+    companyInfo: z.object({
+      companyName: objectId,
+      companySize: z.string(),
+      companyTeam: z.boolean(),
+      website: z.string().url().optional().or(z.literal('')),
+    }),
+
+    lawyerServiceMap: z.object({
+      country: objectId,
+      isSoloPractitioner: z.boolean(),
+      practiceInternationally: z.boolean(),
+      practiceWithin: z.boolean(),
+      rangeInKm: z.number().min(0),
+      zipCode: objectId,
+      services: z.array(objectId),
+
+      addressInfo: z.object({
+        countryId: objectId,
+        countryCode: z.string(),
+        zipcode: z.string(),
+        latitude: z.string(),
+        longitude: z.string(),
+      }),
+    }),
+
+    userProfile: z.string().optional(),
+  }),
+});
+
+const updateLawyerRegistrationDraftSchema = z.object({
+  body: lawyerRegistrationDraftSchema.shape.body.partial(),
+});
+
+const lawyerRegistrationVerifyEmailSchema = z.object({
+  body: z.object({
+    draftId: z.string({ required_error: 'Draft ID is required' }),
+    code: z.string({ required_error: 'Verification code is required' }),
+  }),
+});
+
+const lawyerRegistrationCommitSchema = z.object({
+  body: z.object({
+    draftId: z.string({ required_error: 'Draft ID is required' }),
+  }),
+});
+
+
+
+//
+
 
 
 
@@ -120,5 +197,9 @@ export const authZodValidation = {
   logOutTokenValidationSchema,
   accountStatusChangeValidationSchema,
   resendEmailValidation,
-  verifyEmailToken
+  verifyEmailToken,
+  lawyerRegistrationDraftSchema,
+  updateLawyerRegistrationDraftSchema,
+  lawyerRegistrationVerifyEmailSchema,
+  lawyerRegistrationCommitSchema
 };
