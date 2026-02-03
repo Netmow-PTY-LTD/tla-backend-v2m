@@ -134,7 +134,7 @@ export const lawyerRegistrationDraftSchema = z.object({
       companySize: z.string().optional(),
       companyTeam: z.boolean().optional(),
       website: z.string().url().optional().or(z.literal('')),
-    }),
+    }).optional(),
 
     lawyerServiceMap: z.object({
       country: objectId,
