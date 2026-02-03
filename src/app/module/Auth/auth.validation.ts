@@ -178,7 +178,66 @@ const lawyerRegistrationCommitSchema = z.object({
 
 
 
-//
+// client register 
+
+
+// ================= Address =================
+const addressInfoSchema = z.object({
+  countryId: z.string(),
+  countryCode: z.string(),
+  zipcode: z.string(),
+  postalCode: z.string(),
+  latitude: z.string(),
+  longitude: z.string()
+});
+
+// ================= Lead Details =================
+const leadDetailsSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string(),
+  zipCode: z.string(),
+  budgetAmount: z.string(),
+  leadPriority: z.enum(['low', 'normal', 'urgent']),
+  additionalDetails: z.string().optional()
+});
+
+// ================= Question Option =================
+const checkedOptionDetailSchema = z.object({
+  optionId: z.string(),
+  label: z.string()
+});
+
+// ================= Question =================
+const leadQuestionSchema = z.object({
+  questionId: z.string(),
+  question: z.string(),
+  order: z.number(),
+  step: z.number(),
+  checkedOptionsDetails: z.array(checkedOptionDetailSchema).min(1)
+});
+
+// ================= Main Payload =================
+const createLeadSchema = z.object({
+  countryId: z.string(),
+  serviceId: z.string(),
+  addressInfo: addressInfoSchema,
+  leadDetails: leadDetailsSchema,
+  questions: z.array(leadQuestionSchema).min(1)
+});
+
+// ================= Inferred Type =================
+export type CreateLeadInput = z.infer<typeof createLeadSchema>;
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -201,5 +260,7 @@ export const authZodValidation = {
   lawyerRegistrationDraftSchema,
   updateLawyerRegistrationDraftSchema,
   lawyerRegistrationVerifyEmailSchema,
-  lawyerRegistrationCommitSchema
+  lawyerRegistrationCommitSchema,
+  createLeadSchema
+
 };
