@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import config from '../../config';
 import { AppError } from '../../errors/error';
-import { ILoginUser, IUser } from './auth.interface';
+import { ILoginUser } from './auth.interface';
 import User from './auth.model';
 import { createToken, verifyToken } from './auth.utils';
 import { USER_STATUS } from './auth.constant';
@@ -508,6 +509,7 @@ interface SendOtpParams {
 
 
 // let otpStore: Record<string, string> = {}; // Temporary in-memory { email: otp }
+// eslint-disable-next-line prefer-const
 let otpStore: Record<
   string,
   { otp: string; expiresAt: Date }
