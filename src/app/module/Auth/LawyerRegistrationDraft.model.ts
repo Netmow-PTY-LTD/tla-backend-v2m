@@ -55,7 +55,7 @@ export interface ILawyerRegistrationDraft extends Document {
 
 const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
   {
-    step: { type: Number, required: true },
+    step: { type: Number },
 
     regUserType: { type: String, required: true },
     username: { type: String, default: '' },
@@ -77,10 +77,10 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
       companyName: {
         type: Schema.Types.ObjectId,
         ref: 'Company',
-        required: true
+       
       },
       companySize: { type: String },
-      companyTeam: { type: Boolean, required: true },
+      companyTeam: { type: Boolean,  },
       website: { type: String }
     },
 

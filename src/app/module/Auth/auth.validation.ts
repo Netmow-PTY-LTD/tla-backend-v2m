@@ -112,10 +112,9 @@ const objectId = z
 
 export const lawyerRegistrationDraftSchema = z.object({
   body: z.object({
-    step: z.number().int().min(1),
-
+   
     regUserType: z.string().min(1),
-    username: z.string().min(3),
+    username: z.string().optional(),
     email: z.string().email(),
     role: z.string(),
     password: z.string().min(6),
@@ -131,9 +130,9 @@ export const lawyerRegistrationDraftSchema = z.object({
     }),
 
     companyInfo: z.object({
-      companyName: objectId,
-      companySize: z.string(),
-      companyTeam: z.boolean(),
+      companyName: objectId.optional(),
+      companySize: z.string().optional(),
+      companyTeam: z.boolean().optional(),
       website: z.string().url().optional().or(z.literal('')),
     }),
 
@@ -198,7 +197,7 @@ const leadDetailsSchema = z.object({
   phone: z.string(),
   zipCode: z.string(),
   budgetAmount: z.string(),
-  leadPriority: z.enum(['low', 'normal', 'urgent']),
+  leadPriority: z.string(),
   additionalDetails: z.string().optional()
 });
 
@@ -212,8 +211,8 @@ const checkedOptionDetailSchema = z.object({
 const leadQuestionSchema = z.object({
   questionId: z.string(),
   question: z.string(),
-  order: z.number(),
-  step: z.number(),
+  order: z.number().optional(),
+  step: z.number().optional(),
   checkedOptionsDetails: z.array(checkedOptionDetailSchema).min(1)
 });
 

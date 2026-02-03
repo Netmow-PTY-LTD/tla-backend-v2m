@@ -108,8 +108,8 @@ const leadQuestionSchema = new Schema(
       required: true
     },
     question: { type: String, required: true },
-    order: { type: Number, required: true },
-    step: { type: Number, required: true },
+    order: { type: Number, },
+    step: { type: Number, },
     checkedOptionsDetails: {
       type: [checkedOptionDetailSchema],
       required: true
