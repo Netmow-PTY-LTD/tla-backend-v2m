@@ -110,56 +110,69 @@ const objectId = z
     message: 'Invalid ObjectId',
   });
 
+const lawyerRegistrationDraftBodySchema = z.object({
+  regUserType: z.string().min(1),
+  username: z.string().optional(),
+  email: z.string().email(),
+  role: z.string(),
+  password: z.string().min(6),
+
+  profile: z.object({
+    name: z.string().min(1),
+    gender: z.string(),
+    phone: z.string(),
+    country: objectId,
+    profileType: z.string(),
+    law_society_member_number: z.string().optional(),
+    practising_certificate_number: z.string().optional(),
+  }),
+
+  companyInfo: z.object({
+    companyName: objectId.optional(),
+    companySize: z.string().optional(),
+    companyTeam: z.boolean().optional(),
+    website: z.string().url().optional().or(z.literal('')),
+  }).optional(),
+
+  lawyerServiceMap: z.object({
+    country: objectId,
+    isSoloPractitioner: z.boolean(),
+    practiceInternationally: z.boolean(),
+    practiceWithin: z.boolean(),
+    rangeInKm: z.number().min(0),
+    zipCode: objectId,
+    services: z.array(objectId),
+
+    addressInfo: z.object({
+      countryId: objectId,
+      countryCode: z.string(),
+      zipcode: z.string(),
+      latitude: z.string(),
+      longitude: z.string(),
+    }),
+  }),
+
+  userProfile: z.string().optional(),
+});
+
+
 export const lawyerRegistrationDraftSchema = z.object({
-  body: z.object({
-   
-    regUserType: z.string().min(1),
-    username: z.string().optional(),
-    email: z.string().email(),
-    role: z.string(),
-    password: z.string().min(6),
+  body: lawyerRegistrationDraftBodySchema.superRefine((data, ctx) => {
+    const companyInfo = data.companyInfo;
 
-    profile: z.object({
-      name: z.string().min(1),
-      gender: z.string(),
-      phone: z.string(),
-      country: objectId,
-      profileType: z.string(),
-      law_society_member_number: z.string().optional(),
-      practising_certificate_number: z.string().optional(),
-    }),
-
-    companyInfo: z.object({
-      companyName: objectId.optional(),
-      companySize: z.string().optional(),
-      companyTeam: z.boolean().optional(),
-      website: z.string().url().optional().or(z.literal('')),
-    }).optional(),
-
-    lawyerServiceMap: z.object({
-      country: objectId,
-      isSoloPractitioner: z.boolean(),
-      practiceInternationally: z.boolean(),
-      practiceWithin: z.boolean(),
-      rangeInKm: z.number().min(0),
-      zipCode: objectId,
-      services: z.array(objectId),
-
-      addressInfo: z.object({
-        countryId: objectId,
-        countryCode: z.string(),
-        zipcode: z.string(),
-        latitude: z.string(),
-        longitude: z.string(),
-      }),
-    }),
-
-    userProfile: z.string().optional(),
+    //  Only validate if companyInfo exists
+    if (companyInfo?.companyTeam === true && !companyInfo.companyName) {
+      ctx.addIssue({
+        path: ['companyInfo', 'companyName'],
+        message: 'Company name is required when company team is enabled',
+        code: z.ZodIssueCode.custom,
+      });
+    }
   }),
 });
 
 const updateLawyerRegistrationDraftSchema = z.object({
-  body: lawyerRegistrationDraftSchema.shape.body.partial(),
+  body: lawyerRegistrationDraftBodySchema.partial(),
 });
 
 const lawyerRegistrationVerifyEmailSchema = z.object({
