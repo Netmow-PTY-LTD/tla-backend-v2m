@@ -47,11 +47,55 @@ const lawyerRegisterationDraft = catchAsync(async (req, res) => {
     },
   });
 });
+const updateLawyerRegisterationDraft = catchAsync(async (req, res) => {
+  const { draftId } = req.params;
+  const payload = req.body;
+  const result = await lawyerRegisterService.updateLawyerRegistrationDraftInDB(draftId, payload);
 
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Lawyer registration draft updated successfully.',
+    data: result,
+  });
+});
 
+const verifyLawyerRegistrationEmail = catchAsync(async (req, res) => {
+  const { draftId, code } = req.body;
+  const result = await lawyerRegisterService.verifyLawyerRegistrationEmail(draftId, code);
 
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: result.message,
+    data: null
+  });
+});
+
+const commitLawyerRegistration = catchAsync(async (req, res) => {
+  const { draftId } = req.body;
+  const { accessToken, refreshToken, userData } = await lawyerRegisterService.commitLawyerRegistration(draftId);
+
+  // Store the refresh token in a secure HTTP-only cookie
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+  });
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Lawyer registration completed successfully.',
+    token: accessToken,
+    data: userData,
+  });
+});
 
 export const lawyerRegisterController = {
   lawyerRegister,
-  lawyerRegisterationDraft
+  lawyerRegisterationDraft,
+  updateLawyerRegisterationDraft,
+  verifyLawyerRegistrationEmail,
+  commitLawyerRegistration
 };

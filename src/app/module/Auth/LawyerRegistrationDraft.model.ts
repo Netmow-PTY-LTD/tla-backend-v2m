@@ -45,6 +45,10 @@ export interface ILawyerRegistrationDraft extends Document {
   };
 
   userProfile: string;
+  verification: {
+    isEmailVerified: boolean;
+    verifiedAt: Date | null;
+  };
 }
 
 /* ================= SCHEMA ================= */
@@ -115,7 +119,11 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
       }
     },
 
-    userProfile: { type: String, default: '' }
+    userProfile: { type: String, default: '' },
+    verification: {
+      isEmailVerified: { type: Boolean, default: false },
+      verifiedAt: { type: Date, default: null }
+    }
   },
   {
     timestamps: true,

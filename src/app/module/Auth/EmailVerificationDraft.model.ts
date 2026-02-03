@@ -5,6 +5,8 @@ export interface IEmailVerificationDraft extends Document {
     otp: string;
     expiresAt: Date;
     lawyerDraftId: mongoose.Types.ObjectId;
+    attempts: number;
+    isUsed: boolean;
 }
 
 const EmailVerificationDraftSchema = new Schema<IEmailVerificationDraft>(
@@ -13,6 +15,8 @@ const EmailVerificationDraftSchema = new Schema<IEmailVerificationDraft>(
         otp: { type: String, required: true },
         expiresAt: { type: Date, required: true },
         lawyerDraftId: { type: Schema.Types.ObjectId, ref: 'LawyerRegistrationDraft' },
+        attempts: { type: Number, default: 0 },
+        isUsed: { type: Boolean, default: false },
     },
     {
         timestamps: true,
