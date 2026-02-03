@@ -31,6 +31,27 @@ const lawyerRegister = catchAsync(async (req, res) => {
 });
 
 
+
+
+const lawyerRegisterationDraft = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const result = await lawyerRegisterService.lawyerRegistrationDraftInDB(payload);
+
+  // Send response with registered draft information
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Lawyer registration draft saved successfully.',
+    data: {
+      lawyerDraftId: result._id,
+    },
+  });
+});
+
+
+
+
 export const lawyerRegisterController = {
-  lawyerRegister
+  lawyerRegister,
+  lawyerRegisterationDraft
 };

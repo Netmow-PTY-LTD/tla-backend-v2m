@@ -18,6 +18,10 @@ import Service from '../Service/service.model';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
+import { ILawyerRegistrationDraft, LawyerRegistrationDraft } from './LawyerRegistrationDraft.model';
+import bcrypt from 'bcryptjs';
+import { generateOtp } from './otp.utils';
+import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 
 
 
@@ -266,11 +270,11 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
     //  lawyer firm member request email notification to firm admin
     if (companyInfo?.companyTeam) {
 
-   
+
 
 
       const firmAdmin = await FirmUser.findOne({ firmProfileId: companyInfo?.companyName, role: Firm_USER_ROLE.ADMIN, });
- 
+
 
       if (firmAdmin) {
 
@@ -308,6 +312,67 @@ const lawyerRegisterUserIntoDB = async (payload: IUser) => {
 
 
 
+
+
+//  -----------------------  lawyer registration draft ----------------------
+
+
+
+
+
+const lawyerRegistrationDraftInDB = async (payload: ILawyerRegistrationDraft) => {
+  // 1. Create LawyerRegistrationDraft
+  const result = await LawyerRegistrationDraft.create(payload);
+
+  // 2. Generate OTP
+  const otp = generateOtp();
+
+  // 3. Hash OTP
+  const hashedOtp = await bcrypt.hash(otp, Number(config.bcrypt_salt_rounds));
+
+  // 4. Save OTP in EmailVerificationDraft and link it to the draft
+  await EmailVerificationDraft.create({
+    email: payload.email,
+    otp: hashedOtp,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000), // OTP expires in 10 minutes
+    lawyerDraftId: result._id,
+  });
+
+  // 5. Send email
+  const verifyUrl = `${config.client_url}/verify-lawyer-registration?email=${payload.email}&otp=${otp}&draftId=${result._id}`;
+
+  await sendEmail({
+    to: payload.email,
+    subject: 'Verification Link for Lawyer Registration',
+    data: {
+      name: payload.profile?.name || 'User',
+      verifyUrl: verifyUrl,
+      role: 'Lawyer',
+    },
+    emailTemplate: 'verify_email',
+  });
+
+  return result;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const lawyerRegisterService = {
   lawyerRegisterUserIntoDB,
+  lawyerRegistrationDraftInDB
 };

@@ -77,7 +77,14 @@ router.post("/change-email", authController.changeEmail);
 //  --------------- client Register  ----------------------------
 router.post('/register/client', clientRegisterController.clientRegister);
 
-//  --------------- client Register  ----------------------------
+//  --------------- Lawyer Register  ----------------------------
+router.post(
+  '/lawyer/registration/draft',
+  validateRequest(authZodValidation.lawyerRegistrationDraftSchema),
+  lawyerRegisterController.lawyerRegisterationDraft,
+);
+
+
 router.post(
   '/register/lawyer',
   validateRequest(authZodValidation.userZodValidationSchema),
