@@ -26,6 +26,8 @@ export interface LeadDetails {
 export interface CheckedOptionDetail {
   optionId: string;
   label: string;
+  is_checked: boolean;
+  idExtraData: string;
 }
 
 // ================= Question =================
@@ -94,8 +96,11 @@ const leadDetailsSchema = new Schema(
 
 const checkedOptionDetailSchema = new Schema(
   {
-    optionId: { type: String, required: true },
-    label: { type: String, required: true }
+    optionId: { type: String, },
+    name: { type: String, required: true },
+    idExtraData: { type: String, },
+    is_checked: { type: Boolean, default: false }
+
   },
   { _id: false }
 );
