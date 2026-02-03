@@ -220,6 +220,7 @@ export const updateAccountStatusController = catchAsync(
         message: 'Account status updated successfully',
         data: updatedUser,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // You can customize error handling here or rely on your global error handler
       return sendResponse(res, {

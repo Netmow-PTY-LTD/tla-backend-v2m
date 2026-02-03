@@ -501,21 +501,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
 
 
-    // const { subject, text, html } = generateRegistrationEmail({
-    //   name: newProfile?.name || 'User',
-    //   email: newUser.email,
-    //   defaultPassword: userData.password,
-    //   loginUILink: `${config.client_url}/login`,
-    //   appName: 'The Law App',
-    // });
-
-    //  await sendEmail({
-    //   to: newUser.email,
-    //   subject,
-    //   text,
-    //   html,
-
-    // });
 
 
 
