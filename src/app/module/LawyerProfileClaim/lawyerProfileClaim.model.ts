@@ -18,10 +18,11 @@ const lawyerProfileClaimSchema = new Schema<ILawyerProfileClaim>(
             type: String,
             trim: true,
         },
-        profileId: {
-            type: Schema.Types.ObjectId,
-            ref: "UserProfile",
+        lawyerProfileEmail: {
+            type: String,
             required: true,
+            lowercase: true,
+            trim: true,
         },
         additionalInfo: {
             type: String,
@@ -54,7 +55,7 @@ const lawyerProfileClaimSchema = new Schema<ILawyerProfileClaim>(
 
 // Indexes
 lawyerProfileClaimSchema.index({ claimerEmail: 1 });
-lawyerProfileClaimSchema.index({ profileId: 1 });
+lawyerProfileClaimSchema.index({ lawyerProfileEmail: 1 });
 
 export const LawyerProfileClaim = model<ILawyerProfileClaim>(
     "LawyerProfileClaim",

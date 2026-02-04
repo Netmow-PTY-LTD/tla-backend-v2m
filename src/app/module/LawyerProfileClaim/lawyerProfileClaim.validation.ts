@@ -2,15 +2,15 @@ import { z } from "zod";
 
 const createLawyerProfileClaimZodSchema = z.object({
     body: z.object({
-        profileId: z.string({
-            required_error: "Profile ID is required",
-        }),
+        lawyerProfileEmail: z.string({
+            required_error: "Lawyer profile email is required",
+        }).email("Invalid lawyer profile email address"),
         claimerName: z.string({
             required_error: "Claimer name is required",
         }),
         claimerEmail: z.string({
             required_error: "Claimer email is required",
-        }).email("Invalid email address"),
+        }).email("Invalid claimer email address"),
         claimerPhone: z.string().optional(),
         additionalInfo: z.string().optional(),
         claimReason: z.string({

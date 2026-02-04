@@ -7,7 +7,7 @@ export interface ILawyerProfileClaim {
     claimerName: string;
     claimerEmail: string;
     claimerPhone?: string;
-    profileId: Types.ObjectId; // The UserProfile being claimed
+    lawyerProfileEmail: string; // The email of the lawyer profile being claimed
     additionalInfo?: string;
     claimReason: string;
     status: ClaimStatus;

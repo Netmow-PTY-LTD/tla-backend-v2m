@@ -10,11 +10,10 @@ const createLawyerProfileClaimIntoDB = async (payload: ILawyerProfileClaim) => {
 const getAllLawyerProfileClaimsFromDB = async (query: Record<string, unknown>) => {
     const lawyerProfileClaimQuery = new QueryBuilder(
         LawyerProfileClaim.find()
-            .populate("profileId")
             .populate("reviewedBy"),
         query
     )
-        .search(["claimReason", "additionalInfo", "claimerName", "claimerEmail", "claimerPhone"])
+        .search(["claimReason", "additionalInfo", "claimerName", "claimerEmail", "claimerPhone", "lawyerProfileEmail"])
         .filter()
         .sort()
         .paginate()
@@ -28,7 +27,6 @@ const getAllLawyerProfileClaimsFromDB = async (query: Record<string, unknown>) =
 
 const getSingleLawyerProfileClaimFromDB = async (id: string) => {
     const result = await LawyerProfileClaim.findById(id)
-        .populate("profileId")
         .populate("reviewedBy");
     return result;
 };
