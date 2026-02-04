@@ -37,6 +37,7 @@ export interface ILawyerRegistrationDraft extends Document {
     services: mongoose.Types.ObjectId[];
     addressInfo: {
       countryId: mongoose.Types.ObjectId;
+       postalCode: string;
       countryCode: string;
       zipcode: string;
       latitude: string;
@@ -113,6 +114,7 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
           ref: 'Country',
           required: true
         },
+        postalCode: { type: String,required: true  },
         countryCode: { type: String, required: true },
         zipcode: { type: String, required: true },
         latitude: { type: String, required: true },
