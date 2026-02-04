@@ -146,7 +146,7 @@ const lawyerRegistrationDraftBodySchema = z.object({
     addressInfo: z.object({
       countryId: objectId,
       countryCode: z.string(),
-      postalCode: z.string().optional(),
+      postalCode: z.string(),
       zipcode: z.string(),
       latitude: z.string(),
       longitude: z.string(),

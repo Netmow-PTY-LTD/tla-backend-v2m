@@ -350,7 +350,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
     const addressInfo = lawyerServiceMap?.addressInfo
 
     let zipCode;
-
+  
     if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
 
       try {

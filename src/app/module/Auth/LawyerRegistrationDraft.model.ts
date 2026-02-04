@@ -114,7 +114,7 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
           ref: 'Country',
           required: true
         },
-        postalCode: { type: String,  },
+        postalCode: { type: String,required: true  },
         countryCode: { type: String, required: true },
         zipcode: { type: String, required: true },
         latitude: { type: String, required: true },
