@@ -1,9 +1,123 @@
 import { Schema, model, Types, Document } from 'mongoose';
 
 
+// // ================= Address =================
+// export interface AddressInfo {
+//   countryId: string;
+//   countryCode: string;
+//   zipcode: string;
+//   postalCode: string;
+//   latitude: string;
+//   longitude: string;
+// }
+
+// // ================= Lead Details =================
+// export interface LeadDetails {
+//   name: string;
+//   email: string;
+//   phone: string;
+//   zipCode: string;
+//   budgetAmount: string;
+//   leadPriority: string;
+//   additionalDetails?: string;
+// }
+
+// // ================= Question Option =================
+// export interface CheckedOptionDetail {
+//   optionId: string;
+//   label: string;
+//   is_checked: boolean;
+//   idExtraData: string;
+// }
+
+// // ================= Question =================
+// export interface LeadQuestion {
+//   questionId: string;
+//   question: string;
+//   order: number;
+//   step: number;
+//   checkedOptionsDetails: CheckedOptionDetail[];
+// }
+
+// // ================= Main Payload =================
+// export interface CreateLeadPayload {
+//   countryId: string;
+//   serviceId: string;
+//   addressInfo: AddressInfo;
+//   leadDetails: LeadDetails;
+//   questions: LeadQuestion[];
+// }
+
+// export interface IClientRegistrationDraft extends Document {
+//   countryId: Types.ObjectId;
+//   serviceId: Types.ObjectId;
+//   addressInfo: AddressInfo;
+//   leadDetails: LeadDetails;
+//   questions: LeadQuestion[];
+//   verification: {
+//     isEmailVerified: boolean;
+//     verifiedAt: Date | null;
+//   };
+// }
+
+
+// ================= Address =================
+export interface AddressInfoPayload {
+  countryId: string;
+  countryCode: string;
+  zipcode: string;
+  postalCode: string;
+  latitude: string;
+  longitude: string;
+}
+
+// ================= Lead Details =================
+export interface LeadDetailsPayload {
+  name: string;
+  email: string;
+  phone: string;
+  zipCode: string;
+  budgetAmount: number;
+  leadPriority: string;
+  additionalDetails?: string;
+}
+
+// ================= Question Option =================
+export interface CheckedOptionDetailPayload {
+  id: string;
+  name: string;
+  is_checked: boolean;
+  idExtraData?: string;
+}
+
+// ================= Question =================
+export interface LeadQuestionPayload {
+  questionId: string;
+  question: string;
+  order?: number;
+  step?: number;
+  checkedOptionsDetails: CheckedOptionDetailPayload[];
+}
+
+// ================= Main Payload =================
+export interface CreateLeadPayload {
+  countryId: string;
+  serviceId: string;
+  addressInfo: AddressInfoPayload;
+  leadDetails: LeadDetailsPayload;
+  questions: LeadQuestionPayload[];
+}
+
+
+
+
+
+
+
+
 // ================= Address =================
 export interface AddressInfo {
-  countryId: string;
+  countryId: Types.ObjectId;
   countryCode: string;
   zipcode: string;
   postalCode: string;
@@ -17,37 +131,29 @@ export interface LeadDetails {
   email: string;
   phone: string;
   zipCode: string;
-  budgetAmount: string;
+  budgetAmount: number;
   leadPriority: string;
   additionalDetails?: string;
 }
 
 // ================= Question Option =================
 export interface CheckedOptionDetail {
-  optionId: string;
-  label: string;
+  id: string;
+  name: string;
+  idExtraData?: string;
   is_checked: boolean;
-  idExtraData: string;
 }
 
 // ================= Question =================
 export interface LeadQuestion {
-  questionId: string;
+  questionId: Types.ObjectId;
   question: string;
-  order: number;
-  step: number;
+  order?: number;
+  step?: number;
   checkedOptionsDetails: CheckedOptionDetail[];
 }
 
-// ================= Main Payload =================
-export interface CreateLeadPayload {
-  countryId: string;
-  serviceId: string;
-  addressInfo: AddressInfo;
-  leadDetails: LeadDetails;
-  questions: LeadQuestion[];
-}
-
+// ================= Main Document =================
 export interface IClientRegistrationDraft extends Document {
   countryId: Types.ObjectId;
   serviceId: Types.ObjectId;
@@ -58,7 +164,12 @@ export interface IClientRegistrationDraft extends Document {
     isEmailVerified: boolean;
     verifiedAt: Date | null;
   };
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+
+
 
 
 
@@ -80,11 +191,11 @@ const addressInfoSchema = new Schema(
 
 const leadDetailsSchema = new Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-    zipCode: { type: String, required: true },
-    budgetAmount: { type: String, required: true },
+    name: { type: String,  required: true },
+    email: { type: String,   required: true},
+    phone: { type: String,   required: true },
+    zipCode: { type: String,  required: true  },
+    budgetAmount: { type: Number  , required: true},
     leadPriority: {
       type: String,
       required: true
@@ -96,8 +207,8 @@ const leadDetailsSchema = new Schema(
 
 const checkedOptionDetailSchema = new Schema(
   {
-    optionId: { type: String, },
-    label: { type: String, },
+    id: { type: String, },
+    name: { type: String, },
     idExtraData: { type: String, },
     is_checked: { type: Boolean, default: false }
 
