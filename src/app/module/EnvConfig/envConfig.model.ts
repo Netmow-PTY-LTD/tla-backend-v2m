@@ -53,6 +53,5 @@ const envConfigSchema = new Schema<IEnvConfig>(
 
 // Index for faster queries
 envConfigSchema.index({ group: 1, isActive: 1 });
-envConfigSchema.index({ key: 1 }, { unique: true });
 
 export const EnvConfig = model<IEnvConfig>('EnvConfig', envConfigSchema);

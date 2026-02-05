@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { envConfigService } from './envConfig.service';
-import { EXCLUDED_ENV_VARS } from './envConfig.constant';
 
 dotenv.config({ path: path.join(process.cwd(), '.env') });
+
+import { envConfigService } from './envConfig.service';
+import { EXCLUDED_ENV_VARS } from './envConfig.constant';
 
 class EnvConfigLoader {
     private configCache: Record<string, string> = {};
@@ -70,7 +71,7 @@ class EnvConfigLoader {
      * Load configurations from .env file
      */
     private loadFromEnv(): void {
-        this.configCache = {
+        const defaultConfigs: Record<string, string> = {
             NODE_ENV: process.env.NODE_ENV || 'development',
             PORT: process.env.PORT || '5000',
             DATABASE_URL: process.env.DATABASE_URL || '',
@@ -110,6 +111,11 @@ class EnvConfigLoader {
             TWILIO_AUTH: process.env.TWILIO_AUTH || '',
             TWILIO_PHONE: process.env.TWILIO_PHONE || '',
         };
+
+        // Merge with existing process.env values to ensure we have everything
+        Object.keys(defaultConfigs).forEach(key => {
+            this.configCache[key] = process.env[key] || defaultConfigs[key];
+        });
     }
 
     /**

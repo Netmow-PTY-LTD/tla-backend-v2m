@@ -27,10 +27,6 @@ export const EXCLUDED_ENV_VARS = [
     'DATABASE_URL',
     'ENV_ENCRYPTION_KEY',
     'NODE_ENV',
-    'REDIS_HOST',
-    'REDIS_PORT',
-    'REDIS_PASSWORD',
-    'REDIS_USERNAME',
 ];
 
 // Sensitive fields that should be encrypted
@@ -54,11 +50,24 @@ export const SENSITIVE_FIELDS = [
 export const RESTART_REQUIRED_FIELDS = [
     'PORT',
     'BCRYPT_SALT_ROUNDS',
+    'DATABASE_URL',
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_PASSWORD',
+    'REDIS_USERNAME',
 ];
 
 // Default configuration metadata
 export const ENV_CONFIG_METADATA = [
     // General
+    {
+        key: 'DATABASE_URL',
+        group: ENV_CONFIG_GROUPS.DATABASE,
+        type: ENV_CONFIG_TYPES.URL,
+        description: 'MongoDB connection string URL',
+        isSensitive: true,
+        requiresRestart: true,
+    },
     {
         key: 'PORT',
         group: ENV_CONFIG_GROUPS.GENERAL,
@@ -334,5 +343,39 @@ export const ENV_CONFIG_METADATA = [
         description: 'Firm application URL',
         isSensitive: false,
         requiresRestart: false,
+    },
+
+    // Redis
+    {
+        key: 'REDIS_HOST',
+        group: ENV_CONFIG_GROUPS.REDIS,
+        type: ENV_CONFIG_TYPES.STRING,
+        description: 'Redis server host',
+        isSensitive: false,
+        requiresRestart: true,
+    },
+    {
+        key: 'REDIS_PORT',
+        group: ENV_CONFIG_GROUPS.REDIS,
+        type: ENV_CONFIG_TYPES.NUMBER,
+        description: 'Redis server port',
+        isSensitive: false,
+        requiresRestart: true,
+    },
+    {
+        key: 'REDIS_PASSWORD',
+        group: ENV_CONFIG_GROUPS.REDIS,
+        type: ENV_CONFIG_TYPES.STRING,
+        description: 'Redis server password',
+        isSensitive: true,
+        requiresRestart: true,
+    },
+    {
+        key: 'REDIS_USERNAME',
+        group: ENV_CONFIG_GROUPS.REDIS,
+        type: ENV_CONFIG_TYPES.STRING,
+        description: 'Redis server username',
+        isSensitive: false,
+        requiresRestart: true,
     },
 ];

@@ -1,18 +1,19 @@
 import { createClient } from "redis";
-import config from ".";
+import dotenv from "dotenv";
+import path from "path";
 
-
+dotenv.config({ path: path.join(process.cwd(), ".env") });
 
 const client = createClient({
-    username: config.redis_username,
-    password: config.redis_password,
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
     socket: {
-        host: config.redis_host,
-        port: config.redis_port ? parseInt(config.redis_port) : undefined,
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT as string) : undefined,
     }
 });
 
-client.on('error', (err) => {
+client.on('error', (err: Error) => {
     console.error('Redis error:', err);
 });
 

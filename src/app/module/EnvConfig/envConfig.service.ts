@@ -104,7 +104,7 @@ const getAllConfigs = async (): Promise<IEnvConfigGrouped> => {
         });
 
         // Cache the result
-        await redisClient.setex(getCacheKey(), CACHE_TTL, JSON.stringify(grouped));
+        await redisClient.set(getCacheKey(), JSON.stringify(grouped), { EX: CACHE_TTL });
 
         return grouped;
     } catch (error) {
@@ -135,7 +135,7 @@ const getConfigByKey = async (key: string): Promise<IEnvConfig | null> => {
         }
 
         // Cache the result
-        await redisClient.setex(getCacheKey(key), CACHE_TTL, JSON.stringify(configObj));
+        await redisClient.set(getCacheKey(key), JSON.stringify(configObj), { EX: CACHE_TTL });
 
         return configObj as IEnvConfig;
     } catch (error) {
