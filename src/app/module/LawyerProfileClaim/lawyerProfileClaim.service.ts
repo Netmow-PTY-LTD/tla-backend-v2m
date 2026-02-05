@@ -1,11 +1,54 @@
 import QueryBuilder from "../../builder/QueryBuilder";
+import { HTTP_STATUS } from "../../constant/httpStatus";
+import { AppError } from "../../errors/error";
+import { REGISTER_USER_TYPE } from "../Auth/auth.constant";
+import User from "../Auth/auth.model";
 import { ILawyerProfileClaim } from "./lawyerProfileClaim.interface";
 import { LawyerProfileClaim } from "./lawyerProfileClaim.model";
 
-const createLawyerProfileClaimIntoDB = async (payload: ILawyerProfileClaim) => {
-    const result = await LawyerProfileClaim.create(payload);
+
+export const createLawyerProfileClaimIntoDB = async (
+    payload: ILawyerProfileClaim
+) => {
+    const { lawyerProfileEmail } = payload;
+
+    // 1️ Check if lawyer profile exists
+    const lawyerProfile = await User.findOne({
+        email: lawyerProfileEmail,
+        regUserType: REGISTER_USER_TYPE.LAWYER,
+    });
+
+    if (!lawyerProfile) {
+        throw new AppError(
+            HTTP_STATUS.NOT_FOUND,
+            "This lawyer profile does not exist in our system"
+        );
+    }
+
+    // 2️ Prevent duplicate active claims (important for admin flow)
+    const existingClaim = await LawyerProfileClaim.findOne({
+        lawyerProfileEmail,
+        status: { $in: ["pending", "reviewed"] },
+    });
+
+    if (existingClaim) {
+        throw new AppError(
+            HTTP_STATUS.CONFLICT,
+            "A claim request for this lawyer profile already exists"
+        );
+    }
+
+    // 3️ Create claim
+    const result = await LawyerProfileClaim.create({
+        ...payload,
+        status: "pending",
+    });
+
     return result;
 };
+
+
+
 
 const getAllLawyerProfileClaimsFromDB = async (query: Record<string, unknown>) => {
     const lawyerProfileClaimQuery = new QueryBuilder(
