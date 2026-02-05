@@ -398,6 +398,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
     // Link the profile to the newly created user
     newUser.profile = new Types.ObjectId(newProfile._id);
+    newUser.createdBy = new Types.ObjectId(newUser._id);
     await newUser.save({ session });
 
     // compnay profile map create
