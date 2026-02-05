@@ -366,10 +366,10 @@ import bcrypt from 'bcryptjs';
 
 const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose.ClientSession) => {
 
-   const session = externalSession || await mongoose.startSession();
+  const session = externalSession || await mongoose.startSession();
   const isOwner = !externalSession;
 
-    if (isOwner) session.startTransaction();
+  if (isOwner) session.startTransaction();
 
   let leadUser: any = null;
 
@@ -443,6 +443,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
     const [newProfile] = await UserProfile.create([profileData], { session });
 
     newUser.profile = new Types.ObjectId(newProfile._id);
+    newUser.createdBy = new Types.ObjectId(newUser._id);
     await newUser.save({ session });
 
     //  if registration user type is client then create lead 
@@ -631,7 +632,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
 
 
 
-     if (isOwner) {
+    if (isOwner) {
       await session.commitTransaction();
       session.endSession();
     }
