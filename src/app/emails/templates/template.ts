@@ -1,6 +1,7 @@
 import config from '../../config';
 
 const appName = 'TheLawApp';
+const currentYear = new Date().getFullYear();
 const headerDesign = `<!DOCTYPE html>
 <html>
 <head>
@@ -73,7 +74,7 @@ const footerDesign = `
         
       </tr>
     </table>
-        <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
+        <p style="margin: 0 0 10px;">© ${currentYear} ${appName}. All rights reserved.<br>
            You are receiving this email because you are connected with TheLawApp.</p>
         <p style="margin: 0;">
           <a href="${config.client_url}/privacy-policy" style="color: #999; margin-right: 5px;">Privacy Policy</a> •
