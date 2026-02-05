@@ -1,14 +1,11 @@
 import QueryBuilder from "../../builder/QueryBuilder";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { AppError } from "../../errors/error";
+import { REGISTER_USER_TYPE } from "../Auth/auth.constant";
 import User from "../Auth/auth.model";
 import { ILawyerProfileClaim } from "./lawyerProfileClaim.interface";
 import { LawyerProfileClaim } from "./lawyerProfileClaim.model";
 
-const createLawyerProfileClaimIntoDB = async (payload: ILawyerProfileClaim) => {
-    const result = await LawyerProfileClaim.create(payload);
-    return result;
-};
 
 export const createLawyerProfileClaimIntoDB = async (
     payload: ILawyerProfileClaim
@@ -18,7 +15,7 @@ export const createLawyerProfileClaimIntoDB = async (
     // 1️ Check if lawyer profile exists
     const lawyerProfile = await User.findOne({
         email: lawyerProfileEmail,
-        regUserType: "lawyer",
+        regUserType: REGISTER_USER_TYPE.LAWYER,
     });
 
     if (!lawyerProfile) {
