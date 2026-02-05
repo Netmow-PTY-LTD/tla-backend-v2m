@@ -3,7 +3,8 @@ import { envConfigController } from './envConfig.controller';
 import { envConfigValidation } from './envConfig.validation';
 import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
-import { USER_ROLE } from '../User/user.constant';
+import { USER_ROLE } from '../../constant';
+
 
 const router = express.Router();
 

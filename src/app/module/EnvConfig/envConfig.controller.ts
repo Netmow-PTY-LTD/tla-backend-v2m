@@ -84,7 +84,6 @@ const bulkUpdateConfigs = catchAsync(async (req: Request, res: Response) => {
 // Sync from .env file
 const syncFromEnv = catchAsync(async (req: Request, res: Response) => {
     const { force } = req.body || {};
-    const adminId = req.user?.userId;
 
     let syncedCount = 0;
     let skippedCount = 0;

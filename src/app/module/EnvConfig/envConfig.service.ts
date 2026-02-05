@@ -66,7 +66,7 @@ const invalidateCache = async (key?: string) => {
         } else {
             const keys = await redisClient.keys(`${CACHE_PREFIX}:*`);
             if (keys.length > 0) {
-                await redisClient.del(...keys);
+                await redisClient.del(keys);
             }
         }
     } catch (error) {

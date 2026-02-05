@@ -1,4 +1,5 @@
 export const USER_ROLE = {
+  SUPER_ADMIN: 'super_admin',
   ADMIN: 'admin',
   USER: 'user',
   // SELLER: 'seller',
@@ -41,7 +42,7 @@ export const FOLDERS = {
   SEO: 'seo',                   // SEO uploads (evidence, documents)
   GALLERY: 'gallery',                   // gallery uploads (evidence, documents)
   BLOG: 'blog',                   // blog uploads (evidence, documents)
-  APP_SETTINGS:'app_settings'
+  APP_SETTINGS: 'app_settings'
 } as const;
 
 export type TFolder = (typeof FOLDERS)[keyof typeof FOLDERS];
