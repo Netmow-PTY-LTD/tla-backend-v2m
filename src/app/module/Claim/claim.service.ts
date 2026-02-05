@@ -120,6 +120,7 @@ const createClaimIntoDB = async (
 
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const listClaims = async (query: Record<string, any>) => {
   const pageQuery = new QueryBuilder(Claim.find({}).populate('country'), query).search(claimSearchableFields).filter().sort().paginate().fields();
   const data = await pageQuery.modelQuery;

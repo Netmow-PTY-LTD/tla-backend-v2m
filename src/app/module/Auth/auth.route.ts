@@ -47,7 +47,7 @@ router.post(
 );
 router.post(
   '/resend-verification-email',
-    validateRequest(authZodValidation.resendEmailValidation),
+  validateRequest(authZodValidation.resendEmailValidation),
   authController.resendVerificationEmail,
 );
 
@@ -75,9 +75,63 @@ router.post("/change-email", authController.changeEmail);
 
 
 //  --------------- client Register  ----------------------------
-router.post('/register/client', clientRegisterController.clientRegister);
+router.post(
+  '/register/client',
+  validateRequest(authZodValidation.createLeadSchema),
+  clientRegisterController.clientRegister
+);
 
-//  --------------- client Register  ----------------------------
+router.post(
+  '/client/registration/draft',
+  validateRequest(authZodValidation.clientRegistrationDraftSchema),
+  clientRegisterController.clientRegistrationDraft,
+);
+
+router.patch(
+  '/client/registration/draft/:draftId',
+  validateRequest(authZodValidation.updateClientRegistrationDraftSchema),
+  clientRegisterController.updateClientRegistrationDraft,
+);
+
+router.post(
+  '/client/registration/verify-email',
+  validateRequest(authZodValidation.clientRegistrationVerifyEmailSchema),
+  clientRegisterController.verifyClientRegistrationEmail,
+);
+
+router.post(
+  '/client/registration/commit',
+  validateRequest(authZodValidation.clientRegistrationCommitSchema),
+  clientRegisterController.commitClientRegistration,
+);
+
+
+//  --------------- Lawyer Register  ----------------------------
+router.post(
+  '/lawyer/registration/draft',
+  validateRequest(authZodValidation.lawyerRegistrationDraftSchema),
+  lawyerRegisterController.lawyerRegisterationDraft,
+);
+
+router.patch(
+  '/lawyer/registration/draft/:draftId',
+  validateRequest(authZodValidation.updateLawyerRegistrationDraftSchema),
+  lawyerRegisterController.updateLawyerRegisterationDraft,
+);
+
+router.post(
+  '/lawyer/registration/verify-email',
+  validateRequest(authZodValidation.lawyerRegistrationVerifyEmailSchema),
+  lawyerRegisterController.verifyLawyerRegistrationEmail,
+);
+
+router.post(
+  '/lawyer/registration/commit',
+  validateRequest(authZodValidation.lawyerRegistrationCommitSchema),
+  lawyerRegisterController.commitLawyerRegistration,
+);
+
+
 router.post(
   '/register/lawyer',
   validateRequest(authZodValidation.userZodValidationSchema),
@@ -95,7 +149,7 @@ router.post('/sso-login', authController.ssoLogin);
 
 //   cache user data api
 
-router.post('/cache-user-data', auth(USER_ROLE.ADMIN, USER_ROLE.USER),  authController.cacheUserData);
+router.post('/cache-user-data', auth(USER_ROLE.ADMIN, USER_ROLE.USER), authController.cacheUserData);
 
 
 

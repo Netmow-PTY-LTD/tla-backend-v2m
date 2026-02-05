@@ -81,6 +81,41 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
         as: 'profile.serviceIds',
       },
     },
+    // Lookup createdBy (User)
+    {
+      $lookup: {
+        from: 'users',
+        let: { createdById: '$createdBy' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$_id', '$$createdById'] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              email: 1,
+              role: 1,
+              name: 1,
+              regUserType:1,
+              isVerifiedAccount:1,
+              accountStatus:1,
+            },
+          },
+        ],
+        as: 'createdBy',
+      },
+    },
+    {
+      $unwind: {
+        path: '$createdBy',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+
+
 
     // Search on email and profile.name
     {
@@ -303,7 +338,7 @@ const updateProfileIntoDB = async (
 const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
   // ----------------------- CACHE KEY -----------------------
- 
+
 
   // ----------------------- CHECK CACHE -----------------------
   const cachedData = await redisClient.get(CacheKeys.SINGLE_USER_PROFILE(userId));
@@ -389,7 +424,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
   const finalUser = plainUser;
 
   // ----------------------- CACHE RESULT -----------------------
-  await redisClient.set(CacheKeys.SINGLE_USER_PROFILE(userId), JSON.stringify(finalUser), { EX: TTL.MEDIUM_10M}); // cache for 10 minutes
+  await redisClient.set(CacheKeys.SINGLE_USER_PROFILE(userId), JSON.stringify(finalUser), { EX: TTL.MEDIUM_10M }); // cache for 10 minutes
 
 
 
@@ -412,7 +447,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
 
 
- const getCurrentUserProfileInfoIntoDB = async (userId:string) => {
+const getCurrentUserProfileInfoIntoDB = async (userId: string) => {
   // 1. Check if user exists
   const isUserExists = await User.isUserExists(userId);
   if (!isUserExists) {
@@ -550,7 +585,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
 
 //   cache user data api
-export const getCurrentUserProfileInfoFromCache = async (userId:string) => {
+export const getCurrentUserProfileInfoFromCache = async (userId: string) => {
   // 1. Check if user exists
   const isUserExists = await User.isUserExists(userId);
   if (!isUserExists) {
@@ -564,7 +599,7 @@ export const getCurrentUserProfileInfoFromCache = async (userId:string) => {
   // ----------------------- CHECK CACHE -----------------------
   const cachedData = await redisClient.get(CacheKeys.USER_INFO(userId));
   if (cachedData) {
-   
+
     // return JSON.parse(cachedData);
 
     return;
@@ -679,7 +714,7 @@ export const getCurrentUserProfileInfoFromCache = async (userId:string) => {
 
 
 
- 
+
 };
 
 
@@ -744,6 +779,7 @@ export const softDeleteUserIntoDB = async (id: string) => {
 
 const updateDefaultProfileIntoDB = async (
   userId: string,
+  // eslint-disable-next-line no-undef
   file: Express.Multer.File
 ) => {
 

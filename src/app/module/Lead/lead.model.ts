@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // import mongoose, { Schema } from 'mongoose';
 // import { ILead } from './lead.interface';
 // import { LEAD_STATUS_ENUM, PRIORITY_OPTIONS } from './lead.constant';
