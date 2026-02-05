@@ -18,6 +18,8 @@ import { SsoToken } from '../../firmModule/FirmAuth/SsoToken.model';
 import { getCurrentUserProfileInfoFromCache } from '../User/user.service';
 import { leadService } from '../Lead/lead.service';
 import { LeadServiceService } from '../LeadSettings/leadService.service';
+import { deleteCache } from '../../utils/cacheManger';
+import { CacheKeys } from '../../config/cacheKeys';
 
 /**
  * @desc   Handles user authentication by verifying credentials and user status.
@@ -471,6 +473,12 @@ export const changeAccountStatus = async (
   if (!Object.values(USER_STATUS).includes(accountStatus)) {
     throw new Error('Invalid account status value');
   }
+
+
+
+
+
+
   const updatedUser = await User.findOneAndUpdate(
     { _id: userId, deletedAt: null },
     { accountStatus },
@@ -481,7 +489,13 @@ export const changeAccountStatus = async (
     throw new Error('User not found or deleted');
   }
 
+  await deleteCache([
+    CacheKeys.USER_INFO(userId)
+  ]);
+
+
   if (accountStatus === "approved") {
+
     await sendEmail({
       to: updatedUser.email,
       subject: "Your account is approved as lawyer by Admin",
@@ -693,7 +707,7 @@ const cacheUserData = async (userId: string) => {
   */
 
 
-let leadServices = null;
+  let leadServices = null;
   for (let page = 1; page <= 5; page++) {
     options.page = page;
     leadServices = await leadService.getAllLeadForLawyerPanel(userId, filters, options);
