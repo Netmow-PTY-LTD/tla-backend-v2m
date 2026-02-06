@@ -14,17 +14,6 @@ const requireSuperAdmin = auth(USER_ROLE.SUPER_ADMIN, USER_ROLE.ADMIN);
 // Get all configurations grouped by category
 router.get('/', requireSuperAdmin, envConfigController.getAllConfigs);
 
-// Get single configuration by key
-router.get('/:key', requireSuperAdmin, envConfigController.getConfigByKey);
-
-// Update single configuration
-router.put(
-    '/:key',
-    requireSuperAdmin,
-    validateRequest(envConfigValidation.updateConfigSchema),
-    envConfigController.updateConfig
-);
-
 // Bulk update configurations
 router.put(
     '/bulk/update',
@@ -41,10 +30,21 @@ router.put(
     envConfigController.syncFromEnv
 );
 
+// Reload configurations from database
+router.put('/reload', requireSuperAdmin, envConfigController.reloadConfigs);
+
+// Update single configuration
+router.put(
+    '/:key',
+    requireSuperAdmin,
+    validateRequest(envConfigValidation.updateConfigSchema),
+    envConfigController.updateConfig
+);
+
 // Export configurations to .env format
 router.post('/export/to-env', requireSuperAdmin, envConfigController.exportToEnv);
 
-// Reload configurations from database
-router.put('/reload', requireSuperAdmin, envConfigController.reloadConfigs);
+// Get single configuration by key
+router.get('/:key', requireSuperAdmin, envConfigController.getConfigByKey);
 
 export const envConfigRoutes = router;
