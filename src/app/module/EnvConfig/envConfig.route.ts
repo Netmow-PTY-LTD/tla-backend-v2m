@@ -17,6 +17,14 @@ router.get('/', requireSuperAdmin, envConfigController.getAllConfigs);
 // Get single configuration by key
 router.get('/:key', requireSuperAdmin, envConfigController.getConfigByKey);
 
+// Create new configuration
+router.post(
+    '/',
+    requireSuperAdmin,
+    validateRequest(envConfigValidation.createConfigSchema),
+    envConfigController.createConfig
+);
+
 // Update single configuration
 router.put(
     '/:key',
@@ -24,6 +32,9 @@ router.put(
     validateRequest(envConfigValidation.updateConfigSchema),
     envConfigController.updateConfig
 );
+
+// Delete configuration
+router.delete('/:key', requireSuperAdmin, envConfigController.deleteConfig);
 
 // Bulk update configurations
 router.put(

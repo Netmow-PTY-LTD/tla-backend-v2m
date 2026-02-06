@@ -45,13 +45,22 @@ const getConfigByKey = catchAsync(async (req: Request, res: Response) => {
 // Update single configuration
 const updateConfig = catchAsync(async (req: Request, res: Response) => {
     const { key } = req.params;
-    const { value } = req.body;
+    const { value, group, type, isSensitive, requiresRestart, description } = req.body;
     const adminId = req.user?.userId;
+
+    const metadata = {
+        group,
+        type,
+        isSensitive,
+        requiresRestart,
+        description,
+    };
 
     const result = await envConfigService.updateConfig(
         key,
         value,
-        adminId ? new Types.ObjectId(adminId) : undefined
+        adminId ? new Types.ObjectId(adminId) : undefined,
+        metadata
     );
 
     sendResponse(res, {
@@ -171,10 +180,64 @@ const reloadConfigs = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// Create new configuration
+const createConfig = catchAsync(async (req: Request, res: Response) => {
+    const { key, value, group, type, isSensitive, requiresRestart, description } = req.body;
+    const adminId = req.user?.userId;
+
+    const metadata = {
+        group,
+        type,
+        isSensitive,
+        requiresRestart,
+        description,
+    };
+
+    const result = await envConfigService.upsertConfig(
+        key,
+        value,
+        metadata,
+        adminId ? new Types.ObjectId(adminId) : undefined
+    );
+
+    sendResponse(res, {
+        statusCode: httpStatus.CREATED,
+        success: true,
+        message: 'Environment configuration created successfully',
+        data: result,
+    });
+});
+
+// Delete configuration
+const deleteConfig = catchAsync(async (req: Request, res: Response) => {
+    const { key } = req.params;
+
+    const result = await envConfigService.deleteConfig(key);
+
+    if (!result) {
+        sendResponse(res, {
+            statusCode: httpStatus.NOT_FOUND,
+            success: false,
+            message: `Configuration ${key} not found`,
+            data: null,
+        });
+        return;
+    }
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Environment configuration deleted successfully',
+        data: null,
+    });
+});
+
 export const envConfigController = {
     getAllConfigs,
     getConfigByKey,
+    createConfig,
     updateConfig,
+    deleteConfig,
     bulkUpdateConfigs,
     syncFromEnv,
     exportToEnv,

@@ -148,7 +148,14 @@ const getConfigByKey = async (key: string): Promise<IEnvConfig | null> => {
 const updateConfig = async (
     key: string,
     value: string,
-    adminId?: Types.ObjectId
+    adminId?: Types.ObjectId,
+    metadata?: {
+        group?: string;
+        type?: string;
+        isSensitive?: boolean;
+        requiresRestart?: boolean;
+        description?: string;
+    }
 ): Promise<IEnvConfig> => {
     try {
         const config = await EnvConfig.findOne({ key: key.toUpperCase() });
@@ -158,9 +165,16 @@ const updateConfig = async (
         }
 
         // Encrypt if sensitive
-        const finalValue = config.isSensitive ? encryptValue(value) : value;
+        const isSensitive = metadata?.isSensitive ?? config.isSensitive;
+        const finalValue = isSensitive ? encryptValue(value) : value;
 
-        config.value = finalValue;
+        if (value !== undefined) config.value = finalValue;
+        if (metadata?.group) config.group = metadata.group;
+        if (metadata?.type) config.type = metadata.type;
+        if (metadata?.isSensitive !== undefined) config.isSensitive = metadata.isSensitive;
+        if (metadata?.requiresRestart !== undefined) config.requiresRestart = metadata.requiresRestart;
+        if (metadata?.description) config.description = metadata.description;
+
         config.lastModifiedBy = adminId;
         await config.save();
 
@@ -170,7 +184,7 @@ const updateConfig = async (
 
         console.log(`✅ Updated config: ${key} by admin ${adminId || 'SYSTEM'}`);
 
-        return config;
+        return config as unknown as IEnvConfig;
     } catch (error) {
         console.error(`❌ Error updating config ${key}:`, error);
         throw error;
@@ -225,7 +239,8 @@ const upsertConfig = async (
         isSensitive?: boolean;
         requiresRestart?: boolean;
         description?: string;
-    }
+    },
+    adminId?: Types.ObjectId
 ): Promise<IEnvConfig> => {
     try {
         const isSensitive = metadata?.isSensitive ?? SENSITIVE_FIELDS.includes(key);
@@ -242,23 +257,45 @@ const upsertConfig = async (
                 requiresRestart: metadata?.requiresRestart || false,
                 description: metadata?.description || '',
                 isActive: true,
+                lastModifiedBy: adminId,
             },
             { upsert: true, new: true }
         );
 
         await invalidateCache();
 
-        return config;
+        return config as unknown as IEnvConfig;
     } catch (error) {
         console.error(`❌ Error upserting config ${key}:`, error);
         throw error;
     }
 };
 
+// Update admin info for a configuration
+const updateAdminInfo = async (id: Types.ObjectId, adminId: Types.ObjectId): Promise<void> => {
+    await EnvConfig.findByIdAndUpdate(id, { lastModifiedBy: adminId });
+};
+
 // Reload configurations (bypass cache)
 const reloadConfigs = async (): Promise<IEnvConfigGrouped> => {
     await invalidateCache();
     return getAllConfigs();
+};
+
+// Delete configuration
+const deleteConfig = async (key: string): Promise<boolean> => {
+    try {
+        const result = await EnvConfig.findOneAndDelete({ key: key.toUpperCase() });
+        if (result) {
+            await invalidateCache(key);
+            await invalidateCache();
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error(`❌ Error deleting config ${key}:`, error);
+        throw error;
+    }
 };
 
 export const envConfigService = {
@@ -269,6 +306,8 @@ export const envConfigService = {
     updateConfig,
     bulkUpdateConfigs,
     upsertConfig,
+    updateAdminInfo,
+    deleteConfig,
     reloadConfigs,
     invalidateCache,
 };
