@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import config from './app/config';
 import { server, io } from './app';
 import { initializeSockets, setSocketServerInstance } from './app/sockets';
+import { envConfigLoader } from './app/module/EnvConfig/envConfig.loader';
 
 
 
@@ -11,6 +12,8 @@ async function main() {
     await mongoose.connect(config.database_url as string);
     console.log('✅ Connected to MongoDB');
 
+    // ADD THIS LINE: Initialize dynamic configs
+    await envConfigLoader.initialize();
     // Set and initialize sockets
     setSocketServerInstance(io);
     initializeSockets(io);

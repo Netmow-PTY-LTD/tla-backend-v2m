@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { JwtPayload } from 'jsonwebtoken';
+
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { AppError } from '../../errors/error';
 import User from '../Auth/auth.model';
@@ -440,7 +440,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
 
 /**
  * @desc   Retrieves the profile data of a user from the database based on the JWT payload.
- * @param  {JwtPayload} user - The JWT payload containing the user ID and other details.
+
  * @returns  Returns the user's basic information along with their profile data.
  * @throws {AppError} Throws an error if the user does not exist.
  */
