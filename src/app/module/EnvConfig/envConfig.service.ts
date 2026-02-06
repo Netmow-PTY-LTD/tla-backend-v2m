@@ -282,7 +282,25 @@ const reloadConfigs = async (): Promise<IEnvConfigGrouped> => {
     return getAllConfigs();
 };
 
+<<<<<<< HEAD
 
+=======
+// Delete configuration
+const deleteConfig = async (key: string): Promise<boolean> => {
+    try {
+        const result = await EnvConfig.findOneAndDelete({ key: key.toUpperCase() });
+        if (result) {
+            await invalidateCache(key);
+            await invalidateCache();
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error(`❌ Error deleting config ${key}:`, error);
+        throw error;
+    }
+};
+>>>>>>> c63fedc9367be124ddc20bb0feb1f06ef81c022a
 
 export const envConfigService = {
     encryptValue,
@@ -293,6 +311,10 @@ export const envConfigService = {
     bulkUpdateConfigs,
     upsertConfig,
     updateAdminInfo,
+<<<<<<< HEAD
+=======
+    deleteConfig,
+>>>>>>> c63fedc9367be124ddc20bb0feb1f06ef81c022a
     reloadConfigs,
     invalidateCache,
 };
