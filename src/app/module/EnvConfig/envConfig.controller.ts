@@ -45,13 +45,22 @@ const getConfigByKey = catchAsync(async (req: Request, res: Response) => {
 // Update single configuration
 const updateConfig = catchAsync(async (req: Request, res: Response) => {
     const { key } = req.params;
-    const { value } = req.body;
+    const { value, group, type, isSensitive, requiresRestart, description } = req.body;
     const adminId = req.user?.userId;
+
+    const metadata = {
+        group,
+        type,
+        isSensitive,
+        requiresRestart,
+        description,
+    };
 
     const result = await envConfigService.updateConfig(
         key,
         value,
-        adminId ? new Types.ObjectId(adminId) : undefined
+        adminId ? new Types.ObjectId(adminId) : undefined,
+        metadata
     );
 
     sendResponse(res, {
@@ -170,6 +179,8 @@ const reloadConfigs = catchAsync(async (req: Request, res: Response) => {
         data: null,
     });
 });
+
+
 
 export const envConfigController = {
     getAllConfigs,
