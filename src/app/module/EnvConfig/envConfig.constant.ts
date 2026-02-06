@@ -48,7 +48,6 @@ export const SENSITIVE_FIELDS = [
 
 // Settings that require application restart
 export const RESTART_REQUIRED_FIELDS = [
-    'PORT',
     'BCRYPT_SALT_ROUNDS',
     'DATABASE_URL',
     'REDIS_HOST',
@@ -68,14 +67,7 @@ export const ENV_CONFIG_METADATA = [
         isSensitive: true,
         requiresRestart: true,
     },
-    {
-        key: 'PORT',
-        group: ENV_CONFIG_GROUPS.GENERAL,
-        type: ENV_CONFIG_TYPES.NUMBER,
-        description: 'Server port number',
-        isSensitive: false,
-        requiresRestart: true,
-    },
+
     {
         key: 'CLIENT_SITE_URL',
         group: ENV_CONFIG_GROUPS.GENERAL,

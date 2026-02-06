@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 import { envConfigService } from './envConfig.service';
 import { envConfigLoader } from './envConfig.loader';
 import { Types } from 'mongoose';
+import { EnvConfig } from './envConfig.model';
 
 // Get all configurations
 const getAllConfigs = catchAsync(async (req: Request, res: Response) => {
@@ -104,6 +105,15 @@ const syncFromEnv = catchAsync(async (req: Request, res: Response) => {
     const envVars = process.env;
 
     for (const [key, value] of Object.entries(envVars)) {
+        // Find metadata for this key
+        const metadata = ENV_CONFIG_METADATA.find((m) => m.key === key);
+
+        // ONLY sync keys that are defined in metadata
+        if (!metadata) {
+            skippedCount++;
+            continue;
+        }
+
         // Skip excluded variables
         if (EXCLUDED_ENV_VARS.includes(key)) {
             skippedCount++;
@@ -115,9 +125,6 @@ const syncFromEnv = catchAsync(async (req: Request, res: Response) => {
             skippedCount++;
             continue;
         }
-
-        // Find metadata for this key
-        const metadata = ENV_CONFIG_METADATA.find((m) => m.key === key);
 
         // Check if config already exists
         const existingConfig = await envConfigService.getConfigByKey(key);
@@ -132,11 +139,22 @@ const syncFromEnv = catchAsync(async (req: Request, res: Response) => {
         syncedCount++;
     }
 
+    // Delete keys from DB that are not in metadata
+    const allDbKeys = await EnvConfig.find({}, 'key');
+    let deletedCount = 0;
+
+    for (const config of allDbKeys) {
+        if (!ENV_CONFIG_METADATA.find(m => m.key === config.key)) {
+            await EnvConfig.deleteOne({ key: config.key });
+            deletedCount++;
+        }
+    }
+
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: `Synced ${syncedCount} configurations from .env file. Skipped ${skippedCount}.`,
-        data: { synced: syncedCount, skipped: skippedCount },
+        message: `Sync complete: ${syncedCount} updated/added, ${deletedCount} unmapped removed, ${skippedCount} skipped.`,
+        data: { synced: syncedCount, deleted: deletedCount, skipped: skippedCount },
     });
 });
 

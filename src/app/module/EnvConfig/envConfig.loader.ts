@@ -73,7 +73,6 @@ class EnvConfigLoader {
     private loadFromEnv(): void {
         const defaultConfigs: Record<string, string> = {
             NODE_ENV: process.env.NODE_ENV || 'development',
-            PORT: process.env.PORT || '5000',
             DATABASE_URL: process.env.DATABASE_URL || '',
             BCRYPT_SALT_ROUNDS: process.env.BCRYPT_SALT_ROUNDS || '10',
             DEFAULT_PASS: process.env.DEFAULT_PASS || '',
