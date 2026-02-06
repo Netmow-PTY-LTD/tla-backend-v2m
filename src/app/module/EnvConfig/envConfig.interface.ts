@@ -30,3 +30,12 @@ export interface IEnvConfigGrouped {
         isActive: boolean;
     }[];
 }
+
+export interface IEnvConfigMetadata {
+    key: string;
+    group: string;
+    type: 'string' | 'number' | 'boolean' | 'url' | 'email';
+    description: string;
+    isSensitive: boolean;
+    requiresRestart: boolean;
+}

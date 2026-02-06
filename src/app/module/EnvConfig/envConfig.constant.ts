@@ -25,8 +25,16 @@ export const ENV_CONFIG_TYPES = {
 // Environment variables that should NOT be stored in database
 export const EXCLUDED_ENV_VARS = [
     'DATABASE_URL',
+    'MONGODB_URL',
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_PASSWORD',
+    'REDIS_USERNAME',
+    'REDIS_DB',
+    'REDIS_URL',
     'ENV_ENCRYPTION_KEY',
     'NODE_ENV',
+    'PORT',
 ];
 
 // Sensitive fields that should be encrypted
@@ -56,8 +64,10 @@ export const RESTART_REQUIRED_FIELDS = [
     'REDIS_USERNAME',
 ];
 
+import { IEnvConfigMetadata } from './envConfig.interface';
+
 // Default configuration metadata
-export const ENV_CONFIG_METADATA = [
+export const ENV_CONFIG_METADATA: IEnvConfigMetadata[] = [
     // General
     {
         key: 'DATABASE_URL',

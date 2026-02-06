@@ -6,6 +6,16 @@ import { envConfigService } from './envConfig.service';
 import { envConfigLoader } from './envConfig.loader';
 import { Types } from 'mongoose';
 import { EnvConfig } from './envConfig.model';
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
+import {
+    ENV_CONFIG_METADATA,
+    EXCLUDED_ENV_VARS,
+    ENV_CONFIG_GROUPS,
+    ENV_CONFIG_TYPES
+} from './envConfig.constant';
+import { IEnvConfigMetadata } from './envConfig.interface';
 
 // Get all configurations
 const getAllConfigs = catchAsync(async (req: Request, res: Response) => {
@@ -98,53 +108,81 @@ const syncFromEnv = catchAsync(async (req: Request, res: Response) => {
     let syncedCount = 0;
     let skippedCount = 0;
 
-    // Import metadata
-    const { ENV_CONFIG_METADATA, EXCLUDED_ENV_VARS } = await import('./envConfig.constant');
+    // 4. Get metadata or use default
 
-    // Get all env variables
-    const envVars = process.env;
+    // Read .env file directly to get only project-specific variables
+    const envFilePath = path.join(process.cwd(), '.env');
+    let envVars: Record<string, string> = {};
+
+    if (fs.existsSync(envFilePath)) {
+        const envFileContent = fs.readFileSync(envFilePath, 'utf-8');
+        envVars = dotenv.parse(envFileContent);
+    } else {
+        // Fallback to process.env if .env file is missing (though less precise)
+        envVars = process.env as Record<string, string>;
+    }
+
+    const envKeys = Object.keys(envVars);
 
     for (const [key, value] of Object.entries(envVars)) {
-        // Find metadata for this key
-        const metadata = ENV_CONFIG_METADATA.find((m) => m.key === key);
+        // 1. Skip excluded variables
+        const isExcluded = EXCLUDED_ENV_VARS.includes(key);
+        const isDbOrRedis = key.toUpperCase().includes('DATABASE') ||
+            key.toUpperCase().includes('REDIS') ||
+            key.toUpperCase().includes('MONGODB');
 
-        // ONLY sync keys that are defined in metadata
-        if (!metadata) {
+        if (isExcluded || isDbOrRedis) {
             skippedCount++;
             continue;
         }
 
-        // Skip excluded variables
-        if (EXCLUDED_ENV_VARS.includes(key)) {
-            skippedCount++;
-            continue;
-        }
-
-        // Skip empty values
+        // 2. Skip empty values
         if (!value) {
             skippedCount++;
             continue;
         }
 
-        // Check if config already exists
-        const existingConfig = await envConfigService.getConfigByKey(key);
+        // 3. Get metadata or use default
+        let metadata: IEnvConfigMetadata | undefined = ENV_CONFIG_METADATA.find((m) => m.key === key);
+
+        if (!metadata) {
+            metadata = {
+                key,
+                group: ENV_CONFIG_GROUPS.GENERAL,
+                type: ENV_CONFIG_TYPES.STRING,
+                description: `Automatically synced from project environment: ${key}`,
+                isSensitive: false,
+                requiresRestart: false,
+            };
+        }
+
+        // 4. Check if config already exists
+        const existingConfig = await EnvConfig.findOne({ key: key.toUpperCase() });
 
         if (existingConfig && !force) {
             skippedCount++;
             continue;
         }
 
-        // Upsert configuration
+        // 5. Upsert configuration
         await envConfigService.upsertConfig(key, value, metadata);
         syncedCount++;
     }
 
-    // Delete keys from DB that are not in metadata
-    const allDbKeys = await EnvConfig.find({}, 'key');
+    // Cleanup: Delete keys from DB that are not in metadata AND not in current .env
+    const allDbConfigs = await EnvConfig.find({}, 'key');
     let deletedCount = 0;
 
-    for (const config of allDbKeys) {
-        if (!ENV_CONFIG_METADATA.find(m => m.key === config.key)) {
+    for (const config of allDbConfigs) {
+        const inMetadata = ENV_CONFIG_METADATA.some(m => m.key === config.key);
+        const inEnvFile = envKeys.includes(config.key);
+        const isExcluded = EXCLUDED_ENV_VARS.includes(config.key) ||
+            config.key.toUpperCase().includes('DATABASE') ||
+            config.key.toUpperCase().includes('REDIS') ||
+            config.key.toUpperCase().includes('MONGODB');
+
+        // If it's excluded, OR not in metadata AND not in .env file, remove it
+        if (isExcluded || (!inMetadata && !inEnvFile)) {
             await EnvConfig.deleteOne({ key: config.key });
             deletedCount++;
         }
@@ -153,7 +191,7 @@ const syncFromEnv = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: `Sync complete: ${syncedCount} updated/added, ${deletedCount} unmapped removed, ${skippedCount} skipped.`,
+        message: `Sync complete: ${syncedCount} updated/added, ${deletedCount} removed, ${skippedCount} skipped (includes DB/Redis/Excluded).`,
         data: { synced: syncedCount, deleted: deletedCount, skipped: skippedCount },
     });
 });
