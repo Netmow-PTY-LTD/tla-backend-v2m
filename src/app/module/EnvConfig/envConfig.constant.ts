@@ -35,6 +35,8 @@ export const EXCLUDED_ENV_VARS = [
     'ENV_ENCRYPTION_KEY',
     'NODE_ENV',
     'PORT',
+    'CLIENT_SITE_URL',
+    'FIRM_CLIENT_URL',
 ];
 
 // Sensitive fields that should be encrypted
@@ -76,15 +78,6 @@ export const ENV_CONFIG_METADATA: IEnvConfigMetadata[] = [
         description: 'MongoDB connection string URL',
         isSensitive: true,
         requiresRestart: true,
-    },
-
-    {
-        key: 'CLIENT_SITE_URL',
-        group: ENV_CONFIG_GROUPS.GENERAL,
-        type: ENV_CONFIG_TYPES.URL,
-        description: 'Client application URL',
-        isSensitive: false,
-        requiresRestart: false,
     },
 
     // Security
@@ -338,15 +331,6 @@ export const ENV_CONFIG_METADATA: IEnvConfigMetadata[] = [
         isSensitive: false,
         requiresRestart: false,
     },
-    {
-        key: 'FIRM_CLIENT_URL',
-        group: ENV_CONFIG_GROUPS.FIRM,
-        type: ENV_CONFIG_TYPES.URL,
-        description: 'Firm application URL',
-        isSensitive: false,
-        requiresRestart: false,
-    },
-
     // Redis
     {
         key: 'REDIS_HOST',
