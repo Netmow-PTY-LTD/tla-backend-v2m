@@ -34,6 +34,7 @@ import { galleryRouter } from '../module/Gallery/gallery.route';
 import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterCode.route';
 import { marketingRouter } from '../module/marketing/marketing.route';
 import { LawyerProfileClaimRoutes } from '../module/LawyerProfileClaim/lawyerProfileClaim.route';
+import { envConfigRoutes } from '../module/EnvConfig/envConfig.route';
 
 const router = Router();
 
@@ -174,6 +175,10 @@ const moduleRoutes = [
   {
     path: '/lawyer-profile-claims',
     route: LawyerProfileClaimRoutes,
+  },
+  {
+    path: '/env-config',
+    route: envConfigRoutes,
   },
   {
     path: '/',

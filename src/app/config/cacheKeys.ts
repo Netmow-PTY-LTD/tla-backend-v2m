@@ -75,10 +75,12 @@ export const CacheKeys = {
 
     LEAD_SERVICES_QUESTIONS: (userId: string) => `lead_services_with_questions:${userId}`,
 
+    // ---------- ENV CONFIG ----------
+    ENV_CONFIG_ALL: () => 'ENV_CONFIG:ALL',
+    ENV_CONFIG_BY_KEY: (key: string) => `ENV_CONFIG:KEY:${key}`,
 
 
 };
-
 
 
 
