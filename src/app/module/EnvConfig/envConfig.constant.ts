@@ -35,8 +35,6 @@ export const EXCLUDED_ENV_VARS = [
     'ENV_ENCRYPTION_KEY',
     'NODE_ENV',
     'PORT',
-    'CLIENT_SITE_URL',
-    'FIRM_CLIENT_URL',
 ];
 
 // Sensitive fields that should be encrypted
@@ -363,5 +361,22 @@ export const ENV_CONFIG_METADATA: IEnvConfigMetadata[] = [
         description: 'Redis server username',
         isSensitive: false,
         requiresRestart: true,
+    },
+    // Application URLs
+    {
+        key: 'CLIENT_SITE_URL',
+        group: ENV_CONFIG_GROUPS.GENERAL,
+        type: ENV_CONFIG_TYPES.URL,
+        description: 'Main client application URL',
+        isSensitive: false,
+        requiresRestart: false,
+    },
+    {
+        key: 'FIRM_CLIENT_URL',
+        group: ENV_CONFIG_GROUPS.FIRM,
+        type: ENV_CONFIG_TYPES.URL,
+        description: 'Firm client application URL',
+        isSensitive: false,
+        requiresRestart: false,
     },
 ];
