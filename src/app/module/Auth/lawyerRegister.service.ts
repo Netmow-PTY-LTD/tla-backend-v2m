@@ -350,7 +350,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
     const addressInfo = lawyerServiceMap?.addressInfo
 
     let zipCode;
-  
+
     if (addressInfo?.zipcode && addressInfo.postalCode && addressInfo?.countryCode && addressInfo?.countryId) {
 
       try {
@@ -597,6 +597,13 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
 
 const lawyerRegistrationDraftInDB = async (payload: ILawyerRegistrationDraft) => {
+
+
+  const existingUser = await User.isUserExistsByEmail(payload.email);
+  if (existingUser) {
+    throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
+  }
+
   // 1. Create LawyerRegistrationDraft
   const result = await LawyerRegistrationDraft.create(payload);
 
