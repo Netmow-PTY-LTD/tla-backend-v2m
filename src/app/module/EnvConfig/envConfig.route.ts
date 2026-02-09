@@ -33,6 +33,9 @@ router.put(
 // Reload configurations from database
 router.put('/reload', requireSuperAdmin, envConfigController.reloadConfigs);
 
+// Clear Redis cache
+router.delete('/clear-cache', requireSuperAdmin, envConfigController.clearCache);
+
 // Update single configuration
 router.put(
     '/:key',
