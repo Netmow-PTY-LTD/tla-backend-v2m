@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
 import UserProfile from '../User/user.model';
 import CreditTransaction from '../CreditPayment/creditTransaction.model';
