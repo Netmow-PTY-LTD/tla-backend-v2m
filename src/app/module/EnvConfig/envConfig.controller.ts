@@ -236,6 +236,18 @@ const reloadConfigs = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// Clear cache
+const clearCache = catchAsync(async (req: Request, res: Response) => {
+    await envConfigService.invalidateCache();
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Cache cleared successfully',
+        data: null,
+    });
+});
+
 export const envConfigController = {
     getAllConfigs,
     getConfigByKey,
@@ -244,4 +256,5 @@ export const envConfigController = {
     syncFromEnv,
     exportToEnv,
     reloadConfigs,
+    clearCache,
 };

@@ -53,7 +53,7 @@ const decryptValue = (encryptedValue: string): string => {
 
 // Cache utilities
 const CACHE_PREFIX = 'ENV_CONFIG';
-const CACHE_TTL = 300; // 5 minutes
+const CACHE_TTL = 60 * 60; // 1 hour
 
 const getCacheKey = (key?: string) => {
     return key ? `${CACHE_PREFIX}:${key}` : `${CACHE_PREFIX}:ALL`;
