@@ -1927,7 +1927,7 @@ const lawyerCancelMembershipRequest = async (
   if (!request) return sendNotFoundResponse("Lawyer request not found or already cancelled");
 
   // --- Check if it's still cancellable ---  
-  if (["approved", "rejected", "cancelled", "left"].includes(request.status)) {
+  if (["approved", "cancelled", "left"].includes(request.status)) {
     return (
       `You cannot cancel a request that is already ${request.status}`
     );
@@ -2079,7 +2079,7 @@ const lawyerCancelMembership = async (
     }
 
     // --- Prevent leaving if already in a final status ---
-    const finalStatuses = ["cancelled", "rejected", "left"];
+    const finalStatuses = ["cancelled", "left"];
     if (finalStatuses.includes(request.status)) {
       await session.abortTransaction();
       session.endSession();
