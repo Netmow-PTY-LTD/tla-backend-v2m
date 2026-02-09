@@ -655,6 +655,14 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
 };
 
 const clientRegistrationDraftInDB = async (payload: IClientRegistrationDraft) => {
+
+  const existingUser = await User.isUserExistsByEmail(payload.leadDetails.email);
+  if (existingUser) {
+    throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
+  }
+
+
+
   // 1. Create ClientRegistrationDraft
   const result = await ClientRegistrationDraft.create(payload);
 
