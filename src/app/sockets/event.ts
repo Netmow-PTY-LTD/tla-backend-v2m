@@ -197,7 +197,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
         message: message,
         module: 'response',
         type: 'create',
-        link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        link: `/lawyer/dashboard/my-responses?responseId=${responseId}&tab=chat`,
 
       })
 
@@ -209,7 +209,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
         message: message,
         module: 'response',
         type: 'create',
-        link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        link: `/lawyer/dashboard/my-responses?responseId=${responseId}&tab=chat`,
 
       });
 
