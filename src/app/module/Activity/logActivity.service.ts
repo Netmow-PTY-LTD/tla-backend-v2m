@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 import { getIO } from '../../sockets';
@@ -14,11 +15,11 @@ import { ActivityLog } from './activityLog.model';
 export const getUserActivityLogs = async (userId: string) => {
 
 
-    const logs = await ActivityLog.find({ createdBy: userId })
-        .sort({ createdAt: -1 })
-        .limit(50);
+  const logs = await ActivityLog.find({ createdBy: userId })
+    .sort({ createdAt: -1 })
+    .limit(50);
 
-    return logs;
+  return logs;
 };
 
 
@@ -126,7 +127,7 @@ const createUserActivityLogs = async (userId: string, payload: any) => {
   // Trigger notification unless explicitly disabled
   if (payload.notify !== false) {
     const {
-      notificationTitle = payload.activityNote||'Activity Logged',
+      notificationTitle = payload.activityNote || 'Activity Logged',
       notificationMessage = payload.activityNote,
       link = null,
       toUser,
@@ -254,7 +255,7 @@ const getLawyerDetailsLogFromDB = async (lawyerId: string) => {
 
 
 export const activityLogService = {
-    getUserActivityLogs,
-    createUserActivityLogs,
-    getLawyerDetailsLogFromDB
+  getUserActivityLogs,
+  createUserActivityLogs,
+  getLawyerDetailsLogFromDB
 }

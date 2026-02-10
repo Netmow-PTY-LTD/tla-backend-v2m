@@ -544,6 +544,7 @@ const createLawyerResponseAndSpendCredit = async (
       const pkg = subscription.subscriptionPackageId as unknown as ISubscription;
 
       if (subscription.status === 'active' && pkg) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
         subscriptionValid = true;
         subscriptionToUse = subscription;
 
@@ -1794,7 +1795,7 @@ export const createLeadContactRequest = async (
       message: `${requestedProfile.name} has sent you a contact request regarding a lead.`,
       module: 'lead',
       type: 'contact',
-      link: `/lawyer/dashboard/requests`,
+      link: `/lawyer/dashboard/requests/${leadId}`,  // leadid for frontend lead detail page
     };
 
     // Save notification in DB (inside same transaction)
