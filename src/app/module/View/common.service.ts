@@ -770,7 +770,8 @@ const createLawyerResponseAndSpendCredit = async (
         message: `${user.name} wants to connect with you.`,
         module: 'lead',
         type: 'contact',
-        link: `/client/dashboard/my-cases/${leadId}`,
+        // link: `/client/dashboard/my-cases/${leadId}`,
+        link: `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${resultLeadResponse?._id}`,
         session,
       });
 
@@ -804,7 +805,8 @@ const createLawyerResponseAndSpendCredit = async (
       message: `${user.name} wants to connect with you.`,
       module: 'lead',
       type: 'contact',
-      link: `/client/dashboard/my-cases/${leadId}`,
+      // link: `/client/dashboard/my-cases/${leadId}`,
+      link: `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${(resultLeadResponse as any)?._id}`,
     });
 
     io.to(`user:${userId}`).emit('notification', {
