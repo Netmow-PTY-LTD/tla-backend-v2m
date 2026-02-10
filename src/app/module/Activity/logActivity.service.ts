@@ -129,7 +129,7 @@ const createUserActivityLogs = async (userId: string, payload: any) => {
     const {
       notificationTitle = payload.activityNote || 'Activity Logged',
       notificationMessage = payload.activityNote,
-      link = null,
+      link = payload.link || null,
       toUser,
     } = payload;
 
