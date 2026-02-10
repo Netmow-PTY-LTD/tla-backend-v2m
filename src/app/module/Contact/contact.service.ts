@@ -438,8 +438,8 @@ export const sendContactMessage = async (
         message: emailText,
         name: toUser?.profile?.name || 'User',
         userRole: toUser?.regUserType || 'client',
-        // dashboardUrl: `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
-        dashboardUrl: sendingLink ? `/client/dashboard/my-cases/${leadId}` : `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        // dashboardUrl: sendingLink ? `${config.client_url}/client/dashboard/my-cases/${leadId}` : `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
+        dashboardUrl: sendingLink ? `${config.client_url}/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${responseId}&subTab=activity` : `${config.client_url}/lawyer/dashboard/my-responses?responseId=${responseId}`,
         senderName: sentByUserName || 'User',
         timestamp: new Date().toLocaleString(),
       };
@@ -478,7 +478,8 @@ export const sendContactMessage = async (
           message: `${userProfile.name} sent you an email.`,
           module: 'response',
           type: 'sendemail',
-          link: sendingLink ? `/client/dashboard/my-cases/${leadId}` : `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+          // link: sendingLink ? `/client/dashboard/my-cases/${leadId}` : `/lawyer/dashboard/my-responses?responseId=${responseId}`,
+          link: sendingLink ? `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${responseId}&subTab=activity` : `/lawyer/dashboard/my-responses?responseId=${responseId}`,
         });
 
         sendSocketNotification(
@@ -486,7 +487,7 @@ export const sendContactMessage = async (
           "You've received a new contact message",
           `${userProfile.name} sent you an email.`,
           'sendemail',
-          `/client/dashboard/my-cases/${leadId}`
+          `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${responseId}&subTab=activity`
         );
 
         await createNotification({
@@ -496,7 +497,7 @@ export const sendContactMessage = async (
           message: `You successfully sent an email to ${recipientName}.`,
           module: 'response',
           type: 'sendemail',
-          link: sendingLink ? `/lawyer/dashboard/my-responses?responseId=${responseId}` : `/client/dashboard/my-cases/${leadId}`,
+          link: sendingLink ? `/lawyer/dashboard/my-responses?responseId=${responseId}` : `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${responseId}&subTab=activity`,
         });
 
         sendSocketNotification(

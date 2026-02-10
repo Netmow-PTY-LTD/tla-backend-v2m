@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from "mongoose";
 import { sendNotFoundResponse } from "../../errors/custom.error";
 import UserProfile from "../../module/User/user.model";
@@ -139,7 +140,9 @@ export const updateLawyerRequest = async (
       case "rejected":
         lawyerProfileUpdate.firmProfileId = null;
         lawyerProfileUpdate.firmMembershipStatus = "rejected";
+        lawyerProfileUpdate.isFirmMemberRequestRejected = true;
         lawyerProfileUpdate.joinedAt = null;
+        lawyerProfileUpdate.isFirmMemberRequest = false;
         firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
@@ -200,7 +203,7 @@ const deleteLawyerRequest = async (id: string, userId: string) => {
 
   //   Invalidate cache for the lawyer's user info
   if (deletedRequest && deletedRequest.lawyerId) {
-       await deleteCache(CacheKeys.USER_INFO((deletedRequest.lawyerId as any).user.toString()));
+    await deleteCache(CacheKeys.USER_INFO((deletedRequest.lawyerId as any).user.toString()));
   }
 
   return deletedRequest;

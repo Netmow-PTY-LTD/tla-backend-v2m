@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
 import UserProfile from '../User/user.model';
 import CreditTransaction from '../CreditPayment/creditTransaction.model';
@@ -543,6 +544,7 @@ const createLawyerResponseAndSpendCredit = async (
       const pkg = subscription.subscriptionPackageId as unknown as ISubscription;
 
       if (subscription.status === 'active' && pkg) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
         subscriptionValid = true;
         subscriptionToUse = subscription;
 
@@ -769,7 +771,8 @@ const createLawyerResponseAndSpendCredit = async (
         message: `${user.name} wants to connect with you.`,
         module: 'lead',
         type: 'contact',
-        link: `/client/dashboard/my-cases/${leadId}`,
+        // link: `/client/dashboard/my-cases/${leadId}`,
+        link: `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${resultLeadResponse?._id}`,
         session,
       });
 
@@ -803,7 +806,8 @@ const createLawyerResponseAndSpendCredit = async (
       message: `${user.name} wants to connect with you.`,
       module: 'lead',
       type: 'contact',
-      link: `/client/dashboard/my-cases/${leadId}`,
+      // link: `/client/dashboard/my-cases/${leadId}`,
+      link: `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${(resultLeadResponse as any)?._id}`,
     });
 
     io.to(`user:${userId}`).emit('notification', {
@@ -1791,7 +1795,7 @@ export const createLeadContactRequest = async (
       message: `${requestedProfile.name} has sent you a contact request regarding a lead.`,
       module: 'lead',
       type: 'contact',
-      link: `/lawyer/dashboard/requests`,
+      link: `/lawyer/dashboard/requests/${leadId}`,  // leadid for frontend lead detail page
     };
 
     // Save notification in DB (inside same transaction)
@@ -1926,7 +1930,7 @@ const lawyerCancelMembershipRequest = async (
   if (!request) return sendNotFoundResponse("Lawyer request not found or already cancelled");
 
   // --- Check if it's still cancellable ---  
-  if (["approved", "rejected", "cancelled", "left"].includes(request.status)) {
+  if (["approved", "cancelled", "left"].includes(request.status)) {
     return (
       `You cannot cancel a request that is already ${request.status}`
     );
@@ -2078,7 +2082,7 @@ const lawyerCancelMembership = async (
     }
 
     // --- Prevent leaving if already in a final status ---
-    const finalStatuses = ["cancelled", "rejected", "left"];
+    const finalStatuses = ["cancelled", "left"];
     if (finalStatuses.includes(request.status)) {
       await session.abortTransaction();
       session.endSession();
