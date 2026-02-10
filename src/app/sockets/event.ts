@@ -178,7 +178,7 @@ export const registerChatEvents = (socket: Socket, io: Server) => {
       let notificationLink = `/lawyer/dashboard/my-responses?responseId=${responseId}&tab=chat`;
 
       if (leadResponse && (savedMessage.to as unknown as IUser)?.regUserType === 'client') {
-        notificationLink = `/client/dashboard/my-cases/${leadResponse.leadId}?tab=chat`;
+        notificationLink = `/client/dashboard/my-cases/${leadResponse.leadId}?tab=responded-lawyers&subTab=chat`;
       }
 
 
