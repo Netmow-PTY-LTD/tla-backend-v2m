@@ -72,6 +72,7 @@ export interface IUserProfile {
   joinedAt?: Date | null;
   leftAt?: Date | null;
   isFirmMemberRequest: boolean;
+  isFirmMemberRequestRejected: boolean;
   activeFirmRequestId: Types.ObjectId | null;
   isAccessibleByOtherUsers?: boolean;
   isFirmRemoved?: boolean;

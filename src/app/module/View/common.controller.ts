@@ -1,6 +1,6 @@
 //  contact lawyer
 
-import { request } from "http";
+
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
