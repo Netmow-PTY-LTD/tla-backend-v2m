@@ -1,7 +1,9 @@
 
 import { Server, Socket } from 'socket.io';
+import { IUser } from '../module/Auth/auth.interface';
 import { ResponseWiseChatMessage } from '../module/View/chatMessage.model';
 import { createNotification } from '../module/Notification/notification.utils';
+import LeadResponse from '../module/LeadResponse/response.model';
 
 
 export const registerNotificationEvents = (socket: Socket, io: Server) => {
@@ -86,8 +88,171 @@ export const registerSocketEvents = (socket: Socket, io: Server) => {
 
 
 
+//============================  new chat code base ================================================
 
 export const registerChatEvents = (socket: Socket, io: Server) => {
+
+  // ---------- Allow joining any room (global or response) ----------
+  socket.on('join-room', (roomName: string) => {
+    if (!roomName) return;
+    socket.join(roomName);
+    console.log(` Socket ${socket.id} joined room: ${roomName}`);
+  });
+
+
+
+
+
+
+
+
+  //  Join a response chat room
+  socket.on("joinRoom", async ({ responseId, userId }) => {
+    if (!responseId || !userId) return;
+    const roomName = `response:${responseId}`;
+    socket.join(roomName);
+    console.log(` User ${userId} joined room: ${roomName}`);
+
+    // Fetch unread messages for this user
+    try {
+      const unreadMessages = await ResponseWiseChatMessage.find({
+        responseId,
+        readBy: { $ne: userId },
+      }).populate({
+        path: "from",
+        populate: { path: "profile", select: "name profilePicture" },
+      });
+
+      if (unreadMessages.length > 0) {
+        socket.emit("unread-messages", unreadMessages);
+      }
+    } catch (err) {
+      console.error(" Failed to fetch unread messages", err);
+    }
+
+
+  });
+
+
+  //  Send and save a chat message
+  socket.on("message", async ({ responseId, from, message, to }) => {
+    if (!responseId || !from || !message?.trim()) return;
+
+    try {
+      //  SPEED OPTIMIZATION: Start database tasks in parallel
+      const [savedMessage, leadResponse] = await Promise.all([
+        ResponseWiseChatMessage.create({
+          responseId,
+          from,
+          to,
+          message,
+        }).then(msg =>
+          msg.populate([
+            {
+              path: 'from',
+              populate: {
+                path: 'profile',
+                select: 'name profilePicture',
+              },
+            },
+            {
+              path: 'to',
+              populate: {
+                path: 'profile',
+                select: 'name profilePicture',
+              },
+            },
+          ])
+        ),
+        LeadResponse.findById(responseId).select('leadId').lean(),
+      ]);
+
+      const roomName = `response:${responseId}`;
+
+      //  IMMEDIATE EMIT: Send message to chat room and toaster for fast perceived performance
+      io.to(roomName).emit("message", savedMessage);
+      io.to('global-room').emit(`toast:${to}`, savedMessage);
+
+
+      //  NOTIFICATION (Non-blocking): Handle notification logic after emitting the message
+      let notificationLink = `/lawyer/dashboard/my-responses?responseId=${responseId}&tab=chat`;
+
+      if (leadResponse && (savedMessage.to as unknown as IUser)?.regUserType === 'client') {
+        notificationLink = `/client/dashboard/my-cases/${leadResponse.leadId}?tab=chat`;
+      }
+
+
+      // Fire and forget notifications to keep the socket handler fast
+      Promise.all([
+        createNotification({
+          userId: to,
+          toUser: from,
+          title: "You have received a new message",
+          message: message,
+          module: 'response',
+          type: 'create',
+          link: notificationLink,
+        }),
+        io.to(`user:${to}`).emit('notification', {
+          userId: to,
+          toUser: from,
+          title: "You have received a new message",
+          message: message,
+          module: 'response',
+          type: 'create',
+          link: notificationLink,
+        })
+      ]).catch(err => console.error("❌ Notification error:", err));
+
+    } catch (err) {
+      console.error("❌ Failed to save message", err);
+    }
+  });
+
+  //  Typing indicator
+  socket.on("typing", ({ responseId, userId }) => {
+    if (!responseId || !userId) return;
+    socket.to(`response:${responseId}`).emit("typing", { userId });
+  });
+
+  //  Message read receipt
+  socket.on("message-read", async ({ responseId, messageId, userId }) => {
+
+    if (!responseId || !messageId || !userId) return;
+
+    try {
+      await ResponseWiseChatMessage.findByIdAndUpdate(messageId, {
+        $addToSet: { readBy: userId }, // prevent duplicates
+      });
+
+      // Emit event to everyone in the room
+      io.to(`response:${responseId}`).emit("message-read", {
+        responseId,
+        messageId,
+        userId
+      });
+    } catch (err) {
+      console.error("❌ Failed to mark message as read", err);
+    }
+
+
+
+
+  });
+};
+
+
+
+
+
+
+
+
+//============================  previous chat code base ================================================
+
+
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+const _registerChatEvents = (socket: Socket, io: Server) => {
 
   // ---------- Allow joining any room (global or response) ----------
   socket.on('join-room', (roomName: string) => {
