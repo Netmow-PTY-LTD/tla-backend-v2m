@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Stripe from 'stripe';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 

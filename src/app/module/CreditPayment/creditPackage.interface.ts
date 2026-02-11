@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export interface ICreditPackage {
   name: string;
   credit: number;
@@ -6,4 +8,6 @@ export interface ICreditPackage {
   pricePerCredit?: number;
   discountPercentage: number;
   isActive: boolean;
+  currency: string;
+  country: mongoose.Types.ObjectId;
 }
