@@ -4,8 +4,9 @@ export interface ICountry {
   _id?: string;
   name: string;
   slug: string;
+  currency: string;
   serviceIds: [Types.ObjectId];
- 
+
 }
 
 export interface ICountryWiseLocationGroup {

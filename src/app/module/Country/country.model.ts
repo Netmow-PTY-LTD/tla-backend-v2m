@@ -16,6 +16,13 @@ const countriesSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    currency: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     serviceIds: [
       {
         type: Schema.Types.ObjectId,
@@ -23,7 +30,7 @@ const countriesSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    
+
   },
   {
     versionKey: false,

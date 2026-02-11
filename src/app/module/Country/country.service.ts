@@ -49,7 +49,7 @@ const getAllCountryFromDB = async () => {
 
   const cachedData = await redisClient.get(CacheKeys.ALL_COUNTRIES());
   if (cachedData) {
-   
+
     return JSON.parse(cachedData);
   }
 
