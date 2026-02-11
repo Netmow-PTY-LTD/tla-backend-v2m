@@ -251,17 +251,25 @@ const purchaseCredits = async (
   }
 
   // 5. Charge via Stripe
+
+  const currency = creditPackage.currency ? creditPackage.currency.toLowerCase() : 'aud';
+
   const paymentIntent = await stripe.paymentIntents.create({
     amount: finalPrice,
-    currency: 'usd',
+    currency: currency,
     customer: paymentMethod.stripeCustomerId,
     payment_method: paymentMethod.paymentMethodId,
     off_session: true,
     confirm: true,
+    automatic_tax: {
+      enabled: true,
+    },
     metadata: {
       userId,
       creditPackageId: packageId,
     },
+  } as Stripe.PaymentIntentCreateParams & {
+    automatic_tax: { enabled: boolean };
   });
 
 
