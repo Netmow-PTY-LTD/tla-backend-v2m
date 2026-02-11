@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import { validateObjectId } from '../../utils/validateObjectId';
+
 import { IBillingAddress } from '../User/user.interface';
 import UserProfile from '../User/user.model';
 import { ICreditPackage } from './creditPackage.interface';
@@ -13,7 +13,7 @@ import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
- apiVersion: '2025-05-28.basil',
+  apiVersion: '2025-05-28.basil',
 });
 
 
@@ -35,7 +35,7 @@ const updateCreditPackagesIntoDB = async (
 };
 
 const getCreditPackages = async () => {
- 
+
   const packages = await CreditPackage.find({ isActive: true });
 
   return packages;
@@ -184,7 +184,7 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   }
 
   //  REVALIDATE REDIS CACHE
-    await deleteCache(CacheKeys.USER_INFO(userId));
+  await deleteCache(CacheKeys.USER_INFO(userId));
 
   return result;
 };
