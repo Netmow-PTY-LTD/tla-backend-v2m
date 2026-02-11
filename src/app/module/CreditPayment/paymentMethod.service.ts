@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import UserProfile from '../User/user.model';
 
@@ -352,10 +353,14 @@ const getOrCreateCustomer = async (
   }
 
   // Get billing address from DB
-  const userProfile = await UserProfile.findOne({ user: userId }).select(
-    'billingAddress',
-  );
+  const userProfile = await UserProfile.findOne({ user: userId })
+    .select('billingAddress country')
+    .populate('country');
+
   const billing = userProfile?.billingAddress;
+  const countryData = userProfile?.country as any;
+  const countryCode =
+    countryData?.slug || countryData?.currency?.slice(0, 2) || 'AU';
 
   return await stripe.customers.create({
     email,
@@ -367,7 +372,7 @@ const getOrCreateCustomer = async (
         line2: billing.addressLine2 || undefined,
         city: billing.city,
         postal_code: billing.postcode,
-        country: 'AUD', // You can customize by user country
+        country: countryCode,
       }
       : undefined,
     metadata: {
@@ -404,7 +409,9 @@ const createSetupIntent = async (userId: string, email: string) => {
 
 
 export enum SubscriptionType {
+  // eslint-disable-next-line no-unused-vars
   SUBSCRIPTION = "subscription",
+  // eslint-disable-next-line no-unused-vars
   ELITE_PRO = "elitePro",
 
 }
