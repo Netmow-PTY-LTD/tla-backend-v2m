@@ -17,6 +17,12 @@ const countryZodValidationSchema = z.object({
       )
       .nonempty('Slug is required')
       .trim(),
+    currency: z
+      .string()
+      .min(1, 'Currency must be at least 1 characters')
+      .trim()
+      .nonempty('Currency is required')
+      .optional(),
   }),
 });
 
