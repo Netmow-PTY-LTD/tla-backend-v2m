@@ -26,7 +26,7 @@ import { CacheKeys } from '../../config/cacheKeys';
 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
- apiVersion: '2025-05-28.basil',
+  apiVersion: '2025-05-28.basil',
 });
 
 
@@ -90,7 +90,7 @@ const removePaymentMethod = async (userId: string, paymentMethodId: string) => {
   //   }
   // }
 
-//  REVALIDATE REDIS CACHE
+  //  REVALIDATE REDIS CACHE
   await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
@@ -160,7 +160,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     isDefault: true,
   });
 
-//  REVALIDATE REDIS CACHE
+  //  REVALIDATE REDIS CACHE
   await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
@@ -548,7 +548,7 @@ const createSubscription = async (
     ? new Date(invoiceLine.period.end * 1000)
     : undefined;
 
-  
+
 
 
 
@@ -595,9 +595,10 @@ const createSubscription = async (
     type: "subscription",
     subscriptionId: subscriptionRecord?._id,
     subscriptionType: type,
-    // amountPaid: (latestInvoice?.amount_paid || 0) / 100,
-    amountPaid: latestInvoice?.amount_paid ,
+    amountPaid: (latestInvoice?.amount_paid || 0) / 100,
+    // amountPaid: latestInvoice?.amount_paid ,
     currency: latestInvoice?.currency || "usd",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
     stripeInvoiceId: latestInvoice?.id ?? null,
     invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,
@@ -694,7 +695,7 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
     `🔻 [Subscription Canceled] User: ${userId}, Type: ${type}, Subscription ID: ${subscription._id}`
   );
 
-//  REVALIDATE REDIS CACHE
+  //  REVALIDATE REDIS CACHE
   await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
