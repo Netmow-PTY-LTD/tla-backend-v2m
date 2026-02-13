@@ -28,6 +28,14 @@ router.get(
   notificationController.getUserNotifications,
 );
 
+
+
+router.put(
+  '/read-all',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  notificationController.markAllNotificationsAsRead,
+);
+
 router.put(
   '/:notificationId/red',
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),

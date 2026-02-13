@@ -82,7 +82,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
       address: zipCode?.zipcode,
       zipCode: zipCode?._id,
       lawyerContactEmail: newUser?.email,
-
+       bio:`<p>This is a sample profile description showing how your professional biography will appear on TheLawApp.</p><p>This section allows legal professionals to introduce their background, experience, and approach to client service. A clear and professional profile helps clients understand what to expect when seeking legal assistance and builds confidence before making contact.</p><p>Use this space to outline your qualifications, areas of experience, and how you support clients throughout the legal process. Clear communication, transparency, and professionalism are key to building trust.</p><p>Once updated, this demo content will be replaced by your own profile description and displayed publicly on your TheLawApp profile.</p><p>(This is placeholder text. Please replace it with your own professional biography.)</p>`
     };
 
     // Create the user profile document in the database

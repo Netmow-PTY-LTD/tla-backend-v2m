@@ -110,57 +110,70 @@ const objectId = z
     message: 'Invalid ObjectId',
   });
 
+const lawyerRegistrationDraftBodySchema = z.object({
+  regUserType: z.string().min(1),
+  username: z.string().optional(),
+  email: z.string().email(),
+  role: z.string(),
+  password: z.string().min(6),
+
+  profile: z.object({
+    name: z.string().min(1),
+    gender: z.string(),
+    phone: z.string(),
+    country: objectId,
+    profileType: z.string(),
+    law_society_member_number: z.string().optional(),
+    practising_certificate_number: z.string().optional(),
+  }),
+
+  companyInfo: z.object({
+    companyName: z.any(),
+    companySize: z.string().optional(),
+    companyTeam: z.boolean().optional(),
+    website: z.string().url().optional().or(z.literal('')),
+  }).optional(),
+
+  lawyerServiceMap: z.object({
+    country: objectId,
+    isSoloPractitioner: z.boolean(),
+    practiceInternationally: z.boolean(),
+    practiceWithin: z.boolean(),
+    rangeInKm: z.number().min(0),
+    zipCode: objectId,
+    services: z.array(objectId),
+
+    addressInfo: z.object({
+      countryId: objectId,
+      countryCode: z.string(),
+      postalCode: z.string(),
+      zipcode: z.string(),
+      latitude: z.string(),
+      longitude: z.string(),
+    }),
+  }),
+
+  userProfile: z.string().optional(),
+});
+
+
 export const lawyerRegistrationDraftSchema = z.object({
-  body: z.object({
-    step: z.number().int().min(1),
+  body: lawyerRegistrationDraftBodySchema.superRefine((data, ctx) => {
+    const companyInfo = data.companyInfo;
 
-    regUserType: z.string().min(1),
-    username: z.string().min(3),
-    email: z.string().email(),
-    role: z.string(),
-    password: z.string().min(6),
-
-    profile: z.object({
-      name: z.string().min(1),
-      gender: z.string(),
-      phone: z.string(),
-      country: objectId,
-      profileType: z.string(),
-      law_society_member_number: z.string().optional(),
-      practising_certificate_number: z.string().optional(),
-    }),
-
-    companyInfo: z.object({
-      companyName: objectId,
-      companySize: z.string(),
-      companyTeam: z.boolean(),
-      website: z.string().url().optional().or(z.literal('')),
-    }),
-
-    lawyerServiceMap: z.object({
-      country: objectId,
-      isSoloPractitioner: z.boolean(),
-      practiceInternationally: z.boolean(),
-      practiceWithin: z.boolean(),
-      rangeInKm: z.number().min(0),
-      zipCode: objectId,
-      services: z.array(objectId),
-
-      addressInfo: z.object({
-        countryId: objectId,
-        countryCode: z.string(),
-        zipcode: z.string(),
-        latitude: z.string(),
-        longitude: z.string(),
-      }),
-    }),
-
-    userProfile: z.string().optional(),
+    //  Only validate if companyInfo exists
+    if (companyInfo?.companyTeam === true && !companyInfo.companyName) {
+      ctx.addIssue({
+        path: ['companyInfo', 'companyName'],
+        message: 'Company name is required when company team is enabled',
+        code: z.ZodIssueCode.custom,
+      });
+    }
   }),
 });
 
 const updateLawyerRegistrationDraftSchema = z.object({
-  body: lawyerRegistrationDraftSchema.shape.body.partial(),
+  body: lawyerRegistrationDraftBodySchema.partial(),
 });
 
 const lawyerRegistrationVerifyEmailSchema = z.object({
@@ -178,7 +191,98 @@ const lawyerRegistrationCommitSchema = z.object({
 
 
 
-//
+// client register 
+
+
+// ================= Address =================
+const addressInfoSchema = z.object({
+  countryId: z.string(),
+  countryCode: z.string(),
+  zipcode: z.string(),
+  postalCode: z.string(),
+  latitude: z.string(),
+  longitude: z.string()
+});
+
+// ================= Lead Details =================
+const leadDetailsSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string(),
+  zipCode: z.string(),
+  budgetAmount: z.number(),
+  leadPriority: z.string(),
+  additionalDetails: z.string().optional()
+});
+
+// ================= Question Option =================
+const checkedOptionDetailSchema = z.object({
+
+  id: z.string(),
+  name: z.string(),
+  is_checked: z.boolean(),
+  idExtraData: z.string().optional(),
+});
+
+// ================= Question =================
+const leadQuestionSchema = z.object({
+  questionId: z.string(),
+  question: z.string(),
+  order: z.number().optional(),
+  step: z.number().optional(),
+  checkedOptionsDetails: z.array(checkedOptionDetailSchema).min(1)
+});
+
+// ================= Main Payload =================
+const createLeadSchema = z.object({
+  body: z.object({
+    countryId: z.string(),
+    serviceId: z.string(),
+    addressInfo: addressInfoSchema,
+    leadDetails: leadDetailsSchema,
+    questions: z.array(leadQuestionSchema).min(1)
+  })
+});
+
+const clientRegistrationDraftSchema = z.object({
+  body: z.object({
+    countryId: z.string(),
+    serviceId: z.string(),
+    addressInfo: addressInfoSchema,
+    leadDetails: leadDetailsSchema,
+    questions: z.array(leadQuestionSchema).min(1)
+  }),
+});
+
+const updateClientRegistrationDraftSchema = z.object({
+  body: clientRegistrationDraftSchema.shape.body.partial(),
+});
+
+const clientRegistrationVerifyEmailSchema = z.object({
+  body: z.object({
+    draftId: z.string({ required_error: 'Draft ID is required' }),
+    code: z.string({ required_error: 'Verification code is required' }),
+  }),
+});
+
+const clientRegistrationCommitSchema = z.object({
+  body: z.object({
+    draftId: z.string({ required_error: 'Draft ID is required' }),
+  }),
+});
+
+// ================= Inferred Type =================
+export type CreateLeadInput = z.infer<typeof createLeadSchema>;
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -201,5 +305,11 @@ export const authZodValidation = {
   lawyerRegistrationDraftSchema,
   updateLawyerRegistrationDraftSchema,
   lawyerRegistrationVerifyEmailSchema,
-  lawyerRegistrationCommitSchema
+  lawyerRegistrationCommitSchema,
+  createLeadSchema,
+  clientRegistrationDraftSchema,
+  updateClientRegistrationDraftSchema,
+  clientRegistrationVerifyEmailSchema,
+  clientRegistrationCommitSchema
+
 };

@@ -398,6 +398,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
     // Link the profile to the newly created user
     newUser.profile = new Types.ObjectId(newProfile._id);
+    newUser.createdBy = new Types.ObjectId(newUser._id);
     await newUser.save({ session });
 
     // compnay profile map create
@@ -501,21 +502,6 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
 
 
-    // const { subject, text, html } = generateRegistrationEmail({
-    //   name: newProfile?.name || 'User',
-    //   email: newUser.email,
-    //   defaultPassword: userData.password,
-    //   loginUILink: `${config.client_url}/login`,
-    //   appName: 'The Law App',
-    // });
-
-    //  await sendEmail({
-    //   to: newUser.email,
-    //   subject,
-    //   text,
-    //   html,
-
-    // });
 
 
 
@@ -611,6 +597,13 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
 
 const lawyerRegistrationDraftInDB = async (payload: ILawyerRegistrationDraft) => {
+
+
+  const existingUser = await User.isUserExistsByEmail(payload.email);
+  if (existingUser) {
+    throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
+  }
+
   // 1. Create LawyerRegistrationDraft
   const result = await LawyerRegistrationDraft.create(payload);
 

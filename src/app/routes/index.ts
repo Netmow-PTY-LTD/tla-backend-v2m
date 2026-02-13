@@ -20,7 +20,7 @@ import { profileVisitorRouter } from '../module/VisitorTracker/profileVisitor.ro
 import { adminRouter } from '../module/Admin/admin.routes';
 import { CountryWiseMapRouter } from '../module/CountryWiseMap/countryWiseMap.route';
 import { lawFirmCertRouter } from '../module/LawfirmCertification/lawFirmCert.route';
-import { subscriptionPackRoutes} from '../module/SubscriptionPackage/subscriptionPack.route';
+import { subscriptionPackRoutes } from '../module/SubscriptionPackage/subscriptionPack.route';
 import { eliteProSubscriptionRouter } from '../module/EliteProPackage/EliteProSubs.route';
 import { pageRouter } from '../module/Pages/page.route';
 import { claimRouter } from '../module/Claim/claim.route';
@@ -33,6 +33,8 @@ import { blogCategoryRoutes } from '../module/blogCategory/blogCategory.route';
 import { galleryRouter } from '../module/Gallery/gallery.route';
 import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterCode.route';
 import { marketingRouter } from '../module/marketing/marketing.route';
+import { LawyerProfileClaimRoutes } from '../module/LawyerProfileClaim/lawyerProfileClaim.route';
+import { envConfigRoutes } from '../module/EnvConfig/envConfig.route';
 
 const router = Router();
 
@@ -169,6 +171,14 @@ const moduleRoutes = [
   {
     path: '/marketing',
     route: marketingRouter,
+  },
+  {
+    path: '/lawyer-profile-claims',
+    route: LawyerProfileClaimRoutes,
+  },
+  {
+    path: '/env-config',
+    route: envConfigRoutes,
   },
   {
     path: '/',

@@ -78,10 +78,20 @@ const getUserNotificationsFromDB = async (
   return notifications;
 };
 
+
+const markAllNotificationsAsReadFromDB = async (userId: string) => {
+  const result = await Notification.updateMany(
+    { userId: userId, isRead: false },
+    { $set: { isRead: true } }
+  );
+  return result;
+};
+
 export const notificationService = {
   browserNotificationUpdateIntoDB,
   emailNotificationUpdateIntoDB,
   getAllNotificationPreferenceFromDB,
   markNotificationAsReadFromDB,
-  getUserNotificationsFromDB
+  getUserNotificationsFromDB,
+  markAllNotificationsAsReadFromDB
 };

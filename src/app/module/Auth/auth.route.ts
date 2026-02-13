@@ -75,7 +75,36 @@ router.post("/change-email", authController.changeEmail);
 
 
 //  --------------- client Register  ----------------------------
-router.post('/register/client', clientRegisterController.clientRegister);
+router.post(
+  '/register/client',
+  validateRequest(authZodValidation.createLeadSchema),
+  clientRegisterController.clientRegister
+);
+
+router.post(
+  '/client/registration/draft',
+  validateRequest(authZodValidation.clientRegistrationDraftSchema),
+  clientRegisterController.clientRegistrationDraft,
+);
+
+router.patch(
+  '/client/registration/draft/:draftId',
+  validateRequest(authZodValidation.updateClientRegistrationDraftSchema),
+  clientRegisterController.updateClientRegistrationDraft,
+);
+
+router.post(
+  '/client/registration/verify-email',
+  validateRequest(authZodValidation.clientRegistrationVerifyEmailSchema),
+  clientRegisterController.verifyClientRegistrationEmail,
+);
+
+router.post(
+  '/client/registration/commit',
+  validateRequest(authZodValidation.clientRegistrationCommitSchema),
+  clientRegisterController.commitClientRegistration,
+);
+
 
 //  --------------- Lawyer Register  ----------------------------
 router.post(

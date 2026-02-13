@@ -154,6 +154,10 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: Boolean,
       default: false,
     },
+    isFirmMemberRequestRejected: {
+      type: Boolean,
+      default: false,
+    },
 
     isFirmRemoved: {
       type: Boolean,

@@ -37,6 +37,7 @@ export interface ILawyerRegistrationDraft extends Document {
     services: mongoose.Types.ObjectId[];
     addressInfo: {
       countryId: mongoose.Types.ObjectId;
+       postalCode: string;
       countryCode: string;
       zipcode: string;
       latitude: string;
@@ -55,7 +56,7 @@ export interface ILawyerRegistrationDraft extends Document {
 
 const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
   {
-    step: { type: Number, required: true },
+    step: { type: Number },
 
     regUserType: { type: String, required: true },
     username: { type: String, default: '' },
@@ -77,10 +78,11 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
       companyName: {
         type: Schema.Types.ObjectId,
         ref: 'Company',
-        required: true
+        set: (val: string) => (val === '' ? undefined : val),
+       
       },
       companySize: { type: String },
-      companyTeam: { type: Boolean, required: true },
+      companyTeam: { type: Boolean,  },
       website: { type: String }
     },
 
@@ -112,6 +114,7 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
           ref: 'Country',
           required: true
         },
+        postalCode: { type: String,required: true  },
         countryCode: { type: String, required: true },
         zipcode: { type: String, required: true },
         latitude: { type: String, required: true },

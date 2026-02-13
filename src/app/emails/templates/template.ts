@@ -1,6 +1,7 @@
 import config from '../../config';
 
 const appName = 'TheLawApp';
+const currentYear = new Date().getFullYear();
 const headerDesign = `<!DOCTYPE html>
 <html>
 <head>
@@ -73,7 +74,7 @@ const footerDesign = `
         
       </tr>
     </table>
-        <p style="margin: 0 0 10px;">© 2025 ${appName}. All rights reserved.<br>
+        <p style="margin: 0 0 10px;">© ${currentYear} ${appName}. All rights reserved.<br>
            You are receiving this email because you are connected with TheLawApp.</p>
         <p style="margin: 0;">
           <a href="${config.client_url}/privacy-policy" style="color: #999; margin-right: 5px;">Privacy Policy</a> •
@@ -1552,6 +1553,41 @@ ${headerDesign}
 //   `;
 // };
 
+
+
+
+
+const roleEmailContentMap: Record<
+  string,
+  {
+    description: string;
+    buttonText: string;
+  }
+> = {
+  lawyer: {
+    description:
+      'To complete your registration and activate your account, please verify your email address. Once verified, you will have full access to your Lawyer Dashboard and platform features.',
+    buttonText: 'Activate Account',
+  },
+
+  client: {
+    description:
+      'Please verify your email address to activate your TheLawApp account and access your Client Dashboard.',
+    buttonText: 'Activate Account',
+  },
+
+  user: {
+    description:
+      'Thank you for registering with <strong>TheLawApp</strong>. Please verify your email address to activate your account and access all available features.',
+    buttonText: 'Verify Account',
+  },
+};
+
+
+
+
+
+
 export const emailVerificationTemplate = (data: {
   name: string;
   verifyUrl: string;
@@ -1559,6 +1595,10 @@ export const emailVerificationTemplate = (data: {
 }) => {
   const { name, verifyUrl, role } = data;
   // const appName = 'TheLawApp';
+  const emailContent =
+    roleEmailContentMap[role.toLowerCase()] ?? roleEmailContentMap.user;
+
+
   return `
   ${headerDesign}
 
@@ -1567,13 +1607,13 @@ export const emailVerificationTemplate = (data: {
       <td style="padding: 0 30px;">
         <h2 style="font-size: 20px; margin-bottom: 8px;">Hi ${name},</h2>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;">
-          Thank you for registering with <strong>TheLawApp</strong>. Please verify your email address to activate your account and access your ${role} dashboard.
+            ${emailContent.description}
         </p>
 
         <!-- Verify Button -->
         <div style="text-align: center; margin-bottom: 15px;">
           <a href="${verifyUrl}" style="background-color:#FF7F27; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:16px; display:inline-block;">
-            Verify Email
+             ${emailContent.buttonText}
           </a>
         </div>
 
