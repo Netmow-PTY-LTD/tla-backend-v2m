@@ -272,6 +272,7 @@ const purchaseCredits = async (
       userId,
       creditPackageId: packageId,
     },
+    expand: ['latest_charge', 'latest_charge.balance_transaction'], // Expand to access charge and balance transaction details
   };
 
   // Only add automatic_tax if enabled in environment
@@ -310,12 +311,24 @@ const purchaseCredits = async (
   }
 
   // 6. Extract tax information from payment intent
-  const taxAmount = (paymentIntent.total_tax_amounts?.[0]?.amount || 0) / 100;
+  // Access tax data from the expanded latest_charge and balance_transaction
+  const latestCharge = paymentIntent.latest_charge as Stripe.Charge | null;
+  const balanceTransaction = latestCharge?.balance_transaction as Stripe.BalanceTransaction | null;
+
+  // Calculate tax amount from balance transaction fee details
+  // Stripe automatic tax creates a tax fee in the balance transaction
+  const taxFee = balanceTransaction?.fee_details?.find(fee => fee.type === 'tax');
+  const taxAmount = taxFee ? (taxFee.amount / 100) : 0;
+
   const totalAmount = (paymentIntent.amount_received || paymentIntent.amount) / 100;
   const subtotalAmount = totalAmount - taxAmount;
-  const taxJurisdiction = paymentIntent.total_tax_amounts?.[0]?.jurisdiction;
-  const taxType = paymentIntent.total_tax_amounts?.[0]?.tax_rate_details?.tax_type;
-  const taxRatePercentage = paymentIntent.total_tax_amounts?.[0]?.tax_rate_details?.percentage_decimal;
+
+  // For automatic tax, we need to get tax details from the payment intent metadata or invoice
+  // Since this is a direct charge, tax rate info may not be directly available
+  // We'll store what we can calculate
+  const taxJurisdiction = undefined; // Not directly available on charge
+  const taxType = undefined; // Not directly available on charge
+  const taxRatePercentage = taxAmount > 0 ? (taxAmount / subtotalAmount * 100) : undefined;
 
   // 7. Create transaction with tax details
   const transaction = await Transaction.create({
@@ -530,7 +543,7 @@ const createSubscription = async (
     collection_method: "charge_automatically",
     payment_behavior: "allow_incomplete",
     default_payment_method: savedPaymentMethod.paymentMethodId,
-    expand: ["latest_invoice.payment_intent"],
+    expand: ["latest_invoice.payment_intent", "latest_invoice.total_tax_amounts"],
   };
 
   // Only add automatic_tax if enabled in environment
@@ -542,7 +555,19 @@ const createSubscription = async (
   const subscription = await stripe.subscriptions.create(subscriptionParams);
 
   // 6️ Attempt to pay invoice off-session (backend)
-  const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent }) | undefined;
+  const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & {
+    payment_intent?: Stripe.PaymentIntent;
+    total_tax_amounts?: Array<{
+      amount: number;
+      inclusive: boolean;
+      jurisdiction?: string;
+      tax_rate_details?: {
+        tax_type?: string;
+        percentage_decimal?: number;
+        display_name?: string;
+      };
+    }>;
+  }) | undefined;
   let paymentSucceeded = false;
 
   if (latestInvoice && latestInvoice.payment_intent) {
@@ -635,8 +660,8 @@ const createSubscription = async (
 
   // 8️ Extract tax information from invoice
   const invoiceSubtotal = (latestInvoice?.subtotal || 0) / 100;
-  const invoiceTax = (latestInvoice?.tax || 0) / 100;
   const invoiceTotal = (latestInvoice?.total || 0) / 100;
+  const invoiceTax = invoiceTotal - invoiceSubtotal; // Calculate tax from total - subtotal
   const invoiceAmountPaid = (latestInvoice?.amount_paid || 0) / 100;
 
   // Extract tax details from invoice line items
