@@ -260,21 +260,27 @@ const purchaseCredits = async (
   }
   const currency = creditPackage.currency.toLowerCase();
 
-  const paymentIntent = await stripe.paymentIntents.create({
+  // 6. Create payment intent with optional automatic tax
+  const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
     amount: finalPrice,
     currency: currency,
     customer: paymentMethod.stripeCustomerId,
     payment_method: paymentMethod.paymentMethodId,
     off_session: true,
     confirm: true,
-    automatic_tax: {
-      enabled: true,
-    },
     metadata: {
       userId,
       creditPackageId: packageId,
     },
-  });
+  };
+
+  // Only add automatic_tax if enabled in environment
+  // Set ENABLE_AUTOMATIC_TAX=true in .env after configuring Stripe Tax
+  if (process.env.ENABLE_AUTOMATIC_TAX === 'true') {
+    paymentIntentParams.automatic_tax = { enabled: true };
+  }
+
+  const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
 
   if (paymentIntent.status !== 'succeeded') {
@@ -516,19 +522,24 @@ const createSubscription = async (
     }
   }
 
-  // 5️ Create subscription with automatic tax
-  const subscription = await stripe.subscriptions.create({
+  // 5️ Create subscription with optional automatic tax
+  const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
     items: [{ price: subscriptionPackage.stripePriceId }],
     metadata: { userId, packageId, type },
     collection_method: "charge_automatically",
-    payment_behavior: "allow_incomplete", // allow backend confirmation
+    payment_behavior: "allow_incomplete",
     default_payment_method: savedPaymentMethod.paymentMethodId,
     expand: ["latest_invoice.payment_intent"],
-    automatic_tax: {
-      enabled: true,
-    },
-  });
+  };
+
+  // Only add automatic_tax if enabled in environment
+  // Set ENABLE_AUTOMATIC_TAX=true in .env after configuring Stripe Tax
+  if (process.env.ENABLE_AUTOMATIC_TAX === 'true') {
+    subscriptionParams.automatic_tax = { enabled: true };
+  }
+
+  const subscription = await stripe.subscriptions.create(subscriptionParams);
 
   // 6️ Attempt to pay invoice off-session (backend)
   const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent }) | undefined;
