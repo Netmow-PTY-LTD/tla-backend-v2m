@@ -251,9 +251,14 @@ const purchaseCredits = async (
     return { success: false, message: 'No default payment method found' };
   }
 
-  // 5. Charge via Stripe
-
-  const currency = creditPackage.currency ? creditPackage.currency.toLowerCase() : 'aud';
+  // 5. Validate and get currency
+  if (!creditPackage.currency) {
+    throw new AppError(
+      HTTP_STATUS.BAD_REQUEST,
+      'Credit package currency is not configured'
+    );
+  }
+  const currency = creditPackage.currency.toLowerCase();
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: finalPrice,
@@ -262,29 +267,14 @@ const purchaseCredits = async (
     payment_method: paymentMethod.paymentMethodId,
     off_session: true,
     confirm: true,
+    automatic_tax: {
+      enabled: true,
+    },
     metadata: {
       userId,
       creditPackageId: packageId,
     },
   });
-
-  // const paymentIntent = await stripe.paymentIntents.create({
-  //   amount: finalPrice,
-  //   currency: currency,
-  //   customer: paymentMethod.stripeCustomerId,
-  //   payment_method: paymentMethod.paymentMethodId,
-  //   off_session: true,
-  //   confirm: true,
-  //   automatic_tax: {
-  //     enabled: true,
-  //   },
-  //   metadata: {
-  //     userId,
-  //     creditPackageId: packageId,
-  //   },
-  // } as Stripe.PaymentIntentCreateParams & {
-  //   automatic_tax: { enabled: boolean };
-  // });
 
 
   if (paymentIntent.status !== 'succeeded') {
@@ -313,14 +303,27 @@ const purchaseCredits = async (
 
   }
 
-  // 6. Create transaction
+  // 6. Extract tax information from payment intent
+  const taxAmount = (paymentIntent.total_tax_amounts?.[0]?.amount || 0) / 100;
+  const totalAmount = (paymentIntent.amount_received || paymentIntent.amount) / 100;
+  const subtotalAmount = totalAmount - taxAmount;
+  const taxJurisdiction = paymentIntent.total_tax_amounts?.[0]?.jurisdiction;
+  const taxType = paymentIntent.total_tax_amounts?.[0]?.tax_rate_details?.tax_type;
+  const taxRatePercentage = paymentIntent.total_tax_amounts?.[0]?.tax_rate_details?.percentage_decimal;
+
+  // 7. Create transaction with tax details
   const transaction = await Transaction.create({
     userId,
     type: 'purchase',
     creditPackageId: packageId,
     credit: creditPackage.credit,
-    amountPaid: finalPrice / 100,
-    // invoiceId: paymentIntent.id,
+    subtotal: subtotalAmount,
+    taxAmount: taxAmount,
+    taxRate: taxRatePercentage,
+    totalWithTax: totalAmount,
+    amountPaid: totalAmount,
+    taxJurisdiction: taxJurisdiction,
+    taxType: taxType,
     currency: paymentIntent.currency,
     status: 'completed',
     couponCode,
@@ -513,7 +516,7 @@ const createSubscription = async (
     }
   }
 
-  // 5️ Create subscription
+  // 5️ Create subscription with automatic tax
   const subscription = await stripe.subscriptions.create({
     customer: stripeCustomerId,
     items: [{ price: subscriptionPackage.stripePriceId }],
@@ -522,6 +525,9 @@ const createSubscription = async (
     payment_behavior: "allow_incomplete", // allow backend confirmation
     default_payment_method: savedPaymentMethod.paymentMethodId,
     expand: ["latest_invoice.payment_intent"],
+    automatic_tax: {
+      enabled: true,
+    },
   });
 
   // 6️ Attempt to pay invoice off-session (backend)
@@ -616,15 +622,31 @@ const createSubscription = async (
 
   await userProfile.save();
 
+  // 8️ Extract tax information from invoice
+  const invoiceSubtotal = (latestInvoice?.subtotal || 0) / 100;
+  const invoiceTax = (latestInvoice?.tax || 0) / 100;
+  const invoiceTotal = (latestInvoice?.total || 0) / 100;
+  const invoiceAmountPaid = (latestInvoice?.amount_paid || 0) / 100;
 
+  // Extract tax details from invoice line items
+  const taxRates = latestInvoice?.total_tax_amounts?.[0];
+  const taxJurisdiction = taxRates?.jurisdiction;
+  const taxType = taxRates?.tax_rate_details?.tax_type;
+  const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
 
+  // 9️ Create transaction record with tax data
   await Transaction.create({
     userId,
     type: "subscription",
     subscriptionId: subscriptionRecord?._id,
     subscriptionType: type,
-    // amountPaid: (latestInvoice?.amount_paid || 0) / 100,
-    amountPaid: latestInvoice?.amount_paid,
+    subtotal: invoiceSubtotal,
+    taxAmount: invoiceTax,
+    taxRate: taxRatePercentage,
+    totalWithTax: invoiceTotal,
+    amountPaid: invoiceAmountPaid,
+    taxJurisdiction: taxJurisdiction,
+    taxType: taxType,
     currency: latestInvoice?.currency || "usd",
     stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
     stripeInvoiceId: latestInvoice?.id ?? null,

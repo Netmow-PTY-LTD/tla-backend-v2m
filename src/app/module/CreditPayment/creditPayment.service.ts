@@ -166,6 +166,14 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   });
 
   if (defaultPaymentMethod?.stripeCustomerId) {
+    // Get user's country for accurate address
+    const userProfileForCountry = await UserProfile.findOne({ user: userId })
+      .select('country')
+      .populate('country');
+
+    const countryData = userProfileForCountry?.country as any;
+    const countryCode = countryData?.slug || countryData?.currency?.slice(0, 2) || 'AU';
+
     await stripe.customers.update(defaultPaymentMethod.stripeCustomerId, {
       name: body.contactName,
       phone: body.phoneNumber,
@@ -174,7 +182,7 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
         line2: body.addressLine2 || undefined,
         city: body.city,
         postal_code: body.postcode,
-        country: 'AUD',
+        country: countryCode,
       },
       metadata: {
         userId,
