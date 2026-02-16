@@ -35,15 +35,23 @@ const updateCreditPackagesIntoDB = async (
   return packageCreate;
 };
 
-const getCreditPackages = async () => {
+const getCreditPackages = async (query: Record<string, any>) => {
+  const filter: Record<string, any> = {};
 
-  const packages = await CreditPackage.find({ isActive: true });
+  if (query.isActive !== undefined) {
+    filter.isActive = query.isActive === 'true';
+  } else {
+    // Default to active only if not specified
+    filter.isActive = true;
+  }
+
+  if (query.country) {
+    filter.country = query.country;
+  }
+
+  const packages = await CreditPackage.find(filter).populate('country');
 
   return packages;
-
-
-
-
 };
 
 // const purchaseCredits = async (
