@@ -204,7 +204,7 @@ const purchaseCredits = async (
 
 
   // 1. Find credit package
-  const creditPackage = await CreditPackage.findById(packageId);
+  const creditPackage = await CreditPackage.findById(packageId).populate('country');
   if (!creditPackage) return sendNotFoundResponse('Credit package not found');
 
 
@@ -227,10 +227,17 @@ const purchaseCredits = async (
     }
   }
 
-  // 3. Calculate final price
-  const finalPrice = Math.round(
+  // 3. Calculate final price and tax manually
+  const subtotalCents = Math.round(
     creditPackage.price * (1 - discount / 100) * 100,
   ); // in cents
+
+  const country = creditPackage.country as any;
+  const taxPercentage = country?.taxPercentage || 0;
+  const taxFlatAmount = (country?.taxAmount || 0) * 100; // Flat amount in cents
+
+  const calculatedTaxCents = Math.round((subtotalCents * taxPercentage) / 100) + taxFlatAmount;
+  const finalPriceCents = subtotalCents + calculatedTaxCents;
 
   // 4. Get user's default payment method
 
@@ -260,9 +267,9 @@ const purchaseCredits = async (
   }
   const currency = creditPackage.currency.toLowerCase();
 
-  // 6. Create payment intent with optional automatic tax
+  // 6. Create payment intent
   const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
-    amount: finalPrice,
+    amount: finalPriceCents,
     currency: currency,
     customer: paymentMethod.stripeCustomerId,
     payment_method: paymentMethod.paymentMethodId,
@@ -271,15 +278,14 @@ const purchaseCredits = async (
     metadata: {
       userId,
       creditPackageId: packageId,
+      manualTaxAmount: (calculatedTaxCents / 100).toString(),
+      taxType: country?.taxType || 'Tax',
     },
-    expand: ['latest_charge', 'latest_charge.balance_transaction'], // Expand to access charge and balance transaction details
+    expand: ['latest_charge', 'latest_charge.balance_transaction'],
   };
 
-  // Only add automatic_tax if enabled in environment
-  // Set ENABLE_AUTOMATIC_TAX=true in .env after configuring Stripe Tax
-  if (process.env.ENABLE_AUTOMATIC_TAX === 'true') {
-    paymentIntentParams.automatic_tax = { enabled: true };
-  }
+  // Disable automatic tax as we are handling it manually
+  paymentIntentParams.automatic_tax = { enabled: false };
 
   const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
@@ -310,27 +316,16 @@ const purchaseCredits = async (
 
   }
 
-  // 6. Extract tax information from payment intent
-  // Access tax data from the expanded latest_charge and balance_transaction
-  const latestCharge = paymentIntent.latest_charge as Stripe.Charge | null;
-  const balanceTransaction = latestCharge?.balance_transaction as Stripe.BalanceTransaction | null;
+  // 7. Extract tax information for transaction record
+  const totalAmount = finalPriceCents / 100;
+  const subtotalAmount = subtotalCents / 100;
+  const taxAmount = calculatedTaxCents / 100;
 
-  // Calculate tax amount from balance transaction fee details
-  // Stripe automatic tax creates a tax fee in the balance transaction
-  const taxFee = balanceTransaction?.fee_details?.find(fee => fee.type === 'tax');
-  const taxAmount = taxFee ? (taxFee.amount / 100) : 0;
+  const taxJurisdiction = country?.name;
+  const taxType = country?.taxType || 'Tax';
+  const taxRatePercentage = taxPercentage;
 
-  const totalAmount = (paymentIntent.amount_received || paymentIntent.amount) / 100;
-  const subtotalAmount = totalAmount - taxAmount;
-
-  // For automatic tax, we need to get tax details from the payment intent metadata or invoice
-  // Since this is a direct charge, tax rate info may not be directly available
-  // We'll store what we can calculate
-  const taxJurisdiction = undefined; // Not directly available on charge
-  const taxType = undefined; // Not directly available on charge
-  const taxRatePercentage = taxAmount > 0 ? (taxAmount / subtotalAmount * 100) : undefined;
-
-  // 7. Create transaction with tax details
+  // 8. Create transaction with tax details
   const transaction = await Transaction.create({
     userId,
     type: 'purchase',
@@ -452,6 +447,24 @@ export enum SubscriptionType {
 }
 
 
+const getOrCreateTaxRate = async (name: string, percentage: number, jurisdiction?: string, inclusive: boolean = false) => {
+  const taxRates = await stripe.taxRates.list({ active: true });
+  const existing = taxRates.data.find(tr =>
+    tr.display_name === name &&
+    tr.percentage === percentage &&
+    tr.inclusive === inclusive &&
+    tr.jurisdiction === jurisdiction
+  );
+  if (existing) return existing;
+
+  return await stripe.taxRates.create({
+    display_name: name,
+    percentage: percentage,
+    inclusive: inclusive,
+    jurisdiction: jurisdiction,
+  });
+};
+
 
 const createSubscription = async (
   userId: string,
@@ -469,8 +482,8 @@ const createSubscription = async (
     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid package");
   }
 
-  // 2️ Get user profile
-  const userProfile = await UserProfile.findOne({ user: userId });
+  // 2️ Get user profile with country
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
 
 
@@ -535,10 +548,26 @@ const createSubscription = async (
     }
   }
 
-  // 5️ Create subscription with optional automatic tax
+  const country = userProfile.country as any;
+  const taxPercentage = country?.taxPercentage || 0;
+  let taxRateId: string | undefined;
+
+  if (taxPercentage > 0) {
+    try {
+      const taxRate = await getOrCreateTaxRate(country.taxType || 'Tax', taxPercentage, country.name);
+      taxRateId = taxRate.id;
+    } catch (err: any) {
+      console.error(" Error getting/creating tax rate:", err.message);
+    }
+  }
+
+  // 5️ Create subscription with manual tax rate
   const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
-    items: [{ price: subscriptionPackage.stripePriceId }],
+    items: [{
+      price: subscriptionPackage.stripePriceId,
+      tax_rates: taxRateId ? [taxRateId] : undefined
+    }],
     metadata: { userId, packageId, type },
     collection_method: "charge_automatically",
     payment_behavior: "allow_incomplete",
@@ -546,11 +575,8 @@ const createSubscription = async (
     expand: ["latest_invoice.payment_intent", "latest_invoice.total_tax_amounts"],
   };
 
-  // Only add automatic_tax if enabled in environment
-  // Set ENABLE_AUTOMATIC_TAX=true in .env after configuring Stripe Tax
-  if (process.env.ENABLE_AUTOMATIC_TAX === 'true') {
-    subscriptionParams.automatic_tax = { enabled: true };
-  }
+  // Disable automatic tax as we are handling it via Tax Rates
+  subscriptionParams.automatic_tax = { enabled: false };
 
   const subscription = await stripe.subscriptions.create(subscriptionParams);
 

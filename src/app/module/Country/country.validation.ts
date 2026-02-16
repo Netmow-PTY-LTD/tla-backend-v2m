@@ -23,6 +23,9 @@ const countryZodValidationSchema = z.object({
       .trim()
       .nonempty('Currency is required')
       .optional(),
+    taxPercentage: z.number().optional(),
+    taxAmount: z.number().optional(),
+    taxType: z.string().optional(),
   }),
 });
 
@@ -44,6 +47,9 @@ const updateCountryZodValidationSchema = z.object({
       .nonempty('Slug is required')
       .trim()
       .optional(),
+    taxPercentage: z.number().optional(),
+    taxAmount: z.number().optional(),
+    taxType: z.string().optional(),
   }),
 });
 

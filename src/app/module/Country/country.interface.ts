@@ -6,7 +6,9 @@ export interface ICountry {
   slug: string;
   currency: string;
   serviceIds: [Types.ObjectId];
-
+  taxPercentage?: number;
+  taxAmount?: number;
+  taxType?: string; // 'GST', 'VAT', etc.
 }
 
 export interface ICountryWiseLocationGroup {

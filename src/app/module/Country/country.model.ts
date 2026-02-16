@@ -29,7 +29,18 @@ const countriesSchema = new mongoose.Schema(
         required: true,
       },
     ],
-
+    taxPercentage: {
+      type: Number,
+      default: 0,
+    },
+    taxAmount: {
+      type: Number,
+      default: 0,
+    },
+    taxType: {
+      type: String,
+      trim: true,
+    },
   },
   {
     versionKey: false,
