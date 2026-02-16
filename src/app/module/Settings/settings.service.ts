@@ -5,6 +5,7 @@ import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
 import { IAppSettings } from "./settings.interface";
 import { AppSettings } from "./settings.model";
+import { envConfigService } from "../EnvConfig/envConfig.service";
 
 
 const getSettings = async () => {
@@ -12,6 +13,13 @@ const getSettings = async () => {
   if (!settings) {
     settings = await AppSettings.create({});
   }
+
+  // Update firm_client_url based on EnvConfig
+  const firmClientUrlConfig = await envConfigService.getConfigByKey('FIRM_CLIENT_URL');
+  if (firmClientUrlConfig) {
+    settings.firm_client_url = firmClientUrlConfig.value;
+  }
+
   return settings;
 };
 
@@ -148,6 +156,15 @@ export const updateSettings = async (
       updates.favicon = null;
     } else {
       updates.favicon = currentSettings?.favicon ?? null;
+    }
+
+    // ===== UPDATE FIRM_CLIENT_URL IN ENV_CONFIG =====
+    if (updates.firm_client_url !== undefined) {
+      await envConfigService.upsertConfig('FIRM_CLIENT_URL', updates.firm_client_url || '', {
+        group: 'Firm Application',
+        type: 'url',
+        description: 'Firm client application URL',
+      });
     }
 
     // ===== UPDATE SETTINGS DOCUMENT =====
