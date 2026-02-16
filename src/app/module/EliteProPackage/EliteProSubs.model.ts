@@ -1,5 +1,6 @@
-// models/eliteProSubscription.model.ts
-import mongoose, { Schema, Document, Model } from "mongoose";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import { ICountry } from "../Country/country.interface";
 
 export type BillingCycle = "monthly" | "yearly" | "weekly" | "one_time";
 
@@ -22,6 +23,7 @@ export interface IEliteProPackage extends Document {
   stripeProductId: string;
   createdAt: Date;
   updatedAt: Date;
+  country: Types.ObjectId | ICountry;
   deletedAt: Date | null;
 
   // virtuals
@@ -56,6 +58,11 @@ const EliteProPackageSchema = new Schema<IEliteProPackage>(
     isActive: { type: Boolean, default: true },
     stripePriceId: { type: String, default: null },
     stripeProductId: { type: String, required: true },
+    country: {
+      type: Schema.Types.ObjectId,
+      ref: 'Country',
+      required: true,
+    },
     deletedAt: { type: Date, default: null },
   },
   {
@@ -65,6 +72,37 @@ const EliteProPackageSchema = new Schema<IEliteProPackage>(
     versionKey: false,
   }
 );
+
+// Pre-save hook to sync currency with country
+EliteProPackageSchema.pre<IEliteProPackage>("save", async function (next) {
+  try {
+    const Country = mongoose.model('Country');
+    const country = await Country.findById(this.country);
+    if (country) {
+      this.price.currency = country.currency.toUpperCase();
+    }
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
+});
+
+// Pre-update hook to sync currency with country
+EliteProPackageSchema.pre("findOneAndUpdate", async function (next) {
+  try {
+    const update = this.getUpdate() as Record<string, unknown>;
+    if (update?.country) {
+      const Country = mongoose.model('Country');
+      const country = await Country.findById(update.country);
+      if (country) {
+        update['price.currency'] = country.currency.toUpperCase();
+      }
+    }
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
+});
 
 
 
@@ -84,6 +122,7 @@ EliteProPackageSchema.virtual("priceFormatted").get(function (this: IEliteProPac
     const major = this.price?.amount ?? 0;
     const currency = this.price?.currency ?? "USD";
     return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(major);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return `${this.price?.amount ?? 0} ${this.price?.currency ?? ""}`;
   }
@@ -101,8 +140,8 @@ EliteProPackageSchema.statics.generateSlug = function (name: string) {
 // Pre-save for .save()
 EliteProPackageSchema.pre<IEliteProPackage>("save", function (next) {
   if (this.isModified("name")) {
-    // @ts-ignore
-    this.slug = (this.constructor as any).generateSlug(this.name);
+
+    this.slug = (this.constructor as EliteProSubscriptionModel).generateSlug(this.name);
   }
   next();
 });
