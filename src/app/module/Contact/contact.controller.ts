@@ -45,8 +45,33 @@ const sendNotification = catchAsync(async (req, res) => {
 
 
 
+const upsertContactInfo = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const result = await contactservice.upsertContactInfoService(payload);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Contact info updated successfully",
+    data: result,
+  });
+});
+
+const getContactInfo = catchAsync(async (req, res) => {
+  const result = await contactservice.getContactInfoService();
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Contact info retrieved successfully",
+    data: result,
+  });
+});
+
 export const contactController = {
   sendContact,
   contact,
-  sendNotification
+  sendNotification,
+  upsertContactInfo,
+  getContactInfo,
 };

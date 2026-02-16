@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 import { Types } from 'mongoose';
@@ -16,6 +17,7 @@ import User from '../Auth/auth.model';
 import { IUserProfile } from '../User/user.interface';
 import config from '../../config';
 import { USER_ROLE } from '../../constant';
+import { ContactInfo } from './contactInfo.model';
 
 //  -------------------- old code  ---------------------------------
 // const sendContactMessage = async (
@@ -685,10 +687,25 @@ const sendNotificationService = async (payload: any) => {
 
 };
 
+const upsertContactInfoService = async (payload: any) => {
+  const result = await ContactInfo.findOneAndUpdate({}, payload, {
+    new: true,
+    upsert: true,
+  });
+  return result;
+};
+
+const getContactInfoService = async () => {
+  const result = await ContactInfo.findOne();
+  return result;
+};
+
 export const contactservice = {
   sendContactMessage,
   contactWithEmail,
-  sendNotificationService
+  sendNotificationService,
+  upsertContactInfoService,
+  getContactInfoService
 };
 
 
