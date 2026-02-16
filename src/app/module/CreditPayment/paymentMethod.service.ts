@@ -284,9 +284,6 @@ const purchaseCredits = async (
     expand: ['latest_charge', 'latest_charge.balance_transaction'],
   };
 
-  // Disable automatic tax as we are handling it manually
-  paymentIntentParams.automatic_tax = { enabled: false };
-
   const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
 
