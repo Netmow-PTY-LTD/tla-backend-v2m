@@ -552,15 +552,32 @@ const createSubscription = async (
   }
 
   const country = userProfile.country as any;
-  const taxPercentage = country?.taxPercentage || 0;
+  let taxPercentage = 0;
+
+  if (country?.taxPercentage && country.taxPercentage > 0) {
+    taxPercentage = country.taxPercentage;
+  } else if (country?.taxAmount && country.taxAmount > 0) {
+    // For subscriptions, we convert the flat tax amount to an effective percentage
+    // so it can be used with Stripe Tax Rates.
+    const packagePrice = subscriptionPackage.price.amount;
+    if (packagePrice > 0) {
+      taxPercentage = (country.taxAmount / packagePrice) * 100;
+    }
+  }
+
+
   let taxRateId: string | undefined;
 
   if (taxPercentage > 0) {
     try {
-      const taxRate = await getOrCreateTaxRate(country.taxType || 'Tax', taxPercentage, country.name);
+      const taxRate = await getOrCreateTaxRate(
+        country.taxType || 'Tax',
+        taxPercentage,
+        country.name,
+      );
       taxRateId = taxRate.id;
     } catch (err: any) {
-      console.error(" Error getting/creating tax rate:", err.message);
+      console.error(' Error getting/creating tax rate:', err.message);
     }
   }
 
