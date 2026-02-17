@@ -307,7 +307,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name slug bio address profilePicture gender profileType autoTopUp credits serviceIds country phone designation languages  law_society_member_number practising_certificate_number foundingMember ',
+        'name slug bio address profilePicture gender profileType autoTopUp isVerifiedAccount credits serviceIds country phone designation languages  law_society_member_number practising_certificate_number foundingMember ',
       populate: [
         { path: 'serviceIds', select: 'name slug' },
         { path: 'country', select: 'name' },
@@ -376,7 +376,8 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     languages: user.profile.languages,
     law_society_member_number: user.profile.law_society_member_number,
     practising_certificate_number: user.profile.practising_certificate_number,
-    foundingMember: user.profile.foundingMember
+    foundingMember: user.profile.foundingMember,
+    isVerifiedAccount: user.isVerifiedAccount
   };
 };
 

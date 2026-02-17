@@ -15,6 +15,7 @@ const settingsSchema = new Schema(
     stripeLiveMode: { type: Boolean, default: false },
     autoRefundIfLeadInactive: { type: Boolean, default: true },
     robots: { type: String, default: 'noindex, nofollow' },
+    firm_client_url: { type: String, default: '' },
   },
   { timestamps: true },
 );
