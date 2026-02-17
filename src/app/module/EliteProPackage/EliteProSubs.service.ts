@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // services/eliteProSubscription.service.ts
 
 import Stripe from "stripe";
 import QueryBuilder from "../../builder/QueryBuilder";
 import EliteProPackageModel, { IEliteProPackage } from "./EliteProSubs.model";
+import Country from "../Country/country.model";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-05-28.basil',
@@ -11,6 +13,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 
 const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackage>) => {
+
+
+  // check if country exists and set currency
+  if (payload.country) {
+    const countryData = await Country.findById(payload.country);
+    if (countryData && countryData.currency) {
+      if (!payload.price) {
+        payload.price = { currency: countryData.currency } as any;
+      }
+      if (payload.price) {
+        payload.price.currency = countryData.currency;
+      }
+    }
+  }
+
+
+
+
 
   if (!payload.name || !payload.price?.amount || !payload.price?.currency || !payload.billingCycle) {
     throw new Error("Missing required elite pro fields: name, price, currency, billingCycle");
@@ -89,9 +109,21 @@ const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEl
 
   let stripePriceId: string | undefined;
 
+  // Determine currency to use (from payload country, payload price, or existing)
+  let currencyToUse = existing.price.currency;
+  if (payload.country) {
+    const countryData = await Country.findById(payload.country);
+    if (countryData?.currency) {
+      currencyToUse = countryData.currency;
+    }
+  } else if (payload.price?.currency) {
+    currencyToUse = payload.price.currency;
+  }
+
   // Only create new Stripe Price if billingCycle, amount, or currency changed
   if (
     payload.billingCycle ||
+    payload.country || // Check if country changed
     payload.price?.amount !== undefined ||
     payload.price?.currency
   ) {
@@ -115,7 +147,7 @@ const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEl
     const stripePrice = await stripe.prices.create({
       product: existing.stripeProductId, // use existing product
       unit_amount: (payload.price?.amount ?? existing.price.amount) * 100,  // amount in cents
-      currency: (payload.price?.currency || existing.price.currency).toLowerCase(),
+      currency: currencyToUse.toLowerCase(),
       recurring: interval ? { interval } : undefined,
       tax_behavior: "exclusive",
     });
