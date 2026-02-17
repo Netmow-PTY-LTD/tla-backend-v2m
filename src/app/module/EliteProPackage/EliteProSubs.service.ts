@@ -5,7 +5,7 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import EliteProPackageModel, { IEliteProPackage } from "./EliteProSubs.model";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
- apiVersion: '2025-05-28.basil',
+  apiVersion: '2025-05-28.basil',
 });
 
 
@@ -61,9 +61,10 @@ const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackag
   return elipropackage;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAllEliteProSubscriptionsFromDB = async (query: Record<string, any>) => {
 
-  const pageQuery = new QueryBuilder(EliteProPackageModel.find({ isActive: true }), query).search([
+  const pageQuery = new QueryBuilder(EliteProPackageModel.find().populate('country'), query).search([
     "name",
     "slug",
     "description"
