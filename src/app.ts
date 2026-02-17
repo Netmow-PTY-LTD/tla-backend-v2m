@@ -49,6 +49,10 @@ const allowedOrigins = [
   'https://stag.thelawapp.com.au'
 ];
 
+
+console.log('check allowed origin ==>', allowedOrigins)
+
+
 app.use(
   cors({
     origin: (origin, callback) => {
