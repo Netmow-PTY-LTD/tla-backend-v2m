@@ -47,6 +47,7 @@ const allowedOrigins = [
   'https://thelawapp.netlify.app',
   'https://company-thelawapp.netlify.app',
   'https://stag.thelawapp.com.au',
+  'https://company.thelawapp.com.au',
 
 ];
 
