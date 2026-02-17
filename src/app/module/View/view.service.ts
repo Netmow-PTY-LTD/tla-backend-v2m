@@ -302,12 +302,12 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     profile: profile._id,
     deletedAt: null,
   })
-    .select('email profile')
+    .select('email profile isVerifiedAccount')
     .populate({
       path: 'profile',
       match: { deletedAt: null },
       select:
-        'name slug bio address profilePicture gender profileType autoTopUp isVerifiedAccount credits serviceIds country phone designation languages  law_society_member_number practising_certificate_number foundingMember ',
+        'name slug bio address profilePicture gender profileType autoTopUp credits serviceIds country phone designation languages  law_society_member_number practising_certificate_number foundingMember ',
       populate: [
         { path: 'serviceIds', select: 'name slug' },
         { path: 'country', select: 'name' },
