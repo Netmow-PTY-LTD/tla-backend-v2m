@@ -233,10 +233,16 @@ const purchaseCredits = async (
   ); // in cents
 
   const country = creditPackage.country as any;
-  const taxPercentage = country?.taxPercentage || 0;
-  const taxFlatAmount = (country?.taxAmount || 0) * 100; // Flat amount in cents
+  let taxPercentage = 0;
+  let calculatedTaxCents = 0;
 
-  const calculatedTaxCents = Math.round((subtotalCents * taxPercentage) / 100) + taxFlatAmount;
+  if (country?.taxPercentage && country.taxPercentage > 0) {
+    taxPercentage = country.taxPercentage;
+    calculatedTaxCents = Math.round((subtotalCents * taxPercentage) / 100);
+  } else if (country?.taxAmount && country.taxAmount > 0) {
+    calculatedTaxCents = country.taxAmount * 100;
+  }
+
   const finalPriceCents = subtotalCents + calculatedTaxCents;
 
   // 4. Get user's default payment method
