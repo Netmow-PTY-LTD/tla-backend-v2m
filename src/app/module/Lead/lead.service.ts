@@ -4191,7 +4191,7 @@ const getMyAllLeadFromDB = async (
       .populate('serviceId')
       .populate({
         path: 'responders',
-        select: 'profilePicture name user'
+        select: 'profilePicture name user slug'
       }).populate('hiredLawyerRating')
       .lean(),
     query,
