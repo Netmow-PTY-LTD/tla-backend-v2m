@@ -46,6 +46,7 @@ const createEliteProSubscriptionIntoDB = async (payload: Partial<IEliteProPackag
     unit_amount: (payload.price?.amount) * 100, // amount in cents
     currency: payload.price.currency.toLowerCase(),
     recurring: interval ? { interval } : undefined, // only for recurring plans
+    tax_behavior: "exclusive",
   });
 
   // 4️ Save subscription in DB with stripePriceId
@@ -116,6 +117,7 @@ const updateEliteProSubscriptionIntoDB = async (id: string, payload: Partial<IEl
       unit_amount: (payload.price?.amount ?? existing.price.amount) * 100,  // amount in cents
       currency: (payload.price?.currency || existing.price.currency).toLowerCase(),
       recurring: interval ? { interval } : undefined,
+      tax_behavior: "exclusive",
     });
 
     stripePriceId = stripePrice.id;
