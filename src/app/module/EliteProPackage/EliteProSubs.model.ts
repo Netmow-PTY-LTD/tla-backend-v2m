@@ -90,12 +90,20 @@ EliteProPackageSchema.pre<IEliteProPackage>("save", async function (next) {
 // Pre-update hook to sync currency with country
 EliteProPackageSchema.pre("findOneAndUpdate", async function (next) {
   try {
-    const update = this.getUpdate() as Record<string, unknown>;
+    const update = this.getUpdate() as any;
     if (update?.country) {
       const Country = mongoose.model('Country');
       const country = await Country.findById(update.country);
       if (country) {
-        update['price.currency'] = country.currency.toUpperCase();
+        const currencyCode = country.currency.toUpperCase();
+
+        // If 'price' is being updated as an object, update the currency within it
+        if (update.price && typeof update.price === 'object' && !Array.isArray(update.price)) {
+          update.price.currency = currencyCode;
+        } else {
+          // Otherwise, use dot notation to update just the currency
+          update['price.currency'] = currencyCode;
+        }
       }
     }
     next();

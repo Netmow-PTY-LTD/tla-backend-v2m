@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // services/subscription.service.ts
 
 import Stripe from "stripe";
@@ -5,7 +6,7 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import SubscriptionPackage, { ISubscription } from "./subscriptionPack.model";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
- apiVersion: '2025-05-28.basil',
+  apiVersion: '2025-05-28.basil',
 });
 
 
@@ -14,6 +15,7 @@ const SUBSCRIPTION_FIELDS = {
   SEARCHABLE: ["name", "slug", "description"],
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SUBSCRIPTION_OPTIONS = {
   NEW: { new: true, runValidators: true },
 };
@@ -75,7 +77,9 @@ const createSubscriptionIntoDB = async (
 
 
 const getAllSubscriptionsFromDB = async (query: Record<string, any>) => {
-  const pageQuery = new QueryBuilder(SubscriptionPackage.find({ isActive: true }), query)
+
+
+  const pageQuery = new QueryBuilder(SubscriptionPackage.find().populate('country'), query)
     .search(SUBSCRIPTION_FIELDS.SEARCHABLE)
     .filter()
     .sort()

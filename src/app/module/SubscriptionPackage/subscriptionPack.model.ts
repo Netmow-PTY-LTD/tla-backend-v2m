@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 import { ICountry } from "../Country/country.interface";
 
@@ -88,12 +89,20 @@ SubscriptionSchema.pre<ISubscription>("save", async function (next) {
 // Pre-update hook to sync currency with country
 SubscriptionSchema.pre("findOneAndUpdate", async function (next) {
   try {
-    const update = this.getUpdate() as Record<string, unknown>;
+    const update = this.getUpdate() as any;
     if (update?.country) {
       const Country = mongoose.model('Country');
       const country = await Country.findById(update.country);
       if (country) {
-        update['price.currency'] = country.currency.toUpperCase();
+        const currencyCode = country.currency.toUpperCase();
+
+        // If 'price' is being updated as an object, update the currency within it
+        if (update.price && typeof update.price === 'object' && !Array.isArray(update.price)) {
+          update.price.currency = currencyCode;
+        } else {
+          // Otherwise, use dot notation to update just the currency
+          update['price.currency'] = currencyCode;
+        }
       }
     }
     next();
@@ -118,6 +127,7 @@ SubscriptionSchema.virtual("priceFormatted").get(function (this: ISubscription) 
     const currency = this.price?.currency ?? "USD";
     // Use Intl.NumberFormat for proper currency formatting
     return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(major);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return `${this.price?.amount ?? 0} ${this.price?.currency ?? ""}`;
   }
@@ -139,7 +149,7 @@ SubscriptionSchema.statics.generateSlug = function (name: string) {
 // Pre-save for .save()
 SubscriptionSchema.pre<ISubscription>("save", function (next) {
   if (this.isModified("name")) {
-    // @ts-expect-error generateSlug exists on the model
+
     this.slug = (this.constructor as SubscriptionModel).generateSlug(this.name);
   }
   next();
