@@ -1488,11 +1488,14 @@ const changeSubscriptionPackage = async (
       expand: ['latest_invoice.payment_intent'],
     });
 
+  
     const latestInvoice = updatedSubscription.latest_invoice as Stripe.Invoice;
 
     // 6️ Update subscription record in DB
-    const periodStart = new Date((updatedSubscription as any).current_period_start * 1000);
-    const periodEnd = new Date((updatedSubscription as any).current_period_end * 1000);
+    // Use invoice period dates since subscription might not have current_period_start/end immediately after update
+    const periodStart = new Date((latestInvoice as any).period_start * 1000);
+    const periodEnd = new Date((latestInvoice as any).period_end * 1000);
+
 
     // Validate dates
     if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
@@ -1572,7 +1575,7 @@ const changeSubscriptionPackage = async (
       },
     };
   } catch (err: any) {
-    console.error("Subscription update error:", err.message);
+    console.error("Subscription update error:", err);
     throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, `Failed to update subscription: ${err.message}`);
   }
 };
@@ -1734,8 +1737,8 @@ const switchSubscriptionType = async (
   }
 
   // 5️ Save new subscription in DB
-  const periodStart = new Date((newSubscription as any).current_period_start * 1000);
-  const periodEnd = new Date((newSubscription as any).current_period_end * 1000);
+  const periodStart = new Date((latestInvoice as any).period_start * 1000);
+  const periodEnd = new Date((latestInvoice as any).period_end * 1000);
 
   // Validate dates
   if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
