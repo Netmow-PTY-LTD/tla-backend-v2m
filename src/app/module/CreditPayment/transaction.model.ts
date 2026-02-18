@@ -63,6 +63,14 @@ const transactionSchema = new Schema({
   stripeInvoiceId: { type: String },
   stripeChargeId: { type: String },
   invoice_pdf_url: { type: String },
+
+  // Tax fields for GST/VAT tracking
+  taxAmount: { type: Number, default: 0 },              // Tax collected in base currency
+  taxRate: { type: Number },                             // Tax percentage (e.g., 10 for 10%)
+  subtotal: { type: Number },                            // Amount before tax
+  totalWithTax: { type: Number },                        // Total including tax
+  taxJurisdiction: { type: String },                     // Tax location (e.g., "AU", "GB", "US-CA")
+  taxType: { type: String },                             // Tax name (e.g., "gst", "vat", "sales_tax")
 }, { timestamps: true });
 
 
