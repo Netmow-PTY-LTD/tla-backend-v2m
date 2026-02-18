@@ -178,7 +178,8 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
 
 // purchaseCredits with create Payment intent
 
-const purchaseCredits = async (
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _purchaseCredits = async (
   userId: string,
   {
     packageId,
@@ -368,6 +369,284 @@ const purchaseCredits = async (
     },
   };
 };
+
+
+
+
+
+const purchaseCredits = async (
+  userId: string,
+  { packageId, couponCode, autoTopUp }: { packageId: string; couponCode?: string; autoTopUp?: boolean }
+) => {
+  validateObjectId(packageId, 'credit package ID');
+
+  // 1️ Fetch user and package
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+  if (!userProfile) return sendNotFoundResponse('User profile not found');
+
+  if ((userProfile.user as IUser)?.accountStatus !== USER_STATUS.APPROVED) {
+    return {
+      success: false,
+      message: "Your account is not approved yet. Please wait until it is approved by the admin."
+    };
+  }
+
+  const creditPackage = await CreditPackage.findById(packageId).populate('country');
+  if (!creditPackage) return sendNotFoundResponse('Credit package not found');
+
+  // 2️ Apply coupon
+  let discount = 0;
+  if (couponCode) {
+    const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+    if (coupon && typeof coupon.maxUses === 'number' && coupon.currentUses < coupon.maxUses) {
+      discount = coupon.discountPercentage;
+      coupon.currentUses += 1;
+      await coupon.save();
+    }
+  }
+
+  // 3️ Calculate amounts
+  const subtotalCents = Math.round(creditPackage.price * (1 - discount / 100) * 100);
+  const country = creditPackage.country as any;
+
+  let taxCents = 0;
+  if (country?.taxPercentage && country.taxPercentage > 0) {
+    taxCents = Math.round((subtotalCents * country.taxPercentage) / 100);
+  } else if (country?.taxAmount && country.taxAmount > 0) {
+    taxCents = country.taxAmount * 100;
+  }
+  const totalCents = subtotalCents + taxCents;
+
+  // 4️ Fetch default payment method
+  const paymentMethod = await PaymentMethod.findOne({
+    userProfileId: userProfile._id,
+    isDefault: true,
+    isActive: true,
+  });
+  if (!paymentMethod?.stripeCustomerId || !paymentMethod?.paymentMethodId) {
+    return { success: false, message: 'No default payment method found' };
+  }
+
+  // 5️ Create & confirm PaymentIntent (off-session)
+  const currency = creditPackage.currency?.toLowerCase();
+  if (!currency) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Currency not configured');
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: totalCents,
+    currency,
+    customer: paymentMethod.stripeCustomerId,
+    payment_method: paymentMethod.paymentMethodId,
+    off_session: true,
+    confirm: true,
+    metadata: {
+      userId,
+      creditPackageId: packageId,
+      manualTaxAmount: (taxCents / 100).toString(),
+      taxType: country?.taxType || 'Tax',
+      couponCode: couponCode || '',
+    },
+  });
+
+  if (paymentIntent.status !== 'succeeded') {
+    return { success: false, message: 'Payment failed', data: paymentIntent };
+  }
+
+  // 6️ Start MongoDB transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Prevent duplicate transaction
+    const existingTx = await Transaction.findOne({ stripePaymentIntentId: paymentIntent.id }).session(session);
+    if (existingTx) {
+      await session.abortTransaction();
+      session.endSession();
+      return { success: true, message: 'Transaction already processed' };
+    }
+
+    // 7️ Update credits
+    userProfile.credits += creditPackage.credit;
+    userProfile.autoTopUp = autoTopUp || false;
+
+    // 8️ Upgrade verified lawyer if needed
+    const isVerified = await isVerifiedLawyer(userId);
+    let sendEmailFlag = false;
+    if (!isVerified) {
+      userProfile.profileType = USER_PROFILE.VERIFIED;
+      sendEmailFlag = true;
+    }
+
+    await userProfile.save({ session });
+
+    // 9️ Create transaction
+    await Transaction.create([{
+      userId,
+      type: 'purchase',
+      creditPackageId: packageId,
+      credit: creditPackage.credit,
+      subtotal: subtotalCents / 100,
+      taxAmount: taxCents / 100,
+      totalWithTax: totalCents / 100,
+      amountPaid: totalCents / 100,
+      currency,
+      status: 'completed',
+      couponCode: couponCode || '',
+      discountApplied: discount || 0,
+      stripePaymentIntentId: paymentIntent.id,
+      taxJurisdiction: country?.name,
+      taxType: country?.taxType || 'Tax',
+      taxRate: country?.taxPercentage || 0,
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // 10️ Send verified lawyer email (after commit)
+    if (sendEmailFlag) {
+      const roleLabel = 'Verified Lawyer';
+      const emailData = {
+        name: userProfile.name,
+        role: roleLabel,
+        dashboardUrl: `${config.client_url}/lawyer/dashboard`,
+        appName: 'The Law App',
+      };
+      setImmediate(() => sendEmail({
+        to: (userProfile.user as IUser)?.email,
+        subject: `🎉 Congrats! Your profile has been upgraded to ${roleLabel}.`,
+        data: emailData,
+        emailTemplate: 'lawyerPromotion',
+      }));
+    }
+
+    // 11 Clear Redis cache
+    await deleteCache(CacheKeys.USER_INFO(userId));
+
+    return {
+      success: true,
+      message: 'Credits purchased successfully',
+      data: {
+        newBalance: userProfile.credits,
+        transactionId: paymentIntent.id,
+        paymentIntentId: paymentIntent.id,
+      },
+    };
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Purchase credits failed:', err);
+    return { success: false, message: 'Purchase failed due to server error' };
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// //  ========== with webhook logic implement ====================
+// const purchaseCredits = async (userId: string, {
+//   packageId,
+//   couponCode,
+// }: { packageId: string; couponCode?: string; }) => {
+
+
+//   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
+//   if (!userProfile) throw new Error('User profile not found');
+
+//   //  Check if account status is approved
+//   const accountStatus = (userProfile.user as IUser)?.accountStatus; // if using User ref
+//   // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
+
+//   if (accountStatus !== USER_STATUS.APPROVED) {
+//     return {
+//       success: false,
+//       message: "Your account is not approved yet. Please wait until it is approved by the admin."
+//     };
+//   }
+
+//   const creditPackage = await CreditPackage.findById(packageId).populate('country');
+//   if (!creditPackage) throw new Error('Credit package not found');
+
+//   // Calculate discount
+//   let discount = 0;
+//   if (couponCode) {
+//     const coupon = await Coupon.findOneAndUpdate(
+//       {
+//         code: couponCode,
+//         isActive: true,
+//         $expr: { $lt: ["$currentUses", "$maxUses"] }
+//       },
+//       { $inc: { currentUses: 1 } },
+//       { new: true }
+//     );
+//     if (coupon) discount = coupon.discountPercentage;
+//   }
+
+//   // Calculate price
+//   const subtotalCents = Math.round(creditPackage.price * (1 - discount / 100) * 100);
+//   const country = creditPackage.country as any;
+
+//   let calculatedTaxCents = 0;
+//   let taxPercentage = 0;
+//   if (country?.taxPercentage > 0) {
+//     taxPercentage = country.taxPercentage;
+//     calculatedTaxCents = Math.round((subtotalCents * taxPercentage) / 100);
+//   } else if (country?.taxAmount > 0) {
+//     calculatedTaxCents = country.taxAmount * 100;
+//   }
+
+//   const finalPriceCents = subtotalCents + calculatedTaxCents;
+
+//   // Get default payment method
+//   const paymentMethod = await PaymentMethod.findOne({
+//     userProfileId: userProfile._id,
+//     isDefault: true,
+//     isActive: true,
+//   });
+
+//   if (!paymentMethod || !paymentMethod.stripeCustomerId || !paymentMethod.paymentMethodId) {
+//     throw new Error('No default payment method found');
+//   }
+
+//   // Create Stripe PaymentIntent
+//   const paymentIntent = await stripe.paymentIntents.create({
+//     amount: finalPriceCents,
+//     currency: creditPackage.currency.toLowerCase(),
+//     customer: paymentMethod.stripeCustomerId,
+//     payment_method: paymentMethod.paymentMethodId,
+//     confirm: true,
+//     off_session: true,
+//     metadata: {
+//       userId,
+//       creditPackageId: packageId,
+//       couponCode: couponCode || '',
+//       manualTaxAmount: (calculatedTaxCents / 100).toString(),
+//       taxType: country?.taxType || 'Tax',
+
+//     },
+//   }, {
+//     idempotencyKey: `credit_${userId}_${packageId}_${Date.now()}`
+//   });
+
+//   return {
+//     newBalance: userProfile.credits,
+//     clientSecret: paymentIntent.client_secret,
+//     paymentIntentId: paymentIntent.id
+//   };
+// };
+
+
+
 
 
 

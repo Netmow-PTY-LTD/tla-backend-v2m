@@ -9,6 +9,13 @@ import UserProfile from '../User/user.model';
 import mongoose from 'mongoose';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache } from '../../utils/cacheManger';
+// import CreditPackage from './creditPackage.model';
+// import Transaction from './transaction.model';
+// import config from '../../config';
+// import { sendEmail } from '../../emails/email.service';
+// import { IUser } from '../Auth/auth.interface';
+// import { isVerifiedLawyer } from '../User/user.utils';
+// import { USER_PROFILE } from '../User/user.constant';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-05-28.basil',
@@ -39,6 +46,105 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       // ---------------------------------
       // Payment succeeded (subscription/invoice)
       // ---------------------------------
+
+
+      // case 'payment_intent.succeeded': {
+      //   const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      //   const userId = paymentIntent.metadata.userId;
+      //   const packageId = paymentIntent.metadata.creditPackageId;
+      //   const couponCode = paymentIntent.metadata.couponCode;
+      //   const taxAmount = parseFloat(paymentIntent.metadata.manualTaxAmount || '0');
+      //   console.log('paymentIntent from webhook', paymentIntent);
+      //   const creditPackage = await CreditPackage.findById(packageId).populate('country');
+      //   if (!creditPackage) return res.status(400).send('Credit package not found');
+
+      //   const session = await mongoose.startSession();
+      //   session.startTransaction();
+
+      //   try {
+      //     // Prevent duplicate processing
+      //     const existingTx = await Transaction.findOne({ stripePaymentIntentId: paymentIntent.id }).session(session);
+      //     if (existingTx) {
+      //       await session.abortTransaction();
+      //       return res.json({ received: true });
+      //     }
+
+      //     // 1️ Fetch user profile for update & verification check
+      //     const userProfile = await UserProfile.findOne({ user: userId }).session(session);
+      //     if (!userProfile) throw new Error('User profile not found');
+
+      //     // 2️ Update user credits
+      //     userProfile.credits += creditPackage.credit;
+
+      //     // 3 Check if lawyer should be upgraded to VERIFIED
+      //     const isVerified = await isVerifiedLawyer(userId); // your existing helper
+      //     let shouldSendEmail = false;
+      //     if (!isVerified) {
+      //       userProfile.profileType = USER_PROFILE.VERIFIED;
+      //       shouldSendEmail = true;
+      //     }
+
+      //     await userProfile.save({ session });
+
+      //     // 4️ Create transaction
+      //     await Transaction.create([{
+      //       userId,
+      //       creditPackageId: packageId,
+      //       credit: creditPackage.credit,
+      //       subtotal: creditPackage.price,
+      //       taxAmount: taxAmount,
+      //       totalWithTax: creditPackage.price + taxAmount,
+      //       amountPaid: creditPackage.price + taxAmount,
+      //       currency: creditPackage.currency,
+      //       status: 'completed',
+      //       stripePaymentIntentId: paymentIntent.id,
+      //       couponCode: couponCode || '',
+      //     }], { session });
+
+      //     // Commit transaction
+      //     await session.commitTransaction();
+      //     session.endSession();
+
+      //     // Send verification email outside session (after commit)
+      //     if (shouldSendEmail) {
+      //       const roleLabel = 'Verified Lawyer';
+      //       const emailData = {
+      //         name: userProfile.name,
+      //         role: roleLabel,
+      //         dashboardUrl: `${config.client_url}/lawyer/dashboard`,
+      //         appName: 'The Law App',
+      //       };
+
+      //       // async fire-and-forget
+      //       setImmediate(async () => {
+      //         try {
+      //           await sendEmail({
+      //             to: (userProfile.user as IUser)?.email,
+      //             subject: `🎉 Congrats! Your profile has been upgraded to ${roleLabel}.`,
+      //             data: emailData,
+      //             emailTemplate: 'lawyerPromotion',
+      //           });
+      //         } catch (err) {
+      //           console.error('Failed to send verified lawyer email:', err);
+      //         }
+      //       });
+      //     }
+
+      //     return res.json({ received: true });
+
+      //   } catch (err) {
+      //     await session.abortTransaction();
+      //     session.endSession();
+      //     console.error('Webhook transaction failed:', err);
+      //     return res.status(500).send('Webhook processing failed');
+      //   }
+      // };
+
+
+
+
+
+      // ================  invoice payment success ================
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         const userId = invoice.metadata?.userId;
