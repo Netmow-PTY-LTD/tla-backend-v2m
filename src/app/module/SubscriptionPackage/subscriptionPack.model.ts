@@ -72,44 +72,47 @@ const SubscriptionSchema = new Schema<ISubscription>(
   }
 );
 
-// Pre-save hook to sync currency with country
-SubscriptionSchema.pre<ISubscription>("save", async function (next) {
-  try {
-    const Country = mongoose.model('Country');
-    const country = await Country.findById(this.country);
-    if (country) {
-      this.price.currency = country.currency.toUpperCase();
-    }
-    next();
-  } catch (error) {
-    next(error as Error);
-  }
-});
 
-// Pre-update hook to sync currency with country
-SubscriptionSchema.pre("findOneAndUpdate", async function (next) {
-  try {
-    const update = this.getUpdate() as any;
-    if (update?.country) {
-      const Country = mongoose.model('Country');
-      const country = await Country.findById(update.country);
-      if (country) {
-        const currencyCode = country.currency.toUpperCase();
+//  =========================== no need this because alredy getting currency in service ==================
 
-        // If 'price' is being updated as an object, update the currency within it
-        if (update.price && typeof update.price === 'object' && !Array.isArray(update.price)) {
-          update.price.currency = currencyCode;
-        } else {
-          // Otherwise, use dot notation to update just the currency
-          update['price.currency'] = currencyCode;
-        }
-      }
-    }
-    next();
-  } catch (error) {
-    next(error as Error);
-  }
-});
+// // Pre-save hook to sync currency with country
+// SubscriptionSchema.pre<ISubscription>("save", async function (next) {
+//   try {
+//     const Country = mongoose.model('Country');
+//     const country = await Country.findById(this.country);
+//     if (country) {
+//       this.price.currency = country.currency.toUpperCase();
+//     }
+//     next();
+//   } catch (error) {
+//     next(error as Error);
+//   }
+// });
+
+// // Pre-update hook to sync currency with country
+// SubscriptionSchema.pre("findOneAndUpdate", async function (next) {
+//   try {
+//     const update = this.getUpdate() as any;
+//     if (update?.country) {
+//       const Country = mongoose.model('Country');
+//       const country = await Country.findById(update.country);
+//       if (country) {
+//         const currencyCode = country.currency.toUpperCase();
+
+//         // If 'price' is being updated as an object, update the currency within it
+//         if (update.price && typeof update.price === 'object' && !Array.isArray(update.price)) {
+//           update.price.currency = currencyCode;
+//         } else {
+//           // Otherwise, use dot notation to update just the currency
+//           update['price.currency'] = currencyCode;
+//         }
+//       }
+//     }
+//     next();
+//   } catch (error) {
+//     next(error as Error);
+//   }
+// });
 
 // Indexes
 SubscriptionSchema.index({ slug: 1 });
