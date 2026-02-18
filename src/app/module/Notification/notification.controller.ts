@@ -107,7 +107,7 @@ const getUserNotifications = catchAsync(async (req, res) => {
   const query = req.query;
 
   const result =
-    await notificationService.getUserNotificationsFromDB(userId,query);
+    await notificationService.getUserNotificationsFromDB(userId, query);
 
   if (!result) {
     return sendResponse(res, {
@@ -126,10 +126,34 @@ const getUserNotifications = catchAsync(async (req, res) => {
   });
 });
 
+
+const markAllNotificationsAsRead = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const result =
+    await notificationService.markAllNotificationsAsReadFromDB(userId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: 'Notification  not found!',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All notifications marked as read successfully',
+    data: result,
+  });
+});
+
 export const notificationController = {
   emailPreferences,
   browserPreferences,
   NotificationPreferences,
   markNotificationAsRead,
-  getUserNotifications
+  getUserNotifications,
+  markAllNotificationsAsRead,
 };

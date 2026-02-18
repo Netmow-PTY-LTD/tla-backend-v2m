@@ -45,7 +45,15 @@ const allowedOrigins = [
   `${config.client_url}`,
   `${config.firm_client_url}`,
   'https://thelawapp.netlify.app',
+  'https://company-thelawapp.netlify.app',
+  'https://stag.thelawapp.com.au',
+  'https://company.thelawapp.com.au',
+
 ];
+
+
+
+
 
 app.use(
   cors({
@@ -98,7 +106,7 @@ app.get('/online-users', async (_req: Request, res: Response) => {
 
 
 app.get('/', (_req: Request, res: Response) => {
-  res.send('Welcome to TLA Backend 2.0');
+  res.send('Welcome to TLA Backend  2.02');
 });
 
 app.use(globalErrorHandler);

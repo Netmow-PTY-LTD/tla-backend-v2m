@@ -16,11 +16,19 @@ router.post(
 );
 
 
-router.post('/',contactController.contact);
+router.post('/', contactController.contact);
 
 router.post(
     '/notify',
     auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-    contactController.sendNotification);
+    contactController.sendNotification
+);
+
+router.get('/contact-info', contactController.getContactInfo);
+router.patch(
+    '/contact-info',
+    auth(USER_ROLE.ADMIN),
+    contactController.upsertContactInfo
+);
 
 export const contactRouter = router;

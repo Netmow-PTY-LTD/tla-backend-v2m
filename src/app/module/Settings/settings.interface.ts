@@ -10,6 +10,5 @@ export interface IAppSettings {
   responseLimitPerLead: number;
   stripeLiveMode: boolean;
   autoRefundIfLeadInactive: boolean;
-
-
+  firm_client_url: string | null;
 }

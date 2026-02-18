@@ -1017,6 +1017,7 @@ const createSubscription = async (
     taxJurisdiction: taxJurisdiction,
     taxType: taxType,
     currency: latestInvoice?.currency || "usd",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
     stripeInvoiceId: latestInvoice?.id ?? null,
     invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,

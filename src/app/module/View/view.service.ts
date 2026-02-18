@@ -302,7 +302,7 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     profile: profile._id,
     deletedAt: null,
   })
-    .select('email profile')
+    .select('email profile isVerifiedAccount')
     .populate({
       path: 'profile',
       match: { deletedAt: null },
@@ -376,7 +376,8 @@ const getPublicUserProfileBySlug = async (slug: string) => {
     languages: user.profile.languages,
     law_society_member_number: user.profile.law_society_member_number,
     practising_certificate_number: user.profile.practising_certificate_number,
-    foundingMember: user.profile.foundingMember
+    foundingMember: user.profile.foundingMember,
+    isVerifiedAccount: user.isVerifiedAccount
   };
 };
 
