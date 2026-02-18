@@ -14,8 +14,8 @@ const creditPackageValidationSchema = z.object({
       .optional()
       .default(0),
     isActive: z.boolean().optional().default(true),
-    currency: z.string().optional(),
-    country: z.string().optional(),
+    currency: z.string().optional(), // Currency is auto-populated from country
+    country: z.string().min(1, 'Country is required to determine currency'),
   }),
 });
 

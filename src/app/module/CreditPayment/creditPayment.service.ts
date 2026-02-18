@@ -19,6 +19,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 
 const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
+  // Ensure country is provided (required for currency auto-population)
+  if (!payload.country) {
+    throw new Error('Country is required to create a credit package');
+  }
+
+  // Validate that the country exists
+  const Country = (await import('mongoose')).default.model('Country');
+  const country = await Country.findById(payload.country);
+  
+  if (!country) {
+    throw new Error('Invalid country ID provided');
+  }
+
+  if (!country.currency) {
+    throw new Error('Selected country does not have a currency configured');
+  }
+
+  // Currency will be auto-populated by the pre-save hook
   const packageCreate = await CreditPackage.create(payload);
   return packageCreate;
 };

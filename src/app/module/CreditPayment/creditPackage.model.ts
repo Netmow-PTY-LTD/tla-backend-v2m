@@ -12,8 +12,8 @@ const creditPackageSchema = new Schema({
   isActive: { type: Boolean, default: true },
   currency: {
     type: String,
-    required: true,
     uppercase: true, // USD, AUD, GBP
+    default: 'USD', // Default value, will be overridden by pre-save hook
   },
 
   country: {
@@ -30,14 +30,24 @@ const CreditPackage = mongoose.model('CreditPackage', creditPackageSchema);
 /* ---------- AUTO SET CURRENCY ON CREATE ---------- */
 creditPackageSchema.pre('save', async function (next) {
   try {
-    const Country = mongoose.model('Country');
-    const country = await Country.findById(this.country);
+    // Only auto-populate currency if country is provided and currency is not already set
+    if (this.country) {
+      const Country = mongoose.model('Country');
+      const country = await Country.findById(this.country);
 
-    if (!country) {
-      return next(new Error('Invalid country selected'));
+      if (!country) {
+        return next(new Error('Invalid country selected'));
+      }
+
+      if (country.currency) {
+        this.currency = country.currency.toUpperCase();
+      } else {
+        return next(new Error('Country does not have a currency configured'));
+      }
+    } else {
+      return next(new Error('Country is required to set currency'));
     }
-
-    this.currency = country.currency.toUpperCase();
+    
     next();
   } catch (error) {
     next(error as Error);
@@ -58,7 +68,11 @@ creditPackageSchema.pre('findOneAndUpdate', async function (next) {
         return next(new Error('Invalid country selected'));
       }
 
-      update.currency = country.currency.toUpperCase();
+      if (country.currency) {
+        update.currency = country.currency.toUpperCase();
+      } else {
+        return next(new Error('Country does not have a currency configured'));
+      }
     }
 
     next();
