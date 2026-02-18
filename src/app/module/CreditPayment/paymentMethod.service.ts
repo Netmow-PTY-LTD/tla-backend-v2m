@@ -1790,6 +1790,10 @@ const switchSubscriptionType = async (
     const taxType = taxRates?.tax_rate_details?.tax_type;
     const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
 
+    const paymentIntentId = typeof (latestInvoice as any).payment_intent === 'string'
+      ? (latestInvoice as any).payment_intent
+      : ((latestInvoice as any).payment_intent as Stripe.PaymentIntent)?.id ?? null;
+
     await Transaction.create({
       userId,
       type: "subscription",
@@ -1803,7 +1807,7 @@ const switchSubscriptionType = async (
       taxJurisdiction: taxJurisdiction,
       taxType: taxType,
       currency: latestInvoice.currency || "usd",
-      stripePaymentIntentId: (latestInvoice.payment_intent as any)?.id ?? null,
+      stripePaymentIntentId: paymentIntentId,
       stripeInvoiceId: latestInvoice.id ?? null,
       invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
       status: "completed",
