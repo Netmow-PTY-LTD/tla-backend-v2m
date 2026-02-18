@@ -8,6 +8,6 @@ export interface ICreditPackage {
   pricePerCredit?: number;
   discountPercentage: number;
   isActive: boolean;
-  currency: string;
+  currency?: string; // Auto-populated from country, optional during creation
   country: mongoose.Types.ObjectId;
 }
