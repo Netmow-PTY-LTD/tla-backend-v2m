@@ -19,7 +19,7 @@ export interface IEliteProPackage extends Document {
   features: string[];
   description?: string;
   isActive: boolean;
-  stripePriceId: string | null;
+  stripePriceId: string;
   stripeProductId: string;
   createdAt: Date;
   updatedAt: Date;
