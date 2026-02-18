@@ -1031,6 +1031,289 @@ const createSubscription = async (
 
 
 
+// const createSubscription = async (
+//   userId: string,
+//   payload: { type: SubscriptionType; packageId: string; autoRenew?: boolean }
+// ) => {
+//   const { type, packageId, autoRenew } = payload;
+
+//   // 1️ Get subscription package
+//   const subscriptionPackage =
+//     type === SubscriptionType.SUBSCRIPTION
+//       ? await SubscriptionPackage.findById(packageId)
+//       : await EliteProPackageModel.findById(packageId);
+
+//   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
+//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid package");
+//   }
+
+//   // 2️ Get user profile with country
+//   const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
+//   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+
+
+//   //   check previous subscription of different type exists
+
+//   // if (
+//   //   userProfile.isElitePro &&
+//   //   type === SubscriptionType.SUBSCRIPTION &&
+//   //   userProfile.eliteProSubscriptionId
+//   // ) {
+//   //   return {
+//   //     success: false,
+//   //     message:
+//   //       "You currently have an active Elite Pro subscription. Please cancel your Elite Pro plan before activating a regular subscription.",
+//   //     data: {
+//   //       requiresPreviousPackageCancel: true,
+//   //       previousPackageType: SubscriptionType.ELITE_PRO,
+//   //       previousPackageId: userProfile.eliteProSubscriptionId,
+//   //     },
+//   //   };
+//   // } else if (userProfile.subscriptionId && type === SubscriptionType.ELITE_PRO) {
+//   //   return {
+//   //     success: false,
+//   //     message:
+//   //       "You currently have an active subscription. Please cancel your current subscription before activating an Elite Pro plan.",
+//   //     data: {
+//   //       requiresPreviousPackageCancel: true,
+//   //       previousPackageType: SubscriptionType.SUBSCRIPTION,
+//   //       previousPackageId: userProfile.subscriptionId,
+//   //     },
+//   //   };
+//   // }
+
+
+
+//   // 3️ Get default saved payment method
+//   const savedPaymentMethod = await PaymentMethod.findOne({
+//     userProfileId: userProfile._id,
+//     isDefault: true,
+//     isActive: true,
+//   });
+
+//   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
+//     return {
+//       success: false,
+//       message: "No default payment method found. Please add a payment method before subscribing.",
+//       data: { requiresPaymentMethod: true },
+//     };
+//   }
+
+//   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
+
+//   // 4️ Attach payment method to the customer if not attached
+//   try {
+//     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
+//       customer: stripeCustomerId,
+//     });
+//   } catch (err: any) {
+//     if (!err.message.includes("already attached")) {
+//       console.error(" PaymentMethod attach error:", err.message);
+//       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
+//     }
+//   }
+
+//   const country = userProfile.country as any;
+//   let taxPercentage = 0;
+
+//   if (country?.taxPercentage && country.taxPercentage > 0) {
+//     taxPercentage = country.taxPercentage;
+//   } else if (country?.taxAmount && country.taxAmount > 0) {
+//     // For subscriptions, we convert the flat tax amount to an effective percentage
+//     // so it can be used with Stripe Tax Rates.
+//     const packagePrice = subscriptionPackage.price.amount;
+//     if (packagePrice > 0) {
+//       taxPercentage = (country.taxAmount / packagePrice) * 100;
+//     }
+//   }
+
+
+//   let taxRateId: string | undefined;
+
+//   if (taxPercentage > 0) {
+//     try {
+//       const taxRate = await getOrCreateTaxRate(
+//         country.taxType || 'Tax',
+//         taxPercentage,
+//         country.name,
+//       );
+//       taxRateId = taxRate.id;
+//     } catch (err: any) {
+//       console.error(' Error getting/creating tax rate:', err.message);
+//     }
+//   }
+
+//   // 5️ Create subscription with manual tax rate
+//   const subscriptionParams: Stripe.SubscriptionCreateParams = {
+//     customer: stripeCustomerId,
+//     items: [{
+//       price: subscriptionPackage.stripePriceId,
+//       tax_rates: taxRateId ? [taxRateId] : undefined
+//     }],
+//     metadata: { userId, packageId, type },
+//     collection_method: "charge_automatically",
+//     payment_behavior: "allow_incomplete",
+//     default_payment_method: savedPaymentMethod.paymentMethodId,
+//     expand: ["latest_invoice.payment_intent", "latest_invoice.total_tax_amounts"],
+//   };
+
+//   // Disable automatic tax as we are handling it via Tax Rates
+//   subscriptionParams.automatic_tax = { enabled: false };
+
+//   const subscription = await stripe.subscriptions.create(subscriptionParams);
+
+//   // 6️ Attempt to pay invoice off-session (backend)
+//   const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & {
+//     payment_intent?: Stripe.PaymentIntent;
+//     total_tax_amounts?: Array<{
+//       amount: number;
+//       inclusive: boolean;
+//       jurisdiction?: string;
+//       tax_rate_details?: {
+//         tax_type?: string;
+//         percentage_decimal?: number;
+//         display_name?: string;
+//       };
+//     }>;
+//   }) | undefined;
+//   let paymentSucceeded = false;
+
+//   if (latestInvoice && latestInvoice.payment_intent) {
+//     const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+
+//     if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
+//       try {
+//         const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
+//           payment_method: savedPaymentMethod.paymentMethodId,
+//         });
+//         if (confirmed.status === "succeeded") paymentSucceeded = true;
+//       } catch (err: any) {
+//         console.error(" Payment failed:", err.message);
+//         return {
+//           success: false,
+//           message: "Payment failed: " + err.message,
+//           data: { requiresPaymentMethod: true },
+//         };
+//       }
+//     } else if (paymentIntent.status === "succeeded") {
+//       paymentSucceeded = true;
+//     }
+//   } else {
+//     paymentSucceeded = true; // no payment needed
+//   }
+
+//   if (!paymentSucceeded) {
+//     return {
+//       success: false,
+//       message: "Payment could not be completed. Please check your card.",
+//       data: { requiresPaymentMethod: true },
+//     };
+//   }
+
+
+
+//   // Grab the first line item (Stripe usually has one per subscription item)
+//   const invoiceLine = latestInvoice?.lines?.data[0];
+
+//   // Extract start and end dates safely
+//   const subscriptionPeriodStart = invoiceLine?.period?.start
+//     ? new Date(invoiceLine.period.start * 1000)
+//     : subscription.start_date
+//       ? new Date(subscription.start_date * 1000)
+//       : undefined;
+
+//   const subscriptionPeriodEnd = invoiceLine?.period?.end
+//     ? new Date(invoiceLine.period.end * 1000)
+//     : undefined;
+
+
+
+
+
+//   // 7️ Save subscription in DB
+
+//   let subscriptionRecord;
+
+//   if (type === SubscriptionType.SUBSCRIPTION) {
+//     subscriptionRecord = await UserSubscription.create({
+//       userId,
+//       subscriptionPackageId: subscriptionPackage._id,
+//       stripeSubscriptionId: subscription.id,
+//       status: "active",
+//       subscriptionPeriodStart,
+//       subscriptionPeriodEnd,
+//       autoRenew: autoRenew ?? true,
+//     });
+//     userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+//     userProfile.subscriptionPeriodStart = subscriptionPeriodStart;
+//     userProfile.subscriptionPeriodEnd = subscriptionPeriodEnd;
+//   } else if (type === SubscriptionType.ELITE_PRO) {
+//     subscriptionRecord = await EliteProUserSubscription.create({
+//       userId,
+//       eliteProPackageId: subscriptionPackage._id,
+//       stripeSubscriptionId: subscription.id,
+//       status: "active",
+//       eliteProPeriodStart: subscriptionPeriodStart,
+//       eliteProPeriodEnd: subscriptionPeriodEnd,
+//       autoRenew: autoRenew ?? true,
+//     });
+
+//     userProfile.isElitePro = true;
+//     userProfile.eliteProSubscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
+//     userProfile.eliteProPeriodStart = subscriptionPeriodStart;
+//     userProfile.eliteProPeriodEnd = subscriptionPeriodEnd;
+//   }
+
+//   await userProfile.save();
+
+//   // 8️ Extract tax information from invoice
+//   const invoiceSubtotal = (latestInvoice?.subtotal || 0) / 100;
+//   const invoiceTotal = (latestInvoice?.total || 0) / 100;
+//   const invoiceTax = invoiceTotal - invoiceSubtotal; // Calculate tax from total - subtotal
+//   const invoiceAmountPaid = (latestInvoice?.amount_paid || 0) / 100;
+
+//   // Extract tax details from invoice line items
+//   const taxRates = latestInvoice?.total_tax_amounts?.[0];
+//   const taxJurisdiction = taxRates?.jurisdiction;
+//   const taxType = taxRates?.tax_rate_details?.tax_type;
+//   const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
+
+//   // 9️ Create transaction record with tax data
+//   await Transaction.create({
+//     userId,
+//     type: "subscription",
+//     subscriptionId: subscriptionRecord?._id,
+//     subscriptionType: type,
+//     subtotal: invoiceSubtotal,
+//     taxAmount: invoiceTax,
+//     taxRate: taxRatePercentage,
+//     totalWithTax: invoiceTotal,
+//     amountPaid: invoiceAmountPaid,
+//     taxJurisdiction: taxJurisdiction,
+//     taxType: taxType,
+//     currency: latestInvoice?.currency || "usd",
+//     stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
+//     stripeInvoiceId: latestInvoice?.id ?? null,
+//     invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,
+//     status: "completed",
+//   });
+
+
+
+//   // --------------------  REVALIDATE REDIS CACHE -----------------------
+//   await deleteCache(CacheKeys.USER_INFO(userId));
+
+//   return {
+//     success: true,
+//     message: type === SubscriptionType.ELITE_PRO ? "Elite Pro subscription created and charged successfully" : "Subscription created and charged successfully",
+//     data: {
+//       subscriptionId: subscription.id,
+//     },
+//   };
+// };
+
+
+
 
 
 
