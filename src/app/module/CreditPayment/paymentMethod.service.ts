@@ -881,7 +881,7 @@ const createSubscription = async (
 
   // 6️ Attempt to pay invoice off-session (backend)
   const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & {
-    payment_intent?: Stripe.PaymentIntent;
+    payment_intent?: Stripe.PaymentIntent | string;
     total_tax_amounts?: Array<{
       amount: number;
       inclusive: boolean;
@@ -942,6 +942,14 @@ const createSubscription = async (
   const subscriptionPeriodEnd = invoiceLine?.period?.end
     ? new Date(invoiceLine.period.end * 1000)
     : undefined;
+
+  // Validate dates
+  if (subscriptionPeriodStart && isNaN(subscriptionPeriodStart.getTime())) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription start date from Stripe");
+  }
+  if (subscriptionPeriodEnd && isNaN(subscriptionPeriodEnd.getTime())) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription end date from Stripe");
+  }
 
 
 
@@ -1401,9 +1409,419 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
   };
 };
 
+// Change subscription package within the same type (upgrade/downgrade)
+const changeSubscriptionPackage = async (
+  userId: string,
+  payload: { type: SubscriptionType; newPackageId: string }
+) => {
+  const { type, newPackageId } = payload;
 
+  // 1️ Get new subscription package
+  const newPackage =
+    type === SubscriptionType.SUBSCRIPTION
+      ? await SubscriptionPackage.findById(newPackageId)
+      : await EliteProPackageModel.findById(newPackageId);
 
+  if (!newPackage || !newPackage.stripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid new package");
+  }
 
+  // 2️ Get user profile
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+
+  // 3️ Get current subscription
+  let currentSubscription: IUserSubscription | IEliteProUserSubscription | null = null;
+
+  if (type === SubscriptionType.ELITE_PRO) {
+    if (!userProfile.eliteProSubscriptionId) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "No active Elite Pro subscription found");
+    }
+    currentSubscription = await EliteProUserSubscription.findOne({
+      _id: userProfile.eliteProSubscriptionId,
+      status: 'active',
+    });
+  } else {
+    if (!userProfile.subscriptionId) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription found");
+    }
+    currentSubscription = await UserSubscription.findOne({
+      _id: userProfile.subscriptionId,
+      status: 'active',
+    });
+  }
+
+  if (!currentSubscription) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${type} subscription found`);
+  }
+
+  // 4️ Check if it's the same package
+  const currentPackageId = type === SubscriptionType.ELITE_PRO
+    ? (currentSubscription as IEliteProUserSubscription).eliteProPackageId.toString()
+    : (currentSubscription as IUserSubscription).subscriptionPackageId.toString();
+
+  if (currentPackageId === newPackageId) {
+    return {
+      success: false,
+      message: "You are already subscribed to this package",
+      data: null,
+    };
+  }
+
+  // 5️ Update Stripe subscription with proration
+  try {
+    const subscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId);
+    const subscriptionItem = subscription.items.data[0]; // Assuming single item
+
+    // Update the subscription item with new price and proration
+    await stripe.subscriptions.update(currentSubscription.stripeSubscriptionId, {
+      items: [{
+        id: subscriptionItem.id,
+        price: newPackage.stripePriceId,
+      }],
+      proration_behavior: 'create_prorations', // This creates prorated charges
+      metadata: { userId, packageId: newPackageId, type },
+    });
+
+    // Retrieve updated subscription to get latest invoice
+    const updatedSubscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId, {
+      expand: ['latest_invoice.payment_intent'],
+    });
+
+    const latestInvoice = updatedSubscription.latest_invoice as Stripe.Invoice;
+
+    // 6️ Update subscription record in DB
+    const periodStart = new Date((updatedSubscription as any).current_period_start * 1000);
+    const periodEnd = new Date((updatedSubscription as any).current_period_end * 1000);
+
+    // Validate dates
+    if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
+      throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription period dates from Stripe");
+    }
+
+    if (type === SubscriptionType.ELITE_PRO) {
+      const eliteSub = currentSubscription as IEliteProUserSubscription;
+      eliteSub.eliteProPackageId = newPackage._id as mongoose.Types.ObjectId;
+      eliteSub.eliteProPeriodStart = periodStart;
+      eliteSub.eliteProPeriodEnd = periodEnd;
+      await eliteSub.save();
+
+      userProfile.eliteProPeriodStart = periodStart;
+      userProfile.eliteProPeriodEnd = periodEnd;
+    } else {
+      const normalSub = currentSubscription as IUserSubscription;
+      normalSub.subscriptionPackageId = newPackage._id as mongoose.Types.ObjectId;
+      normalSub.subscriptionPeriodStart = periodStart;
+      normalSub.subscriptionPeriodEnd = periodEnd;
+      await normalSub.save();
+
+      userProfile.subscriptionPeriodStart = periodStart;
+      userProfile.subscriptionPeriodEnd = periodEnd;
+    }
+
+    await userProfile.save();
+
+    // 7️ Create transaction record for the proration
+    if (latestInvoice) {
+      const invoiceSubtotal = (latestInvoice.subtotal || 0) / 100;
+      const invoiceTotal = (latestInvoice.total || 0) / 100;
+      const invoiceTax = invoiceTotal - invoiceSubtotal;
+      const invoiceAmountPaid = (latestInvoice.amount_paid || 0) / 100;
+
+      const taxRates = (latestInvoice as any).total_tax_amounts?.[0];
+      const taxJurisdiction = taxRates?.jurisdiction;
+      const taxType = taxRates?.tax_rate_details?.tax_type;
+      const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
+
+      const paymentIntentId = typeof (latestInvoice as any).payment_intent === 'string' 
+        ? (latestInvoice as any).payment_intent 
+        : ((latestInvoice as any).payment_intent as Stripe.PaymentIntent)?.id ?? null;
+
+      await Transaction.create({
+        userId,
+        type: "subscription",
+        subscriptionId: currentSubscription._id,
+        subscriptionType: type,
+        subtotal: invoiceSubtotal,
+        taxAmount: invoiceTax,
+        taxRate: taxRatePercentage,
+        totalWithTax: invoiceTotal,
+        amountPaid: invoiceAmountPaid,
+        taxJurisdiction: taxJurisdiction,
+        taxType: taxType,
+        currency: latestInvoice.currency || "usd",
+        stripePaymentIntentId: paymentIntentId,
+        stripeInvoiceId: latestInvoice.id ?? null,
+        invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
+        status: "completed",
+      });
+    }
+
+    // 8️ Revalidate cache
+    await deleteCache(CacheKeys.USER_INFO(userId));
+
+    return {
+      success: true,
+      message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Standard'} subscription updated successfully`,
+      data: {
+        subscriptionId: currentSubscription._id,
+        newPackageId: newPackage._id,
+        type,
+        periodStart,
+        periodEnd,
+      },
+    };
+  } catch (err: any) {
+    console.error("Subscription update error:", err.message);
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, `Failed to update subscription: ${err.message}`);
+  }
+};
+
+// Switch between subscription types (cross-type change)
+const switchSubscriptionType = async (
+  userId: string,
+  payload: { fromType: SubscriptionType; toType: SubscriptionType; newPackageId: string }
+) => {
+  const { fromType, toType, newPackageId } = payload;
+
+  if (fromType === toType) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Cannot switch to the same subscription type");
+  }
+
+  // 1️ Get new package
+  const newPackage =
+    toType === SubscriptionType.SUBSCRIPTION
+      ? await SubscriptionPackage.findById(newPackageId)
+      : await EliteProPackageModel.findById(newPackageId);
+
+  if (!newPackage || !newPackage.stripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid new package");
+  }
+
+  // 2️ Get user profile
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+
+  // 3️ Cancel old subscription
+  let oldSubscription: IUserSubscription | IEliteProUserSubscription | null = null;
+
+  if (fromType === SubscriptionType.ELITE_PRO) {
+    if (!userProfile.eliteProSubscriptionId) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "No active Elite Pro subscription to cancel");
+    }
+    oldSubscription = await EliteProUserSubscription.findOne({
+      _id: userProfile.eliteProSubscriptionId,
+      status: 'active',
+    });
+  } else {
+    if (!userProfile.subscriptionId) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription to cancel");
+    }
+    oldSubscription = await UserSubscription.findOne({
+      _id: userProfile.subscriptionId,
+      status: 'active',
+    });
+  }
+
+  if (!oldSubscription) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${fromType} subscription found`);
+  }
+
+  // Cancel old subscription on Stripe
+  try {
+    await stripe.subscriptions.cancel(oldSubscription.stripeSubscriptionId);
+  } catch (err: any) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, `Failed to cancel old subscription: ${err.message}`);
+  }
+
+  // Update old subscription status in DB
+  if (fromType === SubscriptionType.ELITE_PRO) {
+    const eliteSub = oldSubscription as IEliteProUserSubscription;
+    eliteSub.status = 'canceled';
+    eliteSub.eliteProPeriodStart = undefined;
+    eliteSub.eliteProPeriodEnd = undefined;
+    await eliteSub.save();
+
+    userProfile.isElitePro = false;
+    userProfile.eliteProSubscriptionId = null;
+    userProfile.eliteProPeriodStart = null;
+    userProfile.eliteProPeriodEnd = null;
+  } else {
+    const normalSub = oldSubscription as IUserSubscription;
+    normalSub.status = 'canceled';
+    normalSub.subscriptionPeriodStart = undefined;
+    normalSub.subscriptionPeriodEnd = undefined;
+    await normalSub.save();
+
+    userProfile.subscriptionId = null;
+    userProfile.subscriptionPeriodStart = null;
+    userProfile.subscriptionPeriodEnd = null;
+  }
+
+  // 4️ Create new subscription (reuse createSubscription logic but simplified)
+  const savedPaymentMethod = await PaymentMethod.findOne({
+    userProfileId: userProfile._id,
+    isDefault: true,
+    isActive: true,
+  });
+
+  if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "No default payment method found");
+  }
+
+  const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
+
+  // Get tax rate
+  const country = userProfile.country as any;
+  let taxRateId: string | undefined;
+
+  if (country?.taxPercentage && country.taxPercentage > 0) {
+    try {
+      const taxRate = await getOrCreateTaxRate(
+        country.taxType || 'Tax',
+        country.taxPercentage,
+        country.name,
+      );
+      taxRateId = taxRate.id;
+    } catch (err: any) {
+      console.error('Error getting/creating tax rate:', err.message);
+    }
+  }
+
+  // Create new subscription
+  const subscriptionParams: Stripe.SubscriptionCreateParams = {
+    customer: stripeCustomerId,
+    items: [{
+      price: newPackage.stripePriceId,
+      tax_rates: taxRateId ? [taxRateId] : undefined
+    }],
+    metadata: { userId, packageId: newPackageId, type: toType },
+    collection_method: "charge_automatically",
+    payment_behavior: "allow_incomplete",
+    default_payment_method: savedPaymentMethod.paymentMethodId,
+    expand: ["latest_invoice.payment_intent", "latest_invoice.total_tax_amounts"],
+    automatic_tax: { enabled: false },
+  };
+
+  const newSubscription = await stripe.subscriptions.create(subscriptionParams);
+
+  // Confirm payment
+  const latestInvoice = newSubscription.latest_invoice as Stripe.Invoice;
+  let paymentSucceeded = false;
+
+  if (latestInvoice && (latestInvoice as any).payment_intent) {
+    const paymentIntent = (latestInvoice as any).payment_intent as Stripe.PaymentIntent;
+
+    if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
+      try {
+        const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
+          payment_method: savedPaymentMethod.paymentMethodId,
+        });
+        if (confirmed.status === "succeeded") paymentSucceeded = true;
+      } catch (err: any) {
+        console.error("Payment failed:", err.message);
+        throw new AppError(HTTP_STATUS.BAD_REQUEST, "Payment failed: " + err.message);
+      }
+    } else if (paymentIntent.status === "succeeded") {
+      paymentSucceeded = true;
+    }
+  } else {
+    paymentSucceeded = true;
+  }
+
+  if (!paymentSucceeded) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Payment could not be completed");
+  }
+
+  // 5️ Save new subscription in DB
+  const periodStart = new Date((newSubscription as any).current_period_start * 1000);
+  const periodEnd = new Date((newSubscription as any).current_period_end * 1000);
+
+  // Validate dates
+  if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription period dates from Stripe");
+  }
+
+  let newSubscriptionRecord;
+
+  if (toType === SubscriptionType.SUBSCRIPTION) {
+    newSubscriptionRecord = await UserSubscription.create({
+      userId,
+      subscriptionPackageId: newPackage._id,
+      stripeSubscriptionId: newSubscription.id,
+      status: "active",
+      subscriptionPeriodStart: periodStart,
+      subscriptionPeriodEnd: periodEnd,
+      autoRenew: true,
+    });
+    userProfile.subscriptionId = newSubscriptionRecord._id as mongoose.Types.ObjectId;
+    userProfile.subscriptionPeriodStart = periodStart;
+    userProfile.subscriptionPeriodEnd = periodEnd;
+  } else {
+    newSubscriptionRecord = await EliteProUserSubscription.create({
+      userId,
+      eliteProPackageId: newPackage._id,
+      stripeSubscriptionId: newSubscription.id,
+      status: "active",
+      eliteProPeriodStart: periodStart,
+      eliteProPeriodEnd: periodEnd,
+      autoRenew: true,
+    });
+    userProfile.isElitePro = true;
+    userProfile.eliteProSubscriptionId = newSubscriptionRecord._id as mongoose.Types.ObjectId;
+    userProfile.eliteProPeriodStart = periodStart;
+    userProfile.eliteProPeriodEnd = periodEnd;
+  }
+
+  await userProfile.save();
+
+  // 6️ Create transaction record
+  if (latestInvoice) {
+    const invoiceSubtotal = (latestInvoice.subtotal || 0) / 100;
+    const invoiceTotal = (latestInvoice.total || 0) / 100;
+    const invoiceTax = invoiceTotal - invoiceSubtotal;
+    const invoiceAmountPaid = (latestInvoice.amount_paid || 0) / 100;
+
+    const taxRates = (latestInvoice as any).total_tax_amounts?.[0];
+    const taxJurisdiction = taxRates?.jurisdiction;
+    const taxType = taxRates?.tax_rate_details?.tax_type;
+    const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
+
+    await Transaction.create({
+      userId,
+      type: "subscription",
+      subscriptionId: newSubscriptionRecord._id,
+      subscriptionType: toType,
+      subtotal: invoiceSubtotal,
+      taxAmount: invoiceTax,
+      taxRate: taxRatePercentage,
+      totalWithTax: invoiceTotal,
+      amountPaid: invoiceAmountPaid,
+      taxJurisdiction: taxJurisdiction,
+      taxType: taxType,
+      currency: latestInvoice.currency || "usd",
+      stripePaymentIntentId: (latestInvoice.payment_intent as any)?.id ?? null,
+      stripeInvoiceId: latestInvoice.id ?? null,
+      invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
+      status: "completed",
+    });
+  }
+
+  // 7️ Revalidate cache
+  await deleteCache(CacheKeys.USER_INFO(userId));
+
+  return {
+    success: true,
+    message: `Successfully switched from ${fromType} to ${toType} subscription`,
+    data: {
+      oldSubscriptionId: oldSubscription._id,
+      newSubscriptionId: newSubscriptionRecord._id,
+      fromType,
+      toType,
+      newPackageId: newPackage._id,
+    },
+  };
+};
 
 
 export const paymentMethodService = {
@@ -1413,5 +1831,7 @@ export const paymentMethodService = {
   purchaseCredits,
   removePaymentMethod,
   createSubscription,
-  cancelSubscription
+  cancelSubscription,
+  changeSubscriptionPackage,
+  switchSubscriptionType
 };
