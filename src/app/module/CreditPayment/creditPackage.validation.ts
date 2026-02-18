@@ -14,6 +14,8 @@ const creditPackageValidationSchema = z.object({
       .optional()
       .default(0),
     isActive: z.boolean().optional().default(true),
+    currency: z.string().optional(),
+    country: z.string().optional(),
   }),
 });
 
@@ -31,6 +33,8 @@ export const creditPackageUpdateValidationSchema = z.object({
         .max(100, 'Discount cannot exceed 100')
         .optional(),
       isActive: z.boolean().optional(),
+      currency: z.string().optional(),
+      country: z.string().optional(),
     })
     .partial(), // Makes all fields optional for partial updates
 });
