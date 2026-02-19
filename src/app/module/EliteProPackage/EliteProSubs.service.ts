@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // services/eliteProSubscription.service.ts
 
-import Stripe from "stripe";
+import { stripe } from "../../config/stripe.config";
 import QueryBuilder from "../../builder/QueryBuilder";
 import EliteProPackageModel, { IEliteProPackage } from "./EliteProSubs.model";
 import Country from "../Country/country.model";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
 
 
 

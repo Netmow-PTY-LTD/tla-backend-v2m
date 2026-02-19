@@ -2,38 +2,6 @@ import mongoose, { Types } from 'mongoose';
 import { SubscriptionType } from './paymentMethod.service';
 const Schema = mongoose.Schema;
 
-// const transactionSchema = new Schema(
-//   {
-//     transactionId: {
-//       type: String,
-//       unique: true,
-//       required: false,
-//     },
-//     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-//     type: {
-//       type: String,
-//       enum: ['purchase', 'refund', 'usage'],
-//       required: true,
-//     },
-//     creditPackageId: { type: Schema.Types.ObjectId, ref: 'CreditPackage' },
-//     credit: { type: Number, required: true },
-//     amountPaid: { type: Number }, // in base currency (e.g., pence/cents)
-//     currency: { type: String, default: 'usd' },
-//     status: {
-//       type: String,
-//       enum: ['pending', 'completed', 'failed'],
-//       default: 'pending',
-//     },
-//     invoiceId: { type: String },
-//     couponCode: { type: String },
-//     discountApplied: { type: Number, default: 0 },
-//     stripePaymentIntentId: { type: String }, // added here
-//   },
-//   {
-//     timestamps: true,
-//   },
-// );
-
 // Pre-save hook to generate transactionId automatically
 
 const transactionSchema = new Schema({
@@ -55,13 +23,18 @@ const transactionSchema = new Schema({
   credit: { type: Number },
   amountPaid: { type: Number, required: true },
   currency: { type: String, default: 'usd' },
-  status: { type: String, enum: ['completed', 'failed'], default: 'completed' },
+  status: { type: String, enum: ['pending', 'completed', 'failed', 'canceled', 'refunded'], default: 'pending' },
   invoiceId: { type: String },
   couponCode: { type: String },
   discountApplied: { type: Number },
   stripePaymentIntentId: { type: String },
   stripeInvoiceId: { type: String },
   stripeChargeId: { type: String },
+  stripeCustomerId: { type: String },
+  stripeSubscriptionId: { type: String },
+  stripePaymentMethodId: { type: String },
+  stripeRefundId: { type: String },
+  stripeEnvironment: { type: String, enum: ['test', 'live'], default: 'test' }, // Track which Stripe environment
   invoice_pdf_url: { type: String },
 
   // Tax fields for GST/VAT tracking

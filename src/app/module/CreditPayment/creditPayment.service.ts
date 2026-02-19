@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Stripe from 'stripe';
+import { stripe } from '../../config/stripe.config';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 
 import { IBillingAddress } from '../User/user.interface';
@@ -12,10 +12,6 @@ import PaymentMethod from './paymentMethod.model';
 import { SubscriptionType } from './paymentMethod.service';
 import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
 
 
 const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {

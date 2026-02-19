@@ -3,7 +3,8 @@ import { sendNotFoundResponse } from '../../errors/custom.error';
 import UserProfile from '../User/user.model';
 
 import PaymentMethod from './paymentMethod.model';
-import Stripe from 'stripe';
+import { stripe, getCurrentEnvironment } from '../../config/stripe.config';
+import type Stripe from 'stripe';
 import Transaction from './transaction.model';
 import { validateObjectId } from '../../utils/validateObjectId';
 import CreditPackage from './creditPackage.model';
@@ -23,12 +24,6 @@ import EliteProPackageModel from '../EliteProPackage/EliteProSubs.model';
 import EliteProUserSubscription, { IEliteProUserSubscription } from './EliteProUserSubscription';
 import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
-
-
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
 
 
 const getPaymentMethods = async (userId: string) => {
@@ -159,6 +154,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     expiryMonth: stripePaymentMethod.card?.exp_month,
     expiryYear: stripePaymentMethod.card?.exp_year,
     isDefault: true,
+    stripeEnvironment: getCurrentEnvironment(),
   });
 
   //  REVALIDATE REDIS CACHE
@@ -347,6 +343,7 @@ const _purchaseCredits = async (
     couponCode,
     discountApplied: discount || 0,
     stripePaymentIntentId: paymentIntent.id,
+    stripeEnvironment: getCurrentEnvironment(),
   });
 
   // 7. Update user's credit balance and autoTopUp
@@ -496,6 +493,7 @@ const purchaseCredits = async (
       taxJurisdiction: country?.name,
       taxType: country?.taxType || 'Tax',
       taxRate: country?.taxPercentage || 0,
+      stripeEnvironment: getCurrentEnvironment(),
     }], { session });
 
     await session.commitTransaction();
@@ -964,6 +962,7 @@ const createSubscription = async (
       userId,
       subscriptionPackageId: subscriptionPackage._id,
       stripeSubscriptionId: subscription.id,
+      stripeEnvironment: getCurrentEnvironment(),
       status: "active",
       subscriptionPeriodStart,
       subscriptionPeriodEnd,
@@ -977,6 +976,7 @@ const createSubscription = async (
       userId,
       eliteProPackageId: subscriptionPackage._id,
       stripeSubscriptionId: subscription.id,
+      stripeEnvironment: getCurrentEnvironment(),
       status: "active",
       eliteProPeriodStart: subscriptionPeriodStart,
       eliteProPeriodEnd: subscriptionPeriodEnd,
@@ -1022,6 +1022,7 @@ const createSubscription = async (
     stripeInvoiceId: latestInvoice?.id ?? null,
     invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,
     status: "completed",
+    stripeEnvironment: getCurrentEnvironment(),
   });
 
 
@@ -1558,6 +1559,7 @@ const changeSubscriptionPackage = async (
         stripeInvoiceId: latestInvoice.id ?? null,
         invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
         status: "completed",
+        stripeEnvironment: getCurrentEnvironment(),
       });
     }
 
@@ -1753,6 +1755,7 @@ const switchSubscriptionType = async (
       userId,
       subscriptionPackageId: newPackage._id,
       stripeSubscriptionId: newSubscription.id,
+      stripeEnvironment: getCurrentEnvironment(),
       status: "active",
       subscriptionPeriodStart: periodStart,
       subscriptionPeriodEnd: periodEnd,
@@ -1766,6 +1769,7 @@ const switchSubscriptionType = async (
       userId,
       eliteProPackageId: newPackage._id,
       stripeSubscriptionId: newSubscription.id,
+      stripeEnvironment: getCurrentEnvironment(),
       status: "active",
       eliteProPeriodStart: periodStart,
       eliteProPeriodEnd: periodEnd,
@@ -1812,6 +1816,7 @@ const switchSubscriptionType = async (
       stripeInvoiceId: latestInvoice.id ?? null,
       invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
       status: "completed",
+      stripeEnvironment: getCurrentEnvironment(),
     });
   }
 

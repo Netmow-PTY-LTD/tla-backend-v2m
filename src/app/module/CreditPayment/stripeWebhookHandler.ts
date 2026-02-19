@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Stripe from 'stripe';
+import { stripe, getStripeWebhookSecret } from '../../config/stripe.config';
+import type Stripe from 'stripe';
 import { Request, Response } from 'express';
 import { SubscriptionType } from '../CreditPayment/paymentMethod.service';
 import EliteProUserSubscription, { IEliteProUserSubscription } from '../CreditPayment/EliteProUserSubscription';
@@ -17,10 +18,6 @@ import { deleteCache } from '../../utils/cacheManger';
 // import { isVerifiedLawyer } from '../User/user.utils';
 // import { USER_PROFILE } from '../User/user.constant';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
-
 export const stripeWebhookHandler = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature']!;
 
@@ -33,7 +30,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      getStripeWebhookSecret()
     );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
