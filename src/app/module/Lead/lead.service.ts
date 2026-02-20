@@ -18,14 +18,12 @@ import { IUser } from '../Auth/auth.interface';
 import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
-import { getBatchTravelInfo } from './lead.utils';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
-import { findLeadsWithinTravelTime } from './filterTravelTime';
 import { IZipCode } from '../Country/zipcode.interface';
 import { redisClient } from '../../config/redis.config';
 import { CacheKeys, TTL } from '../../config/cacheKeys';
-import { clearAllCache, deleteKeysByPattern } from '../../utils/cacheManger';
+import {  deleteKeysByPattern } from '../../utils/cacheManger';
 
 
 
@@ -52,6 +50,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       serviceId,
       additionalDetails,
       budgetAmount,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       locationId,
       countryId,
       leadPriority,
@@ -702,6 +701,7 @@ type TMeta = {
   totalPage: number; // Total pages (Math.ceil(total / limit))
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type PaginatedResult<T> = {
   data: T[];
   pagination: TMeta;
