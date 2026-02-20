@@ -31,12 +31,11 @@ const getPaymentMethods = async (userId: string) => {
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
-  const result = await PaymentMethod.findOne({
+  const result = await PaymentMethod.find({
     userProfileId: userProfile._id,
-    isDefault: true,
     isActive: true,
-    stripeEnvironment: getCurrentEnvironment(), // ✅ Filter by environment
-  });
+    stripeEnvironment: getCurrentEnvironment(), // ✅ Only show cards for current environment
+  }).sort({ isDefault: -1 }); // Show default card first
 
   return result;
 };
@@ -109,25 +108,30 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     email = (customer as Stripe.Customer).email || null;
   }
 
-  // 5. Check for duplicates (optional but recommended)
+  const currentEnv = getCurrentEnvironment();
+
+  // 5. Check for duplicates within the same environment
   const existing = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     stripeCustomerId,
     paymentMethodId: stripePaymentMethod.id,
-    email,
-    cardLastFour: stripePaymentMethod.card?.last4,
-    cardBrand: stripePaymentMethod.card?.brand,
-    expiryMonth: stripePaymentMethod.card?.exp_month,
-    expiryYear: stripePaymentMethod.card?.exp_year,
+    stripeEnvironment: currentEnv,
   });
 
-  if (existing) {
-    return { success: false, message: 'Card already exists', data: existing };
+  if (existing && existing.isActive) {
+    // If it exists and is active, just make it default
+    await PaymentMethod.updateMany(
+      { userProfileId: userProfile._id, stripeEnvironment: currentEnv },
+      { isDefault: false },
+    );
+    existing.isDefault = true;
+    await existing.save();
+    return { success: true, message: 'Card updated to default', data: existing };
   }
 
-  // 4. Unset previous defaults
+  // 4. Unset previous defaults ONLY for the current environment
   await PaymentMethod.updateMany(
-    { userProfileId: userProfile._id },
+    { userProfileId: userProfile._id, stripeEnvironment: currentEnv },
     { isDefault: false },
   );
 
