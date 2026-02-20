@@ -461,8 +461,17 @@ const createSubscription = async (
       ? await SubscriptionPackage.findById(packageId)
       : await EliteProPackageModel.findById(packageId);
 
-  if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Invalid package or missing Stripe Price ID for environment: ${currentEnv}`);
+  if (!subscriptionPackage) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Invalid package ID: ${packageId}`);
+  }
+
+  // Resolve the correct Stripe Price ID based on environment
+  const stripePriceId = currentEnv === 'live'
+    ? (subscriptionPackage.stripePriceIdLive || subscriptionPackage.stripePriceId)
+    : (subscriptionPackage.stripePriceIdTest || subscriptionPackage.stripePriceId);
+
+  if (!stripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Missing Stripe Price ID for environment: ${currentEnv}`);
   }
 
   // ── 2. Load user profile ────────────────────────────────────────────────
@@ -580,7 +589,7 @@ const createSubscription = async (
   const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
     items: [{
-      price: subscriptionPackage.stripePriceId,
+      price: stripePriceId,
       tax_rates: taxRateId ? [taxRateId] : undefined,
     }],
     metadata: {
@@ -880,8 +889,17 @@ const changeSubscriptionPackage = async (
       ? await SubscriptionPackage.findById(newPackageId)
       : await EliteProPackageModel.findById(newPackageId);
 
-  if (!newPackage || !newPackage.stripePriceId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Invalid new package or missing Stripe Price ID for ${currentEnv} environment`);
+  if (!newPackage) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "The requested subscription package was not found");
+  }
+
+  // Resolve the correct Stripe Price ID based on environment
+  const newStripePriceId = currentEnv === 'live'
+    ? (newPackage.stripePriceIdLive || newPackage.stripePriceId)
+    : (newPackage.stripePriceIdTest || newPackage.stripePriceId);
+
+  if (!newStripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Missing Stripe Price ID for ${currentEnv} environment`);
   }
 
   // ── 2. Load user profile ─────────────────────────────────────────────────
@@ -942,7 +960,7 @@ const changeSubscriptionPackage = async (
     await stripe.subscriptions.update(currentSubscription.stripeSubscriptionId, {
       items: [{
         id: subscriptionItem.id,
-        price: newPackage.stripePriceId,
+        price: newStripePriceId,
       }],
       proration_behavior: 'create_prorations',
       metadata: {
@@ -1105,20 +1123,30 @@ const switchSubscriptionType = async (
     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Cannot switch to the same subscription type");
   }
 
-  // 1️ Get new package
+  // 1️ Get user profile
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+
+  // 2️ Get new package
   const newPackage =
     toType === SubscriptionType.SUBSCRIPTION
       ? await SubscriptionPackage.findById(newPackageId)
       : await EliteProPackageModel.findById(newPackageId);
 
-  if (!newPackage || !newPackage.stripePriceId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid new package");
+  if (!newPackage) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "The requested subscription package was not found");
   }
 
-  const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
-  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
-
   const currentEnv = getCurrentEnvironment();
+
+  // Resolve the correct Stripe Price ID based on environment
+  const newStripePriceId = currentEnv === 'live'
+    ? (newPackage.stripePriceIdLive || newPackage.stripePriceId)
+    : (newPackage.stripePriceIdTest || newPackage.stripePriceId);
+
+  if (!newStripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Missing Stripe Price ID for ${currentEnv} environment`);
+  }
 
   // 3️ Cancel old subscription
   let oldSubscription: IUserSubscription | IEliteProUserSubscription | null = null;
@@ -1143,7 +1171,7 @@ const switchSubscriptionType = async (
   }
 
   if (!oldSubscription) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${fromType} subscription found`);
+    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${fromType} subscription found in current environment`);
   }
 
   // Cancel old subscription on Stripe
@@ -1203,7 +1231,7 @@ const switchSubscriptionType = async (
   const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
     items: [{
-      price: newPackage.stripePriceId,
+      price: newStripePriceId,
       tax_rates: taxRateId ? [taxRateId] : undefined
     }],
     metadata: { userId, packageId: newPackageId, type: toType },
