@@ -18,6 +18,7 @@ const creditTransactionSchema = new mongoose.Schema(
     description: String,
     relatedLeadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' },
     stripePaymentIntentId: String,
+    stripeEnvironment: { type: String, enum: ['test', 'live'], default: 'test' }, // Track which Stripe environment
   },
   { timestamps: true },
 );
