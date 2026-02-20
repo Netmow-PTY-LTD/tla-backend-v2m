@@ -1,14 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// services/subscription.service.ts
-
-import Stripe from "stripe";
+import { stripe, stripeTest, stripeLive, getCurrentEnvironment } from "../../config/stripe.config";
 import QueryBuilder from "../../builder/QueryBuilder";
 import SubscriptionPackage, { ISubscription } from "./subscriptionPack.model";
 import Country from "../Country/country.model";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
 
 
 
@@ -110,8 +104,10 @@ const SUBSCRIPTION_OPTIONS = {
 const createSubscriptionIntoDB = async (
   payload: Partial<ISubscription>
 ) => {
-  let stripeProduct: any;
-  let stripePrice: any;
+  const stripeObjects: {
+    test?: { productId: string; priceId: string };
+    live?: { productId: string; priceId: string };
+  } = {};
 
   try {
     // 1️ Set currency from country
@@ -147,54 +143,76 @@ const createSubscriptionIntoDB = async (
       throw new Error("Subscription already exists");
     }
 
-    // 3️ Create Stripe Product
-    stripeProduct = await stripe.products.create({
-      name: payload.name,
-      description:
-        payload.description || `${payload.name} subscription plan`,
-    });
+    // Helper to create Stripe resources
+    const createStripeResources = async (stripeInstance: any) => {
+      const product = await stripeInstance.products.create({
+        name: payload.name,
+        description: payload.description || `${payload.name} subscription plan`,
+      });
 
-    // 4️ Determine interval
-    const intervalMap: any = {
-      weekly: "week",
-      monthly: "month",
-      yearly: "year",
+      const intervalMap: any = {
+        weekly: "week",
+        monthly: "month",
+        yearly: "year",
+      };
+      const interval = intervalMap[payload.billingCycle!];
+
+      const price = await stripeInstance.prices.create({
+        product: product.id,
+        unit_amount: payload.price!.amount * 100,
+        currency: payload.price!.currency.toLowerCase(),
+        recurring: interval ? { interval } : undefined,
+        tax_behavior: "exclusive",
+      });
+
+      return { productId: product.id, priceId: price.id };
     };
 
-    const interval = intervalMap[payload.billingCycle];
+    // 3️ Create resources on Test Stripe if available
+    if (stripeTest) {
+      stripeObjects.test = await createStripeResources(stripeTest);
+    }
 
-    // 5️ Create Stripe Price
-    stripePrice = await stripe.prices.create({
-      product: stripeProduct.id,
-      unit_amount: payload.price.amount * 100,
-      currency: payload.price.currency.toLowerCase(),
-      recurring: interval ? { interval } : undefined,
-      tax_behavior: "exclusive",
-    });
+    // 4️ Create resources on Live Stripe if available
+    if (stripeLive) {
+      stripeObjects.live = await createStripeResources(stripeLive);
+    }
 
-    // 6️ Save to DB
+    const currentEnv = getCurrentEnvironment();
+    const activeStripe = currentEnv === 'live' ? stripeObjects.live : stripeObjects.test;
+
+    // 5️ Save to DB with all environment IDs
     const subscription = await SubscriptionPackage.create({
       ...payload,
-      stripeProductId: stripeProduct.id,
-      stripePriceId: stripePrice.id,
+      // Legacy / Current Env fields
+      stripeProductId: activeStripe?.productId,
+      stripePriceId: activeStripe?.priceId,
+
+      // Environment-specific fields
+      stripeProductIdTest: stripeObjects.test?.productId,
+      stripePriceIdTest: stripeObjects.test?.priceId,
+      stripeProductIdLive: stripeObjects.live?.productId,
+      stripePriceIdLive: stripeObjects.live?.priceId,
+
       status: "active",
     });
 
     return subscription;
 
   } catch (error) {
-    //  Cleanup Stripe if DB fails
-    try {
-      if (stripePrice?.id) {
-        await stripe.prices.update(stripePrice.id, { active: false });
+    // Cleanup Stripe if DB fails (Best effort)
+    const cleanup = async (stripeInstance: any, ids?: { productId: string; priceId: string }) => {
+      if (!stripeInstance || !ids) return;
+      try {
+        await stripeInstance.prices.update(ids.priceId, { active: false });
+        await stripeInstance.products.update(ids.productId, { active: false });
+      } catch (err) {
+        console.error("Stripe cleanup failed:", err);
       }
+    };
 
-      if (stripeProduct?.id) {
-        await stripe.products.update(stripeProduct.id, { active: false });
-      }
-    } catch (cleanupError) {
-      console.error("Stripe cleanup failed:", cleanupError);
-    }
+    if (stripeObjects.test) await cleanup(stripeTest, stripeObjects.test);
+    if (stripeObjects.live) await cleanup(stripeLive, stripeObjects.live);
 
     throw error;
   }
@@ -309,7 +327,10 @@ const updateSubscriptionIntoDB = async (
   if (!existing) throw new Error("Subscription package not found");
 
   let newStripePriceId: string | null = null;
-  let createdStripePrice: any = null;
+  const createdStripePriceIds: {
+    test?: string;
+    live?: string;
+  } = {};
 
   try {
     //  Determine final values after update
@@ -331,7 +352,7 @@ const updateSubscriptionIntoDB = async (
         ? payload.price.amount
         : existing.price.amount;
 
-    //  Check if Stripe price needs update
+    //  2️⃣ Detect actual changes
     const isBillingChanged =
       payload.billingCycle &&
       payload.billingCycle !== existing.billingCycle;
@@ -343,11 +364,14 @@ const updateSubscriptionIntoDB = async (
     const isCurrencyChanged =
       finalCurrency !== existing.price.currency;
 
+    //  Check if Stripe price needs update
+    const isMissingTest = stripeTest && !existing.stripeProductIdTest;
+    const isMissingLive = stripeLive && !existing.stripeProductIdLive;
+
     const shouldCreateNewPrice =
-      isBillingChanged || isAmountChanged || isCurrencyChanged;
+      isBillingChanged || isAmountChanged || isCurrencyChanged || isMissingTest || isMissingLive;
 
     if (shouldCreateNewPrice) {
-      // Determine interval
       const intervalMap: any = {
         weekly: "week",
         monthly: "month",
@@ -356,20 +380,97 @@ const updateSubscriptionIntoDB = async (
 
       const interval = intervalMap[finalBillingCycle];
 
-      //  Create new Stripe price
-      createdStripePrice = await stripe.prices.create({
-        product: existing.stripeProductId,
-        unit_amount: finalAmount * 100,
-        currency: finalCurrency.toLowerCase(),
-        recurring: interval ? { interval } : undefined,
-        tax_behavior: "exclusive",
-      });
+      // Helper to sync or create resources in a specific environment
+      const syncResourcesInEnv = async (stripeInstance: any, env: 'test' | 'live') => {
+        if (!stripeInstance) return null;
 
-      newStripePriceId = createdStripePrice.id;
+        let productId = env === 'test' ? existing.stripeProductIdTest : existing.stripeProductIdLive;
+
+        // 1. Lazy-create Product if missing
+        if (!productId) {
+          const product = await stripeInstance.products.create({
+            name: payload.name || existing.name,
+            description: payload.description || existing.description || `${payload.name || existing.name} plan`,
+          });
+          productId = product.id;
+        }
+
+        // 2. Create new Price
+        const price = await stripeInstance.prices.create({
+          product: productId,
+          unit_amount: finalAmount * 100,
+          currency: finalCurrency.toLowerCase(),
+          recurring: interval ? { interval } : undefined,
+          tax_behavior: "exclusive",
+        });
+
+        // Track for cleanup
+        if (env === 'test') createdStripePriceIds.test = price.id;
+        else createdStripePriceIds.live = price.id;
+
+        return { productId, priceId: price.id };
+      };
+
+      // Create/Sync in both environments
+      const resources = await Promise.all([
+        syncResourcesInEnv(stripeTest, 'test'),
+        syncResourcesInEnv(stripeLive, 'live')
+      ]);
+
+      const testRes = resources[0];
+      const liveRes = resources[1];
+
+      const currentEnv = getCurrentEnvironment();
+      const activePriceId = currentEnv === 'live' ? liveRes?.priceId : testRes?.priceId;
+      newStripePriceId = activePriceId || null;
+
+      // Prepare environment-specific updates
+      const stripeUpdates: any = {};
+      if (testRes) {
+        stripeUpdates.stripeProductIdTest = testRes.productId;
+        stripeUpdates.stripePriceIdTest = testRes.priceId;
+      }
+      if (liveRes) {
+        stripeUpdates.stripeProductIdLive = liveRes.productId;
+        stripeUpdates.stripePriceIdLive = liveRes.priceId;
+      }
+      // Set legacy field if applicable
+      if (newStripePriceId) stripeUpdates.stripePriceId = newStripePriceId;
+
+      //  Update DB
+      const updatedSubscription = await SubscriptionPackage.findByIdAndUpdate(
+        id,
+        {
+          ...payload,
+          price: {
+            amount: finalAmount,
+            currency: finalCurrency,
+          },
+          ...stripeUpdates,
+        },
+        { new: true }
+      );
+
+      //  Deactivate old Stripe prices AFTER successful DB update
+      const deactivateOldPrice = async (stripeInstance: any, oldPriceId: string) => {
+        if (!stripeInstance || !oldPriceId) return;
+        try {
+          await stripeInstance.prices.update(oldPriceId, { active: false });
+        } catch (err) {
+          console.error("Failed to deactivate old price:", err);
+        }
+      };
+
+      await Promise.all([
+        (existing.stripePriceIdTest && testRes?.priceId !== existing.stripePriceIdTest) ? deactivateOldPrice(stripeTest, existing.stripePriceIdTest) : Promise.resolve(),
+        (existing.stripePriceIdLive && liveRes?.priceId !== existing.stripePriceIdLive) ? deactivateOldPrice(stripeLive, existing.stripePriceIdLive) : Promise.resolve()
+      ]);
+
+      return updatedSubscription;
     }
 
-    //  Update DB
-    const updatedSubscription = await SubscriptionPackage.findByIdAndUpdate(
+    // If no price change, just update basic fields
+    return await SubscriptionPackage.findByIdAndUpdate(
       id,
       {
         ...payload,
@@ -377,29 +478,24 @@ const updateSubscriptionIntoDB = async (
           amount: finalAmount,
           currency: finalCurrency,
         },
-        ...(newStripePriceId ? { stripePriceId: newStripePriceId } : {}),
       },
       { new: true }
     );
 
-    //  Deactivate old Stripe price AFTER successful DB update
-    if (newStripePriceId) {
-      await stripe.prices.update(existing.stripePriceId, {
-        active: false,
-      });
-    }
-
-    return updatedSubscription;
-
   } catch (error) {
     //  Cleanup if Stripe price created but DB failed
-    if (createdStripePrice?.id) {
+    if (createdStripePriceIds.test && stripeTest) {
       try {
-        await stripe.prices.update(createdStripePrice.id, {
-          active: false,
-        });
+        await stripeTest.prices.update(createdStripePriceIds.test, { active: false });
       } catch (cleanupError) {
-        console.error("Stripe cleanup failed:", cleanupError);
+        console.error("Stripe Test cleanup failed:", cleanupError);
+      }
+    }
+    if (createdStripePriceIds.live && stripeLive) {
+      try {
+        await stripeLive.prices.update(createdStripePriceIds.live, { active: false });
+      } catch (cleanupError) {
+        console.error("Stripe Live cleanup failed:", cleanupError);
       }
     }
 
@@ -419,29 +515,38 @@ const deleteSubscriptionFromDB = async (id: string) => {
   const existing = await SubscriptionPackage.findById(id);
   if (!existing) throw new Error("Subscription package not found");
 
-  // 2️ Deactivate (archive) from Stripe
-  try {
-    if (existing.stripeProductId) {
+  // 2️ Deactivate (archive) from Stripe (both environments)
+  const archiveInEnv = async (stripeInstance: any, productId: string) => {
+    if (!stripeInstance || !productId) return;
+    try {
       // List all related prices for this product
-      const prices = await stripe.prices.list({
-        product: existing.stripeProductId,
+      const prices = await stripeInstance.prices.list({
+        product: productId,
         limit: 100,
       });
 
       // Deactivate all active prices
       for (const price of prices.data) {
         if (price.active) {
-          await stripe.prices.update(price.id, { active: false });
+          await stripeInstance.prices.update(price.id, { active: false });
         }
       }
 
       // Archive the Stripe product
-      await stripe.products.update(existing.stripeProductId, { active: false });
+      await stripeInstance.products.update(productId, { active: false });
+    } catch (err) {
+      console.error(`Error archiving product on Stripe (${stripeInstance === stripeTest ? 'test' : 'live'}):`, err);
     }
-  } catch (err) {
-    console.error("Error archiving product on Stripe:", err);
-    throw new Error("Failed to archive subscription package on Stripe");
-  }
+  };
+
+  await Promise.all([
+    existing.stripeProductIdTest ? archiveInEnv(stripeTest, existing.stripeProductIdTest) : Promise.resolve(),
+    existing.stripeProductIdLive ? archiveInEnv(stripeLive, existing.stripeProductIdLive) : Promise.resolve(),
+    // Fallback for legacy fields if they don't match test/live
+    (existing.stripeProductId && existing.stripeProductId !== existing.stripeProductIdTest && existing.stripeProductId !== existing.stripeProductIdLive)
+      ? archiveInEnv(stripe, existing.stripeProductId)
+      : Promise.resolve()
+  ]);
 
   // 3️ Soft delete in MongoDB
   existing.isActive = false;

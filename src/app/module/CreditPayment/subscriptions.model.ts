@@ -15,6 +15,7 @@ export interface IUserSubscription extends Document {
   userId: Types.ObjectId; // Reference to UserProfile
   subscriptionPackageId: Types.ObjectId; // Reference to SubscriptionPackage
   stripeSubscriptionId: string; // Stripe subscription ID
+  stripeEnvironment: 'test' | 'live'; // Track which Stripe environment
   status: SubscriptionStatus;
   monthlyCaseContacts: number;
   subscriptionPeriodStart?: Date;
@@ -29,6 +30,7 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     subscriptionPackageId: { type: Schema.Types.ObjectId, ref: "SubscriptionPackage", required: true },
     stripeSubscriptionId: { type: String, required: true },
+    stripeEnvironment: { type: String, enum: ['test', 'live'], default: 'test' },
     status: {
       type: String,
       enum: ["active", "canceled", "past_due", "incomplete", "incomplete_expired", "trialing", "unpaid", "payment_failed"],

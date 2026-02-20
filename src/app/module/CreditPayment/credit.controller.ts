@@ -18,7 +18,8 @@ const spendCredits = catchAsync(async (req, res) => {
 const getUserCreditStats = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
-  const result = await creditService.getUserCreditStats(userId);
+  // For user-facing stats, show all data (test + live) so users see complete picture
+  const result = await creditService.getUserCreditStats(userId, true);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,

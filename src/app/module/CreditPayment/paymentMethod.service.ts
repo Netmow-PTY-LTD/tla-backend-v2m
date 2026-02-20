@@ -3,7 +3,8 @@ import { sendNotFoundResponse } from '../../errors/custom.error';
 import UserProfile from '../User/user.model';
 
 import PaymentMethod from './paymentMethod.model';
-import Stripe from 'stripe';
+import { stripe, getCurrentEnvironment } from '../../config/stripe.config';
+import type Stripe from 'stripe';
 import Transaction from './transaction.model';
 import { validateObjectId } from '../../utils/validateObjectId';
 import CreditPackage from './creditPackage.model';
@@ -25,22 +26,16 @@ import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
 
 
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
-
-
 const getPaymentMethods = async (userId: string) => {
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
   const result = await PaymentMethod.findOne({
-    userProfileId: userProfile?._id,
-    isDefault: true,
+    userProfileId: userProfile._id,
     isActive: true,
-  });
+    stripeEnvironment: getCurrentEnvironment(), //  Only show cards for current environment
+  })
 
   return result;
 };
@@ -78,19 +73,6 @@ const removePaymentMethod = async (userId: string, paymentMethodId: string) => {
   existingCard.isDefault = false;
   await existingCard.save();
 
-  // If removed card was default, make another active card default
-  // if (existingCard.isDefault) {
-  //   const fallbackCard = await PaymentMethod.findOne({
-  //     userProfileId: userProfile._id,
-  //     isActive: true,
-  //   }).sort({ createdAt: -1 });
-
-  //   if (fallbackCard) {
-  //     fallbackCard.isDefault = true;
-  //     await fallbackCard.save();
-  //   }
-  // }
-
   //  REVALIDATE REDIS CACHE
   await deleteCache(CacheKeys.USER_INFO(userId));
 
@@ -126,25 +108,30 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     email = (customer as Stripe.Customer).email || null;
   }
 
-  // 5. Check for duplicates (optional but recommended)
+  const currentEnv = getCurrentEnvironment();
+
+  // 5. Check for duplicates within the same environment
   const existing = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     stripeCustomerId,
     paymentMethodId: stripePaymentMethod.id,
-    email,
-    cardLastFour: stripePaymentMethod.card?.last4,
-    cardBrand: stripePaymentMethod.card?.brand,
-    expiryMonth: stripePaymentMethod.card?.exp_month,
-    expiryYear: stripePaymentMethod.card?.exp_year,
+    stripeEnvironment: currentEnv,
   });
 
-  if (existing) {
-    return { success: false, message: 'Card already exists', data: existing };
+  if (existing && existing.isActive) {
+    // If it exists and is active, just make it default
+    await PaymentMethod.updateMany(
+      { userProfileId: userProfile._id, stripeEnvironment: currentEnv },
+      { isDefault: false },
+    );
+    existing.isDefault = true;
+    await existing.save();
+    return { success: true, message: 'Card updated to default', data: existing };
   }
 
-  // 4. Unset previous defaults
+  // 4. Unset previous defaults ONLY for the current environment
   await PaymentMethod.updateMany(
-    { userProfileId: userProfile._id },
+    { userProfileId: userProfile._id, stripeEnvironment: currentEnv },
     { isDefault: false },
   );
 
@@ -159,6 +146,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     expiryMonth: stripePaymentMethod.card?.exp_month,
     expiryYear: stripePaymentMethod.card?.exp_year,
     isDefault: true,
+    stripeEnvironment: getCurrentEnvironment(),
   });
 
   //  REVALIDATE REDIS CACHE
@@ -176,199 +164,8 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
 
 
 
-// purchaseCredits with create Payment intent
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _purchaseCredits = async (
-  userId: string,
-  {
-    packageId,
-    couponCode,
-    autoTopUp,
-  }: { packageId: string; couponCode?: string; autoTopUp?: boolean },
-) => {
-  validateObjectId(packageId, 'credit package ID');
-
-  const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
-  if (!userProfile) return sendNotFoundResponse('User profile not found');
-
-  // 2️ Check if account status is approved
-  const accountStatus = (userProfile.user as IUser)?.accountStatus; // if using User ref
-  // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
-
-  if (accountStatus !== USER_STATUS.APPROVED) {
-    return {
-      success: false,
-      message: "Your account is not approved yet. Please wait until it is approved by the admin."
-    };
-  }
 
 
-  // 1. Find credit package
-  const creditPackage = await CreditPackage.findById(packageId).populate('country');
-  if (!creditPackage) return sendNotFoundResponse('Credit package not found');
-
-
-
-
-
-
-  // 2. Apply discount if coupon exists
-  let discount = 0;
-  if (couponCode) {
-    const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-    if (
-      coupon &&
-      typeof coupon.maxUses === 'number' &&
-      coupon.currentUses < coupon.maxUses
-    ) {
-      discount = coupon.discountPercentage;
-      coupon.currentUses += 1;
-      await coupon.save();
-    }
-  }
-
-  // 3. Calculate final price and tax manually
-  const subtotalCents = Math.round(
-    creditPackage.price * (1 - discount / 100) * 100,
-  ); // in cents
-
-  const country = creditPackage.country as any;
-  let taxPercentage = 0;
-  let calculatedTaxCents = 0;
-
-  if (country?.taxPercentage && country.taxPercentage > 0) {
-    taxPercentage = country.taxPercentage;
-    calculatedTaxCents = Math.round((subtotalCents * taxPercentage) / 100);
-  } else if (country?.taxAmount && country.taxAmount > 0) {
-    calculatedTaxCents = country.taxAmount * 100;
-  }
-
-  const finalPriceCents = subtotalCents + calculatedTaxCents;
-
-  // 4. Get user's default payment method
-
-
-
-
-  const paymentMethod = await PaymentMethod.findOne({
-    userProfileId: userProfile._id,
-    isDefault: true,
-    isActive: true,
-  });
-
-  if (
-    !paymentMethod ||
-    !paymentMethod.stripeCustomerId ||
-    !paymentMethod.paymentMethodId
-  ) {
-    return { success: false, message: 'No default payment method found' };
-  }
-
-  // 5. Validate and get currency
-  if (!creditPackage.currency) {
-    throw new AppError(
-      HTTP_STATUS.BAD_REQUEST,
-      'Credit package currency is not configured'
-    );
-  }
-  const currency = creditPackage.currency.toLowerCase();
-
-  // 6. Create payment intent
-  const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
-    amount: finalPriceCents,
-    currency: currency,
-    customer: paymentMethod.stripeCustomerId,
-    payment_method: paymentMethod.paymentMethodId,
-    off_session: true,
-    confirm: true,
-    metadata: {
-      userId,
-      creditPackageId: packageId,
-      manualTaxAmount: (calculatedTaxCents / 100).toString(),
-      taxType: country?.taxType || 'Tax',
-    },
-    expand: ['latest_charge', 'latest_charge.balance_transaction'],
-  };
-
-  const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
-
-
-  if (paymentIntent.status !== 'succeeded') {
-    return { success: false, message: 'Payment failed', data: paymentIntent };
-  }
-
-  const isVerified = await isVerifiedLawyer(userId);
-
-  if (!isVerified) {
-    userProfile.profileType = USER_PROFILE.VERIFIED;
-    const roleLabel = 'Verified Lawyer'
-    const emailData = {
-      name: userProfile.name,
-      role: roleLabel,
-      dashboardUrl: `${config.client_url}/lawyer/dashboard`,
-      appName: 'The Law App',
-    };
-
-    await sendEmail({
-      to: (userProfile.user as IUser)?.email,
-      subject: `🎉 Congrats! Your profile has been upgraded to ${roleLabel}.`,
-      data: emailData,
-      emailTemplate: 'lawyerPromotion',
-    });
-
-
-  }
-
-  // 7. Extract tax information for transaction record
-  const totalAmount = finalPriceCents / 100;
-  const subtotalAmount = subtotalCents / 100;
-  const taxAmount = calculatedTaxCents / 100;
-
-  const taxJurisdiction = country?.name;
-  const taxType = country?.taxType || 'Tax';
-  const taxRatePercentage = taxPercentage;
-
-  // 8. Create transaction with tax details
-  const transaction = await Transaction.create({
-    userId,
-    type: 'purchase',
-    creditPackageId: packageId,
-    credit: creditPackage.credit,
-    subtotal: subtotalAmount,
-    taxAmount: taxAmount,
-    taxRate: taxRatePercentage,
-    totalWithTax: totalAmount,
-    amountPaid: totalAmount,
-    taxJurisdiction: taxJurisdiction,
-    taxType: taxType,
-    currency: paymentIntent.currency,
-    status: 'completed',
-    couponCode,
-    discountApplied: discount || 0,
-    stripePaymentIntentId: paymentIntent.id,
-  });
-
-  // 7. Update user's credit balance and autoTopUp
-
-
-  userProfile.credits += creditPackage.credit;
-  userProfile.autoTopUp = autoTopUp || false;
-  await userProfile.save();
-
-  //  REVALIDATE REDIS CACHE
-  await deleteCache(CacheKeys.USER_INFO(userId));
-
-  return {
-    success: true,
-    message: 'Credits purchased successfully',
-    data: {
-      newBalance: userProfile.credits,
-      transactionId: transaction._id,
-      paymentIntentId: paymentIntent.id,
-    },
-  };
-};
 
 
 
@@ -417,14 +214,15 @@ const purchaseCredits = async (
   }
   const totalCents = subtotalCents + taxCents;
 
-  // 4️ Fetch default payment method
+  // 4️ Fetch default payment method — MUST match current Stripe environment
   const paymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
+    stripeEnvironment: getCurrentEnvironment(),
   });
   if (!paymentMethod?.stripeCustomerId || !paymentMethod?.paymentMethodId) {
-    return { success: false, message: 'No default payment method found' };
+    return { success: false, message: 'No default payment method found for the current environment. Please add a card.' };
   }
 
   // 5️ Create & confirm PaymentIntent (off-session)
@@ -496,6 +294,7 @@ const purchaseCredits = async (
       taxJurisdiction: country?.name,
       taxType: country?.taxType || 'Tax',
       taxRate: country?.taxPercentage || 0,
+      stripeEnvironment: getCurrentEnvironment(),
     }], { session });
 
     await session.commitTransaction();
@@ -550,106 +349,6 @@ const purchaseCredits = async (
 
 
 
-
-
-
-// //  ========== with webhook logic implement ====================
-// const purchaseCredits = async (userId: string, {
-//   packageId,
-//   couponCode,
-// }: { packageId: string; couponCode?: string; }) => {
-
-
-//   const userProfile = await UserProfile.findOne({ user: userId }).populate('user');
-//   if (!userProfile) throw new Error('User profile not found');
-
-//   //  Check if account status is approved
-//   const accountStatus = (userProfile.user as IUser)?.accountStatus; // if using User ref
-//   // OR if accountStatus is directly in UserProfile: const accountStatus = userProfile.accountStatus;
-
-//   if (accountStatus !== USER_STATUS.APPROVED) {
-//     return {
-//       success: false,
-//       message: "Your account is not approved yet. Please wait until it is approved by the admin."
-//     };
-//   }
-
-//   const creditPackage = await CreditPackage.findById(packageId).populate('country');
-//   if (!creditPackage) throw new Error('Credit package not found');
-
-//   // Calculate discount
-//   let discount = 0;
-//   if (couponCode) {
-//     const coupon = await Coupon.findOneAndUpdate(
-//       {
-//         code: couponCode,
-//         isActive: true,
-//         $expr: { $lt: ["$currentUses", "$maxUses"] }
-//       },
-//       { $inc: { currentUses: 1 } },
-//       { new: true }
-//     );
-//     if (coupon) discount = coupon.discountPercentage;
-//   }
-
-//   // Calculate price
-//   const subtotalCents = Math.round(creditPackage.price * (1 - discount / 100) * 100);
-//   const country = creditPackage.country as any;
-
-//   let calculatedTaxCents = 0;
-//   let taxPercentage = 0;
-//   if (country?.taxPercentage > 0) {
-//     taxPercentage = country.taxPercentage;
-//     calculatedTaxCents = Math.round((subtotalCents * taxPercentage) / 100);
-//   } else if (country?.taxAmount > 0) {
-//     calculatedTaxCents = country.taxAmount * 100;
-//   }
-
-//   const finalPriceCents = subtotalCents + calculatedTaxCents;
-
-//   // Get default payment method
-//   const paymentMethod = await PaymentMethod.findOne({
-//     userProfileId: userProfile._id,
-//     isDefault: true,
-//     isActive: true,
-//   });
-
-//   if (!paymentMethod || !paymentMethod.stripeCustomerId || !paymentMethod.paymentMethodId) {
-//     throw new Error('No default payment method found');
-//   }
-
-//   // Create Stripe PaymentIntent
-//   const paymentIntent = await stripe.paymentIntents.create({
-//     amount: finalPriceCents,
-//     currency: creditPackage.currency.toLowerCase(),
-//     customer: paymentMethod.stripeCustomerId,
-//     payment_method: paymentMethod.paymentMethodId,
-//     confirm: true,
-//     off_session: true,
-//     metadata: {
-//       userId,
-//       creditPackageId: packageId,
-//       couponCode: couponCode || '',
-//       manualTaxAmount: (calculatedTaxCents / 100).toString(),
-//       taxType: country?.taxType || 'Tax',
-
-//     },
-//   }, {
-//     idempotencyKey: `credit_${userId}_${packageId}_${Date.now()}`
-//   });
-
-//   return {
-//     newBalance: userProfile.credits,
-//     clientSecret: paymentIntent.client_secret,
-//     paymentIntentId: paymentIntent.id
-//   };
-// };
-
-
-
-
-
-
 //   customer management
 
 
@@ -689,6 +388,7 @@ const getOrCreateCustomer = async (
       : undefined,
     metadata: {
       userId,
+      stripeEnvironment: getCurrentEnvironment(), // ✅ tag customer with current environment for observability
       vatRegistered: billing?.isVatRegistered ? 'yes' : 'no',
       vatNumber: billing?.vatNumber || '',
     },
@@ -753,100 +453,124 @@ const createSubscription = async (
   payload: { type: SubscriptionType; packageId: string; autoRenew?: boolean }
 ) => {
   const { type, packageId, autoRenew } = payload;
+  const currentEnv = getCurrentEnvironment();
 
-  // 1️ Get subscription package
+  // ── 1. Load package ──────────────────────────────────────────────────────
   const subscriptionPackage =
     type === SubscriptionType.SUBSCRIPTION
       ? await SubscriptionPackage.findById(packageId)
       : await EliteProPackageModel.findById(packageId);
 
-  if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid package");
+  if (!subscriptionPackage) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Invalid package ID: ${packageId}`);
   }
 
-  // 2️ Get user profile with country
+  // Resolve the correct Stripe Price ID based on environment
+  const stripePriceId = currentEnv === 'live'
+    ? (subscriptionPackage.stripePriceIdLive || subscriptionPackage.stripePriceId)
+    : (subscriptionPackage.stripePriceIdTest || subscriptionPackage.stripePriceId);
+
+  if (!stripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Missing Stripe Price ID for environment: ${currentEnv}`);
+  }
+
+  // ── 2. Load user profile ────────────────────────────────────────────────
   const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
-  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
 
+  // ── 3. Duplicate subscription guard (per environment) ───────────────────
+  // Prevent double-charging if this endpoint is called twice rapidly.
+  if (type === SubscriptionType.SUBSCRIPTION && userProfile.subscriptionId) {
+    const existingSub = await UserSubscription.findOne({
+      _id: userProfile.subscriptionId,
+      status: 'active',
+      stripeEnvironment: currentEnv, // ✅ only block if same environment
+    });
+    if (existingSub) {
+      return {
+        success: false,
+        message: `You already have an active ${currentEnv}-mode subscription. Cancel it before creating a new one.`,
+        data: {
+          requiresPreviousPackageCancel: true,
+          existingSubscriptionId: existingSub._id,
+          stripeEnvironment: currentEnv,
+        },
+      };
+    }
+    // Pointer exists but subscription is not active in this env — clear stale pointer
+    userProfile.subscriptionId = null;
+    userProfile.subscriptionPeriodStart = null;
+    userProfile.subscriptionPeriodEnd = null;
+  }
 
-  //   check previous subscription of different type exists
+  if (type === SubscriptionType.ELITE_PRO && userProfile.eliteProSubscriptionId && userProfile.isElitePro) {
+    const existingElite = await EliteProUserSubscription.findOne({
+      _id: userProfile.eliteProSubscriptionId,
+      status: 'active',
+      stripeEnvironment: currentEnv, // ✅ environment-scoped check
+    });
+    if (existingElite) {
+      return {
+        success: false,
+        message: `You already have an active ${currentEnv}-mode Elite Pro subscription. Cancel it before creating a new one.`,
+        data: {
+          requiresPreviousPackageCancel: true,
+          existingSubscriptionId: existingElite._id,
+          stripeEnvironment: currentEnv,
+        },
+      };
+    }
+    // Stale pointer — clear
+    userProfile.isElitePro = false;
+    userProfile.eliteProSubscriptionId = null;
+    userProfile.eliteProPeriodStart = null;
+    userProfile.eliteProPeriodEnd = null;
+  }
 
-  // if (
-  //   userProfile.isElitePro &&
-  //   type === SubscriptionType.SUBSCRIPTION &&
-  //   userProfile.eliteProSubscriptionId
-  // ) {
-  //   return {
-  //     success: false,
-  //     message:
-  //       "You currently have an active Elite Pro subscription. Please cancel your Elite Pro plan before activating a regular subscription.",
-  //     data: {
-  //       requiresPreviousPackageCancel: true,
-  //       previousPackageType: SubscriptionType.ELITE_PRO,
-  //       previousPackageId: userProfile.eliteProSubscriptionId,
-  //     },
-  //   };
-  // } else if (userProfile.subscriptionId && type === SubscriptionType.ELITE_PRO) {
-  //   return {
-  //     success: false,
-  //     message:
-  //       "You currently have an active subscription. Please cancel your current subscription before activating an Elite Pro plan.",
-  //     data: {
-  //       requiresPreviousPackageCancel: true,
-  //       previousPackageType: SubscriptionType.SUBSCRIPTION,
-  //       previousPackageId: userProfile.subscriptionId,
-  //     },
-  //   };
-  // }
-
-
-
-  // 3️ Get default saved payment method
+  // ── 4. Get environment-matched default payment method ────────────────────
   const savedPaymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
+    stripeEnvironment: currentEnv, // ✅ MUST match current Stripe environment
   });
 
-  if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
+  if (!savedPaymentMethod?.paymentMethodId || !savedPaymentMethod?.stripeCustomerId) {
     return {
       success: false,
-      message: "No default payment method found. Please add a payment method before subscribing.",
-      data: { requiresPaymentMethod: true },
+      message: `No default ${currentEnv}-mode payment method found. Please add a card before subscribing.`,
+      data: { requiresPaymentMethod: true, stripeEnvironment: currentEnv },
     };
   }
 
   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
 
-  // 4️ Attach payment method to the customer if not attached
+  // ── 5. Attach payment method to customer (idempotent) ───────────────────
   try {
     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
       customer: stripeCustomerId,
     });
   } catch (err: any) {
-    if (!err.message.includes("already attached")) {
-      console.error(" PaymentMethod attach error:", err.message);
-      throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
+    if (!err.message?.includes('already been attached')) {
+      throw new AppError(HTTP_STATUS.BAD_REQUEST, `PaymentMethod attach error: ${err.message}`);
     }
+    // already attached — fine, continue
   }
 
+  // ── 6. Tax rate resolution ───────────────────────────────────────────────
   const country = userProfile.country as any;
   let taxPercentage = 0;
 
   if (country?.taxPercentage && country.taxPercentage > 0) {
     taxPercentage = country.taxPercentage;
   } else if (country?.taxAmount && country.taxAmount > 0) {
-    // For subscriptions, we convert the flat tax amount to an effective percentage
-    // so it can be used with Stripe Tax Rates.
-    const packagePrice = subscriptionPackage.price.amount;
+    const packagePrice = subscriptionPackage.price?.amount ?? 0;
     if (packagePrice > 0) {
       taxPercentage = (country.taxAmount / packagePrice) * 100;
     }
   }
 
-
   let taxRateId: string | undefined;
-
   if (taxPercentage > 0) {
     try {
       const taxRate = await getOrCreateTaxRate(
@@ -856,31 +580,35 @@ const createSubscription = async (
       );
       taxRateId = taxRate.id;
     } catch (err: any) {
-      console.error(' Error getting/creating tax rate:', err.message);
+      // Non-fatal: proceed without tax rate
+      console.warn(`[createSubscription] Tax rate creation failed: ${err.message}`);
     }
   }
 
-  // 5️ Create subscription with manual tax rate
+  // ── 7. Create Stripe subscription ──────────────────────────────────────
   const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
     items: [{
-      price: subscriptionPackage.stripePriceId,
-      tax_rates: taxRateId ? [taxRateId] : undefined
+      price: stripePriceId,
+      tax_rates: taxRateId ? [taxRateId] : undefined,
     }],
-    metadata: { userId, packageId, type },
-    collection_method: "charge_automatically",
-    payment_behavior: "allow_incomplete",
+    metadata: {
+      userId,
+      packageId,
+      type,
+      stripeEnvironment: currentEnv, // ✅ tag metadata for observability
+    },
+    collection_method: 'charge_automatically',
+    payment_behavior: 'allow_incomplete',
     default_payment_method: savedPaymentMethod.paymentMethodId,
-    expand: ["latest_invoice.payment_intent", "latest_invoice.total_tax_amounts"],
+    automatic_tax: { enabled: false },
+    expand: ['latest_invoice.payment_intent', 'latest_invoice.total_tax_amounts'],
   };
 
-  // Disable automatic tax as we are handling it via Tax Rates
-  subscriptionParams.automatic_tax = { enabled: false };
+  const stripeSubscription = await stripe.subscriptions.create(subscriptionParams);
 
-  const subscription = await stripe.subscriptions.create(subscriptionParams);
-
-  // 6️ Attempt to pay invoice off-session (backend)
-  const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & {
+  // ── 8. Confirm payment if not auto-charged ──────────────────────────────
+  const latestInvoice = stripeSubscription.latest_invoice as (Stripe.Invoice & {
     payment_intent?: Stripe.PaymentIntent | string;
     total_tax_amounts?: Array<{
       amount: number;
@@ -893,433 +621,162 @@ const createSubscription = async (
       };
     }>;
   }) | undefined;
+
   let paymentSucceeded = false;
 
-  if (latestInvoice && latestInvoice.payment_intent) {
+  if (latestInvoice?.payment_intent) {
     const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
 
-    if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
+    if (paymentIntent.status === 'requires_payment_method' || paymentIntent.status === 'requires_confirmation') {
       try {
         const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
           payment_method: savedPaymentMethod.paymentMethodId,
         });
-        if (confirmed.status === "succeeded") paymentSucceeded = true;
+        if (confirmed.status === 'succeeded') paymentSucceeded = true;
       } catch (err: any) {
-        console.error(" Payment failed:", err.message);
+        // Cancel the Stripe subscription to avoid a dangling unpaid subscription
+        await stripe.subscriptions.cancel(stripeSubscription.id).catch(() => { /* best-effort */ });
         return {
           success: false,
-          message: "Payment failed: " + err.message,
-          data: { requiresPaymentMethod: true },
+          message: `Payment failed: ${err.message}`,
+          data: { requiresPaymentMethod: true, stripeEnvironment: currentEnv },
         };
       }
-    } else if (paymentIntent.status === "succeeded") {
+    } else if (paymentIntent.status === 'succeeded') {
       paymentSucceeded = true;
     }
   } else {
-    paymentSucceeded = true; // no payment needed
+    paymentSucceeded = true; // trial / $0 invoice
   }
 
   if (!paymentSucceeded) {
+    await stripe.subscriptions.cancel(stripeSubscription.id).catch(() => { /* best-effort */ });
     return {
       success: false,
-      message: "Payment could not be completed. Please check your card.",
-      data: { requiresPaymentMethod: true },
+      message: 'Payment could not be completed. Please check your card details.',
+      data: { requiresPaymentMethod: true, stripeEnvironment: currentEnv },
     };
   }
 
-
-
-  // Grab the first line item (Stripe usually has one per subscription item)
-  const invoiceLine = latestInvoice?.lines?.data[0];
-
-  // Extract start and end dates safely
+  // ── 9. Extract billing period from invoice line item (most reliable source) ─
+  const invoiceLine = latestInvoice?.lines?.data?.[0];
   const subscriptionPeriodStart = invoiceLine?.period?.start
     ? new Date(invoiceLine.period.start * 1000)
-    : subscription.start_date
-      ? new Date(subscription.start_date * 1000)
-      : undefined;
+    : stripeSubscription.start_date
+      ? new Date(stripeSubscription.start_date * 1000)
+      : new Date();
 
   const subscriptionPeriodEnd = invoiceLine?.period?.end
     ? new Date(invoiceLine.period.end * 1000)
     : undefined;
 
-  // Validate dates
-  if (subscriptionPeriodStart && isNaN(subscriptionPeriodStart.getTime())) {
-    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription start date from Stripe");
+  if (isNaN(subscriptionPeriodStart.getTime())) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Invalid subscription start date from Stripe');
   }
   if (subscriptionPeriodEnd && isNaN(subscriptionPeriodEnd.getTime())) {
-    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription end date from Stripe");
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Invalid subscription end date from Stripe');
   }
 
-
-
-
-
-  // 7️ Save subscription in DB
-
-  let subscriptionRecord;
+  // ── 10. Persist subscription record + update UserProfile atomically ───────
+  let subscriptionRecord: any;
 
   if (type === SubscriptionType.SUBSCRIPTION) {
     subscriptionRecord = await UserSubscription.create({
       userId,
       subscriptionPackageId: subscriptionPackage._id,
-      stripeSubscriptionId: subscription.id,
-      status: "active",
+      stripeSubscriptionId: stripeSubscription.id,
+      stripeEnvironment: currentEnv, // ✅ environment tag
+      status: 'active',
       subscriptionPeriodStart,
       subscriptionPeriodEnd,
       autoRenew: autoRenew ?? true,
+      monthlyCaseContacts: 0,
     });
-    userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
-    userProfile.subscriptionPeriodStart = subscriptionPeriodStart;
-    userProfile.subscriptionPeriodEnd = subscriptionPeriodEnd;
+
+    // ✅ Atomically update UserProfile — never leave these out-of-sync
+    await UserProfile.findByIdAndUpdate(
+      userProfile._id,
+      {
+        subscriptionId: subscriptionRecord._id,
+        subscriptionPeriodStart,
+        subscriptionPeriodEnd,
+      },
+      { new: true },
+    );
+
   } else if (type === SubscriptionType.ELITE_PRO) {
     subscriptionRecord = await EliteProUserSubscription.create({
       userId,
       eliteProPackageId: subscriptionPackage._id,
-      stripeSubscriptionId: subscription.id,
-      status: "active",
+      stripeSubscriptionId: stripeSubscription.id,
+      stripeEnvironment: currentEnv, // ✅ environment tag
+      status: 'active',
       eliteProPeriodStart: subscriptionPeriodStart,
       eliteProPeriodEnd: subscriptionPeriodEnd,
       autoRenew: autoRenew ?? true,
     });
 
-    userProfile.isElitePro = true;
-    userProfile.eliteProSubscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
-    userProfile.eliteProPeriodStart = subscriptionPeriodStart;
-    userProfile.eliteProPeriodEnd = subscriptionPeriodEnd;
+    // ✅ Atomically update UserProfile
+    await UserProfile.findByIdAndUpdate(
+      userProfile._id,
+      {
+        isElitePro: true,
+        eliteProSubscriptionId: subscriptionRecord._id,
+        eliteProPeriodStart: subscriptionPeriodStart,
+        eliteProPeriodEnd: subscriptionPeriodEnd,
+      },
+      { new: true },
+    );
   }
 
-  await userProfile.save();
+  // ── 11. Build transaction record with full tax data ──────────────────────
+  const invoiceSubtotal = (latestInvoice?.subtotal ?? 0) / 100;
+  const invoiceTotal = (latestInvoice?.total ?? 0) / 100;
+  const invoiceTax = invoiceTotal - invoiceSubtotal;
+  const invoiceAmountPaid = (latestInvoice?.amount_paid ?? 0) / 100;
+  const taxRates = latestInvoice?.total_tax_amounts?.[0] as any;
 
-  // 8️ Extract tax information from invoice
-  const invoiceSubtotal = (latestInvoice?.subtotal || 0) / 100;
-  const invoiceTotal = (latestInvoice?.total || 0) / 100;
-  const invoiceTax = invoiceTotal - invoiceSubtotal; // Calculate tax from total - subtotal
-  const invoiceAmountPaid = (latestInvoice?.amount_paid || 0) / 100;
-
-  // Extract tax details from invoice line items
-  const taxRates = latestInvoice?.total_tax_amounts?.[0];
-  const taxJurisdiction = taxRates?.jurisdiction;
-  const taxType = taxRates?.tax_rate_details?.tax_type;
-  const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
-
-  // 9️ Create transaction record with tax data
   await Transaction.create({
     userId,
-    type: "subscription",
+    type: 'subscription',
     subscriptionId: subscriptionRecord?._id,
     subscriptionType: type,
     subtotal: invoiceSubtotal,
     taxAmount: invoiceTax,
-    taxRate: taxRatePercentage,
+    taxRate: taxRates?.tax_rate_details?.percentage_decimal,
     totalWithTax: invoiceTotal,
     amountPaid: invoiceAmountPaid,
-    taxJurisdiction: taxJurisdiction,
-    taxType: taxType,
-    currency: latestInvoice?.currency || "usd",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
+    taxJurisdiction: taxRates?.jurisdiction,
+    taxType: taxRates?.tax_rate_details?.tax_type,
+    currency: latestInvoice?.currency ?? 'usd',
+    stripePaymentIntentId: typeof latestInvoice?.payment_intent === 'string'
+      ? latestInvoice.payment_intent
+      : (latestInvoice?.payment_intent as Stripe.PaymentIntent)?.id ?? null,
     stripeInvoiceId: latestInvoice?.id ?? null,
     invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,
-    status: "completed",
+    stripeCustomerId,
+    stripeSubscriptionId: stripeSubscription.id,
+    stripeEnvironment: currentEnv, // ✅ environment tag
+    status: 'completed',
   });
 
-
-
-  // --------------------  REVALIDATE REDIS CACHE -----------------------
+  // ── 12. Invalidate cache ──────────────────────────────────────────────────
   await deleteCache(CacheKeys.USER_INFO(userId));
 
   return {
     success: true,
-    message: type === SubscriptionType.ELITE_PRO ? "Elite Pro subscription created and charged successfully" : "Subscription created and charged successfully",
+    message: type === SubscriptionType.ELITE_PRO
+      ? 'Elite Pro subscription created successfully'
+      : 'Subscription created successfully',
     data: {
-      subscriptionId: subscription.id,
+      subscriptionId: stripeSubscription.id,
+      dbSubscriptionId: subscriptionRecord?._id,
+      stripeEnvironment: currentEnv, // ✅ tell client which env was used
+      periodStart: subscriptionPeriodStart,
+      periodEnd: subscriptionPeriodEnd,
     },
   };
 };
-
-
-
-// const createSubscription = async (
-//   userId: string,
-//   payload: { type: SubscriptionType; packageId: string; autoRenew?: boolean }
-// ) => {
-//   const { type, packageId, autoRenew } = payload;
-
-//   // 1️ Get subscription package
-//   const subscriptionPackage =
-//     type === SubscriptionType.SUBSCRIPTION
-//       ? await SubscriptionPackage.findById(packageId)
-//       : await EliteProPackageModel.findById(packageId);
-
-//   if (!subscriptionPackage || !subscriptionPackage.stripePriceId) {
-//     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid package");
-//   }
-
-//   // 2️ Get user profile with country
-//   const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
-//   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
-
-
-//   //   check previous subscription of different type exists
-
-//   // if (
-//   //   userProfile.isElitePro &&
-//   //   type === SubscriptionType.SUBSCRIPTION &&
-//   //   userProfile.eliteProSubscriptionId
-//   // ) {
-//   //   return {
-//   //     success: false,
-//   //     message:
-//   //       "You currently have an active Elite Pro subscription. Please cancel your Elite Pro plan before activating a regular subscription.",
-//   //     data: {
-//   //       requiresPreviousPackageCancel: true,
-//   //       previousPackageType: SubscriptionType.ELITE_PRO,
-//   //       previousPackageId: userProfile.eliteProSubscriptionId,
-//   //     },
-//   //   };
-//   // } else if (userProfile.subscriptionId && type === SubscriptionType.ELITE_PRO) {
-//   //   return {
-//   //     success: false,
-//   //     message:
-//   //       "You currently have an active subscription. Please cancel your current subscription before activating an Elite Pro plan.",
-//   //     data: {
-//   //       requiresPreviousPackageCancel: true,
-//   //       previousPackageType: SubscriptionType.SUBSCRIPTION,
-//   //       previousPackageId: userProfile.subscriptionId,
-//   //     },
-//   //   };
-//   // }
-
-
-
-//   // 3️ Get default saved payment method
-//   const savedPaymentMethod = await PaymentMethod.findOne({
-//     userProfileId: userProfile._id,
-//     isDefault: true,
-//     isActive: true,
-//   });
-
-//   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
-//     return {
-//       success: false,
-//       message: "No default payment method found. Please add a payment method before subscribing.",
-//       data: { requiresPaymentMethod: true },
-//     };
-//   }
-
-//   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
-
-//   // 4️ Attach payment method to the customer if not attached
-//   try {
-//     await stripe.paymentMethods.attach(savedPaymentMethod.paymentMethodId, {
-//       customer: stripeCustomerId,
-//     });
-//   } catch (err: any) {
-//     if (!err.message.includes("already attached")) {
-//       console.error(" PaymentMethod attach error:", err.message);
-//       throw new AppError(HTTP_STATUS.BAD_REQUEST, err.message);
-//     }
-//   }
-
-//   const country = userProfile.country as any;
-//   let taxPercentage = 0;
-
-//   if (country?.taxPercentage && country.taxPercentage > 0) {
-//     taxPercentage = country.taxPercentage;
-//   } else if (country?.taxAmount && country.taxAmount > 0) {
-//     // For subscriptions, we convert the flat tax amount to an effective percentage
-//     // so it can be used with Stripe Tax Rates.
-//     const packagePrice = subscriptionPackage.price.amount;
-//     if (packagePrice > 0) {
-//       taxPercentage = (country.taxAmount / packagePrice) * 100;
-//     }
-//   }
-
-
-//   let taxRateId: string | undefined;
-
-//   if (taxPercentage > 0) {
-//     try {
-//       const taxRate = await getOrCreateTaxRate(
-//         country.taxType || 'Tax',
-//         taxPercentage,
-//         country.name,
-//       );
-//       taxRateId = taxRate.id;
-//     } catch (err: any) {
-//       console.error(' Error getting/creating tax rate:', err.message);
-//     }
-//   }
-
-//   // 5️ Create subscription with manual tax rate
-//   const subscriptionParams: Stripe.SubscriptionCreateParams = {
-//     customer: stripeCustomerId,
-//     items: [{
-//       price: subscriptionPackage.stripePriceId,
-//       tax_rates: taxRateId ? [taxRateId] : undefined
-//     }],
-//     metadata: { userId, packageId, type },
-//     collection_method: "charge_automatically",
-//     payment_behavior: "allow_incomplete",
-//     default_payment_method: savedPaymentMethod.paymentMethodId,
-//     expand: ["latest_invoice.payment_intent", "latest_invoice.total_tax_amounts"],
-//   };
-
-//   // Disable automatic tax as we are handling it via Tax Rates
-//   subscriptionParams.automatic_tax = { enabled: false };
-
-//   const subscription = await stripe.subscriptions.create(subscriptionParams);
-
-//   // 6️ Attempt to pay invoice off-session (backend)
-//   const latestInvoice = subscription.latest_invoice as (Stripe.Invoice & {
-//     payment_intent?: Stripe.PaymentIntent;
-//     total_tax_amounts?: Array<{
-//       amount: number;
-//       inclusive: boolean;
-//       jurisdiction?: string;
-//       tax_rate_details?: {
-//         tax_type?: string;
-//         percentage_decimal?: number;
-//         display_name?: string;
-//       };
-//     }>;
-//   }) | undefined;
-//   let paymentSucceeded = false;
-
-//   if (latestInvoice && latestInvoice.payment_intent) {
-//     const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
-
-//     if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
-//       try {
-//         const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
-//           payment_method: savedPaymentMethod.paymentMethodId,
-//         });
-//         if (confirmed.status === "succeeded") paymentSucceeded = true;
-//       } catch (err: any) {
-//         console.error(" Payment failed:", err.message);
-//         return {
-//           success: false,
-//           message: "Payment failed: " + err.message,
-//           data: { requiresPaymentMethod: true },
-//         };
-//       }
-//     } else if (paymentIntent.status === "succeeded") {
-//       paymentSucceeded = true;
-//     }
-//   } else {
-//     paymentSucceeded = true; // no payment needed
-//   }
-
-//   if (!paymentSucceeded) {
-//     return {
-//       success: false,
-//       message: "Payment could not be completed. Please check your card.",
-//       data: { requiresPaymentMethod: true },
-//     };
-//   }
-
-
-
-//   // Grab the first line item (Stripe usually has one per subscription item)
-//   const invoiceLine = latestInvoice?.lines?.data[0];
-
-//   // Extract start and end dates safely
-//   const subscriptionPeriodStart = invoiceLine?.period?.start
-//     ? new Date(invoiceLine.period.start * 1000)
-//     : subscription.start_date
-//       ? new Date(subscription.start_date * 1000)
-//       : undefined;
-
-//   const subscriptionPeriodEnd = invoiceLine?.period?.end
-//     ? new Date(invoiceLine.period.end * 1000)
-//     : undefined;
-
-
-
-
-
-//   // 7️ Save subscription in DB
-
-//   let subscriptionRecord;
-
-//   if (type === SubscriptionType.SUBSCRIPTION) {
-//     subscriptionRecord = await UserSubscription.create({
-//       userId,
-//       subscriptionPackageId: subscriptionPackage._id,
-//       stripeSubscriptionId: subscription.id,
-//       status: "active",
-//       subscriptionPeriodStart,
-//       subscriptionPeriodEnd,
-//       autoRenew: autoRenew ?? true,
-//     });
-//     userProfile.subscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
-//     userProfile.subscriptionPeriodStart = subscriptionPeriodStart;
-//     userProfile.subscriptionPeriodEnd = subscriptionPeriodEnd;
-//   } else if (type === SubscriptionType.ELITE_PRO) {
-//     subscriptionRecord = await EliteProUserSubscription.create({
-//       userId,
-//       eliteProPackageId: subscriptionPackage._id,
-//       stripeSubscriptionId: subscription.id,
-//       status: "active",
-//       eliteProPeriodStart: subscriptionPeriodStart,
-//       eliteProPeriodEnd: subscriptionPeriodEnd,
-//       autoRenew: autoRenew ?? true,
-//     });
-
-//     userProfile.isElitePro = true;
-//     userProfile.eliteProSubscriptionId = subscriptionRecord._id as mongoose.Types.ObjectId;
-//     userProfile.eliteProPeriodStart = subscriptionPeriodStart;
-//     userProfile.eliteProPeriodEnd = subscriptionPeriodEnd;
-//   }
-
-//   await userProfile.save();
-
-//   // 8️ Extract tax information from invoice
-//   const invoiceSubtotal = (latestInvoice?.subtotal || 0) / 100;
-//   const invoiceTotal = (latestInvoice?.total || 0) / 100;
-//   const invoiceTax = invoiceTotal - invoiceSubtotal; // Calculate tax from total - subtotal
-//   const invoiceAmountPaid = (latestInvoice?.amount_paid || 0) / 100;
-
-//   // Extract tax details from invoice line items
-//   const taxRates = latestInvoice?.total_tax_amounts?.[0];
-//   const taxJurisdiction = taxRates?.jurisdiction;
-//   const taxType = taxRates?.tax_rate_details?.tax_type;
-//   const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
-
-//   // 9️ Create transaction record with tax data
-//   await Transaction.create({
-//     userId,
-//     type: "subscription",
-//     subscriptionId: subscriptionRecord?._id,
-//     subscriptionType: type,
-//     subtotal: invoiceSubtotal,
-//     taxAmount: invoiceTax,
-//     taxRate: taxRatePercentage,
-//     totalWithTax: invoiceTotal,
-//     amountPaid: invoiceAmountPaid,
-//     taxJurisdiction: taxJurisdiction,
-//     taxType: taxType,
-//     currency: latestInvoice?.currency || "usd",
-//     stripePaymentIntentId: (latestInvoice?.payment_intent as any)?.id ?? null,
-//     stripeInvoiceId: latestInvoice?.id ?? null,
-//     invoice_pdf_url: latestInvoice?.invoice_pdf ?? null,
-//     status: "completed",
-//   });
-
-
-
-//   // --------------------  REVALIDATE REDIS CACHE -----------------------
-//   await deleteCache(CacheKeys.USER_INFO(userId));
-
-//   return {
-//     success: true,
-//     message: type === SubscriptionType.ELITE_PRO ? "Elite Pro subscription created and charged successfully" : "Subscription created and charged successfully",
-//     data: {
-//       subscriptionId: subscription.id,
-//     },
-//   };
-// };
 
 
 
@@ -1327,11 +784,12 @@ const createSubscription = async (
 
 
 const cancelSubscription = async (userId: string, type: SubscriptionType) => {
+  const currentEnv = getCurrentEnvironment();
   // 1️ Fetch user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
 
-  // 2️ Fetch the active subscription based on type
+  // 2️ Fetch the active subscription based on type — MUST be in the same environment
   let subscription: IUserSubscription | IEliteProUserSubscription | null = null;
 
   if (type === SubscriptionType.ELITE_PRO) {
@@ -1341,6 +799,7 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
     subscription = await EliteProUserSubscription.findOne({
       _id: userProfile.eliteProSubscriptionId,
       status: 'active',
+      stripeEnvironment: currentEnv,
     });
   } else if (type === SubscriptionType.SUBSCRIPTION) {
     if (!userProfile.subscriptionId) {
@@ -1349,11 +808,15 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
     subscription = await UserSubscription.findOne({
       _id: userProfile.subscriptionId,
       status: 'active',
+      stripeEnvironment: currentEnv,
     });
   }
 
   if (!subscription) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${type} subscription found`);
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      `No active ${type} subscription found in ${currentEnv} environment. If you have a subscription in a different environment, please manage it there.`
+    );
   }
 
   // 3️ Cancel the subscription on Stripe
@@ -1366,30 +829,32 @@ const cancelSubscription = async (userId: string, type: SubscriptionType) => {
     );
   }
 
-  // 4️ Update user profile & subscription locally
+  // 4️ Update user profile & subscription locally atomically
   if (type === SubscriptionType.ELITE_PRO) {
-    userProfile.isElitePro = false;
-    userProfile.eliteProSubscriptionId = null;
-    userProfile.eliteProPeriodStart = null;
-    userProfile.eliteProPeriodEnd = null;
-    await userProfile.save();
+    await UserProfile.findByIdAndUpdate(userProfile._id, {
+      isElitePro: false,
+      eliteProSubscriptionId: null,
+      eliteProPeriodStart: null,
+      eliteProPeriodEnd: null,
+    });
 
-    const eliteSub = subscription as IEliteProUserSubscription;
-    eliteSub.status = 'canceled';
-    eliteSub.eliteProPeriodStart = undefined;
-    eliteSub.eliteProPeriodEnd = undefined;
-    await eliteSub.save();
+    await EliteProUserSubscription.findByIdAndUpdate(subscription._id, {
+      status: 'canceled',
+      eliteProPeriodStart: undefined,
+      eliteProPeriodEnd: undefined,
+    });
   } else if (type === SubscriptionType.SUBSCRIPTION) {
-    userProfile.subscriptionId = null;
-    userProfile.subscriptionPeriodStart = null;
-    userProfile.subscriptionPeriodEnd = null;
-    await userProfile.save();
+    await UserProfile.findByIdAndUpdate(userProfile._id, {
+      subscriptionId: null,
+      subscriptionPeriodStart: null,
+      subscriptionPeriodEnd: null,
+    });
 
-    const normalSub = subscription as IUserSubscription;
-    normalSub.status = 'canceled';
-    normalSub.subscriptionPeriodStart = undefined;
-    normalSub.subscriptionPeriodEnd = undefined;
-    await normalSub.save();
+    await UserSubscription.findByIdAndUpdate(subscription._id, {
+      status: 'canceled',
+      subscriptionPeriodStart: undefined,
+      subscriptionPeriodEnd: undefined,
+    });
   }
 
   // 5️ Log & return
@@ -1416,47 +881,62 @@ const changeSubscriptionPackage = async (
   payload: { type: SubscriptionType; newPackageId: string }
 ) => {
   const { type, newPackageId } = payload;
+  const currentEnv = getCurrentEnvironment();
 
-  // 1️ Get new subscription package
+  // ── 1. Load new package ──────────────────────────────────────────────────
   const newPackage =
     type === SubscriptionType.SUBSCRIPTION
       ? await SubscriptionPackage.findById(newPackageId)
       : await EliteProPackageModel.findById(newPackageId);
 
-  if (!newPackage || !newPackage.stripePriceId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid new package");
+  if (!newPackage) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "The requested subscription package was not found");
   }
 
-  // 2️ Get user profile
-  const userProfile = await UserProfile.findOne({ user: userId });
-  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+  // Resolve the correct Stripe Price ID based on environment
+  const newStripePriceId = currentEnv === 'live'
+    ? (newPackage.stripePriceIdLive || newPackage.stripePriceId)
+    : (newPackage.stripePriceIdTest || newPackage.stripePriceId);
 
-  // 3️ Get current subscription
+  if (!newStripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Missing Stripe Price ID for ${currentEnv} environment`);
+  }
+
+  // ── 2. Load user profile ─────────────────────────────────────────────────
+  const userProfile = await UserProfile.findOne({ user: userId });
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+
+  // ── 3. Fetch current subscription — MUST be in the same Stripe environment ─
   let currentSubscription: IUserSubscription | IEliteProUserSubscription | null = null;
 
   if (type === SubscriptionType.ELITE_PRO) {
     if (!userProfile.eliteProSubscriptionId) {
-      throw new AppError(HTTP_STATUS.NOT_FOUND, "No active Elite Pro subscription found");
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active Elite Pro subscription found');
     }
     currentSubscription = await EliteProUserSubscription.findOne({
       _id: userProfile.eliteProSubscriptionId,
       status: 'active',
+      stripeEnvironment: currentEnv, // ✅ reject cross-environment subscriptions
     });
   } else {
     if (!userProfile.subscriptionId) {
-      throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription found");
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription found');
     }
     currentSubscription = await UserSubscription.findOne({
       _id: userProfile.subscriptionId,
       status: 'active',
+      stripeEnvironment: currentEnv, // ✅ reject cross-environment subscriptions
     });
   }
 
   if (!currentSubscription) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${type} subscription found`);
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      `No active ${type} subscription found in ${currentEnv} environment. If you have a subscription in a different environment, please manage it there.`
+    );
   }
 
-  // 4️ Check if it's the same package
+  // ── 4. Guard: same package check ─────────────────────────────────────────
   const currentPackageId = type === SubscriptionType.ELITE_PRO
     ? (currentSubscription as IEliteProUserSubscription).eliteProPackageId.toString()
     : (currentSubscription as IUserSubscription).subscriptionPackageId.toString();
@@ -1464,122 +944,173 @@ const changeSubscriptionPackage = async (
   if (currentPackageId === newPackageId) {
     return {
       success: false,
-      message: "You are already subscribed to this package",
+      message: 'You are already subscribed to this package',
       data: null,
     };
   }
 
-  // 5️ Update Stripe subscription with proration
+  // ── 5. Update Stripe subscription (proration) ────────────────────────────
+  let updatedStripeSubscription: Stripe.Subscription;
   try {
-    const subscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId);
-    const subscriptionItem = subscription.items.data[0]; // Assuming single item
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+      currentSubscription.stripeSubscriptionId
+    );
+    const subscriptionItem = stripeSubscription.items.data[0];
 
-    // Update the subscription item with new price and proration
     await stripe.subscriptions.update(currentSubscription.stripeSubscriptionId, {
       items: [{
         id: subscriptionItem.id,
-        price: newPackage.stripePriceId,
+        price: newStripePriceId,
       }],
-      proration_behavior: 'create_prorations', // This creates prorated charges
-      metadata: { userId, packageId: newPackageId, type },
-    });
-
-    // Retrieve updated subscription to get latest invoice
-    const updatedSubscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId, {
-      expand: ['latest_invoice.payment_intent'],
-    });
-
-  
-    const latestInvoice = updatedSubscription.latest_invoice as Stripe.Invoice;
-
-    // 6️ Update subscription record in DB
-    // Use invoice period dates since subscription might not have current_period_start/end immediately after update
-    const periodStart = new Date((latestInvoice as any).period_start * 1000);
-    const periodEnd = new Date((latestInvoice as any).period_end * 1000);
-
-
-    // Validate dates
-    if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
-      throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription period dates from Stripe");
-    }
-
-    if (type === SubscriptionType.ELITE_PRO) {
-      const eliteSub = currentSubscription as IEliteProUserSubscription;
-      eliteSub.eliteProPackageId = newPackage._id as mongoose.Types.ObjectId;
-      eliteSub.eliteProPeriodStart = periodStart;
-      eliteSub.eliteProPeriodEnd = periodEnd;
-      await eliteSub.save();
-
-      userProfile.eliteProPeriodStart = periodStart;
-      userProfile.eliteProPeriodEnd = periodEnd;
-    } else {
-      const normalSub = currentSubscription as IUserSubscription;
-      normalSub.subscriptionPackageId = newPackage._id as mongoose.Types.ObjectId;
-      normalSub.subscriptionPeriodStart = periodStart;
-      normalSub.subscriptionPeriodEnd = periodEnd;
-      await normalSub.save();
-
-      userProfile.subscriptionPeriodStart = periodStart;
-      userProfile.subscriptionPeriodEnd = periodEnd;
-    }
-
-    await userProfile.save();
-
-    // 7️ Create transaction record for the proration
-    if (latestInvoice) {
-      const invoiceSubtotal = (latestInvoice.subtotal || 0) / 100;
-      const invoiceTotal = (latestInvoice.total || 0) / 100;
-      const invoiceTax = invoiceTotal - invoiceSubtotal;
-      const invoiceAmountPaid = (latestInvoice.amount_paid || 0) / 100;
-
-      const taxRates = (latestInvoice as any).total_tax_amounts?.[0];
-      const taxJurisdiction = taxRates?.jurisdiction;
-      const taxType = taxRates?.tax_rate_details?.tax_type;
-      const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
-
-      const paymentIntentId = typeof (latestInvoice as any).payment_intent === 'string' 
-        ? (latestInvoice as any).payment_intent 
-        : ((latestInvoice as any).payment_intent as Stripe.PaymentIntent)?.id ?? null;
-
-      await Transaction.create({
+      proration_behavior: 'create_prorations',
+      metadata: {
         userId,
-        type: "subscription",
-        subscriptionId: currentSubscription._id,
-        subscriptionType: type,
-        subtotal: invoiceSubtotal,
-        taxAmount: invoiceTax,
-        taxRate: taxRatePercentage,
-        totalWithTax: invoiceTotal,
-        amountPaid: invoiceAmountPaid,
-        taxJurisdiction: taxJurisdiction,
-        taxType: taxType,
-        currency: latestInvoice.currency || "usd",
-        stripePaymentIntentId: paymentIntentId,
-        stripeInvoiceId: latestInvoice.id ?? null,
-        invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
-        status: "completed",
-      });
-    }
-
-    // 8️ Revalidate cache
-    await deleteCache(CacheKeys.USER_INFO(userId));
-
-    return {
-      success: true,
-      message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Standard'} subscription updated successfully`,
-      data: {
-        subscriptionId: currentSubscription._id,
-        newPackageId: newPackage._id,
+        packageId: newPackageId,
         type,
-        periodStart,
-        periodEnd,
+        stripeEnvironment: currentEnv, // ✅ tag for observability
       },
-    };
+    });
+
+    updatedStripeSubscription = await stripe.subscriptions.retrieve(
+      currentSubscription.stripeSubscriptionId,
+      { expand: ['latest_invoice.payment_intent', 'latest_invoice.total_tax_amounts'] }
+    );
   } catch (err: any) {
-    console.error("Subscription update error:", err);
-    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, `Failed to update subscription: ${err.message}`);
+    throw new AppError(
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      `Failed to update subscription on Stripe: ${err.message}`
+    );
   }
+
+  // ── 6. Extract billing period from invoice line item (reliable source) ───
+  const latestInvoice = updatedStripeSubscription.latest_invoice as (Stripe.Invoice & {
+    payment_intent?: Stripe.PaymentIntent | string;
+    total_tax_amounts?: Array<{
+      amount: number;
+      inclusive: boolean;
+      jurisdiction?: string;
+      tax_rate_details?: {
+        tax_type?: string;
+        percentage_decimal?: number;
+        display_name?: string;
+      };
+    }>;
+  }) | null;
+
+  // ✅ Use invoice line item period — NOT latestInvoice.period_start (doesn't exist on Invoice)
+  const invoiceLine = latestInvoice?.lines?.data?.[0];
+  const periodStart = invoiceLine?.period?.start
+    ? new Date(invoiceLine.period.start * 1000)
+    : new Date();
+
+  const periodEnd = invoiceLine?.period?.end
+    ? new Date(invoiceLine.period.end * 1000)
+    : undefined;
+
+  if (isNaN(periodStart.getTime())) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Invalid subscription period start date from Stripe');
+  }
+  if (periodEnd && isNaN(periodEnd.getTime())) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Invalid subscription period end date from Stripe');
+  }
+
+  // ── 7. Update subscription record + UserProfile atomically ───────────────
+  if (type === SubscriptionType.ELITE_PRO) {
+    // Update subscription record
+    await EliteProUserSubscription.findByIdAndUpdate(
+      currentSubscription._id,
+      {
+        eliteProPackageId: newPackage._id,
+        eliteProPeriodStart: periodStart,
+        eliteProPeriodEnd: periodEnd,
+      },
+      { new: true },
+    );
+
+    // ✅ Sync UserProfile dates
+    await UserProfile.findByIdAndUpdate(
+      userProfile._id,
+      {
+        eliteProPeriodStart: periodStart,
+        eliteProPeriodEnd: periodEnd,
+      },
+      { new: true },
+    );
+
+  } else {
+    // Update subscription record
+    await UserSubscription.findByIdAndUpdate(
+      currentSubscription._id,
+      {
+        subscriptionPackageId: newPackage._id,
+        subscriptionPeriodStart: periodStart,
+        subscriptionPeriodEnd: periodEnd,
+      },
+      { new: true },
+    );
+
+    // ✅ Sync UserProfile dates
+    await UserProfile.findByIdAndUpdate(
+      userProfile._id,
+      {
+        subscriptionPeriodStart: periodStart,
+        subscriptionPeriodEnd: periodEnd,
+      },
+      { new: true },
+    );
+  }
+
+  // ── 8. Log proration transaction ──────────────────────────────────────────
+  if (latestInvoice) {
+    const invoiceSubtotal = (latestInvoice.subtotal ?? 0) / 100;
+    const invoiceTotal = (latestInvoice.total ?? 0) / 100;
+    const invoiceTax = invoiceTotal - invoiceSubtotal;
+    const invoiceAmountPaid = (latestInvoice.amount_paid ?? 0) / 100;
+    const taxRates = latestInvoice.total_tax_amounts?.[0];
+
+    const paymentIntentId = typeof latestInvoice.payment_intent === 'string'
+      ? latestInvoice.payment_intent
+      : (latestInvoice.payment_intent as Stripe.PaymentIntent)?.id ?? null;
+
+    await Transaction.create({
+      userId,
+      type: 'subscription',
+      subscriptionId: currentSubscription._id,
+      subscriptionType: type,
+      subtotal: invoiceSubtotal,
+      taxAmount: invoiceTax,
+      taxRate: taxRates?.tax_rate_details?.percentage_decimal,
+      totalWithTax: invoiceTotal,
+      amountPaid: invoiceAmountPaid,
+      taxJurisdiction: taxRates?.jurisdiction,
+      taxType: taxRates?.tax_rate_details?.tax_type,
+      currency: latestInvoice.currency ?? 'usd',
+      stripePaymentIntentId: paymentIntentId,
+      stripeInvoiceId: latestInvoice.id ?? null,
+      invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
+      stripeSubscriptionId: currentSubscription.stripeSubscriptionId,
+      stripeEnvironment: currentEnv, // ✅ environment tag
+      status: 'completed',
+    });
+  }
+
+  // ── 9. Invalidate cache ────────────────────────────────────────────────────
+  await deleteCache(CacheKeys.USER_INFO(userId));
+
+  return {
+    success: true,
+    message: `${type === SubscriptionType.ELITE_PRO ? 'Elite Pro' : 'Standard'} subscription package updated successfully`,
+    data: {
+      subscriptionId: currentSubscription._id,
+      newPackageId: newPackage._id,
+      type,
+      stripeEnvironment: currentEnv, // ✅ client knows which env
+      periodStart,
+      periodEnd,
+    },
+  };
 };
+
 
 // Switch between subscription types (cross-type change)
 const switchSubscriptionType = async (
@@ -1592,19 +1123,30 @@ const switchSubscriptionType = async (
     throw new AppError(HTTP_STATUS.BAD_REQUEST, "Cannot switch to the same subscription type");
   }
 
-  // 1️ Get new package
+  // 1️ Get user profile
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
+  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+
+  // 2️ Get new package
   const newPackage =
     toType === SubscriptionType.SUBSCRIPTION
       ? await SubscriptionPackage.findById(newPackageId)
       : await EliteProPackageModel.findById(newPackageId);
 
-  if (!newPackage || !newPackage.stripePriceId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Invalid new package");
+  if (!newPackage) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, "The requested subscription package was not found");
   }
 
-  // 2️ Get user profile
-  const userProfile = await UserProfile.findOne({ user: userId });
-  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found");
+  const currentEnv = getCurrentEnvironment();
+
+  // Resolve the correct Stripe Price ID based on environment
+  const newStripePriceId = currentEnv === 'live'
+    ? (newPackage.stripePriceIdLive || newPackage.stripePriceId)
+    : (newPackage.stripePriceIdTest || newPackage.stripePriceId);
+
+  if (!newStripePriceId) {
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, `Missing Stripe Price ID for ${currentEnv} environment`);
+  }
 
   // 3️ Cancel old subscription
   let oldSubscription: IUserSubscription | IEliteProUserSubscription | null = null;
@@ -1615,20 +1157,21 @@ const switchSubscriptionType = async (
     }
     oldSubscription = await EliteProUserSubscription.findOne({
       _id: userProfile.eliteProSubscriptionId,
-      status: 'active',
+      stripeEnvironment: currentEnv,
     });
   } else {
     if (!userProfile.subscriptionId) {
-      throw new AppError(HTTP_STATUS.NOT_FOUND, "No active subscription to cancel");
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'No active subscription to cancel');
     }
     oldSubscription = await UserSubscription.findOne({
       _id: userProfile.subscriptionId,
       status: 'active',
+      stripeEnvironment: currentEnv,
     });
   }
 
   if (!oldSubscription) {
-    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${fromType} subscription found`);
+    throw new AppError(HTTP_STATUS.NOT_FOUND, `No active ${fromType} subscription found in current environment`);
   }
 
   // Cancel old subscription on Stripe
@@ -1638,28 +1181,19 @@ const switchSubscriptionType = async (
     throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, `Failed to cancel old subscription: ${err.message}`);
   }
 
-  // Update old subscription status in DB
+  // Mark old subscription as canceled in DB
   if (fromType === SubscriptionType.ELITE_PRO) {
-    const eliteSub = oldSubscription as IEliteProUserSubscription;
-    eliteSub.status = 'canceled';
-    eliteSub.eliteProPeriodStart = undefined;
-    eliteSub.eliteProPeriodEnd = undefined;
-    await eliteSub.save();
-
-    userProfile.isElitePro = false;
-    userProfile.eliteProSubscriptionId = null;
-    userProfile.eliteProPeriodStart = null;
-    userProfile.eliteProPeriodEnd = null;
+    await EliteProUserSubscription.findByIdAndUpdate(oldSubscription._id, {
+      status: 'canceled',
+      eliteProPeriodStart: undefined,
+      eliteProPeriodEnd: undefined,
+    });
   } else {
-    const normalSub = oldSubscription as IUserSubscription;
-    normalSub.status = 'canceled';
-    normalSub.subscriptionPeriodStart = undefined;
-    normalSub.subscriptionPeriodEnd = undefined;
-    await normalSub.save();
-
-    userProfile.subscriptionId = null;
-    userProfile.subscriptionPeriodStart = null;
-    userProfile.subscriptionPeriodEnd = null;
+    await UserSubscription.findByIdAndUpdate(oldSubscription._id, {
+      status: 'canceled',
+      subscriptionPeriodStart: undefined,
+      subscriptionPeriodEnd: undefined,
+    });
   }
 
   // 4️ Create new subscription (reuse createSubscription logic but simplified)
@@ -1667,10 +1201,11 @@ const switchSubscriptionType = async (
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
+    stripeEnvironment: getCurrentEnvironment(), // ✅ environment isolation
   });
 
   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "No default payment method found");
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "No default payment method found for the current environment");
   }
 
   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
@@ -1696,7 +1231,7 @@ const switchSubscriptionType = async (
   const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: stripeCustomerId,
     items: [{
-      price: newPackage.stripePriceId,
+      price: newStripePriceId,
       tax_rates: taxRateId ? [taxRateId] : undefined
     }],
     metadata: { userId, packageId: newPackageId, type: toType },
@@ -1710,23 +1245,50 @@ const switchSubscriptionType = async (
   const newSubscription = await stripe.subscriptions.create(subscriptionParams);
 
   // Confirm payment
-  const latestInvoice = newSubscription.latest_invoice as Stripe.Invoice;
+  const latestInvoice = newSubscription.latest_invoice as (Stripe.Invoice & {
+    payment_intent?: Stripe.PaymentIntent | string;
+    total_tax_amounts?: Array<{
+      amount: number;
+      inclusive: boolean;
+      jurisdiction?: string;
+      tax_rate_details?: {
+        tax_type?: string;
+        percentage_decimal?: number;
+        display_name?: string;
+      };
+    }>;
+  }) | undefined;
   let paymentSucceeded = false;
+  let newSubscriptionRecord: any;
 
-  if (latestInvoice && (latestInvoice as any).payment_intent) {
-    const paymentIntent = (latestInvoice as any).payment_intent as Stripe.PaymentIntent;
-
-    if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
+  if (latestInvoice?.payment_intent) {
+    const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+    if (paymentIntent.status === 'requires_payment_method' || paymentIntent.status === 'requires_confirmation') {
       try {
         const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
           payment_method: savedPaymentMethod.paymentMethodId,
         });
-        if (confirmed.status === "succeeded") paymentSucceeded = true;
+        if (confirmed.status === 'succeeded') paymentSucceeded = true;
       } catch (err: any) {
-        console.error("Payment failed:", err.message);
-        throw new AppError(HTTP_STATUS.BAD_REQUEST, "Payment failed: " + err.message);
+        // If payment fails, we've already canceled the old sub. 
+        // We must update the profile to reflect that they are now unsubscribed.
+        if (fromType === SubscriptionType.ELITE_PRO) {
+          await UserProfile.findByIdAndUpdate(userProfile._id, {
+            isElitePro: false,
+            eliteProSubscriptionId: null,
+            eliteProPeriodStart: null,
+            eliteProPeriodEnd: null,
+          });
+        } else {
+          await UserProfile.findByIdAndUpdate(userProfile._id, {
+            subscriptionId: null,
+            subscriptionPeriodStart: null,
+            subscriptionPeriodEnd: null,
+          });
+        }
+        throw new AppError(HTTP_STATUS.BAD_REQUEST, `Old subscription canceled, but new payment failed: ${err.message}`);
       }
-    } else if (paymentIntent.status === "succeeded") {
+    } else if (paymentIntent.status === 'succeeded') {
       paymentSucceeded = true;
     }
   } else {
@@ -1734,50 +1296,87 @@ const switchSubscriptionType = async (
   }
 
   if (!paymentSucceeded) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "Payment could not be completed");
+    // Sync profile to canceled state
+    if (fromType === SubscriptionType.ELITE_PRO) {
+      await UserProfile.findByIdAndUpdate(userProfile._id, {
+        isElitePro: false,
+        eliteProSubscriptionId: null,
+        eliteProPeriodStart: null,
+        eliteProPeriodEnd: null,
+      });
+    } else {
+      await UserProfile.findByIdAndUpdate(userProfile._id, {
+        subscriptionId: null,
+        subscriptionPeriodStart: null,
+        subscriptionPeriodEnd: null,
+      });
+    }
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'New subscription payment could not be completed.');
   }
 
   // 5️ Save new subscription in DB
-  const periodStart = new Date((latestInvoice as any).period_start * 1000);
-  const periodEnd = new Date((latestInvoice as any).period_end * 1000);
+  // ── 5. Extract billing period from invoice line item ─────────────────────
+  const invoiceLine = latestInvoice?.lines?.data?.[0];
+  const periodStart = invoiceLine?.period?.start
+    ? new Date(invoiceLine.period.start * 1000)
+    : new Date();
+  const periodEnd = invoiceLine?.period?.end
+    ? new Date(invoiceLine.period.end * 1000)
+    : undefined;
 
   // Validate dates
-  if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
-    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Invalid subscription period dates from Stripe");
+  if (isNaN(periodStart.getTime()) || (periodEnd && isNaN(periodEnd.getTime()))) {
+    throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Invalid subscription period dates from Stripe');
   }
 
-  let newSubscriptionRecord;
+  const finalPeriodEnd = (periodEnd && !isNaN(periodEnd.getTime())) ? periodEnd : undefined;
 
   if (toType === SubscriptionType.SUBSCRIPTION) {
     newSubscriptionRecord = await UserSubscription.create({
       userId,
       subscriptionPackageId: newPackage._id,
       stripeSubscriptionId: newSubscription.id,
-      status: "active",
+      stripeEnvironment: currentEnv,
+      status: 'active',
       subscriptionPeriodStart: periodStart,
-      subscriptionPeriodEnd: periodEnd,
+      subscriptionPeriodEnd: finalPeriodEnd,
       autoRenew: true,
+      monthlyCaseContacts: 0,
     });
-    userProfile.subscriptionId = newSubscriptionRecord._id as mongoose.Types.ObjectId;
-    userProfile.subscriptionPeriodStart = periodStart;
-    userProfile.subscriptionPeriodEnd = periodEnd;
+
+    await UserProfile.findByIdAndUpdate(userProfile._id, {
+      subscriptionId: newSubscriptionRecord._id,
+      subscriptionPeriodStart: periodStart,
+      subscriptionPeriodEnd: finalPeriodEnd,
+      // Clear elite pro pointers since we switched away
+      isElitePro: false,
+      eliteProSubscriptionId: null,
+      eliteProPeriodStart: null,
+      eliteProPeriodEnd: null,
+    });
   } else {
     newSubscriptionRecord = await EliteProUserSubscription.create({
       userId,
       eliteProPackageId: newPackage._id,
       stripeSubscriptionId: newSubscription.id,
-      status: "active",
+      stripeEnvironment: currentEnv,
+      status: 'active',
       eliteProPeriodStart: periodStart,
-      eliteProPeriodEnd: periodEnd,
+      eliteProPeriodEnd: finalPeriodEnd,
       autoRenew: true,
     });
-    userProfile.isElitePro = true;
-    userProfile.eliteProSubscriptionId = newSubscriptionRecord._id as mongoose.Types.ObjectId;
-    userProfile.eliteProPeriodStart = periodStart;
-    userProfile.eliteProPeriodEnd = periodEnd;
-  }
 
-  await userProfile.save();
+    await UserProfile.findByIdAndUpdate(userProfile._id, {
+      isElitePro: true,
+      eliteProSubscriptionId: newSubscriptionRecord._id,
+      eliteProPeriodStart: periodStart,
+      eliteProPeriodEnd: finalPeriodEnd,
+      // Clear standard sub pointers since we switched away
+      subscriptionId: null,
+      subscriptionPeriodStart: null,
+      subscriptionPeriodEnd: null,
+    });
+  }
 
   // 6️ Create transaction record
   if (latestInvoice) {
@@ -1786,18 +1385,18 @@ const switchSubscriptionType = async (
     const invoiceTax = invoiceTotal - invoiceSubtotal;
     const invoiceAmountPaid = (latestInvoice.amount_paid || 0) / 100;
 
-    const taxRates = (latestInvoice as any).total_tax_amounts?.[0];
+    const taxRates = latestInvoice.total_tax_amounts?.[0];
     const taxJurisdiction = taxRates?.jurisdiction;
     const taxType = taxRates?.tax_rate_details?.tax_type;
     const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
 
-    const paymentIntentId = typeof (latestInvoice as any).payment_intent === 'string'
-      ? (latestInvoice as any).payment_intent
-      : ((latestInvoice as any).payment_intent as Stripe.PaymentIntent)?.id ?? null;
+    const paymentIntentId = typeof latestInvoice.payment_intent === 'string'
+      ? latestInvoice.payment_intent
+      : (latestInvoice.payment_intent as Stripe.PaymentIntent)?.id ?? null;
 
     await Transaction.create({
       userId,
-      type: "subscription",
+      type: 'subscription',
       subscriptionId: newSubscriptionRecord._id,
       subscriptionType: toType,
       subtotal: invoiceSubtotal,
@@ -1805,13 +1404,14 @@ const switchSubscriptionType = async (
       taxRate: taxRatePercentage,
       totalWithTax: invoiceTotal,
       amountPaid: invoiceAmountPaid,
-      taxJurisdiction: taxJurisdiction,
-      taxType: taxType,
-      currency: latestInvoice.currency || "usd",
+      taxJurisdiction,
+      taxType,
+      currency: latestInvoice.currency ?? 'usd',
       stripePaymentIntentId: paymentIntentId,
       stripeInvoiceId: latestInvoice.id ?? null,
       invoice_pdf_url: latestInvoice.invoice_pdf ?? null,
-      status: "completed",
+      status: 'completed',
+      stripeEnvironment: currentEnv,
     });
   }
 

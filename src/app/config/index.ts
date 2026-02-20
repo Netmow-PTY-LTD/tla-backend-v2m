@@ -46,6 +46,14 @@ export default {
   get redis_password() { return getEnv('REDIS_PASSWORD'); },
   get redis_username() { return getEnv('REDIS_USERNAME'); },
   get custom_cdn_domain() { return getEnv('CUSTOM_CDN_DOMAIN'); },
+  get stripe_secret_key_test() { return getEnv('STRIPE_SECRET_KEY_TEST'); },
+  get stripe_secret_key_live() { return getEnv('STRIPE_SECRET_KEY_LIVE'); },
+  get stripe_webhook_secret_test() { return getEnv('STRIPE_WEBHOOK_SECRET_TEST'); },
+  get stripe_webhook_secret_live() { return getEnv('STRIPE_WEBHOOK_SECRET_LIVE'); },
+  get stripe_live_mode() {
+    const val = getEnv('STRIPE_LIVE_MODE');
+    return val !== undefined ? val === 'true' : undefined;
+  },
 };
 
 
