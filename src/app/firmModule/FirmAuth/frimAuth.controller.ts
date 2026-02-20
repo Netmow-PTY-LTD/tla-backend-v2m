@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { AppError } from "../../errors/error";
 import { TUploadedFile } from "../../interface/file.interface";
@@ -87,8 +88,7 @@ const login = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('firm_refreshToken', firm_refreshToken, {
     httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
-    // secure: config.NODE_ENV === 'production',
-    secure: true, // Ensures cookie is only sent over HTTPS
+    secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
     sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
   });
 
@@ -390,5 +390,5 @@ export const firmAuthController = {
   changeEmail,
   userInfo,
   updateCurrentUserInfo,
- 
+
 };

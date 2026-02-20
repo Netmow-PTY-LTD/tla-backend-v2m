@@ -1,3 +1,4 @@
+import config from '../../config';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
@@ -15,8 +16,7 @@ const lawyerRegister = catchAsync(async (req, res) => {
   // Store the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-    // secure: config.NODE_ENV === 'production',
-    secure: true, // Ensures the cookie is only sent over HTTPS
+    secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
     sameSite: 'none', // Allows cross-site requests (must be used with HTTPS)
   });
 

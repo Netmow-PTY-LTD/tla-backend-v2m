@@ -4,6 +4,7 @@ import { authService } from './auth.service';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 
 import { AppError } from '../../errors/error';
+import config from '../../config';
 
 /**
  * Handles user login request.
@@ -24,8 +25,7 @@ const login = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
-    // secure: config.NODE_ENV === 'production',
-    secure: true, // Ensures cookie is only sent over HTTPS
+    secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
     sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
   });
 
@@ -317,8 +317,7 @@ const ssoLogin = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
-    // secure: config.NODE_ENV === 'production',
-    secure: true, // Ensures cookie is only sent over HTTPS
+    secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
     sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
   });
 
