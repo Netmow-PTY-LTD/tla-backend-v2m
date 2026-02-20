@@ -31,11 +31,11 @@ const getPaymentMethods = async (userId: string) => {
   if (!userProfile) {
     return sendNotFoundResponse('User profile not found');
   }
-  const result = await PaymentMethod.find({
+  const result = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isActive: true,
-    stripeEnvironment: getCurrentEnvironment(), // ✅ Only show cards for current environment
-  }).sort({ isDefault: -1 }); // Show default card first
+    stripeEnvironment: getCurrentEnvironment(), //  Only show cards for current environment
+  })
 
   return result;
 };
