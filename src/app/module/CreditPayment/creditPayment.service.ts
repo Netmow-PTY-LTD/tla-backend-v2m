@@ -383,9 +383,16 @@ const findNextCreditOffer = async (userId: string) => {
     .sort({ createdAt: -1 })
     .populate('creditPackageId');
 
+  const userProfileForCountry = await UserProfile.findOne({ user: userId })
+    .select('country')
+
+
+  const country = userProfileForCountry?.country as any;
+
+
   if (!lastTransaction || !lastTransaction.creditPackageId) {
     // No purchases: return cheapest active package
-    return await CreditPackage.findOne({ isActive: true }).sort({ credit: 1 });
+    return await CreditPackage.findOne({ country: country, isActive: true }).sort({ credit: 1 });
   }
 
   const lastPackage =
