@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import config from "../../config";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { AppError } from "../../errors/error";
 import { TUploadedFile } from "../../interface/file.interface";
