@@ -310,8 +310,10 @@ const updateEliteProSubscriptionIntoDB = async (
   if (!existing) throw new Error("Subscription not found");
 
   let newStripePriceId: string | null = null;
-  let testPrice: any = null;
-  let livePrice: any = null;
+  const createdStripePriceIds: {
+    test?: string;
+    live?: string;
+  } = {};
 
   try {
     //  1️ Resolve final values
@@ -344,8 +346,11 @@ const updateEliteProSubscriptionIntoDB = async (
     const isCurrencyChanged =
       finalCurrency !== existing.price.currency;
 
+    const isMissingTest = stripeTest && !existing.stripeProductIdTest;
+    const isMissingLive = stripeLive && !existing.stripeProductIdLive;
+
     const shouldCreateNewPrice =
-      isBillingChanged || isAmountChanged || isCurrencyChanged;
+      isBillingChanged || isAmountChanged || isCurrencyChanged || isMissingTest || isMissingLive;
 
     if (shouldCreateNewPrice) {
       const intervalMap: Record<string, "week" | "month" | "year"> = {
@@ -356,35 +361,61 @@ const updateEliteProSubscriptionIntoDB = async (
 
       const interval = intervalMap[finalBillingCycle];
 
-      // Helper to create new price in a specific environment
-      const createPriceInEnv = async (stripeInstance: any, productId: string) => {
-        if (!stripeInstance || !productId) return null;
-        return await stripeInstance.prices.create({
+      // Helper to sync or create resources in a specific environment
+      const syncResourcesInEnv = async (stripeInstance: any, env: 'test' | 'live') => {
+        if (!stripeInstance) return null;
+
+        let productId = env === 'test' ? existing.stripeProductIdTest : existing.stripeProductIdLive;
+
+        // 1. Lazy-create Product if missing
+        if (!productId) {
+          const product = await stripeInstance.products.create({
+            name: payload.name || existing.name,
+            description: payload.description || existing.description || `${payload.name || existing.name} plan`,
+          });
+          productId = product.id;
+        }
+
+        // 2. Create new Price
+        const price = await stripeInstance.prices.create({
           product: productId,
           unit_amount: finalAmount * 100,
           currency: finalCurrency.toLowerCase(),
           recurring: interval ? { interval } : undefined,
           tax_behavior: "exclusive",
         });
+
+        // Track for cleanup
+        if (env === 'test') createdStripePriceIds.test = price.id;
+        else createdStripePriceIds.live = price.id;
+
+        return { productId, priceId: price.id };
       };
 
-      // Create update in both environments if IDs exist
-      const prices = await Promise.all([
-        existing.stripeProductIdTest ? createPriceInEnv(stripeTest, existing.stripeProductIdTest) : Promise.resolve(null),
-        existing.stripeProductIdLive ? createPriceInEnv(stripeLive, existing.stripeProductIdLive) : Promise.resolve(null)
+      // Create/Sync in both environments
+      const resources = await Promise.all([
+        syncResourcesInEnv(stripeTest, 'test'),
+        syncResourcesInEnv(stripeLive, 'live')
       ]);
 
-      testPrice = prices[0];
-      livePrice = prices[1];
+      const testRes = resources[0];
+      const liveRes = resources[1];
 
       const currentEnv = getCurrentEnvironment();
-      const activePrice = currentEnv === 'live' ? livePrice : testPrice;
-      newStripePriceId = activePrice?.id || null;
+      const activePriceId = currentEnv === 'live' ? liveRes?.priceId : testRes?.priceId;
+      newStripePriceId = activePriceId || null;
 
       // Prepare environment-specific updates
       const stripeUpdates: any = {};
-      if (testPrice) stripeUpdates.stripePriceIdTest = testPrice.id;
-      if (livePrice) stripeUpdates.stripePriceIdLive = livePrice.id;
+      if (testRes) {
+        stripeUpdates.stripeProductIdTest = testRes.productId;
+        stripeUpdates.stripePriceIdTest = testRes.priceId;
+      }
+      if (liveRes) {
+        stripeUpdates.stripeProductIdLive = liveRes.productId;
+        stripeUpdates.stripePriceIdLive = liveRes.priceId;
+      }
+      // Set legacy field if applicable
       if (newStripePriceId) stripeUpdates.stripePriceId = newStripePriceId;
 
       //  Update DB
@@ -412,8 +443,8 @@ const updateEliteProSubscriptionIntoDB = async (
       };
 
       await Promise.all([
-        existing.stripePriceIdTest ? deactivateOldPrice(stripeTest, existing.stripePriceIdTest) : Promise.resolve(),
-        existing.stripePriceIdLive ? deactivateOldPrice(stripeLive, existing.stripePriceIdLive) : Promise.resolve()
+        (existing.stripePriceIdTest && testRes?.priceId !== existing.stripePriceIdTest) ? deactivateOldPrice(stripeTest, existing.stripePriceIdTest) : Promise.resolve(),
+        (existing.stripePriceIdLive && liveRes?.priceId !== existing.stripePriceIdLive) ? deactivateOldPrice(stripeLive, existing.stripePriceIdLive) : Promise.resolve()
       ]);
 
       return updated;
@@ -434,16 +465,16 @@ const updateEliteProSubscriptionIntoDB = async (
 
   } catch (error) {
     //  Cleanup if Stripe price created but DB update failed
-    if (testPrice?.id && stripeTest) {
+    if (createdStripePriceIds.test && stripeTest) {
       try {
-        await stripeTest.prices.update(testPrice.id, { active: false });
+        await stripeTest.prices.update(createdStripePriceIds.test, { active: false });
       } catch (cleanupError) {
         console.error("Stripe Test cleanup failed:", cleanupError);
       }
     }
-    if (livePrice?.id && stripeLive) {
+    if (createdStripePriceIds.live && stripeLive) {
       try {
-        await stripeLive.prices.update(livePrice.id, { active: false });
+        await stripeLive.prices.update(createdStripePriceIds.live, { active: false });
       } catch (cleanupError) {
         console.error("Stripe Live cleanup failed:", cleanupError);
       }
