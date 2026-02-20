@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { stripe, getStripeWebhookSecret } from '../../config/stripe.config';
+import { stripe, getStripeWebhookSecret, getCurrentEnvironment } from '../../config/stripe.config';
 import type Stripe from 'stripe';
 import { Request, Response } from 'express';
 import { SubscriptionType } from '../CreditPayment/paymentMethod.service';
@@ -163,6 +163,14 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
         if (!subscriptionRecord) break;
 
+        // ✅ Environment guard: skip if record belongs to a different Stripe environment
+        if (subscriptionRecord.stripeEnvironment && subscriptionRecord.stripeEnvironment !== getCurrentEnvironment()) {
+          console.warn(
+            `[Webhook invoice.payment_succeeded] Environment mismatch — skipping. Expected: ${getCurrentEnvironment()}, got: ${subscriptionRecord.stripeEnvironment}`
+          );
+          break;
+        }
+
         const periodStart = invoice.lines.data[0].period.start * 1000;
         const periodEnd = invoice.lines.data[0].period.end * 1000;
 
@@ -222,6 +230,14 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
         if (!subscriptionRecord) break;
 
+        // ✅ Environment guard: skip if record belongs to a different Stripe environment
+        if (subscriptionRecord.stripeEnvironment && subscriptionRecord.stripeEnvironment !== getCurrentEnvironment()) {
+          console.warn(
+            `[Webhook invoice.payment_failed] Environment mismatch — skipping. Expected: ${getCurrentEnvironment()}, got: ${subscriptionRecord.stripeEnvironment}`
+          );
+          break;
+        }
+
         // Mark subscription as payment_failed
         if (type === SubscriptionType.ELITE_PRO) {
           const eliteSub = subscriptionRecord as IEliteProUserSubscription;
@@ -267,6 +283,14 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
             : await UserSubscription.findOne({ stripeSubscriptionId: subscription.id });
 
         if (!subscriptionRecord) break;
+
+        // ✅ Environment guard: skip if record belongs to a different Stripe environment
+        if (subscriptionRecord.stripeEnvironment && subscriptionRecord.stripeEnvironment !== getCurrentEnvironment()) {
+          console.warn(
+            `[Webhook customer.subscription.deleted] Environment mismatch — skipping. Expected: ${getCurrentEnvironment()}, got: ${subscriptionRecord.stripeEnvironment}`
+          );
+          break;
+        }
 
         // Cancel subscription
         if (type === SubscriptionType.ELITE_PRO) {

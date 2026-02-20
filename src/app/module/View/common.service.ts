@@ -25,6 +25,7 @@ import UserSubscription, { IUserSubscription } from '../CreditPayment/subscripti
 import { ISubscription } from '../SubscriptionPackage/subscriptionPack.model';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache, removeLeadListCacheByUser } from '../../utils/cacheManger';
+import { getCurrentEnvironment } from '../../config/stripe.config';
 // import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
@@ -582,18 +583,20 @@ const createLawyerResponseAndSpendCredit = async (
 
 
       if (user.credits < credit) {
-        const creditPackages = await CreditPackage.find({ 
+        const creditPackages = await CreditPackage.find({
           isActive: true,
-          country: user.country 
+          country: user.country
         }).sort({ credit: 1 });
         const requiredCredits = Math.max(0, credit - user.credits);
         // Find first package with enough credits and price > 0
         const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits && pkg.price > 0);
 
+        // ✅ Only look up cards that belong to the current Stripe environment
         const savedCards = await PaymentMethod.find({
           userProfileId: user._id,
           isActive: true,
           isDefault: true,
+          stripeEnvironment: getCurrentEnvironment(),
         });
 
         if (savedCards.length === 0) {
@@ -608,6 +611,8 @@ const createLawyerResponseAndSpendCredit = async (
           };
         }
 
+        // ✅ Use the environment-matched default card as the auto-purchase suggestion
+        const envCard = savedCards.find(c => c.isDefault) || savedCards[0];
         return {
           success: false,
           status: HTTP_STATUS.PAYMENT_REQUIRED,
@@ -615,9 +620,26 @@ const createLawyerResponseAndSpendCredit = async (
           autoPurchaseCredit: true,
           requiredCredits,
           recommendedPackage,
-          savedCardId: savedCards[0]._id,
+          savedCardId: envCard._id,
         };
       }
+    }
+
+    // ✅ Duplicate response guard: prevent double credit-spend on network retries
+    const existingResponse = await LeadResponse.findOne({
+      leadId,
+      responseBy: user._id,
+    });
+    if (existingResponse) {
+      return {
+        success: true,
+        message: 'You have already responded to this lead.',
+        data: {
+          responseId: existingResponse._id,
+          paymentType: useCredit ? 'credit' : 'subscription',
+          alreadyExisted: true,
+        },
+      };
     }
 
     const leadUser = await Lead.findById(leadId)

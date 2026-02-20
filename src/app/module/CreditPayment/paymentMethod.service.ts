@@ -414,14 +414,15 @@ const purchaseCredits = async (
   }
   const totalCents = subtotalCents + taxCents;
 
-  // 4️ Fetch default payment method
+  // 4️ Fetch default payment method — MUST match current Stripe environment
   const paymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
+    stripeEnvironment: getCurrentEnvironment(),
   });
   if (!paymentMethod?.stripeCustomerId || !paymentMethod?.paymentMethodId) {
-    return { success: false, message: 'No default payment method found' };
+    return { success: false, message: 'No default payment method found for the current environment. Please add a card.' };
   }
 
   // 5️ Create & confirm PaymentIntent (off-session)
@@ -687,6 +688,7 @@ const getOrCreateCustomer = async (
       : undefined,
     metadata: {
       userId,
+      stripeEnvironment: getCurrentEnvironment(), // ✅ tag customer with current environment for observability
       vatRegistered: billing?.isVatRegistered ? 'yes' : 'no',
       vatNumber: billing?.vatNumber || '',
     },
@@ -799,17 +801,18 @@ const createSubscription = async (
 
 
 
-  // 3️ Get default saved payment method
+  // 3️ Get default saved payment method — MUST match current Stripe environment
   const savedPaymentMethod = await PaymentMethod.findOne({
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
+    stripeEnvironment: getCurrentEnvironment(),
   });
 
   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
     return {
       success: false,
-      message: "No default payment method found. Please add a payment method before subscribing.",
+      message: "No default payment method found for the current environment. Please add a payment method before subscribing.",
       data: { requiresPaymentMethod: true },
     };
   }
@@ -1490,7 +1493,7 @@ const changeSubscriptionPackage = async (
       expand: ['latest_invoice.payment_intent'],
     });
 
-  
+
     const latestInvoice = updatedSubscription.latest_invoice as Stripe.Invoice;
 
     // 6️ Update subscription record in DB
@@ -1538,8 +1541,8 @@ const changeSubscriptionPackage = async (
       const taxType = taxRates?.tax_rate_details?.tax_type;
       const taxRatePercentage = taxRates?.tax_rate_details?.percentage_decimal;
 
-      const paymentIntentId = typeof (latestInvoice as any).payment_intent === 'string' 
-        ? (latestInvoice as any).payment_intent 
+      const paymentIntentId = typeof (latestInvoice as any).payment_intent === 'string'
+        ? (latestInvoice as any).payment_intent
         : ((latestInvoice as any).payment_intent as Stripe.PaymentIntent)?.id ?? null;
 
       await Transaction.create({
@@ -1669,10 +1672,11 @@ const switchSubscriptionType = async (
     userProfileId: userProfile._id,
     isDefault: true,
     isActive: true,
+    stripeEnvironment: getCurrentEnvironment(), // ✅ environment isolation
   });
 
   if (!savedPaymentMethod || !savedPaymentMethod.paymentMethodId || !savedPaymentMethod.stripeCustomerId) {
-    throw new AppError(HTTP_STATUS.BAD_REQUEST, "No default payment method found");
+    throw new AppError(HTTP_STATUS.BAD_REQUEST, "No default payment method found for the current environment");
   }
 
   const stripeCustomerId = savedPaymentMethod.stripeCustomerId;
