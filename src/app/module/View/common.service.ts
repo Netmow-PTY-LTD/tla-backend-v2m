@@ -582,7 +582,10 @@ const createLawyerResponseAndSpendCredit = async (
 
 
       if (user.credits < credit) {
-        const creditPackages = await CreditPackage.find({ isActive: true, }).sort({ credit: 1 });
+        const creditPackages = await CreditPackage.find({ 
+          isActive: true,
+          country: user.country 
+        }).sort({ credit: 1 });
         const requiredCredits = Math.max(0, credit - user.credits);
         // Find first package with enough credits and price > 0
         const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits && pkg.price > 0);

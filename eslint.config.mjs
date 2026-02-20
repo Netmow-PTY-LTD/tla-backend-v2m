@@ -14,8 +14,9 @@ export default tseslint.config(
   },
   {
     rules: {
-      'no-unused-vars': 'error',
-      'no-undef': 'error',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error',
+      'no-undef': 'off', // TypeScript handles this better
       'prefer-const': 'error',
       'no-console': 'warn',
     },

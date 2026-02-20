@@ -101,6 +101,34 @@ const cancelSubscription = catchAsync(async (req, res) => {
 
 
 
+// Change subscription package within the same type (upgrade/downgrade)
+const changeSubscriptionPackage = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const result = await paymentMethodService.changeSubscriptionPackage(userId, req.body);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
+// Switch between subscription types (cross-type change)
+const switchSubscriptionType = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const result = await paymentMethodService.switchSubscriptionType(userId, req.body);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+});
+
+
+
 const purchaseCredits = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const result = await paymentMethodService.purchaseCredits(userId, req.body);
@@ -127,6 +155,8 @@ export const paymentMethodController = {
   purchaseCredits,
   removePaymentMethod,
   createSubscription,
-  cancelSubscription
+  cancelSubscription,
+  changeSubscriptionPackage,
+  switchSubscriptionType
 
 };

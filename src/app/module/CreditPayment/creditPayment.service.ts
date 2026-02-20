@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Stripe from 'stripe';
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import { validateObjectId } from '../../utils/validateObjectId';
+
 import { IBillingAddress } from '../User/user.interface';
 import UserProfile from '../User/user.model';
 import { ICreditPackage } from './creditPackage.interface';
@@ -13,11 +14,29 @@ import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
- apiVersion: '2025-05-28.basil',
+  apiVersion: '2025-05-28.basil',
 });
 
 
 const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
+  // Ensure country is provided (required for currency auto-population)
+  if (!payload.country) {
+    throw new Error('Country is required to create a credit package');
+  }
+
+  // Validate that the country exists
+  const Country = (await import('mongoose')).default.model('Country');
+  const country = await Country.findById(payload.country);
+
+  if (!country) {
+    throw new Error('Invalid country ID provided');
+  }
+
+  if (!country.currency) {
+    throw new Error('Selected country does not have a currency configured');
+  }
+
+  // Currency will be auto-populated by the pre-save hook
   const packageCreate = await CreditPackage.create(payload);
   return packageCreate;
 };
@@ -34,15 +53,23 @@ const updateCreditPackagesIntoDB = async (
   return packageCreate;
 };
 
-const getCreditPackages = async () => {
- 
-  const packages = await CreditPackage.find({ isActive: true });
+const getCreditPackages = async (query: Record<string, any>) => {
+  const filter: Record<string, any> = {};
+
+  if (query.isActive !== undefined) {
+    filter.isActive = query.isActive === 'true';
+  } else {
+    // Default to active only if not specified
+    filter.isActive = true;
+  }
+
+  if (query.country) {
+    filter.country = query.country;
+  }
+
+  const packages = await CreditPackage.find(filter).populate('country');
 
   return packages;
-
-
-
-
 };
 
 // const purchaseCredits = async (
@@ -165,6 +192,14 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   });
 
   if (defaultPaymentMethod?.stripeCustomerId) {
+    // Get user's country for accurate address
+    const userProfileForCountry = await UserProfile.findOne({ user: userId })
+      .select('country')
+      .populate('country');
+
+    const countryData = userProfileForCountry?.country as any;
+    const countryCode = countryData?.slug || countryData?.currency?.slice(0, 2) || 'AU';
+
     await stripe.customers.update(defaultPaymentMethod.stripeCustomerId, {
       name: body.contactName,
       phone: body.phoneNumber,
@@ -173,7 +208,7 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
         line2: body.addressLine2 || undefined,
         city: body.city,
         postal_code: body.postcode,
-        country: 'AUD',
+        country: countryCode,
       },
       metadata: {
         userId,
@@ -184,7 +219,7 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
   }
 
   //  REVALIDATE REDIS CACHE
-    await deleteCache(CacheKeys.USER_INFO(userId));
+  await deleteCache(CacheKeys.USER_INFO(userId));
 
   return result;
 };
@@ -325,9 +360,16 @@ const findNextCreditOffer = async (userId: string) => {
     .sort({ createdAt: -1 })
     .populate('creditPackageId');
 
+  const userProfileForCountry = await UserProfile.findOne({ user: userId })
+    .select('country')
+
+
+  const country = userProfileForCountry?.country as any;
+
+
   if (!lastTransaction || !lastTransaction.creditPackageId) {
     // No purchases: return cheapest active package
-    return await CreditPackage.findOne({ isActive: true }).sort({ credit: 1 });
+    return await CreditPackage.findOne({ country: country, isActive: true }).sort({ credit: 1 });
   }
 
   const lastPackage =
