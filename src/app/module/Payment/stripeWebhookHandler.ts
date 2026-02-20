@@ -128,10 +128,7 @@ import UserProfile from '../User/user.model';
 import mongoose, { mongo } from 'mongoose';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache } from '../../utils/cacheManger';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
- apiVersion: '2025-05-28.basil',
-});
+import { stripe, getStripeWebhookSecret } from '../../config/stripe.config';
 
 export const stripeWebhookHandler = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature']!;
@@ -145,7 +142,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      getStripeWebhookSecret()
     );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);

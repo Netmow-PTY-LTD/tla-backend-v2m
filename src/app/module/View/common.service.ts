@@ -25,6 +25,7 @@ import UserSubscription, { IUserSubscription } from '../CreditPayment/subscripti
 import { ISubscription } from '../SubscriptionPackage/subscriptionPack.model';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache, removeLeadListCacheByUser } from '../../utils/cacheManger';
+import { getCurrentEnvironment } from '../../config/stripe.config';
 // import { LawFirmCertification } from '../Settings/settings.model';
 
 // const createLawyerResponseAndSpendCredit = async (
@@ -534,9 +535,10 @@ const createLawyerResponseAndSpendCredit = async (
 
     const { leadId, credit, serviceId } = payload;
 
-    // --- 1️ Determine payment method: credit vs subscription
+    // ─────────────────────────────────────────────────────────────
+    // 1️⃣  Determine payment path: subscription vs credit
+    // ─────────────────────────────────────────────────────────────
     let useCredit = false;
-    let subscriptionValid = false;
     let subscriptionToUse: IUserSubscription | null = null;
 
     if (user?.subscriptionId) {
@@ -544,8 +546,6 @@ const createLawyerResponseAndSpendCredit = async (
       const pkg = subscription.subscriptionPackageId as unknown as ISubscription;
 
       if (subscription.status === 'active' && pkg) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-        subscriptionValid = true;
         subscriptionToUse = subscription;
 
         const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -556,19 +556,11 @@ const createLawyerResponseAndSpendCredit = async (
         });
 
         const contactLimit = pkg.monthlyCaseContacts || 0;
+
         if (usedContacts >= contactLimit) {
-          useCredit = true; // limit exceeded
+          useCredit = true; // monthly limit exceeded → fall back to credits
         } else {
-
-          // Mark the subscription as used
-          await UserSubscription.findByIdAndUpdate(
-            subscription._id,
-            { $inc: { monthlyCaseContacts: 1 } },
-            { new: true },
-          );
-
-          useCredit = false; // within limit
-
+          useCredit = false; // within limit → subscription path
         }
       } else {
         useCredit = true; // inactive subscription
@@ -577,52 +569,75 @@ const createLawyerResponseAndSpendCredit = async (
       useCredit = true; // no subscription
     }
 
-    // --- 2️ Handle credit validation & auto-purchase suggestion
-    if (useCredit) {
+    // ─────────────────────────────────────────────────────────────
+    // 2️⃣  Credit validation & auto-purchase suggestion (pre-flight)
+    //     NOTE: final balance re-check happens INSIDE the transaction
+    //     to prevent TOCTOU race conditions.
+    // ─────────────────────────────────────────────────────────────
+    if (useCredit && user.credits < credit) {
+      // Fetch country-scoped credit packages
+      const creditPackages = await CreditPackage.find({
+        isActive: true,
+        country: user.country,
+      }).sort({ credit: 1 });
 
+      const requiredCredits = Math.max(0, credit - user.credits);
+      const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits && pkg.price > 0);
 
-      if (user.credits < credit) {
-        const creditPackages = await CreditPackage.find({ 
-          isActive: true,
-          country: user.country 
-        }).sort({ credit: 1 });
-        const requiredCredits = Math.max(0, credit - user.credits);
-        // Find first package with enough credits and price > 0
-        const recommendedPackage = creditPackages.find(pkg => pkg.credit >= requiredCredits && pkg.price > 0);
+      // ✅ Only surface cards that belong to the current Stripe environment
+      const savedCards = await PaymentMethod.find({
+        userProfileId: user._id,
+        isActive: true,
+        stripeEnvironment: getCurrentEnvironment(),
+      });
 
-        const savedCards = await PaymentMethod.find({
-          userProfileId: user._id,
-          isActive: true,
-          isDefault: true,
-        });
-
-        if (savedCards.length === 0) {
-          return {
-            success: false,
-            status: HTTP_STATUS.PRECONDITION_FAILED,
-            message:
-              'Insufficient credits and no saved payment method. Please add a card first.',
-            needAddCard: true,
-            requiredCredits,
-            recommendedPackage,
-          };
-        }
-
+      if (savedCards.length === 0) {
         return {
           success: false,
-          status: HTTP_STATUS.PAYMENT_REQUIRED,
-          message: 'Insufficient credits. Auto-purchase recommended.',
-          autoPurchaseCredit: true,
+          status: HTTP_STATUS.PRECONDITION_FAILED,
+          message: 'Insufficient credits and no saved payment method for this environment. Please add a card first.',
+          needAddCard: true,
           requiredCredits,
           recommendedPackage,
-          savedCardId: savedCards[0]._id,
         };
       }
+
+      // Prefer the default card; fall back to first environment-matched card
+      const envCard = savedCards.find(c => c.isDefault) ?? savedCards[0];
+      return {
+        success: false,
+        status: HTTP_STATUS.PAYMENT_REQUIRED,
+        message: 'Insufficient credits. Auto-purchase recommended.',
+        autoPurchaseCredit: true,
+        requiredCredits,
+        recommendedPackage,
+        savedCardId: envCard._id,
+        stripeEnvironment: getCurrentEnvironment(), // ✅ tell the client which env to charge against
+      };
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // 3️⃣  Idempotency guard — prevents double credit-spend on retries
+    // ─────────────────────────────────────────────────────────────
+    const existingResponse = await LeadResponse.findOne({
+      leadId,
+      responseBy: user._id,
+    });
+    if (existingResponse) {
+      return {
+        success: true,
+        message: 'You have already responded to this lead.',
+        data: {
+          responseId: existingResponse._id,
+          paymentType: useCredit ? 'credit' : 'subscription',
+          alreadyExisted: true,
+        },
+      };
+    }
+
+    // Fetch the lead data before the transaction (no session needed yet)
     const leadUser = await Lead.findById(leadId)
-      .populate({ path: 'userProfileId', select: 'name user' })
-      .session(session);
+      .populate({ path: 'userProfileId', select: 'name user' });
 
     const populatedLeadUser = leadUser as typeof leadUser & {
       userProfileId: {
@@ -635,19 +650,40 @@ const createLawyerResponseAndSpendCredit = async (
     let resultLeadResponse: ILeadResponse | null = null;
     let creditTx: any = null;
 
-    // --- 3️ Transaction block
+    // ─────────────────────────────────────────────────────────────
+    // 4️⃣  Atomic MongoDB transaction
+    // ─────────────────────────────────────────────────────────────
     await session.withTransaction(async () => {
+      // Re-fetch user inside transaction for fresh balance (prevents TOCTOU)
       user = await UserProfile.findOne({ user: userId }).session(session);
       if (!user) throw new Error('User not found inside transaction');
 
-      // If credits are used
       if (useCredit) {
+        // ✅ Hard balance check inside transaction — prevents negative credits
+        if (user.credits < credit) {
+          throw new AppError(
+            HTTP_STATUS.PAYMENT_REQUIRED,
+            'Insufficient credits. Your balance changed before this request was processed.',
+          );
+        }
+
         const creditsBefore = user.credits;
-        user.credits -= credit;
-        const creditsAfter = user.credits;
+        const creditsAfter = creditsBefore - credit;
 
-        await user.save({ session });
+        // ✅ Atomic decrement — avoids Mongoose setter race
+        await UserProfile.updateOne(
+          { _id: user._id, credits: { $gte: credit } }, // only update if still enough credits
+          { $inc: { credits: -credit } },
+          { session },
+        );
 
+        // Re-read to confirm the update succeeded
+        const updatedUser = await UserProfile.findById(user._id).session(session);
+        if (!updatedUser || updatedUser.credits < 0) {
+          throw new AppError(HTTP_STATUS.PAYMENT_REQUIRED, 'Credit deduction failed. Please try again.');
+        }
+
+        // ✅ CreditTransaction stamped with stripeEnvironment for full audit trail
         const [tx] = await CreditTransaction.create(
           [
             {
@@ -658,6 +694,7 @@ const createLawyerResponseAndSpendCredit = async (
               creditsAfter,
               description: 'Credits deducted for lead contact',
               relatedLeadId: leadId,
+              stripeEnvironment: getCurrentEnvironment(), // ✅ environment tag
             },
           ],
           { session },
@@ -679,8 +716,31 @@ const createLawyerResponseAndSpendCredit = async (
         );
 
         resultLeadResponse = leadResponse;
+
       } else {
-        //  Subscription used
+        // ─── Subscription path ──────────────────────────────────────
+        // ✅ Increment subscription monthly counter INSIDE the transaction
+        // so it rolls back automatically if anything below fails.
+        const counterUpdate = await UserSubscription.findOneAndUpdate(
+          {
+            _id: subscriptionToUse?._id,
+            status: 'active', // only if still active at transaction time
+          },
+          { $inc: { monthlyCaseContacts: 1 } },
+          { new: true, session },
+        );
+
+        if (!counterUpdate) {
+          // Subscription became inactive between pre-check and transaction
+          useCredit = true;
+          throw new AppError(
+            HTTP_STATUS.PAYMENT_REQUIRED,
+            'Your subscription is no longer active. Please use credits or renew your subscription.',
+          );
+        }
+
+        // counter increment is inside withTransaction — auto-rolls back on failure
+
         const [leadResponse] = await LeadResponse.create(
           [
             {
@@ -697,7 +757,7 @@ const createLawyerResponseAndSpendCredit = async (
         resultLeadResponse = leadResponse;
       }
 
-      // --- Update lead responders
+      // ─── Update lead responders ─────────────────────────────────
       const updatedLead = await Lead.findOneAndUpdate(
         { _id: leadId },
         [
@@ -716,28 +776,27 @@ const createLawyerResponseAndSpendCredit = async (
         { new: true, session },
       );
 
+      // ✅ responseCases update is inside the session so it rolls back on failure
+      await UserProfile.findByIdAndUpdate(
+        updatedLead?.userProfileId,
+        { $inc: { responseCases: 1 } },
+        { new: true, session },
+      );
 
-      // update case count in user profile
-      await UserProfile.findByIdAndUpdate(updatedLead?.userProfileId, {
-        $inc: {
-          responseCases: 1,
-        },
-      }, { new: true });
-
-
-      // --- Log activity
+      // ─── Activity log ───────────────────────────────────────────
       if (useCredit && creditTx) {
         await logActivity({
           createdBy: userId,
           activityType: 'credit_spent',
           module: 'response',
           objectId: creditTx._id,
-          activityNote: `Spent ${credit} credits to contact`,
+          activityNote: `Spent ${credit} credits to contact lead [${getCurrentEnvironment()} mode]`,
           extraField: {
             creditsBefore: creditTx.creditsBefore,
             creditsAfter: creditTx.creditsAfter,
             creditSpent: credit,
             leadId,
+            stripeEnvironment: getCurrentEnvironment(),
           },
           session,
         });
@@ -766,7 +825,7 @@ const createLawyerResponseAndSpendCredit = async (
         session,
       });
 
-      // --- Notifications
+      // ─── In-transaction notifications ──────────────────────────
       await createNotification({
         userId: populatedLeadUser?.userProfileId?.user,
         toUser: userId,
@@ -774,7 +833,6 @@ const createLawyerResponseAndSpendCredit = async (
         message: `${user.name} wants to connect with you.`,
         module: 'lead',
         type: 'contact',
-        // link: `/client/dashboard/my-cases/${leadId}`,
         link: `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${resultLeadResponse?._id}`,
         session,
       });
@@ -783,7 +841,7 @@ const createLawyerResponseAndSpendCredit = async (
         userId: userId,
         toUser: populatedLeadUser?.userProfileId?.user,
         title: 'Your message was sent',
-        message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
+        message: `You've successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
         module: 'response',
         type: 'create',
         link: `/lawyer/dashboard/my-responses?responseId=${resultLeadResponse?._id}`,
@@ -791,17 +849,15 @@ const createLawyerResponseAndSpendCredit = async (
       });
     });
 
-    // -------------------  REVALIDATE REDIS CACHE ---------------------
-    await deleteCache(
+    // ─────────────────────────────────────────────────────────────
+    // 5️⃣  Post-transaction: cache invalidation + socket emit
+    //     (outside transaction — these are non-critical side-effects)
+    // ─────────────────────────────────────────────────────────────
+    await Promise.allSettled([
+      deleteCache(CacheKeys.USER_INFO(userId.toString())),
+      removeLeadListCacheByUser(userId.toString()),
+    ]);
 
-      CacheKeys.USER_INFO(userId.toString()),
-    );
-
-    await removeLeadListCacheByUser(userId.toString());
-
-    // ------------------------------------------------------------
-
-    // --- 4️ Emit socket notifications
     io.to(`user:${populatedLeadUser?.userProfileId?.user}`).emit('notification', {
       userId: populatedLeadUser?.userProfileId?.user,
       toUser: userId,
@@ -809,7 +865,6 @@ const createLawyerResponseAndSpendCredit = async (
       message: `${user.name} wants to connect with you.`,
       module: 'lead',
       type: 'contact',
-      // link: `/client/dashboard/my-cases/${leadId}`,
       link: `/client/dashboard/my-cases/${leadId}?tab=responded-lawyers&responseId=${(resultLeadResponse as any)?._id}`,
     });
 
@@ -817,7 +872,7 @@ const createLawyerResponseAndSpendCredit = async (
       userId,
       toUser: populatedLeadUser?.userProfileId?.user,
       title: 'Your message was sent',
-      message: `You’ve successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
+      message: `You've successfully contacted ${populatedLeadUser?.userProfileId?.name}.`,
       module: 'response',
       type: 'create',
       link: `/lawyer/dashboard/my-responses?responseId=${(resultLeadResponse as any)?._id}`,
@@ -831,15 +886,22 @@ const createLawyerResponseAndSpendCredit = async (
       data: {
         responseId: (resultLeadResponse as any)?._id,
         paymentType: useCredit ? 'credit' : 'subscription',
+        stripeEnvironment: getCurrentEnvironment(), // ✅ inform client which env was used
       },
     };
+
   } catch (error) {
-    console.error('Transaction failed:', error);
+    // withTransaction auto-rolls back all ops (including subscription counter) on failure
+    console.error('[createLawyerResponseAndSpendCredit] Transaction failed:', error);
     throw error;
   } finally {
     await session.endSession();
   }
 };
+
+
+
+
 
 
 

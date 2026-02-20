@@ -19,8 +19,12 @@ export interface ISubscription extends Document {
   features: string[];
   description?: string;
   isActive: boolean;
-  stripePriceId: string; // optional: link to Stripe price if you use Stripe
-  stripeProductId: string; // optional: link to Stripe product if you use Stripe
+  stripePriceId: string; // Legacy
+  stripeProductId: string; // Legacy
+  stripePriceIdTest: string;
+  stripePriceIdLive: string;
+  stripeProductIdTest: string;
+  stripeProductIdLive: string;
   createdAt: Date;
   updatedAt: Date;
   country: Types.ObjectId | ICountry;
@@ -55,8 +59,12 @@ const SubscriptionSchema = new Schema<ISubscription>(
     features: { type: [String], default: [] },
     description: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
-    stripePriceId: { type: String, default: null },
-    stripeProductId: { type: String, required: true }, // <- add this
+    stripePriceId: { type: String, default: null }, // Legacy
+    stripeProductId: { type: String, required: false }, // Legacy
+    stripePriceIdTest: { type: String, default: null },
+    stripePriceIdLive: { type: String, default: null },
+    stripeProductIdTest: { type: String, default: null },
+    stripeProductIdLive: { type: String, default: null },
     country: {
       type: Schema.Types.ObjectId,
       ref: 'Country',
