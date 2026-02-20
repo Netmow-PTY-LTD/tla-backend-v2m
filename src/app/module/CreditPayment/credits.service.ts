@@ -30,7 +30,7 @@ const spendCredits = async (userId: string, payload: SpendCreditsPayload) => {
     credit: -credit,
     creditsBefore,
     creditsAfter,
-    description: description || 'Credit spent', 
+    description: description || 'Credit spent',
     relatedLeadId,
     stripeEnvironment: getCurrentEnvironment(),
   });
@@ -46,8 +46,13 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
 
   const userObjectId = new Types.ObjectId(userId);
 
-  // Filter for business data (live only) unless explicitly including test data
-  const environmentFilter = includeTestData ? {} : { stripeEnvironment: 'live' };
+  // Filter for business data based on current environment unless explicitly including test data
+  const currentEnv = getCurrentEnvironment();
+  const environmentFilter = includeTestData
+    ? {}
+    : currentEnv === 'test'
+      ? { $or: [{ stripeEnvironment: 'test' }, { stripeEnvironment: { $exists: false } }] }
+      : { stripeEnvironment: 'live' };
 
   const [purchases, usages] = await Promise.all([
     Transaction.aggregate([
@@ -82,7 +87,7 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
     totalPurchasedCredits,
     totalUsedCredits,
     remainingCredits: currentCredits,
-    environment: includeTestData ? 'all' : 'live',
+    environment: includeTestData ? 'all' : getCurrentEnvironment(),
   };
 };
 
@@ -92,8 +97,14 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
 const getUserCreditTransactions = async (userId: string) => {
   const user = await UserProfile.findOne({ user: userId }).select('_id');
   if (!user) throw new Error('User profile not found');
+  const currentEnv = getCurrentEnvironment();
+  const envFilter = currentEnv === 'test'
+    ? { $or: [{ stripeEnvironment: 'test' }, { stripeEnvironment: { $exists: false } }] }
+    : { stripeEnvironment: 'live' };
+
   const transactions = await CreditTransaction.find({
     userProfileId: user?._id,
+    ...envFilter,
   }).sort({ createdAt: -1 }); // newest first
 
   return transactions;

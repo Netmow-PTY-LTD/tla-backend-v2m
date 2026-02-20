@@ -25,7 +25,10 @@ export const getStripeWebhookSecret = (): string => {
 };
 
 export const getCurrentEnvironment = (): 'test' | 'live' => {
-  // In the future, this might be dynamic based on a DB setting
+  // Priority: 1. STRIPE_LIVE_MODE env var, 2. NODE_ENV
+  if (config.stripe_live_mode !== undefined && config.stripe_live_mode !== null) {
+    return config.stripe_live_mode ? 'live' : 'test';
+  }
   return isProduction ? 'live' : 'test';
 };
 

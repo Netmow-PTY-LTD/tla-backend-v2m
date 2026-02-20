@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { stripe } from '../../config/stripe.config';
+import { getCurrentEnvironment, stripe } from '../../config/stripe.config';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 
 import { IBillingAddress } from '../User/user.interface';
@@ -23,7 +23,7 @@ const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
   // Validate that the country exists
   const Country = (await import('mongoose')).default.model('Country');
   const country = await Country.findById(payload.country);
-  
+
   if (!country) {
     throw new Error('Invalid country ID provided');
   }
@@ -222,7 +222,15 @@ const updateBillingDetails = async (userId: string, body: IBillingAddress) => {
 
 
 const getTransactionHistory = async (userId: string) => {
-  const transactionHistory = await Transaction.find({ userId })
+  const currentEnv = getCurrentEnvironment();
+  const envFilter = currentEnv === 'test'
+    ? { $or: [{ stripeEnvironment: 'test' }, { stripeEnvironment: { $exists: false } }] }
+    : { stripeEnvironment: 'live' };
+
+  const transactionHistory = await Transaction.find({
+    userId,
+    ...envFilter,
+  })
     .sort({ createdAt: -1 })
     .populate({
       path: 'userId',
@@ -263,6 +271,19 @@ const getAllTransactionHistory = async (query: Record<string, any>) => {
   const filters = query.filters || {};
 
   const matchStage: Record<string, any> = { ...filters };
+
+  // Filter by current Stripe environment if not explicitly provided in filters
+  if (!matchStage.stripeEnvironment) {
+    const currentEnv = getCurrentEnvironment();
+    if (currentEnv === 'test') {
+      matchStage.$or = [
+        { stripeEnvironment: 'test' },
+        { stripeEnvironment: { $exists: false } }
+      ];
+    } else {
+      matchStage.stripeEnvironment = 'live';
+    }
+  }
 
   const pipeline: any[] = [
     { $match: matchStage },
@@ -348,10 +369,16 @@ const getAllTransactionHistory = async (query: Record<string, any>) => {
 
 const findNextCreditOffer = async (userId: string) => {
   // Get latest completed purchase
+  const currentEnv = getCurrentEnvironment();
+  const envFilter = currentEnv === 'test'
+    ? { $or: [{ stripeEnvironment: 'test' }, { stripeEnvironment: { $exists: false } }] }
+    : { stripeEnvironment: 'live' };
+
   const lastTransaction = await Transaction.findOne({
     userId,
     type: 'purchase',
     status: 'completed',
+    ...envFilter,
   })
     .sort({ createdAt: -1 })
     .populate('creditPackageId');
