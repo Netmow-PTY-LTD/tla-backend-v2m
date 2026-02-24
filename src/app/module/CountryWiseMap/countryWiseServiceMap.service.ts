@@ -65,6 +65,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
   const filter = {
     countryId: new Types.ObjectId(countryId),
 
+
   };
 
   if (query == null) {
@@ -73,14 +74,17 @@ const getSingleCountryWiseMapByIdFromDB = async (
 
   if (query?.type === 'servicelist') {
     // Populate only serviceIds and return flattened populated services
-    const records = await CountryWiseMap.find(filter).populate('serviceIds');
+    const records = await CountryWiseMap.find(filter).sort({ createdAt: -1 }).populate({
+    path: 'serviceIds',
+    options: { sort: { createdAt: -1 } }, // sort services descending
+  });;
 
     // Flatten the array of service arrays into a single array of services
     const populatedServices = records.flatMap((record) => record.serviceIds);
-
+   
     //  Cache the result
     await redisClient.set(CacheKeys.COUNTRY_WISE_MAP(countryId), JSON.stringify(populatedServices), { EX: TTL.EXTENDED_1D });
-   
+
 
 
     return populatedServices;
@@ -229,7 +233,7 @@ const manageServiceIntoDB = async (
 
             // Assign uploaded URL to payload
             (payload as any)[fieldName] = uploadedUrl;
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (err) {
             throw new AppError(
               HTTP_STATUS.INTERNAL_SERVER_ERROR,

@@ -40,7 +40,10 @@ const CreateCategoryIntoDB = async (userId: string, payload: ICategory, file?: T
 };
 
 const getAllCategoryFromDB = async () => {
-  const result = await Category.find({}).populate('serviceIds');
+  const result = await Category.find({}).sort({ createdAt: -1 }).populate({
+    path: 'serviceIds',
+    options: { sort: { createdAt: -1 } }, // sort services descending
+  });
   return result;
 };
 
@@ -223,6 +226,7 @@ const updateCategoryIntoDB = async (
         });
         payload.image = uploadedUrl;
         newFileUrl = uploadedUrl;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err: unknown) {
         throw new AppError(
           HTTP_STATUS.INTERNAL_SERVER_ERROR,
