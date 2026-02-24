@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { FilterQuery, Types } from 'mongoose';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { ICountryWiseMap } from './countryWiseMap.interface';
@@ -49,7 +50,7 @@ const getSingleCountryWiseMapByIdFromDB = async (
 ) => {
   validateObjectId(countryId, 'Country');
 
-  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+
   // Cache key for Redis
   // const cacheKey = `countryWiseMap:${countryId}`;
 
@@ -94,6 +95,7 @@ const updateCountryWiseMapIntoDB = async (
   payload: Partial<ICountryWiseMap>,
 ) => {
   validateObjectId(countryId, 'Country');
+
   const result = await CountryWiseMap.findOneAndUpdate(
     { countryId: countryId },
     payload,
@@ -101,7 +103,16 @@ const updateCountryWiseMapIntoDB = async (
       new: true,
     },
   );
+
+
+  // Clear cache for this countryId
+
+  await redisClient.del(CacheKeys.COUNTRY_WISE_MAP(countryId));
+
   return result;
+
+
+
 };
 
 const deleteCountryWiseMapFromDB = async (id: string) => {
@@ -218,6 +229,7 @@ const manageServiceIntoDB = async (
 
             // Assign uploaded URL to payload
             (payload as any)[fieldName] = uploadedUrl;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (err) {
             throw new AppError(
               HTTP_STATUS.INTERNAL_SERVER_ERROR,
