@@ -801,6 +801,7 @@ const commitClientRegistration = async (draftId: string) => {
       addressInfo: draft.addressInfo,
       leadDetails: draft.leadDetails,
       questions: draft.questions,
+      isVerifiedAccount: true, // Mark as verified because draft email was verified
     };
 
     // ✅ Create real user (must accept session internally)
