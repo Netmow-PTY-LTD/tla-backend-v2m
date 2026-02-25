@@ -23,7 +23,7 @@ import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.i
 import { IZipCode } from '../Country/zipcode.interface';
 import { redisClient } from '../../config/redis.config';
 import { CacheKeys, TTL } from '../../config/cacheKeys';
-import {  deleteKeysByPattern } from '../../utils/cacheManger';
+import { deleteKeysByPattern } from '../../utils/cacheManger';
 
 
 
@@ -50,6 +50,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       serviceId,
       additionalDetails,
       budgetAmount,
+      customService,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       locationId,
       countryId,
@@ -106,7 +107,8 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
           // locationId: locationId ? locationId : zipCode?._id,
           locationId: zipCode?._id,
           credit: creditInfo?.baseCredit,
-          leadPriority
+          leadPriority,
+          customService: customService ? customService : ""
         },
       ],
       { session },
