@@ -347,6 +347,7 @@ const getAllCountryServiceFieldFromDB = async (
 const getSingleCountryWiseServiceGroupMapByIdFromDB = async (
   countryQueryId: string,
 ) => {
+  console.log(countryQueryId);
   validateObjectId(countryQueryId, 'Country');
 
   // 1️ Try to get cached data

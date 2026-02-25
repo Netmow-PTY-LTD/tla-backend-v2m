@@ -181,7 +181,7 @@ const getAllCountryServiceField = catchAsync(async (req, res) => {
 
 const getSingleCountryWiseServiceGroupMapById = catchAsync(async (req, res) => {
 
-  const { countryId } = req.query;
+  const { countryId } = req.params;
 
   // Validate countryId
   if (!countryId) {

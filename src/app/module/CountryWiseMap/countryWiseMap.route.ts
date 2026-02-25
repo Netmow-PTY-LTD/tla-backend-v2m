@@ -49,7 +49,7 @@ router.patch(
 );
 
 router.get(
-  '/service-group',
+  '/service-group/:countryId',
   countryWiseMapController.getSingleCountryWiseServiceGroupMapById,
 );
 
