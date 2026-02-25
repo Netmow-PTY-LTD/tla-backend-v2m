@@ -134,6 +134,7 @@ export interface LeadDetails {
   budgetAmount: number;
   leadPriority: string;
   additionalDetails?: string;
+  customService?: string;
 }
 
 // ================= Question Option =================
@@ -191,16 +192,17 @@ const addressInfoSchema = new Schema(
 
 const leadDetailsSchema = new Schema(
   {
-    name: { type: String,  required: true },
-    email: { type: String,   required: true},
-    phone: { type: String,   required: true },
-    zipCode: { type: String,  required: true  },
-    budgetAmount: { type: Number  , required: true},
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    zipCode: { type: String, required: true },
+    budgetAmount: { type: Number, required: true },
     leadPriority: {
       type: String,
       required: true
     },
-    additionalDetails: { type: String }
+    additionalDetails: { type: String },
+    customService: { type: String }
   },
   { _id: false }
 );

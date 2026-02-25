@@ -27,6 +27,7 @@ import { generateOtp } from './otp.utils';
 import bcrypt from 'bcryptjs';
 
 
+
 // const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose.ClientSession) => {
 //   const session = externalSession || await mongoose.startSession();
 //   if (!externalSession) session.startTransaction();
@@ -465,7 +466,8 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
             budgetAmount: leadDetails.budgetAmount ?? 0,
             locationId: zipCode?._id,
             credit: creditInfo?.baseCredit,
-            leadPriority: leadDetails?.leadPriority
+            leadPriority: leadDetails?.leadPriority,
+            customService: leadDetails?.customService || '',
           },
         ],
         { session },
