@@ -25,6 +25,8 @@ import { ClientRegistrationDraft, IClientRegistrationDraft } from './clientRegis
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 import { generateOtp } from './otp.utils';
 import bcrypt from 'bcryptjs';
+import CustomServiceSearch from '../CustomServiceSearch/customServiceSearch.model';
+
 
 
 // const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose.ClientSession) => {
@@ -465,11 +467,23 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
             budgetAmount: leadDetails.budgetAmount ?? 0,
             locationId: zipCode?._id,
             credit: creditInfo?.baseCredit,
-            leadPriority: leadDetails?.leadPriority
+            leadPriority: leadDetails?.leadPriority,
+            customService: leadDetails?.customService || '',
           },
         ],
         { session },
       );
+
+      // Auto-log custom service search if client used a custom service term
+      if (leadDetails?.customService) {
+        CustomServiceSearch.create({
+          searchTerm: leadDetails.customService,
+          source: 'lead',
+          countryId: countryId || undefined,
+          serviceId: serviceId || undefined,
+          leadId: leadUser._id,
+        }).catch((err: unknown) => console.error('[CustomServiceSearch] lead log error:', err));
+      }
 
 
       // update case count in user profile
@@ -665,6 +679,17 @@ const clientRegistrationDraftInDB = async (payload: IClientRegistrationDraft) =>
 
   // 1. Create ClientRegistrationDraft
   const result = await ClientRegistrationDraft.create(payload);
+
+  // Auto-log custom service search if draft has a custom service term
+  if (payload.leadDetails?.customService) {
+    CustomServiceSearch.create({
+      searchTerm: payload.leadDetails.customService,
+      source: 'draft',
+      countryId: payload.countryId || undefined,
+      serviceId: payload.serviceId || undefined,
+      draftId: result._id,
+    }).catch((err: unknown) => console.error('[CustomServiceSearch] draft log error:', err));
+  }
 
   // 2. Generate OTP
   const otp = generateOtp();

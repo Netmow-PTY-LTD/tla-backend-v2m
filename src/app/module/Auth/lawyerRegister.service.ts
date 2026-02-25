@@ -431,12 +431,31 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
     // lawyer service map create
 
+    // custom service create
+
+    const otherService = await Service.findOne({ $or: [{ name: "Other" }, { name: "Others" }] })
+
+
+    const withCustomService = [
+      ...(lawyerServiceMap.services || []),
+      otherService?._id,
+    ]
+      .filter(Boolean)
+      .map((id) => String(id))      // convert to string first
+      .filter((id, index, arr) => arr.indexOf(id) === index) // remove duplicates
+      .map((id) => new Types.ObjectId(id));
+
+
+
+
+
 
     if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
         zipCode: zipCode?._id,
         userProfile: newProfile._id,
+        serviceIds: withCustomService,
       };
 
       await LawyerServiceMap.create([lawyerServiceMapData], { session });
@@ -451,7 +470,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
       userProfileId: newProfile._id,
       locationGroupId: locationGroup?._id,
       locationType: LocationType.NATION_WIDE,
-      serviceIds: lawyerServiceMap.services || [],
+      serviceIds: withCustomService,
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapData], {
@@ -463,15 +482,17 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
       locationGroupId: zipCode?._id,
       locationType: LocationType.DISTANCE_WISE,
       rangeInKm: lawyerServiceMap.rangeInKm,
-      serviceIds: lawyerServiceMap.services || [],
+      serviceIds: withCustomService || [],
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapUserChoiceBase], {
       session,
     });
 
+
+
     //  Create lead service entries using session
-    await createLeadService(newUser?._id, lawyerServiceMap.services, session);
+    await createLeadService(newUser._id as Types.ObjectId, withCustomService, session);
 
     // ----------------------  send email  -----------------------------------------------
 
