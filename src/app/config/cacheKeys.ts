@@ -59,6 +59,7 @@ export const CacheKeys = {
     // ---------- COUNTRY ----------
     ALL_COUNTRIES: () => `all_countries`,
     PUBLIC_CATEGORIES: (countryQueryId: string) => `public_categories:${countryQueryId}`,
+    PUBLIC_CountryWiseServiceGroupMap: (countryQueryId: string) => `public_CountryWiseServiceGroupMap:${countryQueryId}`,
 
     // ---------- TESTIMONIALS ----------
     TESTIMONIALS: (page: number, limit: number, search?: string) =>

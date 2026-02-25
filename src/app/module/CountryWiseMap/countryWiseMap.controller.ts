@@ -178,6 +178,46 @@ const getAllCountryServiceField = catchAsync(async (req, res) => {
   });
 });
 
+
+const getSingleCountryWiseServiceGroupMapById = catchAsync(async (req, res) => {
+
+  const { countryId } = req.query;
+
+  // Validate countryId
+  if (!countryId) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: "countryId is required.",
+      data: null,
+    });
+  }
+
+  const result = await countryWiseMapService.getSingleCountryWiseServiceGroupMapByIdFromDB(countryId as string);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      success: false,
+      message: 'Country Wise Map not found.',
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'All Country Wise Map is retrieved successfully',
+    data: result,
+  });
+});
+
+
+
+
+
+
+
 export const countryWiseMapController = {
   createCountryWiseMap,
   getSingleCountryWiseMap,
@@ -187,4 +227,5 @@ export const countryWiseMapController = {
   getSingleCountryWiseMapById,
   manageService,
   getAllCountryServiceField,
+  getSingleCountryWiseServiceGroupMapById,
 };
