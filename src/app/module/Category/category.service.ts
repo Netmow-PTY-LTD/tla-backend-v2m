@@ -55,7 +55,7 @@ const getAllCategoryPublicFromDB = async (countryQueryId: string) => {
   // 1️ Try to get cached data
   const cachedData = await redisClient.get(CacheKeys.PUBLIC_CATEGORIES(countryQueryId));
   if (cachedData) {
- 
+
     return JSON.parse(cachedData);
   }
 
@@ -226,7 +226,7 @@ const updateCategoryIntoDB = async (
         });
         payload.image = uploadedUrl;
         newFileUrl = uploadedUrl;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err: unknown) {
         throw new AppError(
           HTTP_STATUS.INTERNAL_SERVER_ERROR,

@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from "mongoose";
 import { AppError } from "../../errors/error";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import User from "../../module/Auth/auth.model";
-import { IUser } from "../../module/Auth/auth.interface";
 import ZipCode from "../../module/Country/zipcode.model";
 import UserProfile from "../../module/User/user.model";
 import { REGISTER_USER_TYPE, USER_STATUS } from "../../module/Auth/auth.constant";
@@ -18,6 +18,7 @@ import { validateObjectId } from "../../utils/validateObjectId";
 import config from "../../config";
 import { Firm_USER_ROLE } from "../FirmAuth/frimAuth.constant";
 import { SsoToken } from "../FirmAuth/SsoToken.model";
+import Service from "../../module/Service/service.model";
 
 
 const addLawyer = async (userId: string, payload: any) => {
@@ -103,11 +104,31 @@ const addLawyer = async (userId: string, payload: any) => {
 
         // lawyer service map create
 
+        // custom service create
+
+        const otherService = await Service.findOne({ $or: [{ name: "Other" }, { name: "Others" }] })
+
+
+        const withCustomService = [
+            ...(lawyerServiceMap.services || []),
+            otherService?._id,
+        ]
+            .filter(Boolean)
+            .map((id) => String(id))      // convert to string first
+            .filter((id, index, arr) => arr.indexOf(id) === index) // remove duplicates
+            .map((id) => new Types.ObjectId(id));
+
+
+
+
+
+
         if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
             const lawyerServiceMapData = {
                 ...lawyerServiceMap,
                 zipCode: zipCode?._id,
                 userProfile: newProfile._id,
+                services: withCustomService,
             };
 
             await LawyerServiceMap.create([lawyerServiceMapData], { session });
@@ -125,14 +146,14 @@ const addLawyer = async (userId: string, payload: any) => {
                 userProfileId: newProfile._id,
                 locationGroupId: defaultLocation?._id,
                 locationType: LocationType.NATION_WIDE,
-                serviceIds: lawyerServiceMap.services || [],
+                serviceIds: withCustomService || [],
             },
             {
                 userProfileId: newProfile._id,
                 locationGroupId: zipCode?._id,
                 locationType: LocationType.DISTANCE_WISE,
                 rangeInKm: lawyerServiceMap.rangeInKm,
-                serviceIds: lawyerServiceMap.services || [],
+                serviceIds: withCustomService || [],
             },
         ];
 
@@ -140,7 +161,7 @@ const addLawyer = async (userId: string, payload: any) => {
 
 
         //  Create lead service entries using session
-        await createLeadService(newUser?._id, lawyerServiceMap.services, session);
+        await createLeadService(newUser?._id, withCustomService, session);
 
 
         // added  firm reference in lawyer user profile 

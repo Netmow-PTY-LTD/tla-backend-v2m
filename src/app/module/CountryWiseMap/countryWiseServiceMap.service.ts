@@ -15,6 +15,10 @@ import { CacheKeys, TTL } from '../../config/cacheKeys';
 
 const CreateCountryWiseMapIntoDB = async (payload: ICountryWiseMap) => {
   const result = await CountryWiseMap.create(payload);
+
+  await redisClient.del(CacheKeys.PUBLIC_CountryWiseServiceGroupMap(payload.countryId as any));
+  await redisClient.del(CacheKeys.COUNTRY_WISE_MAP(payload.countryId as any));
+
   return result;
 };
 
@@ -75,13 +79,13 @@ const getSingleCountryWiseMapByIdFromDB = async (
   if (query?.type === 'servicelist') {
     // Populate only serviceIds and return flattened populated services
     const records = await CountryWiseMap.find(filter).sort({ createdAt: -1 }).populate({
-    path: 'serviceIds',
-    options: { sort: { createdAt: -1 } }, // sort services descending
-  });;
+      path: 'serviceIds',
+      options: { sort: { createdAt: -1 } }, // sort services descending
+    });;
 
     // Flatten the array of service arrays into a single array of services
     const populatedServices = records.flatMap((record) => record.serviceIds);
-   
+
     //  Cache the result
     await redisClient.set(CacheKeys.COUNTRY_WISE_MAP(countryId), JSON.stringify(populatedServices), { EX: TTL.EXTENDED_1D });
 
@@ -112,7 +116,7 @@ const updateCountryWiseMapIntoDB = async (
   // Clear cache for this countryId
 
   await redisClient.del(CacheKeys.COUNTRY_WISE_MAP(countryId));
-
+  await redisClient.del(CacheKeys.PUBLIC_CountryWiseServiceGroupMap(countryId));
   return result;
 
 
@@ -256,6 +260,11 @@ const manageServiceIntoDB = async (
 
     if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to save service data');
 
+
+    await redisClient.del(CacheKeys.PUBLIC_CountryWiseServiceGroupMap(payload.countryId as any));
+    await redisClient.del(CacheKeys.COUNTRY_WISE_MAP(payload.countryId as any));
+
+
     await session.commitTransaction();
     session.endSession();
 
@@ -326,6 +335,118 @@ const getAllCountryServiceFieldFromDB = async (
   return result;
 };
 
+
+
+
+
+//  get country wise service map by country id and service id
+
+
+
+
+const getSingleCountryWiseServiceGroupMapByIdFromDB = async (
+  countryQueryId: string,
+) => {
+  console.log(countryQueryId);
+  validateObjectId(countryQueryId, 'Country');
+
+  // 1️ Try to get cached data
+  const cachedData = await redisClient.get(
+    CacheKeys.PUBLIC_CountryWiseServiceGroupMap(countryQueryId),
+  );
+  if (cachedData) {
+    return JSON.parse(cachedData);
+  }
+
+  const countryId = new mongoose.Types.ObjectId(countryQueryId);
+
+  const result = await CountryWiseMap.aggregate([
+    {
+      $match: {
+        countryId: countryId,
+      },
+    },
+    {
+      $lookup: {
+        from: 'countries',
+        localField: 'countryId',
+        foreignField: '_id',
+        as: 'countryDetails',
+      },
+    },
+    { $unwind: '$countryDetails' },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'serviceIds',
+        foreignField: '_id',
+        as: 'services',
+      },
+    },
+    { $unwind: '$services' },
+    {
+      $lookup: {
+        from: 'countrywiseservicewisefields',
+        let: { serviceId: '$services._id', countryId: countryId },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$serviceId', '$$serviceId'] },
+                  { $eq: ['$countryId', '$$countryId'] },
+                ],
+              },
+            },
+          },
+        ],
+        as: 'serviceField',
+      },
+    },
+    {
+      $addFields: {
+        'services.serviceField': { $arrayElemAt: ['$serviceField', 0] },
+      },
+    },
+    {
+      $group: {
+        _id: '$countryDetails._id',
+        countryName: { $first: '$countryDetails.name' },
+        countrySlug: { $first: '$countryDetails.slug' },
+        services: { $push: '$services' },
+        createdAt: { $first: '$countryDetails.createdAt' },
+        updatedAt: { $first: '$countryDetails.updatedAt' },
+      },
+    },
+  ]);
+
+  // 4️ Cache the result
+  const dataToCache = result[0] || null;
+  await redisClient.set(
+    CacheKeys.PUBLIC_CountryWiseServiceGroupMap(countryQueryId),
+    JSON.stringify(dataToCache),
+    { EX: TTL.EXTENDED_1D },
+  );
+  return dataToCache;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const countryWiseMapService = {
   CreateCountryWiseMapIntoDB,
   getAllCountryWiseMapFromDB,
@@ -335,4 +456,6 @@ export const countryWiseMapService = {
   getSingleCountryWiseMapByIdFromDB,
   manageServiceIntoDB,
   getAllCountryServiceFieldFromDB,
+  getSingleCountryWiseServiceGroupMapByIdFromDB
+
 };

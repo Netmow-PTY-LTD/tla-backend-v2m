@@ -48,4 +48,11 @@ router.patch(
   countryWiseMapController.manageService,
 );
 
+router.get(
+  '/service-group/:countryId',
+  countryWiseMapController.getSingleCountryWiseServiceGroupMapById,
+);
+
+
+
 export const CountryWiseMapRouter = router;
