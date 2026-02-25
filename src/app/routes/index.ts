@@ -35,6 +35,7 @@ import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterC
 import { marketingRouter } from '../module/marketing/marketing.route';
 import { LawyerProfileClaimRoutes } from '../module/LawyerProfileClaim/lawyerProfileClaim.route';
 import { envConfigRoutes } from '../module/EnvConfig/envConfig.route';
+import { customServiceSearchRouter } from '../module/CustomServiceSearch/customServiceSearch.route';
 
 const router = Router();
 
@@ -179,6 +180,10 @@ const moduleRoutes = [
   {
     path: '/env-config',
     route: envConfigRoutes,
+  },
+  {
+    path: '/custom-service-search',
+    route: customServiceSearchRouter,
   },
   {
     path: '/',
