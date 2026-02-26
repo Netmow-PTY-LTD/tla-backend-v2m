@@ -393,6 +393,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
       regUserType: REGISTER_USER_TYPE.CLIENT,
       // password: config.default_password,
       password: defaultPassword,
+      isVerifiedAccount: payload.isVerifiedAccount,
     };
 
     // create new user
