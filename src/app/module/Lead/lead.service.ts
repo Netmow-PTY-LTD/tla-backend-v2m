@@ -322,6 +322,188 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 
 
 
+//  without service filter logic
+// const getAllLeadForAdminDashboardFromDB = async (
+//   userId: string,
+//   query: Record<string, any>,
+// ) => {
+//   const user = await UserProfile.findOne({ user: userId }).select('_id serviceIds');
+//   if (!user) return null;
+
+//   const { sortBy, sortOrder = 'desc', search, filters} = query;
+
+//   const page = Math.max(1, parseInt(query.page as string, 10) || 1);
+//   const limit = Math.max(1, parseInt(query.limit as string, 10) || 10);
+//   const skip = (page - 1) * limit;
+
+//   const matchStage: Record<string, any> = {};
+
+//   // Apply filters dynamically (other fields)
+//   if (filters) {
+//     Object.keys(filters).forEach((key) => {
+//       matchStage[key] = filters[key];
+//     });
+//   }
+
+//   // Build aggregation pipeline
+//   const pipeline: any[] = [
+//     { $match: matchStage },
+
+//     // Nested population for userProfileId -> user
+//     {
+//       $lookup: {
+//         from: 'userprofiles',
+//         localField: 'userProfileId',
+//         foreignField: '_id',
+//         as: 'userProfileId',
+//       },
+//     },
+//     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
+
+//     // Populate user inside userProfile
+//     {
+//       $lookup: {
+//         from: 'users',
+//         localField: 'userProfileId.user',
+//         foreignField: '_id',
+//         as: 'userProfileId.user',
+//       },
+//     },
+//     { $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true } },
+
+//     // Populate serviceId
+//     {
+//       $lookup: {
+//         from: 'services',
+//         localField: 'serviceId',
+//         foreignField: '_id',
+//         as: 'serviceId',
+//       },
+//     },
+//     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+
+    
+
+//     // Populate countryId
+//     {
+//       $lookup: {
+//         from: 'countries',
+//         localField: 'countryId',
+//         foreignField: '_id',
+//         as: 'countryId',
+//       },
+//     },
+//     { $unwind: { path: '$countryId', preserveNullAndEmptyArrays: true } },
+
+//     // Add isContact field
+//     {
+//       $lookup: {
+//         from: 'leadresponses',
+//         let: { leadId: '$_id' },
+//         pipeline: [
+//           { $match: { $expr: { $eq: ['$leadId', '$$leadId'] } } },
+//           { $limit: 1 },
+//         ],
+//         as: 'responses',
+//       },
+//     },
+//     {
+//       $addFields: {
+//         isContact: { $gt: [{ $size: '$responses' }, 0] },
+//         credit: { $ifNull: ['$credit', 0] },
+//       },
+//     },
+//   ];
+
+//   // Search after userProfileId is populated
+//   if (search) {
+//     pipeline.push({
+//       $match: {
+//         $or: [
+//           { additionalDetails: { $regex: search, $options: 'i' } },
+//           { 'userProfileId.name': { $regex: search, $options: 'i' } },
+//           { 'userProfileId.phone': { $regex: search, $options: 'i' } },
+//           { 'userProfileId.address': { $regex: search, $options: 'i' } },
+//           { 'userProfileId.user.email': { $regex: search, $options: 'i' } },
+//           { 'serviceId.name': { $regex: search, $options: 'i' } },
+//         ],
+//       },
+//     });
+//   }
+
+//   // Sorting
+//   if (sortBy) {
+//     const sortStage: Record<string, any> = {};
+//     sortStage[sortBy] = sortOrder === 'asc' ? 1 : -1;
+//     pipeline.push({ $sort: sortStage });
+//   }
+
+//   // // Pagination
+//   // const skip = (page - 1) * limit;
+//   // pipeline.push({ $skip: skip }, { $limit: limit });
+
+//   // // Execute aggregation
+//   // const data = await Lead.aggregate(pipeline);
+
+//   // // Total count
+//   // const totalMeta = await Lead.aggregate([{ $match: matchStage }, { $count: 'total' }]);
+//   // const total = totalMeta[0]?.total || 0;
+//   // const totalPage = Math.ceil(total / limit);
+
+//   // const meta = {
+//   //   total,
+//   //   page,
+//   //   limit,
+//   //   totalPage,
+//   // };
+
+//   // const result = data.map((lead) => ({
+//   //   ...lead,
+//   //   credit: customCreditLogic(lead.credit),
+//   // }));
+
+//   // return { meta, data: result };
+
+
+
+//   // Use $facet for pagination + total count in one query
+//   const facetPipeline = [
+//     ...pipeline,
+//     {
+//       $facet: {
+//         data: [
+//           { $skip: skip },
+//           { $limit: limit },
+//         ],
+//         totalCount: [
+//           { $count: 'total' },
+//         ],
+//       },
+//     },
+//   ];
+
+//   const [aggResult] = await Lead.aggregate(facetPipeline);
+//   const data = aggResult.data || [];
+//   const total = aggResult.totalCount[0]?.total || 0;
+//   const totalPage = Math.ceil(total / limit);
+
+//   const meta = {
+//     total,
+//     page,
+//     limit,
+//     totalPage,
+//   };
+
+//   // Apply custom credit logic
+//   const result = data.map((lead: { credit: number; }) => ({
+//     ...lead,
+//     credit: customCreditLogic(lead.credit),
+//   }));
+
+//   return { meta, data: result };
+
+// };
+
 
 const getAllLeadForAdminDashboardFromDB = async (
   userId: string,
@@ -336,20 +518,28 @@ const getAllLeadForAdminDashboardFromDB = async (
   const limit = Math.max(1, parseInt(query.limit as string, 10) || 10);
   const skip = (page - 1) * limit;
 
-  const matchStage: Record<string, any> = {};
 
-  // Apply filters dynamically (other fields)
-  if (filters) {
-    Object.keys(filters).forEach((key) => {
-      matchStage[key] = filters[key];
+  // Parse filters safely
+  const parsedFilters =
+    typeof filters === 'string' ? JSON.parse(filters) : filters;
+
+  const serviceName = parsedFilters?.serviceName;
+
+  // Build initial matchStage for Lead collection fields (exclude serviceName)
+  const matchStage: Record<string, any> = {};
+  if (parsedFilters) {
+    Object.keys(parsedFilters).forEach((key) => {
+      if (key !== 'serviceName') {
+        matchStage[key] = parsedFilters[key];
+      }
     });
   }
 
-  // Build aggregation pipeline
+  // Start aggregation pipeline
   const pipeline: any[] = [
     { $match: matchStage },
 
-    // Nested population for userProfileId -> user
+    // Lookup userProfile
     {
       $lookup: {
         from: 'userprofiles',
@@ -360,7 +550,7 @@ const getAllLeadForAdminDashboardFromDB = async (
     },
     { $unwind: { path: '$userProfileId', preserveNullAndEmptyArrays: true } },
 
-    // Populate user inside userProfile
+    // Lookup user inside userProfile
     {
       $lookup: {
         from: 'users',
@@ -371,7 +561,7 @@ const getAllLeadForAdminDashboardFromDB = async (
     },
     { $unwind: { path: '$userProfileId.user', preserveNullAndEmptyArrays: true } },
 
-    // Populate serviceId
+    // Lookup service
     {
       $lookup: {
         from: 'services',
@@ -381,8 +571,21 @@ const getAllLeadForAdminDashboardFromDB = async (
       },
     },
     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
+  ];
 
-    // Populate countryId
+  // ✅ Filter by serviceName AFTER lookup
+  if (serviceName) {
+    pipeline.push({
+      $match: {
+        'serviceId.name': { $regex: serviceName, $options: 'i' },
+      },
+    });
+  }
+
+  // Continue pipeline
+
+  // Lookup country
+  pipeline.push(
     {
       $lookup: {
         from: 'countries',
@@ -391,9 +594,11 @@ const getAllLeadForAdminDashboardFromDB = async (
         as: 'countryId',
       },
     },
-    { $unwind: { path: '$countryId', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$countryId', preserveNullAndEmptyArrays: true } }
+  );
 
-    // Add isContact field
+  // Lookup lead responses for isContact
+  pipeline.push(
     {
       $lookup: {
         from: 'leadresponses',
@@ -410,10 +615,10 @@ const getAllLeadForAdminDashboardFromDB = async (
         isContact: { $gt: [{ $size: '$responses' }, 0] },
         credit: { $ifNull: ['$credit', 0] },
       },
-    },
-  ];
+    }
+  );
 
-  // Search after userProfileId is populated
+  // Search after population
   if (search) {
     pipeline.push({
       $match: {
@@ -436,71 +641,39 @@ const getAllLeadForAdminDashboardFromDB = async (
     pipeline.push({ $sort: sortStage });
   }
 
-  // // Pagination
-  // const skip = (page - 1) * limit;
-  // pipeline.push({ $skip: skip }, { $limit: limit });
-
-  // // Execute aggregation
-  // const data = await Lead.aggregate(pipeline);
-
-  // // Total count
-  // const totalMeta = await Lead.aggregate([{ $match: matchStage }, { $count: 'total' }]);
-  // const total = totalMeta[0]?.total || 0;
-  // const totalPage = Math.ceil(total / limit);
-
-  // const meta = {
-  //   total,
-  //   page,
-  //   limit,
-  //   totalPage,
-  // };
-
-  // const result = data.map((lead) => ({
-  //   ...lead,
-  //   credit: customCreditLogic(lead.credit),
-  // }));
-
-  // return { meta, data: result };
-
-
-
-  // Use $facet for pagination + total count in one query
+  // Pagination + total count using $facet
   const facetPipeline = [
     ...pipeline,
     {
       $facet: {
-        data: [
-          { $skip: skip },
-          { $limit: limit },
-        ],
-        totalCount: [
-          { $count: 'total' },
-        ],
+        data: [{ $skip: skip }, { $limit: limit }],
+        totalCount: [{ $count: 'total' }],
       },
     },
   ];
 
   const [aggResult] = await Lead.aggregate(facetPipeline);
+
   const data = aggResult.data || [];
   const total = aggResult.totalCount[0]?.total || 0;
   const totalPage = Math.ceil(total / limit);
 
-  const meta = {
-    total,
-    page,
-    limit,
-    totalPage,
-  };
+  const meta = { total, page, limit, totalPage };
 
   // Apply custom credit logic
-  const result = data.map((lead: { credit: number; }) => ({
+  const result = data.map((lead: { credit: number }) => ({
     ...lead,
     credit: customCreditLogic(lead.credit),
   }));
 
   return { meta, data: result };
-
 };
+
+
+
+
+
+
 
 
 
