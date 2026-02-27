@@ -151,6 +151,7 @@ export const firmRequestAsMember = async (
 
     //  Step 3: Update user profile to mark request flag
     userProfile.isFirmMemberRequest = true;
+    userProfile.isFirmMemberRequestRejected = false;
     userProfile.activeFirmRequestId = newRequest._id as Types.ObjectId;
     await userProfile.save({ session });
 

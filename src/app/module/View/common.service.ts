@@ -2016,6 +2016,7 @@ const lawyerCancelMembershipRequest = async (
       firmMembershipStatus: "cancelled",
       joinedAt: null,
       isFirmMemberRequest: false,
+      isFirmMemberRequestRejected: false,
     },
   });
 
@@ -2172,6 +2173,7 @@ const lawyerCancelMembership = async (
           joinedAt: null,
           leftAt: new Date(),
           isFirmMemberRequest: false,
+          isFirmMemberRequestRejected: false,
         },
       },
       { session }

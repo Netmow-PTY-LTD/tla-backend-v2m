@@ -134,6 +134,7 @@ export const updateLawyerRequest = async (
         lawyerProfileUpdate.firmMembershipStatus = "approved";
         lawyerProfileUpdate.joinedAt = new Date();
         lawyerProfileUpdate.isFirmMemberRequest = false;
+        lawyerProfileUpdate.isFirmMemberRequestRejected = false;
         firmUpdate.$addToSet = { lawyers: request.lawyerId._id };
         break;
 
@@ -149,7 +150,9 @@ export const updateLawyerRequest = async (
       case "cancelled":
         lawyerProfileUpdate.firmProfileId = null;
         lawyerProfileUpdate.firmMembershipStatus = "cancelled";
+        lawyerProfileUpdate.isFirmMemberRequestRejected = false;
         lawyerProfileUpdate.joinedAt = null;
+        lawyerProfileUpdate.isFirmMemberRequest = false;
         updateData.cancelBy = new Types.ObjectId(userId);
         updateData.cancelAt = new Date();
         firmUpdate.$pull = { lawyers: request.lawyerId._id };
@@ -158,7 +161,9 @@ export const updateLawyerRequest = async (
       case "left":
         lawyerProfileUpdate.firmProfileId = null;
         lawyerProfileUpdate.firmMembershipStatus = "left";
+        lawyerProfileUpdate.isFirmMemberRequestRejected = false;
         lawyerProfileUpdate.joinedAt = null;
+        lawyerProfileUpdate.isFirmMemberRequest = false;
         firmUpdate.$pull = { lawyers: request.lawyerId._id };
         break;
 
