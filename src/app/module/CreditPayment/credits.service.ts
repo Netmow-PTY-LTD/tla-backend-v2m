@@ -66,7 +66,14 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
           ...environmentFilter
         },
       },
-      { $group: { _id: null, total: { $sum: '$credit' } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$credit' },
+          free: { $sum: { $cond: [{ $eq: ['$amountPaid', 0] }, '$credit', 0] } },
+          paid: { $sum: { $cond: [{ $gt: ['$amountPaid', 0] }, '$credit', 0] } }
+        }
+      },
     ]),
     // Filtered Credit Logs (Usage, Refunds, Adjustments)
     CreditTransaction.aggregate([
@@ -94,7 +101,14 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
           status: 'completed'
         },
       },
-      { $group: { _id: null, total: { $sum: '$credit' } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$credit' },
+          free: { $sum: { $cond: [{ $eq: ['$amountPaid', 0] }, '$credit', 0] } },
+          paid: { $sum: { $cond: [{ $gt: ['$amountPaid', 0] }, '$credit', 0] } }
+        }
+      },
     ]),
     // All-time Credit Logs (for mismatch check)
     CreditTransaction.aggregate([
@@ -111,6 +125,8 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
 
   // Stats for the requested view (Filtered)
   const totalPurchasedCredits = purchases[0]?.total || 0;
+  const totalPaidCredits = purchases[0]?.paid || 0;
+  const totalFreeCredits = purchases[0]?.free || 0;
   const totalUsedCredits = creditLogs[0]?.used || 0;
   const totalAddedCredits = creditLogs[0]?.added || 0; // Refunds or adjustments that added credits
 
@@ -129,6 +145,8 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
     currentCredits, // The real balance in DB
     auditedBalance, // The balance calculated from logs
     totalPurchasedCredits,
+    totalPaidCredits,
+    totalFreeCredits,
     totalUsedCredits,
     totalRefundedOrAdjustedCredits: totalAddedCredits,
     remainingCredits, // Calculated for this environment
