@@ -81,12 +81,16 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
   const currentCredits = userProfile.credits;
   const totalPurchasedCredits = purchases[0]?.total || 0;
   const totalUsedCredits = usages[0]?.total || 0;
+const remainingCredits = totalPurchasedCredits - totalUsedCredits;
+const isMismatch = currentCredits !== remainingCredits; // ⭐ very useful debug flag
+
 
   return {
     currentCredits,
     totalPurchasedCredits,
     totalUsedCredits,
-    remainingCredits: currentCredits,
+    remainingCredits,
+    isMismatch: isMismatch ? 'Yes - investigate!' : 'No - all good',
     environment: includeTestData ? 'all' : getCurrentEnvironment(),
   };
 };
