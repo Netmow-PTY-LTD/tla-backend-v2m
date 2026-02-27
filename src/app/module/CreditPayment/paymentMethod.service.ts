@@ -452,8 +452,28 @@ const createSubscription = async (
   userId: string,
   payload: { type: SubscriptionType; packageId: string; autoRenew?: boolean }
 ) => {
+
+
+  // 1️ Fetch user and package
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('user').populate('country');
+  if (!userProfile) return sendNotFoundResponse('User  not found');
+
+  if ((userProfile.user as IUser)?.accountStatus !== USER_STATUS.APPROVED) {
+    return {
+      success: false,
+      message: "Your account is not approved yet. Please wait until it is approved by the admin."
+    };
+  }
+
+
   const { type, packageId, autoRenew } = payload;
   const currentEnv = getCurrentEnvironment();
+
+
+
+
+
+
 
   // ── 1. Load package ──────────────────────────────────────────────────────
   const subscriptionPackage =
@@ -474,9 +494,7 @@ const createSubscription = async (
     throw new AppError(HTTP_STATUS.BAD_REQUEST, `Missing Stripe Price ID for environment: ${currentEnv}`);
   }
 
-  // ── 2. Load user profile ────────────────────────────────────────────────
-  const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
-  if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+
 
   // ── 3. Duplicate subscription guard (per environment) ───────────────────
   // Prevent double-charging if this endpoint is called twice rapidly.

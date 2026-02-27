@@ -54,7 +54,9 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
       ? { $or: [{ stripeEnvironment: 'test' }, { stripeEnvironment: { $exists: false } }] }
       : { stripeEnvironment: 'live' };
 
-  const [purchases, usages] = await Promise.all([
+  // For auditing purposes, we always calculate total sums across all time to verify balance
+  const [purchases, creditLogs, allTimePurchases, allTimeLogs] = await Promise.all([
+    // Filtered Purchases
     Transaction.aggregate([
       {
         $match: {
@@ -64,30 +66,93 @@ const getUserCreditStats = async (userId: string, includeTestData = false) => {
           ...environmentFilter
         },
       },
-      { $group: { _id: null, total: { $sum: '$credit' } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$credit' },
+          free: { $sum: { $cond: [{ $eq: ['$amountPaid', 0] }, '$credit', 0] } },
+          paid: { $sum: { $cond: [{ $gt: ['$amountPaid', 0] }, '$credit', 0] } }
+        }
+      },
     ]),
+    // Filtered Credit Logs (Usage, Refunds, Adjustments)
     CreditTransaction.aggregate([
       {
         $match: {
           userProfileId: userProfile._id,
-          type: 'usage',
           ...environmentFilter
         }
       },
-      { $group: { _id: null, total: { $sum: { $abs: '$credit' } } } },
+      {
+        $group: {
+          _id: null,
+          used: { $sum: { $cond: [{ $lt: ['$credit', 0] }, { $abs: '$credit' }, 0] } },
+          added: { $sum: { $cond: [{ $gt: ['$credit', 0] }, '$credit', 0] } },
+          net: { $sum: '$credit' }
+        }
+      },
+    ]),
+    // All-time Purchases (for mismatch check)
+    Transaction.aggregate([
+      {
+        $match: {
+          userId: userObjectId,
+          type: 'purchase',
+          status: 'completed'
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$credit' },
+          free: { $sum: { $cond: [{ $eq: ['$amountPaid', 0] }, '$credit', 0] } },
+          paid: { $sum: { $cond: [{ $gt: ['$amountPaid', 0] }, '$credit', 0] } }
+        }
+      },
+    ]),
+    // All-time Credit Logs (for mismatch check)
+    CreditTransaction.aggregate([
+      {
+        $match: {
+          userProfileId: userProfile._id
+        }
+      },
+      { $group: { _id: null, net: { $sum: '$credit' } } },
     ]),
   ]);
 
   const currentCredits = userProfile.credits;
+
+  // Stats for the requested view (Filtered)
   const totalPurchasedCredits = purchases[0]?.total || 0;
-  const totalUsedCredits = usages[0]?.total || 0;
+  const totalPaidCredits = purchases[0]?.paid || 0;
+  const totalFreeCredits = purchases[0]?.free || 0;
+  const totalUsedCredits = creditLogs[0]?.used || 0;
+  const totalAddedCredits = creditLogs[0]?.added || 0; // Refunds or adjustments that added credits
+
+  // Calculate remaining for the specific environment
+  // remaining = (Purchased + Added) - Used
+  const remainingCredits = totalPurchasedCredits + totalAddedCredits - totalUsedCredits;
+
+  // Audit check: (All Purchases + All Adjustments/Usages) should equal DB balance
+  const allTimePurchased = allTimePurchases[0]?.total || 0;
+  const allTimeNetChanges = allTimeLogs[0]?.net || 0;
+  const auditedBalance = allTimePurchased + allTimeNetChanges;
+
+  const isMismatch = Math.abs(currentCredits - auditedBalance) > 0.001; // Avoid floating point issues
 
   return {
-    currentCredits,
+    currentCredits, // The real balance in DB
+    auditedBalance, // The balance calculated from logs
     totalPurchasedCredits,
+    totalPaidCredits,
+    totalFreeCredits,
     totalUsedCredits,
-    remainingCredits: currentCredits,
+    totalRefundedOrAdjustedCredits: totalAddedCredits,
+    remainingCredits, // Calculated for this environment
+    isMismatch: isMismatch ? 'Yes - investigate!' : 'No - all good',
     environment: includeTestData ? 'all' : getCurrentEnvironment(),
+    mismatchAmount: isMismatch ? (currentCredits - auditedBalance) : 0
   };
 };
 
