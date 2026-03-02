@@ -24,9 +24,9 @@ const login = catchAsync(async (req, res) => {
 
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
-    secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
-    sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
   });
 
   // Send the access token and user data in the response
@@ -316,9 +316,9 @@ const ssoLogin = catchAsync(async (req, res) => {
     await authService.ssoLogin(token);
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
-    secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
-    sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
   });
 
   // Send the access token and user data in the response
