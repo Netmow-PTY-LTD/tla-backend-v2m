@@ -64,6 +64,7 @@ export const CacheKeys = {
     // ---------- TESTIMONIALS ----------
     TESTIMONIALS: (page: number, limit: number, search?: string) =>
         `testimonials:page${page}:limit${limit}:search:${search || 'all'}`,
+    TESTIMONIALS_PATTERN: () => `testimonials:*`,
 
     // ---------- SERVICE QUESTIONS ----------
     SERVICE_WISE_QUESTION: (serviceId: string, countryId: string) =>

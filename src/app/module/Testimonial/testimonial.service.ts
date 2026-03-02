@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CacheKeys, TTL } from "../../config/cacheKeys";
 import { redisClient } from "../../config/redis.config";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
@@ -7,6 +8,7 @@ import { AppError } from "../../errors/error";
 import { TUploadedFile } from "../../interface/file.interface";
 import { Testimonial } from "./testimonial.model";
 import mongoose, { FilterQuery } from "mongoose";
+import { deleteKeysByPattern } from "../../utils/cacheManger";
 
 
 
@@ -44,6 +46,10 @@ const createTestimonial = async (payload: any, file: TUploadedFile | undefined) 
 
 
   const result = await Testimonial.create(payload);
+
+  // Invalidate cache
+  await deleteKeysByPattern(CacheKeys.TESTIMONIALS_PATTERN());
+
   return result;
 };
 
@@ -55,7 +61,7 @@ const getAllTestimonialsFromDB = async (params: GetAllParams) => {
   //  Try to get cached data
   const cachedData = await redisClient.get(CacheKeys.TESTIMONIALS(page, limit, search));
   if (cachedData) {
-    
+
     return JSON.parse(cachedData);
   }
 
@@ -176,6 +182,9 @@ export const updateTestimonial = async (
       );
     }
 
+    // 5️ Invalidate cache
+    await deleteKeysByPattern(CacheKeys.TESTIMONIALS_PATTERN());
+
     return updated;
   } catch (err) {
     await session.abortTransaction();
@@ -215,6 +224,9 @@ export const deleteTestimonial = async (id: string) => {
         console.error(" Failed to delete testimonial image:", err)
       );
     }
+
+    // 3️ Invalidate cache
+    await deleteKeysByPattern(CacheKeys.TESTIMONIALS_PATTERN());
 
     return existing;
   } catch (err) {
