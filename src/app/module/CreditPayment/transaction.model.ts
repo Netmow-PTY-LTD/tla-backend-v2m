@@ -18,7 +18,7 @@ const transactionSchema = new Schema({
   subscriptionType: { type: String, enum: Object.values(SubscriptionType) },
   subscriptionRefModel: {
     type: String,
-    enum: ["UserSubscription", "EliteProUserSubscription"],
+    enum: ["UserSubscription", "EliteProUserSubscription", "CreditPackage"],
   },
   credit: { type: Number },
   amountPaid: { type: Number, required: true },
@@ -64,8 +64,10 @@ transactionSchema.pre('save', function (next) {
 transactionSchema.pre("validate", function (next) {
   if (this.subscriptionType === SubscriptionType.ELITE_PRO) {
     this.subscriptionRefModel = "EliteProUserSubscription";
-  } else {
+  } else if (this.subscriptionType === SubscriptionType.SUBSCRIPTION) {
     this.subscriptionRefModel = "UserSubscription";
+  } else {
+    this.subscriptionRefModel = "CreditPackage";
   }
   next();
 });

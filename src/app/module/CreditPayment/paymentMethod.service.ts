@@ -191,19 +191,22 @@ const purchaseCredits = async (
   const creditPackage = await CreditPackage.findById(packageId).populate('country');
   if (!creditPackage) return sendNotFoundResponse('Credit package not found');
 
-  // 2️ Apply coupon
-  let discount = 0;
+  // 2️ Apply discounts (Package + Coupon)
+  const packageDiscount = creditPackage.discountPercentage || 0;
+  let couponDiscount = 0;
   if (couponCode) {
     const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
     if (coupon && typeof coupon.maxUses === 'number' && coupon.currentUses < coupon.maxUses) {
-      discount = coupon.discountPercentage;
+      couponDiscount = coupon.discountPercentage;
       coupon.currentUses += 1;
       await coupon.save();
     }
   }
 
+  const totalDiscount = packageDiscount + couponDiscount;
+
   // 3️ Calculate amounts
-  const subtotalCents = Math.round(creditPackage.price * (1 - discount / 100) * 100);
+  const subtotalCents = Math.round(creditPackage.price * (1 - totalDiscount / 100) * 100);
   const country = creditPackage.country as any;
 
   let taxCents = 0;
@@ -289,11 +292,11 @@ const purchaseCredits = async (
       currency,
       status: 'completed',
       couponCode: couponCode || '',
-      discountApplied: discount || 0,
+      discountApplied: totalDiscount,
       stripePaymentIntentId: paymentIntent.id,
       taxJurisdiction: country?.name,
       taxType: country?.taxType || 'Tax',
-      taxRate: country?.taxPercentage || 0,
+      taxRate: country?.taxPercentage || (country?.taxAmount && creditPackage.price > 0 ? Math.round((country.taxAmount / creditPackage.price) * 100) : 0),
       stripeEnvironment: getCurrentEnvironment(),
     }], { session });
 
@@ -750,8 +753,9 @@ const createSubscription = async (
   // ── 11. Build transaction record with full tax data ──────────────────────
   const invoiceSubtotal = (latestInvoice?.subtotal ?? 0) / 100;
   const invoiceTotal = (latestInvoice?.total ?? 0) / 100;
-  const invoiceTax = invoiceTotal - invoiceSubtotal;
+  const invoiceTax = (latestInvoice?.tax ?? 0) / 100;
   const invoiceAmountPaid = (latestInvoice?.amount_paid ?? 0) / 100;
+  const invoiceDiscount = (latestInvoice?.total_discount_amounts?.reduce((sum, d) => sum + d.amount, 0) ?? 0) / 100;
   const taxRates = latestInvoice?.total_tax_amounts?.[0] as any;
 
   await Transaction.create({
@@ -762,6 +766,7 @@ const createSubscription = async (
     subtotal: invoiceSubtotal,
     taxAmount: invoiceTax,
     taxRate: taxRates?.tax_rate_details?.percentage_decimal,
+    discountApplied: invoiceDiscount,
     totalWithTax: invoiceTotal,
     amountPaid: invoiceAmountPaid,
     taxJurisdiction: taxRates?.jurisdiction,
@@ -1082,8 +1087,9 @@ const changeSubscriptionPackage = async (
   if (latestInvoice) {
     const invoiceSubtotal = (latestInvoice.subtotal ?? 0) / 100;
     const invoiceTotal = (latestInvoice.total ?? 0) / 100;
-    const invoiceTax = invoiceTotal - invoiceSubtotal;
+    const invoiceTax = (latestInvoice.tax ?? 0) / 100;
     const invoiceAmountPaid = (latestInvoice.amount_paid ?? 0) / 100;
+    const invoiceDiscount = (latestInvoice.total_discount_amounts?.reduce((sum, d) => sum + d.amount, 0) ?? 0) / 100;
     const taxRates = latestInvoice.total_tax_amounts?.[0];
 
     const paymentIntentId = typeof latestInvoice.payment_intent === 'string'
@@ -1098,6 +1104,7 @@ const changeSubscriptionPackage = async (
       subtotal: invoiceSubtotal,
       taxAmount: invoiceTax,
       taxRate: taxRates?.tax_rate_details?.percentage_decimal,
+      discountApplied: invoiceDiscount,
       totalWithTax: invoiceTotal,
       amountPaid: invoiceAmountPaid,
       taxJurisdiction: taxRates?.jurisdiction,
@@ -1400,8 +1407,9 @@ const switchSubscriptionType = async (
   if (latestInvoice) {
     const invoiceSubtotal = (latestInvoice.subtotal || 0) / 100;
     const invoiceTotal = (latestInvoice.total || 0) / 100;
-    const invoiceTax = invoiceTotal - invoiceSubtotal;
+    const invoiceTax = (latestInvoice.tax || 0) / 100;
     const invoiceAmountPaid = (latestInvoice.amount_paid || 0) / 100;
+    const invoiceDiscount = (latestInvoice.total_discount_amounts?.reduce((sum, d) => sum + d.amount, 0) || 0) / 100;
 
     const taxRates = latestInvoice.total_tax_amounts?.[0];
     const taxJurisdiction = taxRates?.jurisdiction;
@@ -1420,6 +1428,7 @@ const switchSubscriptionType = async (
       subtotal: invoiceSubtotal,
       taxAmount: invoiceTax,
       taxRate: taxRatePercentage,
+      discountApplied: invoiceDiscount,
       totalWithTax: invoiceTotal,
       amountPaid: invoiceAmountPaid,
       taxJurisdiction,
