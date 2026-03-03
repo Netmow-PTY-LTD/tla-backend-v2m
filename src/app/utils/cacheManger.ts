@@ -14,9 +14,9 @@ export const deleteCache = async (keys: string | string[]) => {
     // Create pipeline
     const pipeline = redisClient.multi(); // use multi() in redis v4
     keysArray.forEach((key) => pipeline.del(key));
-
-    // console.log(`Deleted cache keys: ${keysArray.join(', ')}`);
-    // console.log('Redis results:', results);
+    const results = await pipeline.exec();
+    console.log(`Deleted cache keys: ${keysArray.join(', ')}`);
+    console.log('Redis results:', results);
   } catch (err) {
     console.error(`Error deleting cache keys: ${keys}`, err);
   }
