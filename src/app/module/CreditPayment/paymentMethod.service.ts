@@ -753,7 +753,7 @@ const createSubscription = async (
   // ── 11. Build transaction record with full tax data ──────────────────────
   const invoiceSubtotal = (latestInvoice?.subtotal ?? 0) / 100;
   const invoiceTotal = (latestInvoice?.total ?? 0) / 100;
-  const invoiceTax = (latestInvoice?.tax ?? 0) / 100;
+  const invoiceTax = invoiceTotal - invoiceSubtotal;
   const invoiceAmountPaid = (latestInvoice?.amount_paid ?? 0) / 100;
   const invoiceDiscount = (latestInvoice?.total_discount_amounts?.reduce((sum, d) => sum + d.amount, 0) ?? 0) / 100;
   const taxRates = latestInvoice?.total_tax_amounts?.[0] as any;
@@ -1087,7 +1087,7 @@ const changeSubscriptionPackage = async (
   if (latestInvoice) {
     const invoiceSubtotal = (latestInvoice.subtotal ?? 0) / 100;
     const invoiceTotal = (latestInvoice.total ?? 0) / 100;
-    const invoiceTax = (latestInvoice.tax ?? 0) / 100;
+    const invoiceTax = invoiceTotal - invoiceSubtotal;
     const invoiceAmountPaid = (latestInvoice.amount_paid ?? 0) / 100;
     const invoiceDiscount = (latestInvoice.total_discount_amounts?.reduce((sum, d) => sum + d.amount, 0) ?? 0) / 100;
     const taxRates = latestInvoice.total_tax_amounts?.[0];
@@ -1407,7 +1407,7 @@ const switchSubscriptionType = async (
   if (latestInvoice) {
     const invoiceSubtotal = (latestInvoice.subtotal || 0) / 100;
     const invoiceTotal = (latestInvoice.total || 0) / 100;
-    const invoiceTax = (latestInvoice.tax || 0) / 100;
+    const invoiceTax = invoiceTotal - invoiceSubtotal;
     const invoiceAmountPaid = (latestInvoice.amount_paid || 0) / 100;
     const invoiceDiscount = (latestInvoice.total_discount_amounts?.reduce((sum, d) => sum + d.amount, 0) || 0) / 100;
 
