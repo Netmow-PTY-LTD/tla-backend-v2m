@@ -19,7 +19,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     }
 
     // strip "Bearer " if present
-    if (token.startsWith('Bearer ')) {
+    if (token.startsWith('Bearer')) {
       token = token.split(' ')[1];
     }
 
