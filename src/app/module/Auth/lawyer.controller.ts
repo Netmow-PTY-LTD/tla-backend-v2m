@@ -1,4 +1,4 @@
-import config from '../../config';
+
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
