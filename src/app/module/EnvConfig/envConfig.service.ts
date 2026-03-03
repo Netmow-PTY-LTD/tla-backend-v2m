@@ -4,6 +4,7 @@ import { EnvConfig } from './envConfig.model';
 import { IEnvConfig, IEnvConfigGrouped, IEnvConfigUpdate } from './envConfig.interface';
 import { SENSITIVE_FIELDS } from './envConfig.constant';
 import { Types } from 'mongoose';
+import { clearAllCache } from '../../utils/cacheManger';
 
 // Encryption/Decryption utilities
 const ALGORITHM = 'aes-256-cbc';
@@ -63,10 +64,12 @@ const invalidateCache = async (key?: string) => {
     try {
         if (key) {
             await redisClient.del(getCacheKey(key));
+            await clearAllCache();
         } else {
             const keys = await redisClient.keys(`${CACHE_PREFIX}:*`);
             if (keys.length > 0) {
                 await redisClient.del(keys);
+                await clearAllCache()
             }
         }
     } catch (error) {
