@@ -765,12 +765,12 @@ const createSubscription = async (
     subscriptionType: type,
     subtotal: invoiceSubtotal,
     taxAmount: invoiceTax,
-    taxRate: taxRates?.tax_rate_details?.percentage_decimal,
+    taxRate: taxRates?.tax_rate_details?.percentage_decimal || country.taxPercentage,
     discountApplied: invoiceDiscount,
     totalWithTax: invoiceTotal,
     amountPaid: invoiceAmountPaid,
-    taxJurisdiction: taxRates?.jurisdiction,
-    taxType: taxRates?.tax_rate_details?.tax_type,
+    taxJurisdiction: taxRates?.jurisdiction || country.slug,
+    taxType: taxRates?.tax_rate_details?.tax_type || country.taxType,
     currency: latestInvoice?.currency ?? 'usd',
     stripePaymentIntentId: typeof latestInvoice?.payment_intent === 'string'
       ? latestInvoice.payment_intent
@@ -926,8 +926,10 @@ const changeSubscriptionPackage = async (
   }
 
   // ── 2. Load user profile ─────────────────────────────────────────────────
-  const userProfile = await UserProfile.findOne({ user: userId });
+  const userProfile = await UserProfile.findOne({ user: userId }).populate('country');
   if (!userProfile) throw new AppError(HTTP_STATUS.NOT_FOUND, 'User not found');
+
+  const country = userProfile.country as any;
 
   // ── 3. Fetch current subscription — MUST be in the same Stripe environment ─
   let currentSubscription: IUserSubscription | IEliteProUserSubscription | null = null;
@@ -1103,12 +1105,12 @@ const changeSubscriptionPackage = async (
       subscriptionType: type,
       subtotal: invoiceSubtotal,
       taxAmount: invoiceTax,
-      taxRate: taxRates?.tax_rate_details?.percentage_decimal,
+      taxRate: taxRates?.tax_rate_details?.percentage_decimal || country.taxPercentage,
       discountApplied: invoiceDiscount,
       totalWithTax: invoiceTotal,
       amountPaid: invoiceAmountPaid,
-      taxJurisdiction: taxRates?.jurisdiction,
-      taxType: taxRates?.tax_rate_details?.tax_type,
+      taxJurisdiction: taxRates?.jurisdiction || country.slug,
+      taxType: taxRates?.tax_rate_details?.tax_type || country.taxType,
       currency: latestInvoice.currency ?? 'usd',
       stripePaymentIntentId: paymentIntentId,
       stripeInvoiceId: latestInvoice.id ?? null,
@@ -1427,12 +1429,12 @@ const switchSubscriptionType = async (
       subscriptionType: toType,
       subtotal: invoiceSubtotal,
       taxAmount: invoiceTax,
-      taxRate: taxRatePercentage,
+      taxRate: taxRatePercentage || country.taxPercentage,
       discountApplied: invoiceDiscount,
       totalWithTax: invoiceTotal,
       amountPaid: invoiceAmountPaid,
-      taxJurisdiction,
-      taxType,
+      taxJurisdiction: taxJurisdiction || country.slug,
+      taxType: taxType || country.taxType,
       currency: latestInvoice.currency ?? 'usd',
       stripePaymentIntentId: paymentIntentId,
       stripeInvoiceId: latestInvoice.id ?? null,
