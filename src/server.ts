@@ -12,8 +12,12 @@ async function main() {
     await mongoose.connect(config.database_url as string);
     console.log('✅ Connected to MongoDB');
 
-    // ADD THIS LINE: Initialize dynamic configs
+    // Initialize dynamic configs from database
     await envConfigLoader.initialize();
+
+    // Re-initialize Redis with loaded configs (in case they were in the DB)
+    const { reinitRedis } = await import('./app/config/redis.config');
+    await reinitRedis();
     // Set and initialize sockets
     setSocketServerInstance(io);
     initializeSockets(io);
