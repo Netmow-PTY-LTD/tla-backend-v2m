@@ -4,7 +4,7 @@ import { authService } from './auth.service';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 
 import { AppError } from '../../errors/error';
-import config from '../../config';
+
 
 /**
  * Handles user login request.
@@ -25,8 +25,11 @@ const login = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    // secure: config.NODE_ENV === 'production',
+    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   // Send the access token and user data in the response
@@ -317,8 +320,11 @@ const ssoLogin = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    // secure: config.NODE_ENV === 'production',
+    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   // Send the access token and user data in the response

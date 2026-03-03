@@ -19,7 +19,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     }
 
     // strip "Bearer " if present
-    if (token.startsWith('Bearer ')) {
+    if (token.startsWith('Bearer')) {
       token = token.split(' ')[1];
     }
 
@@ -76,7 +76,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(
         httpStatus.UNAUTHORIZED,
-        'You are not authorized  hi!',
+        'You are not authorized!',
       );
     }
 
