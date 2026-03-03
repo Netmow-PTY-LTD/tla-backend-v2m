@@ -29,6 +29,7 @@ const login = catchAsync(async (req, res) => {
     // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
     secure: true, // Ensure cookie is sent over HTTPS
     sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   // Send the access token and user data in the response
@@ -323,6 +324,7 @@ const ssoLogin = catchAsync(async (req, res) => {
     // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
     secure: true, // Ensure cookie is sent over HTTPS
     sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   // Send the access token and user data in the response
