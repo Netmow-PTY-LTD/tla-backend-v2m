@@ -43,6 +43,8 @@ class EnvConfigLoader {
                             });
                         } else {
                             this.configCache[config.key] = config.value;
+                            // Also populate process.env so non-loader-aware modules pick up changes
+                            process.env[config.key] = config.value;
                         }
                     });
                 });
@@ -110,7 +112,9 @@ class EnvConfigLoader {
 
         // Merge with existing process.env values to ensure we have everything
         Object.keys(defaultConfigs).forEach(key => {
-            this.configCache[key] = process.env[key] || defaultConfigs[key];
+            const finalValue = process.env[key] || defaultConfigs[key];
+            this.configCache[key] = finalValue;
+            process.env[key] = finalValue;
         });
     }
 
