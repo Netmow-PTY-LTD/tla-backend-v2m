@@ -25,8 +25,10 @@ const login = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    // secure: config.NODE_ENV === 'production',
+    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
   });
 
   // Send the access token and user data in the response
@@ -317,8 +319,10 @@ const ssoLogin = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    // secure: config.NODE_ENV === 'production',
+    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
   });
 
   // Send the access token and user data in the response

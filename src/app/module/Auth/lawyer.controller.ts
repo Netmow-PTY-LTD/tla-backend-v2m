@@ -16,8 +16,10 @@ const lawyerRegister = catchAsync(async (req, res) => {
   // Store the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-    secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
-    sameSite: 'none', // Allows cross-site requests (must be used with HTTPS)
+    // secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
+    // sameSite: 'none', // Allows cross-site requests (must be used with HTTPS)
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
   });
 
   // Send response with access token and registered user information
@@ -79,8 +81,10 @@ const commitLawyerRegistration = catchAsync(async (req, res) => {
   // Store the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: 'none',
+    // secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
+    // sameSite: 'none', // Allows cross-site requests (must be used with HTTPS)
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
   });
 
   return sendResponse(res, {
