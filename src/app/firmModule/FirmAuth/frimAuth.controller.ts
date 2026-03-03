@@ -89,10 +89,9 @@ const login = catchAsync(async (req, res) => {
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('firm_refreshToken', firm_refreshToken, {
     httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
-    // secure: config.NODE_ENV === 'production',// Ensures cookie is only sent over HTTPS  
-    // sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
     secure: true, // Ensure cookie is sent over HTTPS
     sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
   // Send the access token and user data in the response
