@@ -4,7 +4,7 @@ import { authService } from './auth.service';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 
 import { AppError } from '../../errors/error';
-import config from '../../config';
+
 
 /**
  * Handles user login request.
