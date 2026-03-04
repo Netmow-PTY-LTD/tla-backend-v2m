@@ -19,7 +19,7 @@ const emailTemplateSchema = new Schema<IEmailTemplate>(
         },
         templateType: {
             type: String,
-            enum: ['client', 'lawyer', 'firm', 'marketer', 'admin', 'general'],
+            enum: ['client', 'lawyer', 'firm'],
             required: true,
         },
         subject: {
