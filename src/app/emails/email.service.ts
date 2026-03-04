@@ -132,74 +132,80 @@ export const sendEmail = async ({
     if (emailTemplate == 'new_claim_notification') {
       html = newClaimNotificationEmail(data)
     }
+
+
+    if (emailTemplate == "welcome_to_lawyer_by_marketer") {
+      html = welcomeLawyerEmailByMarketing(data)
+    }
+    if (emailTemplate === "contact") {
+      html = interactionEmail(data)
+    }
+    if (emailTemplate === "public-contact") {
+      html = publicContactEmail(data)
+    }
+
+    if (emailTemplate == "verify_email") {
+      html = emailVerificationTemplate(data)
+    }
+
+    if (emailTemplate == "new_lead_alert") {
+      html = newLeadAlertToLawyer(data)
+
+    }
+    if (emailTemplate == "password_reset") {
+      html = passwordResetEmail(data)
+    }
+    if (emailTemplate == "otp_email") {
+      html = otpEmail(data)
+    }
+
+    if (emailTemplate == "lawyerPromotion") {
+      html = congratulationsLawyerPromotion(data)
+
+    }
+
+    if (emailTemplate == "lawyer_approved") {
+      html = lawyerApprval(data)
+
+    }
+
+    if (emailTemplate == "firm_password_reset") {
+      html = firmPasswordResetEmail(data)
+
+    }
+
+
+    if (emailTemplate == "request_lawyer_as_firm_member") {
+      html = requestlawyerAsFirmMember(data)
+
+    }
+
+    if (emailTemplate == 'firm_registration') {
+      html = firmRegisterEmail(data)
+    }
+
+    if (emailTemplate == 'new_claim_notification') {
+      html = newClaimNotificationEmail(data)
+    }
+
+    // Admin Custom
+    if (emailTemplate === 'admin_custom') {
+      html = adminCampaignTemplate(data);
+    }
+
+    // Subscription Lifecycle
+    if (emailTemplate === 'subscription_created') html = subscriptionCreatedEmail(data);
+    if (emailTemplate === 'subscription_renewed') html = subscriptionRenewedEmail(data);
+    if (emailTemplate === 'subscription_payment_failed') html = subscriptionPaymentFailedEmail(data);
+    if (emailTemplate === 'subscription_canceled') html = subscriptionCanceledEmail(data);
+    if (emailTemplate === 'subscription_changed') html = subscriptionChangedEmail(data);
+    if (emailTemplate === 'subscription_renewal_reminder') html = subscriptionRenewalReminderEmail(data);
+    if (emailTemplate === 'subscription_expired') html = subscriptionExpiredEmail(data);
+
+
+
   }
-  if (emailTemplate == "welcome_to_lawyer_by_marketer") {
-    html = welcomeLawyerEmailByMarketing(data)
-  }
-  if (emailTemplate === "contact") {
-    html = interactionEmail(data)
-  }
-  if (emailTemplate === "public-contact") {
-    html = publicContactEmail(data)
-  }
 
-  if (emailTemplate == "verify_email") {
-    html = emailVerificationTemplate(data)
-  }
-
-  if (emailTemplate == "new_lead_alert") {
-    html = newLeadAlertToLawyer(data)
-
-  }
-  if (emailTemplate == "password_reset") {
-    html = passwordResetEmail(data)
-  }
-  if (emailTemplate == "otp_email") {
-    html = otpEmail(data)
-  }
-
-  if (emailTemplate == "lawyerPromotion") {
-    html = congratulationsLawyerPromotion(data)
-
-  }
-
-  if (emailTemplate == "lawyer_approved") {
-    html = lawyerApprval(data)
-
-  }
-
-  if (emailTemplate == "firm_password_reset") {
-    html = firmPasswordResetEmail(data)
-
-  }
-
-
-  if (emailTemplate == "request_lawyer_as_firm_member") {
-    html = requestlawyerAsFirmMember(data)
-
-  }
-
-  if (emailTemplate == 'firm_registration') {
-    html = firmRegisterEmail(data)
-  }
-
-  if (emailTemplate == 'new_claim_notification') {
-    html = newClaimNotificationEmail(data)
-  }
-
-  // Admin Custom
-  if (emailTemplate === 'admin_custom') {
-    html = adminCampaignTemplate(data);
-  }
-
-  // Subscription Lifecycle
-  if (emailTemplate === 'subscription_created') html = subscriptionCreatedEmail(data);
-  if (emailTemplate === 'subscription_renewed') html = subscriptionRenewedEmail(data);
-  if (emailTemplate === 'subscription_payment_failed') html = subscriptionPaymentFailedEmail(data);
-  if (emailTemplate === 'subscription_canceled') html = subscriptionCanceledEmail(data);
-  if (emailTemplate === 'subscription_changed') html = subscriptionChangedEmail(data);
-  if (emailTemplate === 'subscription_renewal_reminder') html = subscriptionRenewalReminderEmail(data);
-  if (emailTemplate === 'subscription_expired') html = subscriptionExpiredEmail(data);
 
 
 
