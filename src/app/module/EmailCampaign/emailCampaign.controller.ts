@@ -186,6 +186,21 @@ const getCampaignLog = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+/* ─────────────────────────────────────────────────────────────
+   DAILY STATS — GET /api/v1/admin/email-campaigns/:id/stats
+───────────────────────────────────────────────────────────── */
+const getCampaignStats = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await emailCampaignService.getCampaignDailyStats(id);
+
+    return sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Campaign daily stats fetched successfully',
+        data: result,
+    });
+});
+
 export const emailCampaignController = {
     createCampaign,
     getAllCampaigns,
@@ -197,4 +212,5 @@ export const emailCampaignController = {
     getTemplateKeys,
     getSegmentPresets,
     getCampaignLog,
+    getCampaignStats,
 };

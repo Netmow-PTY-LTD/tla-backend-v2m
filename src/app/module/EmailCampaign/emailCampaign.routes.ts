@@ -50,4 +50,7 @@ router.post('/:id/send-now', adminOnly, emailCampaignController.sendCampaignNow)
 // GET   /admin/email-campaigns/:id/log    — paginated delivery log
 router.get('/:id/log', adminOnly, emailCampaignController.getCampaignLog);
 
+// GET   /admin/email-campaigns/:id/stats  — daily sending stats
+router.get('/:id/stats', adminOnly, emailCampaignController.getCampaignStats);
+
 export const emailCampaignRouter = router;

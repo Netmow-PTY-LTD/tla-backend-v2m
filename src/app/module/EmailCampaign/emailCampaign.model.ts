@@ -38,6 +38,40 @@ const dripStepSchema = new Schema<IDripStep>(
     { _id: false },
 );
 
+/* ─── User Schedule sub-document ─────────────────────────── */
+export interface IUserSchedule {
+    userId: mongoose.Types.ObjectId;
+    scheduledAt: Date;
+    status: 'pending' | 'sent' | 'failed';
+    sentAt?: Date;
+    error?: string;
+}
+
+const userScheduleSchema = new Schema<IUserSchedule>(
+    {
+        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        scheduledAt: { type: Date, required: true },
+        status: { type: String, enum: ['pending', 'sent', 'failed'], default: 'pending' },
+        sentAt: { type: Date },
+        error: { type: String },
+    },
+    { _id: false },
+);
+
+/* ─── Daily sending stats sub-document ────────────────────── */
+export interface IDailyStat {
+    date: string; // YYYY-MM-DD
+    count: number;
+}
+
+const dailyStatSchema = new Schema<IDailyStat>(
+    {
+        date: { type: String, required: true },
+        count: { type: Number, default: 0 },
+    },
+    { _id: false },
+);
+
 /* ─── Main EmailCampaign document ──────────────────────────── */
 export interface IEmailCampaign extends Document {
     title: string;
@@ -46,12 +80,13 @@ export interface IEmailCampaign extends Document {
     customData: Record<string, unknown>;
 
     // Audience
-    targetAudience: 'all_lawyers' | 'all_clients' | 'all_users' | 'specific_users' | 'segment';
+    targetAudience: 'all_lawyers' | 'all_clients' | 'all_users' | 'specific_users' | 'segment' | 'individual_scheduled';
     targetUserIds: mongoose.Types.ObjectId[];
+    userSchedules: IUserSchedule[]; // for 'individual_scheduled'
     segmentFilter: Record<string, unknown>;   // raw MongoDB filter
 
     // Schedule
-    scheduleType: 'immediate' | 'scheduled' | 'recurring';
+    scheduleType: 'immediate' | 'scheduled' | 'recurring' | 'dynamic';
     scheduledAt?: Date;       // for 'scheduled'
     cronExpression?: string;  // for 'recurring'
     isActive: boolean;        // for recurring campaigns
@@ -66,6 +101,7 @@ export interface IEmailCampaign extends Document {
     failedCount: number;
     totalTargeted: number;
     sentLog: ISentLogEntry[];
+    dailyStats: IDailyStat[];  // Track how many emails sent each day
     lastRunAt?: Date;
 
     // Meta
@@ -85,17 +121,18 @@ const emailCampaignSchema = new Schema<IEmailCampaign>(
         // Audience
         targetAudience: {
             type: String,
-            enum: ['all_lawyers', 'all_clients', 'all_users', 'specific_users', 'segment'],
+            enum: ['all_lawyers', 'all_clients', 'all_users', 'specific_users', 'segment', 'individual_scheduled'],
             required: true,
             default: 'all_lawyers',
         },
         targetUserIds: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+        userSchedules: { type: [userScheduleSchema], default: [] },
         segmentFilter: { type: Schema.Types.Mixed, default: {} },
 
         // Schedule
         scheduleType: {
             type: String,
-            enum: ['immediate', 'scheduled', 'recurring'],
+            enum: ['immediate', 'scheduled', 'recurring', 'dynamic'],
             required: true,
             default: 'immediate',
         },
@@ -117,6 +154,7 @@ const emailCampaignSchema = new Schema<IEmailCampaign>(
         failedCount: { type: Number, default: 0 },
         totalTargeted: { type: Number, default: 0 },
         sentLog: { type: [sentLogSchema], default: [] },
+        dailyStats: { type: [dailyStatSchema], default: [] },
         lastRunAt: { type: Date },
 
         // Meta
@@ -132,6 +170,7 @@ const emailCampaignSchema = new Schema<IEmailCampaign>(
 /* ─── Indexes ───────────────────────────────────────────────── */
 emailCampaignSchema.index({ status: 1, scheduleType: 1 });
 emailCampaignSchema.index({ scheduledAt: 1, status: 1 });
+emailCampaignSchema.index({ 'userSchedules.scheduledAt': 1, 'userSchedules.status': 1 }); // Index for individual schedules
 emailCampaignSchema.index({ createdBy: 1 });
 emailCampaignSchema.index({ createdAt: -1 });
 

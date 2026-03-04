@@ -64,8 +64,30 @@ export const SEGMENT_PRESETS = [
 /**
  * Resolve target user emails based on campaign audience settings
  */
+/**
+ * Resolve target user emails based on campaign audience settings
+ */
 const resolveTargetUsers = async (campaign: IEmailCampaign): Promise<{ userId: any; email: string; name: string }[]> => {
-    const { targetAudience, targetUserIds, segmentFilter } = campaign;
+    const { targetAudience, targetUserIds, segmentFilter, userSchedules } = campaign;
+
+    if (targetAudience === 'individual_scheduled') {
+        const now = new Date();
+        // Only get users whose scheduled time has passed and not yet sent
+        const pending = userSchedules.filter(s => s.status === 'pending' && s.scheduledAt <= now);
+        if (pending.length === 0) return [];
+
+        const pendingUserIds = pending.map(s => s.userId);
+        const profiles = await UserProfile.find({ user: { $in: pendingUserIds } })
+            .populate<{ user: { email: string; _id: any } }>('user', 'email')
+            .select('name user')
+            .lean();
+
+        return profiles.map((p) => ({
+            userId: p.user?._id,
+            email: (p.user as any)?.email ?? '',
+            name: p.name ?? 'User',
+        }));
+    }
 
     if (targetAudience === 'specific_users') {
         const profiles = await UserProfile.find({ user: { $in: targetUserIds } })
@@ -106,15 +128,34 @@ const resolveTargetUsers = async (campaign: IEmailCampaign): Promise<{ userId: a
     }));
 };
 
+/** Update daily sending stats for a campaign */
+const updateDailyStats = async (campaignId: string, count: number) => {
+    const today = new Date().toISOString().split('T')[0];
+    const campaign = await EmailCampaign.findById(campaignId);
+    if (!campaign) return;
+
+    const existingStat = campaign.dailyStats.find((s) => s.date === today);
+    if (existingStat) {
+        existingStat.count += count;
+    } else {
+        campaign.dailyStats.push({ date: today, count });
+    }
+    await campaign.save();
+};
+
 /* ──────────────────────────────────────────────────────────────────
    DISPATCH — send emails in batches of 50
-────────────────────────────────────────────────────────────────── */
+ ────────────────────────────────────────────────────────────────── */
 export const dispatchCampaign = async (campaign: IEmailCampaign): Promise<void> => {
     const targets = await resolveTargetUsers(campaign);
+    if (targets.length === 0 && (campaign as any).targetAudience !== 'individual_scheduled') {
+        await EmailCampaign.findByIdAndUpdate((campaign as any)._id, { status: 'sent' });
+        return;
+    }
 
-    await EmailCampaign.findByIdAndUpdate(campaign._id, {
+    await EmailCampaign.findByIdAndUpdate((campaign as any)._id, {
         status: 'sending',
-        totalTargeted: targets.length,
+        totalTargeted: (campaign as any).targetAudience === 'individual_scheduled' ? (campaign as any).userSchedules.length : targets.length,
     });
 
     let sentCount = 0;
@@ -144,6 +185,19 @@ export const dispatchCampaign = async (campaign: IEmailCampaign): Promise<void> 
                         sentAt: new Date(),
                         status: 'sent',
                     });
+
+                    // Update individual schedule status if applicable
+                    if ((campaign as any).targetAudience === 'individual_scheduled') {
+                        await EmailCampaign.updateOne(
+                            { _id: (campaign as any)._id, 'userSchedules.userId': target.userId },
+                            {
+                                $set: {
+                                    'userSchedules.$.status': 'sent',
+                                    'userSchedules.$.sentAt': new Date(),
+                                },
+                            },
+                        );
+                    }
                 } catch (err: any) {
                     failedCount++;
                     sentLog.push({
@@ -153,6 +207,18 @@ export const dispatchCampaign = async (campaign: IEmailCampaign): Promise<void> 
                         status: 'failed',
                         error: err?.message ?? 'Unknown error',
                     });
+
+                    if ((campaign as any).targetAudience === 'individual_scheduled') {
+                        await EmailCampaign.updateOne(
+                            { _id: (campaign as any)._id, 'userSchedules.userId': target.userId },
+                            {
+                                $set: {
+                                    'userSchedules.$.status': 'failed',
+                                    'userSchedules.$.error': err?.message ?? 'Unknown error',
+                                },
+                            },
+                        );
+                    }
                 }
             }),
         );
@@ -163,14 +229,36 @@ export const dispatchCampaign = async (campaign: IEmailCampaign): Promise<void> 
         }
     }
 
-    await EmailCampaign.findByIdAndUpdate(campaign._id, {
-        status: sentCount > 0 ? 'sent' : 'failed',
-        sentCount,
-        failedCount,
+    // Determine final status
+    let finalStatus: IEmailCampaign['status'] = 'sent';
+    if ((campaign as any).targetAudience === 'individual_scheduled') {
+        const fresh = await EmailCampaign.findById((campaign as any)._id);
+        const hasPending = fresh?.userSchedules.some(s => s.status === 'pending');
+        finalStatus = hasPending ? 'sending' : 'sent';
+    }
+
+    await EmailCampaign.findByIdAndUpdate((campaign as any)._id, {
+        status: finalStatus,
+        $inc: { sentCount, failedCount },
         sentAt: new Date(),
         lastRunAt: new Date(),
         $push: { sentLog: { $each: sentLog } },
     });
+
+    // Update daily tracking stats
+    if (sentCount > 0) {
+        await updateDailyStats((campaign._id as any).toString(), sentCount);
+    }
+};
+
+/** Get daily sending stats for a specific campaign */
+const getCampaignDailyStats = async (id: string) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new AppError(HTTP_STATUS.BAD_REQUEST, 'Invalid campaign ID');
+    }
+    const campaign = await EmailCampaign.findById(id).select('dailyStats').lean();
+    if (!campaign) throw new AppError(HTTP_STATUS.NOT_FOUND, 'Campaign not found');
+    return campaign.dailyStats || [];
 };
 
 /* ──────────────────────────────────────────────────────────────────
@@ -396,6 +484,7 @@ export const emailCampaignService = {
     sendPreview,
     getTemplateKeys,
     getSegmentPresets,
+    getCampaignDailyStats,
     dispatchCampaign,
     resolveTargetUsers,
 };
