@@ -16,6 +16,11 @@ const getSingleEmailTemplateFromDB = async (id: string) => {
     return result;
 };
 
+const getEmailTemplateByTemplateKeyFromDB = async (templateKey: string) => {
+    const result = await EmailTemplate.findOne({ templateKey }).populate('createdBy');
+    return result;
+};
+
 const updateEmailTemplateIntoDB = async (id: string, payload: Partial<IEmailTemplate>) => {
     const result = await EmailTemplate.findByIdAndUpdate(id, payload, {
         new: true,
@@ -33,6 +38,7 @@ export const EmailTemplateService = {
     createEmailTemplateIntoDB,
     getAllEmailTemplatesFromDB,
     getSingleEmailTemplateFromDB,
+    getEmailTemplateByTemplateKeyFromDB,
     updateEmailTemplateIntoDB,
     deleteEmailTemplateFromDB,
 };

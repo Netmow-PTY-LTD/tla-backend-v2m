@@ -3,6 +3,7 @@ import { HTTP_STATUS } from '../../constant/httpStatus';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { EmailTemplateService } from './emailTemplate.service';
+import { EMAIL_TEMPLATES } from './emailTemplate.constant';
 
 const createEmailTemplate = catchAsync(async (req: Request, res: Response) => {
     const result = await EmailTemplateService.createEmailTemplateIntoDB({
@@ -41,6 +42,18 @@ const getSingleEmailTemplate = catchAsync(async (req: Request, res: Response) =>
     });
 });
 
+const getEmailTemplateByTemplateKey = catchAsync(async (req: Request, res: Response) => {
+    const { templateKey } = req.params;
+    const result = await EmailTemplateService.getEmailTemplateByTemplateKeyFromDB(templateKey);
+
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Email Template retrieved successfully',
+        data: result,
+    });
+});
+
 const updateEmailTemplate = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await EmailTemplateService.updateEmailTemplateIntoDB(id, req.body);
@@ -50,6 +63,15 @@ const updateEmailTemplate = catchAsync(async (req: Request, res: Response) => {
         success: true,
         message: 'Email Template updated successfully',
         data: result,
+    });
+});
+
+const getEmailTemplateConstants = catchAsync(async (req: Request, res: Response) => {
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Email Template constants retrieved successfully',
+        data: EMAIL_TEMPLATES,
     });
 });
 
@@ -69,6 +91,8 @@ export const EmailTemplateController = {
     createEmailTemplate,
     getAllEmailTemplates,
     getSingleEmailTemplate,
+    getEmailTemplateByTemplateKey,
+    getEmailTemplateConstants,
     updateEmailTemplate,
     deleteEmailTemplate,
 };

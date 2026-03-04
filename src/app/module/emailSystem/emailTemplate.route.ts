@@ -15,6 +15,12 @@ router.post(
 );
 
 router.get(
+    '/constants',
+    auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
+    EmailTemplateController.getEmailTemplateConstants
+);
+
+router.get(
     '/',
     auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
     EmailTemplateController.getAllEmailTemplates
@@ -24,6 +30,12 @@ router.get(
     '/:id',
     auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
     EmailTemplateController.getSingleEmailTemplate
+);
+
+router.get(
+    '/template-key/:templateKey',
+    auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
+    EmailTemplateController.getEmailTemplateByTemplateKey
 );
 
 router.patch(
