@@ -2,8 +2,10 @@
 
 import { transporter } from "../config/emailTranspoter";
 import { getAppSettings } from "../module/Settings/settingsConfig";
-import {  firmPasswordResetEmail, firmRegisterEmail, newClaimNotificationEmail, requestlawyerAsFirmMember } from "./templates/firmTemplate";
+import { firmPasswordResetEmail, firmRegisterEmail, newClaimNotificationEmail, requestlawyerAsFirmMember } from "./templates/firmTemplate";
 import { congratulationsLawyerPromotion, emailVerificationTemplate, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLawyerEmailByMarketing, welcomeLeadSubmitted } from "./templates/template";
+import { adminCampaignTemplate } from "./templates/adminCampaignTemplate";
+import { subscriptionCanceledEmail, subscriptionChangedEmail, subscriptionCreatedEmail, subscriptionExpiredEmail, subscriptionPaymentFailedEmail, subscriptionRenewalReminderEmail, subscriptionRenewedEmail } from "./templates/subscriptionTemplates";
 
 
 interface SendEmailParams {
@@ -32,7 +34,7 @@ export const sendEmail = async ({
   //   console.log('📧 Email provider is disabled. Skipping email.');
   //   return;
   // }
-  
+
   if (!settings || !settings.emailProviderEnabled) {
     console.log('📧 Email provider is disabled. Skipping email.');
     return;
@@ -88,20 +90,34 @@ export const sendEmail = async ({
     html = firmPasswordResetEmail(data)
 
   }
-  
+
 
   if (emailTemplate == "request_lawyer_as_firm_member") {
     html = requestlawyerAsFirmMember(data)
 
   }
 
-  if(emailTemplate =='firm_registration'){
+  if (emailTemplate == 'firm_registration') {
     html = firmRegisterEmail(data)
   }
 
-  if(emailTemplate =='new_claim_notification'){
+  if (emailTemplate == 'new_claim_notification') {
     html = newClaimNotificationEmail(data)
   }
+
+  // Admin Custom
+  if (emailTemplate === 'admin_custom') {
+    html = adminCampaignTemplate(data);
+  }
+
+  // Subscription Lifecycle
+  if (emailTemplate === 'subscription_created') html = subscriptionCreatedEmail(data);
+  if (emailTemplate === 'subscription_renewed') html = subscriptionRenewedEmail(data);
+  if (emailTemplate === 'subscription_payment_failed') html = subscriptionPaymentFailedEmail(data);
+  if (emailTemplate === 'subscription_canceled') html = subscriptionCanceledEmail(data);
+  if (emailTemplate === 'subscription_changed') html = subscriptionChangedEmail(data);
+  if (emailTemplate === 'subscription_renewal_reminder') html = subscriptionRenewalReminderEmail(data);
+  if (emailTemplate === 'subscription_expired') html = subscriptionExpiredEmail(data);
 
 
 

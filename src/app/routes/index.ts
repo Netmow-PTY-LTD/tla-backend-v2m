@@ -36,6 +36,7 @@ import { marketingRouter } from '../module/marketing/marketing.route';
 import { LawyerProfileClaimRoutes } from '../module/LawyerProfileClaim/lawyerProfileClaim.route';
 import { envConfigRoutes } from '../module/EnvConfig/envConfig.route';
 import { customServiceSearchRouter } from '../module/CustomServiceSearch/customServiceSearch.route';
+import { emailCampaignRouter } from '../module/EmailCampaign/emailCampaign.routes';
 
 const router = Router();
 
@@ -184,6 +185,10 @@ const moduleRoutes = [
   {
     path: '/custom-service-search',
     route: customServiceSearchRouter,
+  },
+  {
+    path: '/admin/email-campaigns',
+    route: emailCampaignRouter,
   },
   {
     path: '/',
