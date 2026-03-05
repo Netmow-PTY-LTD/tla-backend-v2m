@@ -23,10 +23,10 @@ async function main() {
     initializeSockets(io);
 
     // Initialize Email Automation Crons and Workers
-    // const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
+    const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
     // const { startEmailWorker } = await import('./app/queues/emailWorker');
 
-    // startEmailSchedulerCron();
+    startEmailSchedulerCron();
     // startEmailWorker();
 
     // Start server
