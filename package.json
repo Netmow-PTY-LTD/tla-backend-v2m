@@ -11,12 +11,12 @@
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
     "prettier:fix": "npx prettier --write src/",
     "seed:leads": "ts-node src/scripts/bulkInsertLeads.ts",
-    "seed:options": "tsx src/scripts/generate-options-all.ts",
+    "seed:options": "ts-node src/scripts/generate-options-all.ts",
     "seed:env": "ts-node src/scripts/sync-env.ts",
     "migrate:stripe": "NODE_ENV=production ts-node src/scripts/migrate-stripe-products.ts",
     "migrate:users": "NODE_ENV=production ts-node src/scripts/migrate-user-stripe-data.ts",
     "backfill:env": "ts-node src/scripts/backfill-environment-data.ts",
-    "test:email": "tsx src/scripts/testEmail.ts"
+    "test:email": "ts-node src/scripts/testEmail.ts"
   },
   "author": "Rabby Hasan",
   "license": "MIT",

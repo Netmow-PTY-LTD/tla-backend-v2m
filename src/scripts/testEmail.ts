@@ -17,12 +17,20 @@ import config from "../app/config";
 const uri = config.database_url as string;
 
 async function runTest() {
-    const targetEmail = ['rabby.netmow@gmail.com', 'tuhin.netmow@gmail.com'];
-    const requestedTemplate = 'welcome_to_lawyer';
+    // Get arguments from command line: [0] = node, [1] = script, [2] = email, [3] = template
+    const args = process.argv.slice(2);
 
-    if (!targetEmail) {
+    // Default values
+    const targetEmailsRaw = args[0] || 'rabby.netmow@gmail.com,tuhin.netmow@gmail.com';
+    const requestedTemplate = args[1] || 'welcome_to_lawyer';
+
+    // Parse emails (support comma-separated string)
+    const targetEmail = targetEmailsRaw.split(',').map(e => e.trim()).filter(e => e.length > 0);
+
+    if (targetEmail.length === 0) {
         console.log("\n❌ Error: Please provide a recipient email address.");
-        console.log("Usage: npx ts-node src/scripts/testEmail.ts <email> [templateKey]");
+        console.log("Usage: yarn test:email <email> [templateKey]");
+        console.log("Example: yarn test:email user@example.com welcome_to_client");
         console.log("\nAvailable Hardcoded Templates (Fallbacks):");
         console.log("- welcome_to_client");
         console.log("- welcome_to_lawyer");
@@ -56,32 +64,38 @@ async function runTest() {
             console.log("✅ Email Provider is enabled.");
         }
 
-        console.log(`\n🚀 Sending test email...`);
-        console.log(`   To: ${targetEmail}`);
+        console.log(`\n🚀 Sending test email(s)...`);
+        console.log(`   To: ${targetEmail.join(', ')}`);
         console.log(`   Template: ${requestedTemplate}`);
 
 
         // 3. Trigger sendEmail service
-        const result = await sendEmail({
-            to: targetEmail[0],
-            subject: `Test System Email - ${requestedTemplate}`,
-            emailTemplate: requestedTemplate
-        });
+        const results = await Promise.all(targetEmail.map(email =>
+            sendEmail({
+                to: email,
+                subject: `Test System Email - ${requestedTemplate}`,
+                emailTemplate: requestedTemplate
+            })
+        ));
 
         console.log("\n✨ SUCCESS!");
         console.log("------------------------------------------");
-        console.log("Message ID:", result?.messageId || "N/A");
-        console.log("Response:", result?.response || "OK");
+        results.forEach((result, index) => {
+            console.log(`Email [${index + 1}] (${targetEmail[index]}):`);
+            console.log("   Message ID:", result?.messageId || "N/A");
+            console.log("   Response:", result?.response || "OK");
+        });
         console.log("------------------------------------------");
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         console.error("\n❌ TEST FAILED:");
-        console.error("Error Message:", error.message || error);
+        console.error("Error Message:", errorMessage);
 
-        if (error.message.includes("ECONNREFUSED")) {
+        if (errorMessage.includes("ECONNREFUSED")) {
             console.error("💡 Tip: Check if your MongoDB is running or if the DATABASE_URL is correct.");
         }
-        if (error.message.includes("Mailgun")) {
+        if (errorMessage.includes("Mailgun")) {
             console.error("💡 Tip: Check your Mailgun SMTP credentials in the .env file.");
         }
     } finally {
