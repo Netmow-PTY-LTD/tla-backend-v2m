@@ -100,6 +100,8 @@ export const emailFlowService = {
             templateKey: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CONFIRMED,
             scheduledAt: new Date(),
             status: 'pending',
+            person_type: user.regUserType as 'client' | 'lawyer' | 'admin',
+            email_type: 'transactional',
         });
     },
 
@@ -136,6 +138,8 @@ export const emailFlowService = {
                         templateKey: template.templateKey,
                         scheduledAt: now,
                         status: 'pending',
+                        person_type: user.regUserType as 'client' | 'lawyer' | 'admin',
+                        email_type: 'automation',
                     });
                 }
 

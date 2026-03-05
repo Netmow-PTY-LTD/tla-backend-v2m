@@ -3,6 +3,9 @@ import { Schema, model, Types } from 'mongoose';
 export interface IEmailQueue {
     userId: Types.ObjectId;
     email: string;
+    email_type?: string;
+    person_type?: 'client' | 'lawyer' | 'admin';
+    sent_by?: string;
     templateKey: string;
     scheduledAt: Date;
     status: 'pending' | 'sent' | 'failed';
@@ -21,6 +24,18 @@ const emailQueueSchema = new Schema<IEmailQueue>(
             type: String,
             required: true,
             trim: true,
+        },
+
+        email_type: {
+            type: String,
+        },
+        person_type: {
+            type: String,
+            enum: ['client', 'lawyer', 'admin'],
+        },
+        sent_by: {
+            type: String,
+            default: 'system',
         },
         templateKey: {
             type: String,
