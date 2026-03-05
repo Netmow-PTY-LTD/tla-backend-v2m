@@ -5,6 +5,7 @@ import { IUserProfile } from '../User/user.interface';
 import { EmailQueue } from './emailQueue.model';
 import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
 import { USER_STATUS } from '../Auth/auth.constant';
+import { addEmailToQueue } from './email.queue';
 
 // Lawer flow configuration
 const lawyerFlow = [
@@ -94,7 +95,7 @@ export const emailFlowService = {
 
         console.log(`Scheduling confirmation for plan: ${planName}`);
 
-        await EmailQueue.create({
+        const jobRecord = await EmailQueue.create({
             userId: user._id,
             email: user.email,
             templateKey: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CONFIRMED,
@@ -102,6 +103,15 @@ export const emailFlowService = {
             status: 'pending',
             person_type: user.regUserType as 'client' | 'lawyer' | 'admin',
             email_type: 'transactional',
+        });
+
+        // Add to BullMQ
+        await addEmailToQueue({
+            mongoJobId: jobRecord._id,
+            userId: user._id,
+            email: user.email,
+            templateKey: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CONFIRMED,
+            data: { planName }
         });
     },
 
@@ -132,7 +142,7 @@ export const emailFlowService = {
                 const template = await EmailTemplate.findOne({ templateKey: currentFlowStep.templateKey, isActive: true });
 
                 if (template) {
-                    await EmailQueue.create({
+                    const jobRecord = await EmailQueue.create({
                         userId: user._id,
                         email: user.email,
                         templateKey: template.templateKey,
@@ -140,6 +150,14 @@ export const emailFlowService = {
                         status: 'pending',
                         person_type: user.regUserType as 'client' | 'lawyer' | 'admin',
                         email_type: 'automation',
+                    });
+
+                    // Add to BullMQ
+                    await addEmailToQueue({
+                        mongoJobId: jobRecord._id,
+                        userId: user._id,
+                        email: user.email,
+                        templateKey: template.templateKey,
                     });
                 }
 

@@ -87,6 +87,68 @@ const deleteEmailTemplate = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// Category Controllers
+const createEmailTemplateCategory = catchAsync(async (req: Request, res: Response) => {
+    const result = await EmailTemplateService.createEmailTemplateCategoryIntoDB({
+        ...req.body,
+        createdBy: req.user?._id,
+    });
+
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Email Template Category created successfully',
+        data: result,
+    });
+});
+
+const getAllEmailTemplateCategories = catchAsync(async (req: Request, res: Response) => {
+    const result = await EmailTemplateService.getAllEmailTemplateCategoriesFromDB();
+
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Email Template Categories retrieved successfully',
+        data: result,
+    });
+});
+
+const getSingleEmailTemplateCategory = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await EmailTemplateService.getSingleEmailTemplateCategoryFromDB(id);
+
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Email Template Category retrieved successfully',
+        data: result,
+    });
+});
+
+const updateEmailTemplateCategory = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await EmailTemplateService.updateEmailTemplateCategoryIntoDB(id, req.body);
+
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Email Template Category updated successfully',
+        data: result,
+    });
+});
+
+const deleteEmailTemplateCategory = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await EmailTemplateService.deleteEmailTemplateCategoryFromDB(id);
+
+    sendResponse(res, {
+        statusCode: HTTP_STATUS.OK,
+        success: true,
+        message: 'Email Template Category deleted successfully',
+        data: result,
+    });
+});
+
 export const EmailTemplateController = {
     createEmailTemplate,
     getAllEmailTemplates,
@@ -95,4 +157,10 @@ export const EmailTemplateController = {
     getEmailTemplateConstants,
     updateEmailTemplate,
     deleteEmailTemplate,
+    // Category exports
+    createEmailTemplateCategory,
+    getAllEmailTemplateCategories,
+    getSingleEmailTemplateCategory,
+    updateEmailTemplateCategory,
+    deleteEmailTemplateCategory,
 };
