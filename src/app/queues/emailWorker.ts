@@ -4,6 +4,7 @@ import { User } from '../module/Auth/auth.model';
 import { IUser } from '../module/Auth/auth.interface';
 import { IUserProfile } from '../module/User/user.interface';
 import { sendEmail } from '../emails/email.service';
+import { USER_STATUS } from '../module/Auth/auth.constant';
 
 // To prevent overlapping runs
 let isProcessing = false;
@@ -46,8 +47,8 @@ export const startEmailWorker = () => {
             // 1. Pre-fetch needed Users to reduce DB calls
             const userIds = [...new Set(pendingJobs.map(j => j.userId.toString()))];
 
-            // Only fetch active users
-            const users = await User.find({ _id: { $in: userIds } }).populate('profile');
+            // Only fetch approved users
+            const users = await User.find({ _id: { $in: userIds }, accountStatus: USER_STATUS.APPROVED }).populate('profile');
 
             const userMap = new Map<string, IUser>();
             users.forEach(u => userMap.set(u._id!.toString(), u));
@@ -63,7 +64,7 @@ export const startEmailWorker = () => {
                             const user = userMap.get(job.userId.toString());
 
                             if (!user) {
-                                console.warn(`Missing User for job ${job._id}: User Found: ${!!user}`);
+                                console.warn(`Skipping job ${job._id}: User not found or not approved.`);
                                 await EmailQueue.findByIdAndUpdate(job._id, {
                                     status: 'failed',
                                     retryCount: (job.retryCount || 0) + 1,

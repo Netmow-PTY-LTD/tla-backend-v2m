@@ -4,6 +4,7 @@ import { EmailTemplate } from '../emailSystem/emailTemplate.model';
 import { IUserProfile } from '../User/user.interface';
 import { EmailQueue } from './emailQueue.model';
 import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
+import { USER_STATUS } from '../Auth/auth.constant';
 
 // Lawer flow configuration
 const lawyerFlow = [
@@ -35,6 +36,8 @@ export const emailFlowService = {
      * Helper to check if a user has already satisfied the goal of a specific email step.
      */
     isConditionMet: (user: IUser, templateKey: string): boolean => {
+
+
         const profile = user.profile as IUserProfile;
         if (!profile) return false;
 
@@ -108,6 +111,7 @@ export const emailFlowService = {
         const usersToEmail = await User.find({
             next_email_at: { $lte: now, $ne: null },
             email_paused: false,
+            accountStatus: USER_STATUS.APPROVED,
         }).populate('profile');
 
         for (const user of usersToEmail) {
