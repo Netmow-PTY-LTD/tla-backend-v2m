@@ -3,24 +3,25 @@ import { User } from '../Auth/auth.model';
 import { EmailTemplate } from '../emailSystem/emailTemplate.model';
 import { IUserProfile } from '../User/user.interface';
 import { EmailQueue } from './emailQueue.model';
+import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
 
 // Lawer flow configuration
 const lawyerFlow = [
-    { step: 1, templateKey: 'tutorial_system', delayMs: 1 * 60 * 60 * 1000 }, // 1 hour after registration
-    { step: 2, templateKey: 'complete_profile', delayMs: 5 * 60 * 60 * 1000 }, // 6 hours total
-    { step: 3, templateKey: 'complete_profile_reminder', delayMs: 18 * 60 * 60 * 1000 }, // 24 hours total
-    { step: 4, templateKey: 'how_to_bid', delayMs: 24 * 60 * 60 * 1000 },
-    { step: 5, templateKey: 'buy_credit', delayMs: 24 * 60 * 60 * 1000 },
-    { step: 6, templateKey: 'win_job', delayMs: 24 * 60 * 60 * 1000 },
-    { step: 7, templateKey: 'subscription_benefits', delayMs: 2 * 24 * 60 * 60 * 1000 },
-    { step: 8, templateKey: 'elite_pro', delayMs: 3 * 24 * 60 * 60 * 1000 },
-    { step: 9, templateKey: 'invoice_due_21', delayMs: 11 * 24 * 60 * 60 * 1000 }, // ~21 days after reg
-    { step: 10, templateKey: 'invoice_due_30', delayMs: 9 * 24 * 60 * 60 * 1000 }, // ~30 days after reg
+    { step: 1, templateKey: EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM, delayMs: 1 * 60 * 60 * 1000 }, // 1 hour after registration
+    { step: 2, templateKey: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE, delayMs: 5 * 60 * 60 * 1000 }, // 6 hours total
+    { step: 3, templateKey: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER, delayMs: 18 * 60 * 60 * 1000 }, // 24 hours total
+    { step: 4, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_BID, delayMs: 24 * 60 * 60 * 1000 },
+    { step: 5, templateKey: EMAIL_TEMPLATE_KEYS.BUY_CREDIT, delayMs: 24 * 60 * 60 * 1000 },
+    { step: 6, templateKey: EMAIL_TEMPLATE_KEYS.WIN_JOB, delayMs: 24 * 60 * 60 * 1000 },
+    { step: 7, templateKey: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS, delayMs: 2 * 24 * 60 * 60 * 1000 },
+    { step: 8, templateKey: EMAIL_TEMPLATE_KEYS.ELITE_PRO, delayMs: 3 * 24 * 60 * 60 * 1000 },
+    { step: 9, templateKey: EMAIL_TEMPLATE_KEYS.INVOICE_DUE_21, delayMs: 11 * 24 * 60 * 60 * 1000 }, // ~21 days after reg
+    { step: 10, templateKey: EMAIL_TEMPLATE_KEYS.INVOICE_DUE_30, delayMs: 9 * 24 * 60 * 60 * 1000 }, // ~30 days after reg
 ];
 
 // Client flow configuration
 const clientFlow = [
-    { step: 1, templateKey: 'how_to_post_case', delayMs: 24 * 60 * 60 * 1000 }, // 1 day
+    { step: 1, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_POST_CASE, delayMs: 24 * 60 * 60 * 1000 }, // 1 day
 ];
 
 export const emailFlowService = {
@@ -38,25 +39,25 @@ export const emailFlowService = {
         if (!profile) return false;
 
         switch (templateKey) {
-            case 'tutorial_system':
+            case EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM:
                 return false; // Always send
-            case 'complete_profile':
-            case 'complete_profile_reminder':
+            case EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE:
+            case EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER:
                 return !!(profile.bio || profile.profilePicture || (profile.serviceIds && profile.serviceIds.length > 0));
-            case 'how_to_bid':
+            case EMAIL_TEMPLATE_KEYS.HOW_TO_BID:
                 return (profile.responseCases || 0) > 0;
-            case 'buy_credit':
+            case EMAIL_TEMPLATE_KEYS.BUY_CREDIT:
                 return (profile.credits || 0) > 0;
-            case 'win_job':
+            case EMAIL_TEMPLATE_KEYS.WIN_JOB:
                 return (profile.hiredCases || 0) > 0;
-            case 'subscription_benefits':
+            case EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS:
                 return !!profile.subscriptionId;
-            case 'elite_pro':
+            case EMAIL_TEMPLATE_KEYS.ELITE_PRO:
                 return !!profile.isElitePro;
-            case 'how_to_post_case':
+            case EMAIL_TEMPLATE_KEYS.HOW_TO_POST_CASE:
                 return (profile.totalCases || 0) > 0;
-            case 'invoice_due_21':
-            case 'invoice_due_30':
+            case EMAIL_TEMPLATE_KEYS.INVOICE_DUE_21:
+            case EMAIL_TEMPLATE_KEYS.INVOICE_DUE_30:
                 return false; // Always send based on time
             default:
                 return false;
@@ -93,7 +94,7 @@ export const emailFlowService = {
         await EmailQueue.create({
             userId: user._id,
             email: user.email,
-            templateKey: 'subscription_confirmed',
+            templateKey: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CONFIRMED,
             scheduledAt: new Date(),
             status: 'pending',
         });

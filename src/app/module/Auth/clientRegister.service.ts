@@ -27,6 +27,7 @@ import { generateOtp } from './otp.utils';
 import bcrypt from 'bcryptjs';
 import CustomServiceSearch from '../CustomServiceSearch/customServiceSearch.model';
 import { emailFlowService } from '../Email/email.service';
+import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
 
 
 
@@ -609,7 +610,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
       to: newUser.email,
       subject: "We've received your legal request — Awaiting approval",
       data: leadData,
-      emailTemplate: 'welcome_Lead_submission',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_LEAD_SUBMISSION,
     });
     const clientData = {
       name: newProfile?.name,
@@ -623,7 +624,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
       to: newUser.email,
       subject: 'Thank you for Registering',
       data: clientData,
-      emailTemplate: 'welcome_to_client',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_TO_CLIENT,
     });
 
 
@@ -722,7 +723,7 @@ const clientRegistrationDraftInDB = async (payload: IClientRegistrationDraft) =>
       verifyUrl: verifyUrl,
       role: 'Client',
     },
-    emailTemplate: 'verify_email',
+    emailTemplate: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
   });
 
   return result;

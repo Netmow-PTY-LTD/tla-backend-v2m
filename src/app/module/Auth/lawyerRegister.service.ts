@@ -23,6 +23,7 @@ import bcrypt from 'bcryptjs';
 import { generateOtp } from './otp.utils';
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 import { emailFlowService } from '../Email/email.service';
+import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
 
 
 
@@ -523,7 +524,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
       to: newUser.email,
       subject: 'Thank you for registering as a lawyer',
       data: commonEmailData,
-      emailTemplate: "welcome_to_lawyer",
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_TO_LAWYER,
     });
 
 
@@ -588,7 +589,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
             role: 'Lawyer',
             requestUrl: `${config.firm_client_url}/dashboard/requests`
           },
-          emailTemplate: 'request_lawyer_as_firm_member',
+          emailTemplate: EMAIL_TEMPLATE_KEYS.REQUEST_LAWYER_AS_FIRM_MEMBER,
         });
 
       }
@@ -658,7 +659,7 @@ const lawyerRegistrationDraftInDB = async (payload: ILawyerRegistrationDraft) =>
       verifyUrl: verifyUrl,
       role: 'Lawyer',
     },
-    emailTemplate: 'verify_email',
+    emailTemplate: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
   });
 
   return result;
