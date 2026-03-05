@@ -24,10 +24,10 @@ async function main() {
 
     // Initialize Email Automation Crons and Workers
     const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
-    // const { startEmailWorker } = await import('./app/queues/emailWorker');
+    const { startEmailWorker } = await import('./app/queues/emailWorker');
 
     startEmailSchedulerCron();
-    // startEmailWorker();
+    startEmailWorker();
 
     // Start server
     // server.listen(config.port, () => {
