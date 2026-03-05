@@ -397,7 +397,11 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
     };
 
     // create new user
-    const [newUser] = await User.create([userData], { session });
+    const [newUser] = await User.create([{
+      ...userData,
+      next_email_at: new Date(),
+      email_step: 0,
+    }], { session });
 
     // get zipcode detail
     // const address = await ZipCode.findById(leadDetails.zipCode);

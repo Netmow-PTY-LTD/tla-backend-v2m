@@ -7,13 +7,13 @@ import { ICompanyProfile } from '../User/companyProfile.interface';
 
 
 type IAddressInfo = {
-  countryId:string;
+  countryId: string;
   zipcode: string;         // Assuming `rest.location.address` is a string
-  postalCode:string;
+  postalCode: string;
   countryCode: string;     // Example: 'AU'
   latitude?: number;       // Optional because you’re using ?. 
   longitude?: number;      // Optional because you’re using ?.
-  zipCodeType?:string;
+  zipCodeType?: string;
 };
 
 
@@ -44,11 +44,14 @@ export interface IUser {
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
   profile: Types.ObjectId;
-  lawyerServiceMap: ILawyerServiceMap &{ addressInfo:IAddressInfo};
+  lawyerServiceMap: ILawyerServiceMap & { addressInfo: IAddressInfo };
   companyInfo?: ICompanyProfile;
-  createdBy:Types.ObjectId;
-   updatedBy:Types.ObjectId;
-  deletedBy:Types.ObjectId;
+  email_step: number;
+  next_email_at: Date | null;
+  email_paused: boolean;
+  createdBy: Types.ObjectId;
+  updatedBy: Types.ObjectId;
+  deletedBy: Types.ObjectId;
 }
 
 export interface UserModel extends Model<IUser> {

@@ -22,6 +22,13 @@ async function main() {
     setSocketServerInstance(io);
     initializeSockets(io);
 
+    // Initialize Email Automation Crons and Workers
+    // const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
+    // const { startEmailWorker } = await import('./app/queues/emailWorker');
+
+    // startEmailSchedulerCron();
+    // startEmailWorker();
+
     // Start server
     // server.listen(config.port, () => {
 

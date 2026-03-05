@@ -346,7 +346,11 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
     const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
 
     // Create the user document in the database
-    const [newUser] = await User.create([userData], { session });
+    const [newUser] = await User.create([{
+      ...userData,
+      next_email_at: new Date(),
+      email_step: 0,
+    }], { session });
     const addressInfo = lawyerServiceMap?.addressInfo
 
     let zipCode;
