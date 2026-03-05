@@ -1,7 +1,37 @@
 
-
 import { Schema, model } from 'mongoose';
-import { IEmailTemplate } from './emailTemplate.interface';
+import { IEmailTemplate, IEmailTemplateCategory } from './emailTemplate.interface';
+
+const emailTemplateCategorySchema = new Schema<IEmailTemplateCategory>(
+    {
+        name: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+        },
+        description: {
+            type: String,
+            trim: true,
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+export const EmailTemplateCategory = model<IEmailTemplateCategory>(
+    'EmailTemplateCategory',
+    emailTemplateCategorySchema
+);
 
 const emailTemplateSchema = new Schema<IEmailTemplate>(
     {
@@ -20,6 +50,11 @@ const emailTemplateSchema = new Schema<IEmailTemplate>(
         target: {
             type: String,
             enum: ['client', 'lawyer', 'firm'],
+            required: true,
+        },
+        categoryId: {
+            type: Schema.Types.ObjectId,
+            ref: 'EmailTemplateCategory',
             required: true,
         },
         subject: {

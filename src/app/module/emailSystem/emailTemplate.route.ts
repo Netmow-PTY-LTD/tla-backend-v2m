@@ -7,6 +7,40 @@ import { USER_ROLE } from '../../constant';
 
 const router = express.Router();
 
+// Email Template Category Routes
+router.post(
+    '/category',
+    auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
+    validateRequest(EmailTemplateValidation.createEmailTemplateCategoryValidationSchema),
+    EmailTemplateController.createEmailTemplateCategory
+);
+
+router.get(
+    '/category',
+    auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
+    EmailTemplateController.getAllEmailTemplateCategories
+);
+
+router.get(
+    '/category/:id',
+    auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
+    EmailTemplateController.getSingleEmailTemplateCategory
+);
+
+router.patch(
+    '/category/:id',
+    auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
+    validateRequest(EmailTemplateValidation.updateEmailTemplateCategoryValidationSchema),
+    EmailTemplateController.updateEmailTemplateCategory
+);
+
+router.delete(
+    '/category/:id',
+    auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
+    EmailTemplateController.deleteEmailTemplateCategory
+);
+
+// Email Template Routes
 router.post(
     '/',
     auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN),
