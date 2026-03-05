@@ -22,6 +22,7 @@ import { ILawyerRegistrationDraft, LawyerRegistrationDraft } from './LawyerRegis
 import bcrypt from 'bcryptjs';
 import { generateOtp } from './otp.utils';
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
+import { emailFlowService } from '../Email/email.service';
 
 
 
@@ -346,10 +347,10 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
     const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
 
     // Create the user document in the database
+    const initialFlowData = emailFlowService.getInitialFlowData('lawyer');
     const [newUser] = await User.create([{
       ...userData,
-      next_email_at: new Date(),
-      email_step: 0,
+      ...initialFlowData,
     }], { session });
     const addressInfo = lawyerServiceMap?.addressInfo
 

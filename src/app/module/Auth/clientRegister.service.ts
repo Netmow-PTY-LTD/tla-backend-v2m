@@ -26,6 +26,7 @@ import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 import { generateOtp } from './otp.utils';
 import bcrypt from 'bcryptjs';
 import CustomServiceSearch from '../CustomServiceSearch/customServiceSearch.model';
+import { emailFlowService } from '../Email/email.service';
 
 
 
@@ -397,10 +398,10 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
     };
 
     // create new user
+    const initialFlowData = emailFlowService.getInitialFlowData('client');
     const [newUser] = await User.create([{
       ...userData,
-      next_email_at: new Date(),
-      email_step: 0,
+      ...initialFlowData,
     }], { session });
 
     // get zipcode detail
