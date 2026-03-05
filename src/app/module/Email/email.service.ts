@@ -1,5 +1,7 @@
+import { IUser } from '../Auth/auth.interface';
 import { User } from '../Auth/auth.model';
 import { EmailTemplate } from '../emailSystem/emailTemplate.model';
+import { IUserProfile } from '../User/user.interface';
 import { EmailQueue } from './emailQueue.model';
 
 // Lawer flow configuration
@@ -27,8 +29,8 @@ export const emailFlowService = {
     /**
      * Helper to check if a user has already satisfied the goal of a specific email step.
      */
-    isConditionMet: (user: any, templateKey: string): boolean => {
-        const profile = user.profile;
+    isConditionMet: (user: IUser, templateKey: string): boolean => {
+        const profile = user.profile as IUserProfile;
         if (!profile) return false;
 
         switch (templateKey) {
@@ -105,7 +107,7 @@ export const emailFlowService = {
                 const nextStepIndex = stepIndex + 1;
                 const nextFlowStep = flow[nextStepIndex];
 
-                const updateData: any = {
+                const updateData: { email_step: number, next_email_at: Date | null } = {
                     email_step: nextStepIndex,
                     next_email_at: nextFlowStep ? new Date(now.getTime() + nextFlowStep.delayMs) : null,
                 };

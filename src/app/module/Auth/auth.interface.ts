@@ -4,6 +4,7 @@ import { PhoneVerificationStatus, UserStatus } from './auth.constant';
 import { TUserRole } from '../../constant';
 import { ILawyerServiceMap } from '../User/lawyerServiceMap.interface';
 import { ICompanyProfile } from '../User/companyProfile.interface';
+import { IUserProfile } from '../User/user.interface';
 
 
 type IAddressInfo = {
@@ -43,7 +44,7 @@ export interface IUser {
   resetPasswordToken?: string;
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
-  profile: Types.ObjectId;
+  profile: Types.ObjectId | IUserProfile;
   lawyerServiceMap: ILawyerServiceMap & { addressInfo: IAddressInfo };
   companyInfo?: ICompanyProfile;
   email_step: number;
