@@ -15,6 +15,18 @@ export const EMAIL_TEMPLATE_KEYS = {
     REQUEST_LAWYER_AS_FIRM_MEMBER: 'request_lawyer_as_firm_member',
     FIRM_REGISTRATION: 'firm_registration',
     NEW_CLAIM_NOTIFICATION: 'new_claim_notification',
+    TUTORIAL_SYSTEM: 'tutorial_system',
+    COMPLETE_PROFILE: 'complete_profile',
+    COMPLETE_PROFILE_REMINDER: 'complete_profile_reminder',
+    HOW_TO_BID: 'how_to_bid',
+    BUY_CREDIT: 'buy_credit',
+    WIN_JOB: 'win_job',
+    SUBSCRIPTION_BENEFITS: 'subscription_benefits',
+    ELITE_PRO: 'elite_pro',
+    INVOICE_DUE_21: 'invoice_due_21',
+    INVOICE_DUE_30: 'invoice_due_30',
+    HOW_TO_POST_CASE: 'how_to_post_case',
+    SUBSCRIPTION_CONFIRMED: 'subscription_confirmed',
 } as const;
 
 export const EMAIL_TEMPLATES = [
@@ -97,6 +109,66 @@ export const EMAIL_TEMPLATES = [
         key: EMAIL_TEMPLATE_KEYS.NEW_CLAIM_NOTIFICATION,
         label: 'New Claim Notification',
         variables: ['adminName', 'claimId', 'lawFirmName', 'claimerName', 'issueDescription'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM,
+        label: 'Tutorial System',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE,
+        label: 'Complete Profile',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER,
+        label: 'Complete Profile Reminder',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.HOW_TO_BID,
+        label: 'How to Bid',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.BUY_CREDIT,
+        label: 'Buy Credit',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.WIN_JOB,
+        label: 'Win Job',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS,
+        label: 'Subscription Benefits',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.ELITE_PRO,
+        label: 'Elite Pro',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.INVOICE_DUE_21,
+        label: 'Invoice Due 21 Days',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.INVOICE_DUE_30,
+        label: 'Invoice Due 30 Days',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.HOW_TO_POST_CASE,
+        label: 'How to Post Case',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CONFIRMED,
+        label: 'Subscription Confirmed',
+        variables: ['name', 'planName', 'dashboardUrl'],
     },
 ];
 
