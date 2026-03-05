@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
-import config from "../app/config";
+
 import { sendEmail } from "../app/emails/email.service";
 import { AppSettings } from "../app/module/Settings/settings.model";
+import config from "../app/config";
 
 /**
  * Script for testing the email sending system.
