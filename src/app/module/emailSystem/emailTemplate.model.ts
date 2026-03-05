@@ -17,7 +17,7 @@ const emailTemplateSchema = new Schema<IEmailTemplate>(
             lowercase: true,
             trim: true,
         },
-        templateType: {
+        target: {
             type: String,
             enum: ['client', 'lawyer', 'firm'],
             required: true,
