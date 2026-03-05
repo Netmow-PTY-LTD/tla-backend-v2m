@@ -6,12 +6,16 @@ import { EmailQueue } from './emailQueue.model';
 
 // Lawer flow configuration
 const lawyerFlow = [
-    { step: 1, templateKey: 'complete_profile', delayMs: 6 * 60 * 60 * 1000 }, // 6 hours
-    { step: 2, templateKey: 'how_to_bid', delayMs: 12 * 60 * 60 * 1000 }, // 12 hours
-    { step: 3, templateKey: 'buy_credit', delayMs: 24 * 60 * 60 * 1000 }, // 1 day
-    { step: 4, templateKey: 'win_job', delayMs: 2 * 24 * 60 * 60 * 1000 }, // 2 days
-    { step: 5, templateKey: 'subscription_benefits', delayMs: 3 * 24 * 60 * 60 * 1000 }, // 3 days
-    { step: 6, templateKey: 'elite_pro', delayMs: 5 * 24 * 60 * 60 * 1000 }, // 5 days
+    { step: 1, templateKey: 'tutorial_system', delayMs: 1 * 60 * 60 * 1000 }, // 1 hour after registration
+    { step: 2, templateKey: 'complete_profile', delayMs: 5 * 60 * 60 * 1000 }, // 6 hours total
+    { step: 3, templateKey: 'complete_profile_reminder', delayMs: 18 * 60 * 60 * 1000 }, // 24 hours total
+    { step: 4, templateKey: 'how_to_bid', delayMs: 24 * 60 * 60 * 1000 },
+    { step: 5, templateKey: 'buy_credit', delayMs: 24 * 60 * 60 * 1000 },
+    { step: 6, templateKey: 'win_job', delayMs: 24 * 60 * 60 * 1000 },
+    { step: 7, templateKey: 'subscription_benefits', delayMs: 2 * 24 * 60 * 60 * 1000 },
+    { step: 8, templateKey: 'elite_pro', delayMs: 3 * 24 * 60 * 60 * 1000 },
+    { step: 9, templateKey: 'invoice_due_21', delayMs: 11 * 24 * 60 * 60 * 1000 }, // ~21 days after reg
+    { step: 10, templateKey: 'invoice_due_30', delayMs: 9 * 24 * 60 * 60 * 1000 }, // ~30 days after reg
 ];
 
 // Client flow configuration
@@ -34,7 +38,10 @@ export const emailFlowService = {
         if (!profile) return false;
 
         switch (templateKey) {
+            case 'tutorial_system':
+                return false; // Always send
             case 'complete_profile':
+            case 'complete_profile_reminder':
                 return !!(profile.bio || profile.profilePicture || (profile.serviceIds && profile.serviceIds.length > 0));
             case 'how_to_bid':
                 return (profile.responseCases || 0) > 0;
@@ -48,6 +55,9 @@ export const emailFlowService = {
                 return !!profile.isElitePro;
             case 'how_to_post_case':
                 return (profile.totalCases || 0) > 0;
+            case 'invoice_due_21':
+            case 'invoice_due_30':
+                return false; // Always send based on time
             default:
                 return false;
         }
@@ -69,6 +79,27 @@ export const emailFlowService = {
             next_email_at: null,
         };
     },
+
+    /**
+     * Transactional Email: Subscription Confirmed
+     * Trigger this manually from the payment/subscription service.
+     */
+    sendSubscriptionConfirmation: async (userId: string, planName: string) => {
+        const user = await User.findById(userId);
+        if (!user) return;
+
+        console.log(`Scheduling confirmation for plan: ${planName}`);
+
+        await EmailQueue.create({
+            userId: user._id,
+            email: user.email,
+            templateKey: 'subscription_confirmed',
+            scheduledAt: new Date(),
+            status: 'pending',
+        });
+    },
+
+
 
     processScheduledEmails: async () => {
         const now = new Date();
