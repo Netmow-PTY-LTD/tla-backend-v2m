@@ -5,13 +5,12 @@ import { EmailQueue } from './emailQueue.model';
 // Lawer flow configuration
 const lawyerFlow = [
     { step: 1, templateKey: 'welcome', delayMs: 0 },
-    { step: 2, templateKey: 'thank_you', delayMs: 60 * 60 * 1000 }, // 1 hour
-    { step: 3, templateKey: 'complete_profile', delayMs: 6 * 60 * 60 * 1000 }, // 6 hours
-    { step: 4, templateKey: 'how_to_bid', delayMs: 12 * 60 * 60 * 1000 }, // 12 hours
-    { step: 5, templateKey: 'buy_credit', delayMs: 24 * 60 * 60 * 1000 }, // 1 day
-    { step: 6, templateKey: 'win_job', delayMs: 2 * 24 * 60 * 60 * 1000 }, // 2 days
-    { step: 7, templateKey: 'subscription_benefits', delayMs: 3 * 24 * 60 * 1000 }, // 3 days
-    { step: 8, templateKey: 'elite_pro', delayMs: 5 * 24 * 60 * 1000 }, // 5 days
+    { step: 2, templateKey: 'complete_profile', delayMs: 6 * 60 * 60 * 1000 }, // 6 hours // if users activated account but did not yet complete profile.
+    { step: 3, templateKey: 'how_to_bid', delayMs: 12 * 60 * 60 * 1000 }, // 12 hours // if users completed profile but did not yet bid.
+    { step: 4, templateKey: 'buy_credit', delayMs: 24 * 60 * 60 * 1000 }, // 1 day  // if users completed profile but did not yet buy credit.
+    { step: 5, templateKey: 'win_job', delayMs: 2 * 24 * 60 * 60 * 1000 }, // 2 days   // if users completed profile but did not yet win job.
+    { step: 6, templateKey: 'subscription_benefits', delayMs: 3 * 24 * 60 * 1000 }, // 3 days // if users completed profile but did not yet subscribe.
+    { step: 7, templateKey: 'elite_pro', delayMs: 5 * 24 * 60 * 1000 }, // 5 days // if users completed profile but did not yet subscribe to Elite Pro.
 ];
 
 // Client flow configuration (generic placeholder if not specified)
