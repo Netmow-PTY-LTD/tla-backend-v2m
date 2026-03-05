@@ -1,11 +1,9 @@
 import cron from 'node-cron';
 import { EmailQueue } from '../module/Email/emailQueue.model';
-import { EmailTemplate } from '../module/emailSystem/emailTemplate.model';
 import { User } from '../module/Auth/auth.model';
 import { IUser } from '../module/Auth/auth.interface';
 import { IUserProfile } from '../module/User/user.interface';
-import { IEmailTemplate } from '../module/emailSystem/emailTemplate.interface';
-import { emailService } from '../services/emailService';
+import { sendEmail } from '../emails/email.service';
 
 // To prevent overlapping runs
 let isProcessing = false;
@@ -45,20 +43,14 @@ export const startEmailWorker = () => {
             // eslint-disable-next-line no-console
             console.log(`🚀 Processing ${pendingJobs.length} emails...`);
 
-            // 1. Pre-fetch needed Users and Templates to reduce DB calls
+            // 1. Pre-fetch needed Users to reduce DB calls
             const userIds = [...new Set(pendingJobs.map(j => j.userId.toString()))];
-            const templateKeys = [...new Set(pendingJobs.map(j => j.templateKey))];
 
-            const [users, templates] = await Promise.all([
-                User.find({ _id: { $in: userIds } }).populate('profile'),
-                EmailTemplate.find({ templateKey: { $in: templateKeys } }),
-            ]);
+            // Only fetch active users
+            const users = await User.find({ _id: { $in: userIds } }).populate('profile');
 
             const userMap = new Map<string, IUser>();
             users.forEach(u => userMap.set(u._id!.toString(), u));
-
-            const templateMap = new Map<string, IEmailTemplate>();
-            templates.forEach(t => templateMap.set(t.templateKey, t));
 
             // 2. Process in small chunks (e.g., 5 at a time) to avoid burst-blocking Mailgun
             const chunkSize = 5;
@@ -69,10 +61,9 @@ export const startEmailWorker = () => {
                     chunk.map(async job => {
                         try {
                             const user = userMap.get(job.userId.toString());
-                            const template = templateMap.get(job.templateKey);
 
-                            if (!user || !template) {
-                                console.warn(`Missing data for job ${job._id}: User Found: ${!!user}, Template Found: ${!!template}`);
+                            if (!user) {
+                                console.warn(`Missing User for job ${job._id}: User Found: ${!!user}`);
                                 await EmailQueue.findByIdAndUpdate(job._id, {
                                     status: 'failed',
                                     retryCount: (job.retryCount || 0) + 1,
@@ -85,14 +76,17 @@ export const startEmailWorker = () => {
                             const variableData = {
                                 name: profileInfo?.name || 'User',
                                 email: user.email,
+                                to: user.email,
                                 // Add more personalized fields if needed
                             };
 
-                            // Send email
-                            await emailService.sendEmail({
+                            // Send email using the unified sendEmail service
+                            // This service fetches the template, interpolates, and adds layout automatically
+                            await sendEmail({
                                 to: job.email,
-                                subject: emailService.replaceVariables(template.subject, variableData),
-                                html: emailService.replaceVariables(template.body, variableData),
+                                subject: '', // Service will fetch subject from template based on key
+                                data: variableData,
+                                emailTemplate: job.templateKey,
                             });
 
                             // Update job status
