@@ -1,20 +1,32 @@
-import cron from 'node-cron';
+import { Worker } from 'bullmq';
+import { redisConnection } from '../config/bullmq.config';
 import { emailFlowService } from '../module/Email/email.service';
+import { EMAIL_SCHEDULER_QUEUE_NAME } from '../module/Email/email.queue';
 
 /**
- * Email Scheduler Cron Job
- * Logic: Every 1 minute, find users who need their next email sent.
- * It will determine the template, insert into the queue, and update user flow progress.
+ * Email Scheduler Worker (BullMQ version of Cron)
+ * Logic: Triggered by a repeatable jobEvery 1 minute, finds users who need their next email sent.
  */
 export const startEmailSchedulerCron = () => {
-    // Run every 1 minute
-    cron.schedule('* * * * *', async () => {
-        try {
-            console.log('🔄 Running Email Scheduler Cron...');
-            await emailFlowService.processScheduledEmails();
-            console.log('✅ Email Scheduler Cron completed successfully.');
-        } catch (error) {
-            console.error('❌ Error in Email Scheduler Cron:', error);
-        }
+    const worker = new Worker(
+        EMAIL_SCHEDULER_QUEUE_NAME,
+        async () => {
+            try {
+                console.log('🔄 BullMQ Scheduler: Processing pending email flows...');
+                await emailFlowService.processScheduledEmails();
+                console.log('✅ BullMQ Scheduler: Processing completed.');
+            } catch (error) {
+                console.error('❌ BullMQ Scheduler Error:', error);
+                throw error;
+            }
+        },
+        { connection: redisConnection }
+    );
+
+    worker.on('failed', (job, err) => {
+        console.error(`❌ Scheduler Job ${job?.id} failed:`, err);
     });
+
+    console.log('🕒 BullMQ Email Scheduler Worker started.');
+    return worker;
 };

@@ -1,121 +1,98 @@
-import cron from 'node-cron';
+import { Worker, Job } from 'bullmq';
+import { redisConnection } from '../config/bullmq.config';
 import { EmailQueue } from '../module/Email/emailQueue.model';
 import { User } from '../module/Auth/auth.model';
-import { IUser } from '../module/Auth/auth.interface';
 import { IUserProfile } from '../module/User/user.interface';
 import { sendEmail } from '../emails/email.service';
 import { USER_STATUS } from '../module/Auth/auth.constant';
-
-// To prevent overlapping runs
-let isProcessing = false;
+import { EMAIL_QUEUE_NAME } from '../module/Email/email.queue';
 
 /**
- * Worker to process pending emails in the queue
- * Logic: Every 1 minute, process up to 50 pending email jobs.
+ * Worker to process email jobs from BullMQ
  */
 export const startEmailWorker = () => {
-    // Run every minute
-    cron.schedule('* * * * *', async () => {
-        if (isProcessing) {
-            // eslint-disable-next-line no-console
-            console.log('🔄 Email Worker is already busy. Skipping this cycle.');
-            return;
-        }
+    const worker = new Worker(
+        EMAIL_QUEUE_NAME,
+        async (job: Job) => {
+            const { mongoJobId, userId, email, templateKey, data: extraData } = job.data;
 
-        isProcessing = true;
-        try {
-            // eslint-disable-next-line no-console
-            console.log('📬 Checking for pending emails...');
+            try {
+                // eslint-disable-next-line no-console
+                console.log(`🚀 Processing BullMQ job ${job.id} for email: ${email}`);
 
-            const now = new Date();
-            // Find up to 50 pending emails that are due
-            const pendingJobs = await EmailQueue.find({
-                status: 'pending',
-                scheduledAt: { $lte: now },
-            })
-                .limit(50)
-                .sort({ scheduledAt: 1 });
+                // 1. Fetch User and check status
+                const user = await User.findById(userId).populate('profile');
 
-            if (pendingJobs.length === 0) {
-                isProcessing = false;
-                return;
-            }
+                if (!user || user.accountStatus !== USER_STATUS.APPROVED) {
+                    const reason = !user ? 'User not found' : 'User not approved';
+                    console.warn(`Skipping job ${job.id}: ${reason}.`);
 
-            // eslint-disable-next-line no-console
-            console.log(`🚀 Processing ${pendingJobs.length} emails...`);
-
-            // 1. Pre-fetch needed Users to reduce DB calls
-            const userIds = [...new Set(pendingJobs.map(j => j.userId.toString()))];
-
-            // Only fetch approved users
-            const users = await User.find({ _id: { $in: userIds }, accountStatus: USER_STATUS.APPROVED }).populate('profile');
-
-            const userMap = new Map<string, IUser>();
-            users.forEach(u => userMap.set(u._id!.toString(), u));
-
-            // 2. Process in small chunks (e.g., 5 at a time) to avoid burst-blocking Mailgun
-            const chunkSize = 5;
-            for (let i = 0; i < pendingJobs.length; i += chunkSize) {
-                const chunk = pendingJobs.slice(i, i + chunkSize);
-
-                await Promise.allSettled(
-                    chunk.map(async job => {
-                        try {
-                            const user = userMap.get(job.userId.toString());
-
-                            if (!user) {
-                                console.warn(`Skipping job ${job._id}: User not found or not approved.`);
-                                await EmailQueue.findByIdAndUpdate(job._id, {
-                                    status: 'failed',
-                                    retryCount: (job.retryCount || 0) + 1,
-                                });
-                                return;
-                            }
-
-                            // Prepare data for variables
-                            const profileInfo = user.profile as IUserProfile;
-                            const variableData = {
-                                name: profileInfo?.name || 'User',
-                                email: user.email,
-                                to: user.email,
-                                // Add more personalized fields if needed
-                            };
-
-                            // Send email using the unified sendEmail service
-                            // This service fetches the template, interpolates, and adds layout automatically
-                            await sendEmail({
-                                to: job.email,
-                                subject: '', // Service will fetch subject from template based on key
-                                data: variableData,
-                                emailTemplate: job.templateKey,
-                            });
-
-                            // Update job status
-                            await EmailQueue.findByIdAndUpdate(job._id, {
-                                status: 'sent',
-                                sentAt: new Date(),
-                            });
-                        } catch (jobError) {
-                            console.error(`❌ Error processing email job ${job._id}:`, jobError);
-                            await EmailQueue.findByIdAndUpdate(job._id, {
-                                status: 'failed',
-                                $inc: { retryCount: 1 },
-                            });
-                        }
-                    })
-                );
-
-                // Small delay between chunks to preserve system performance and avoid rate limits
-                if (i + chunkSize < pendingJobs.length) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    if (mongoJobId) {
+                        await EmailQueue.findByIdAndUpdate(mongoJobId, {
+                            status: 'failed',
+                            retryCount: job.attemptsMade + 1,
+                        });
+                    }
+                    return;
                 }
-            }
 
-            console.log('✅ Email Worker cycle completed.');
-        } catch (error) {
-            console.error('❌ Critical Error in Email Worker:', error);
-        } finally {
-            isProcessing = false;
+                // 2. Prepare data for variables
+                const profileInfo = user.profile as IUserProfile;
+                const variableData = {
+                    name: profileInfo?.name || 'User',
+                    email: user.email,
+                    to: user.email,
+                    ...(extraData || {}),
+                };
+
+                // 3. Send email using the unified sendEmail service
+                await sendEmail({
+                    to: email,
+                    subject: '', // Service will fetch subject from template based on key
+                    data: variableData,
+                    emailTemplate: templateKey,
+                });
+
+                // 4. Update MongoDB record if it exists
+                if (mongoJobId) {
+                    await EmailQueue.findByIdAndUpdate(mongoJobId, {
+                        status: 'sent',
+                        sentAt: new Date(),
+                    });
+                }
+
+                console.log(`✅ Email sent successfully for job ${job.id}`);
+            } catch (error) {
+                console.error(`❌ Error in BullMQ worker for job ${job.id}:`, error);
+
+                if (mongoJobId) {
+                    await EmailQueue.findByIdAndUpdate(mongoJobId, {
+                        status: 'failed',
+                        $inc: { retryCount: 1 },
+                    });
+                }
+
+                // Throwing error allows BullMQ to handle retries based on queue config
+                throw error;
+            }
+        },
+        {
+            connection: redisConnection,
+            concurrency: 5, // Process 5 emails at a time
         }
+    );
+
+    worker.on('completed', job => {
+        // eslint-disable-next-line no-console
+        console.log(`✅ Job ${job.id} completed!`);
     });
+
+    worker.on('failed', (job, err) => {
+        // eslint-disable-next-line no-console
+        console.error(`❌ Job ${job?.id} failed with ${err.message}`);
+    });
+
+    console.log('📬 BullMQ Email Worker started and listening for jobs...');
+
+    return worker;
 };

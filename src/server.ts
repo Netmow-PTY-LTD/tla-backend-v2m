@@ -25,7 +25,9 @@ async function main() {
     // Initialize Email Automation Crons and Workers
     const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
     const { startEmailWorker } = await import('./app/queues/emailWorker');
+    const { initEmailScheduler } = await import('./app/module/Email/email.queue');
 
+    await initEmailScheduler(); // Initialize the repeatable job
     startEmailSchedulerCron();
     startEmailWorker();
 
