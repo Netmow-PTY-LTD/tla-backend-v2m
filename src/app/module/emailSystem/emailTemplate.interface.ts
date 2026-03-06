@@ -10,6 +10,8 @@ export interface IEmailTemplateCategory {
 export interface IEmailTemplate {
     title: string;                  // Internal title (Admin use)
     templateKey: string;           // Unique identifier (e.g. welcome_lawyer)
+    step: number;                  // Step number (for email flow)
+    delayTime: number;
     target: 'client' | 'lawyer' | 'firm';           // Type of template (e.g. client, lawyer, firm)
     categoryId: Schema.Types.ObjectId;               // Reference to EmailTemplateCategory
     subject: string;               // Subject line (supports variables)
