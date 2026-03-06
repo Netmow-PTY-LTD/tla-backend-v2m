@@ -2,7 +2,7 @@ import config from '../../config';
 
 const appName = 'TheLawApp';
 const currentYear = new Date().getFullYear();
-const headerDesign = `<!DOCTYPE html>
+export const headerDesign = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8" />
@@ -45,7 +45,7 @@ const headerDesign = `<!DOCTYPE html>
             </td>
         </tr>`;
 
-const footerDesign = ` 
+export const footerDesign = ` 
         <tr>
       <td align="center" style="padding: 30px 20px; font-size: 12px; color: #999; background-color: #f9f9f9;">
         <hr style="border: none; height: 1px; background-color: #eee; margin-bottom: 15px;" />

@@ -35,11 +35,17 @@ import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterC
 import { marketingRouter } from '../module/marketing/marketing.route';
 import { LawyerProfileClaimRoutes } from '../module/LawyerProfileClaim/lawyerProfileClaim.route';
 import { envConfigRoutes } from '../module/EnvConfig/envConfig.route';
+import { EmailTemplateRoutes } from '../module/emailSystem/emailTemplate.route';
 import { customServiceSearchRouter } from '../module/CustomServiceSearch/customServiceSearch.route';
+import { emailCampaignRouter } from '../module/EmailCampaign/emailCampaign.routes';
 
 const router = Router();
 
 const moduleRoutes = [
+  {
+    path: '/email-templates',
+    route: EmailTemplateRoutes,
+  },
   {
     path: '/auth',
     route: authRouter,
@@ -184,6 +190,10 @@ const moduleRoutes = [
   {
     path: '/custom-service-search',
     route: customServiceSearchRouter,
+  },
+  {
+    path: '/admin/email-campaigns',
+    route: emailCampaignRouter,
   },
   {
     path: '/',
