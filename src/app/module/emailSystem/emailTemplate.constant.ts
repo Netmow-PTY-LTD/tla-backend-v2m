@@ -172,4 +172,11 @@ export const EMAIL_TEMPLATES = [
     },
 ];
 
+export const emailTemplateSearchableFields = [
+    'title',
+    'templateKey',
+    'subject',
+    'body',
+];
+
 export type TEmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[keyof typeof EMAIL_TEMPLATE_KEYS];

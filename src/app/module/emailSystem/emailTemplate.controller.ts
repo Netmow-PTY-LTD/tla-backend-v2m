@@ -20,13 +20,14 @@ const createEmailTemplate = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllEmailTemplates = catchAsync(async (req: Request, res: Response) => {
-    const result = await EmailTemplateService.getAllEmailTemplatesFromDB();
+    const result = await EmailTemplateService.getAllEmailTemplatesFromDB(req.query);
 
     sendResponse(res, {
         statusCode: HTTP_STATUS.OK,
         success: true,
         message: 'Email Templates retrieved successfully',
-        data: result,
+        pagination: result.meta,
+        data: result.result,
     });
 });
 
