@@ -74,6 +74,10 @@ async function runTest() {
             sendEmail({
                 to: email,
                 subject: `Test System Email - ${requestedTemplate}`,
+                data: {
+                    name: "Test Lawyer",
+                    paracticeArea: ['Family Law', 'Criminal Law', 'Corporate Law']
+                },
                 emailTemplate: requestedTemplate
             })
         ));
