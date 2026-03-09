@@ -108,7 +108,7 @@ app.get('/online-users', async (_req: Request, res: Response) => {
 
 
 app.get('/', (_req: Request, res: Response) => {
-  res.send('Welcome to TLA Backend  2.017');
+  res.send('Welcome to TLA Backend  2.018');
 });
 
 app.use(globalErrorHandler);
