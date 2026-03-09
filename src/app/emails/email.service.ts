@@ -51,7 +51,7 @@ export const sendEmail = async ({
     try {
       const dbTemplate = await EmailTemplateService.getEmailTemplateByTemplateKeyFromDB(emailTemplate);
       if (dbTemplate && dbTemplate.isActive) {
-        finalSubject = interpolate(dbTemplate.subject, data);
+        finalSubject = subject ? subject : interpolate(dbTemplate.subject, data);
         const interpolatedBody = interpolate(dbTemplate.body, data);
 
         // Wrap with layout if it's not a full HTML document
