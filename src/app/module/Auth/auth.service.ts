@@ -10,7 +10,7 @@ import { HTTP_STATUS } from '../../constant/httpStatus';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import UserProfile from '../User/user.model';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../Email/email.sender';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { generateOtp } from './otp.utils';
 import { IUserProfile } from '../User/user.interface';

@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
-import { transporter } from "../config/emailTranspoter";
-import { getAppSettings } from "../module/Settings/settingsConfig";
 import { firmPasswordResetEmail, firmRegisterEmail, newClaimNotificationEmail, requestlawyerAsFirmMember } from "./templates/firmTemplate";
 import { congratulationsLawyerPromotion, emailVerificationTemplate, footerDesign, headerDesign, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLawyerEmailByMarketing, welcomeLeadSubmitted } from "./templates/template";
 import { adminCampaignTemplate } from "./templates/adminCampaignTemplate";
 import { subscriptionCanceledEmail, subscriptionChangedEmail, subscriptionCreatedEmail, subscriptionExpiredEmail, subscriptionPaymentFailedEmail, subscriptionRenewalReminderEmail, subscriptionRenewedEmail } from "./templates/subscriptionTemplates";
-import { EmailTemplateService } from "../module/emailSystem/emailTemplate.service";
-import { interpolate } from "../module/emailSystem/emailTemplate.utils";
+import { EmailTemplateService } from "../emailSystem/emailTemplate.service";
+import { interpolate } from "../emailSystem/emailTemplate.utils";
+import { getAppSettings } from "../Settings/settingsConfig";
+import { transporter } from "../../config/emailTranspoter";
 
 
 interface SendEmailParams {

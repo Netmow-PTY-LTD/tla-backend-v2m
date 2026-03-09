@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { sendEmail } from "../app/emails/email.service";
+import { sendEmail } from "../app/module/Email/email.sender";
 import { AppSettings } from "../app/module/Settings/settings.model";
 import config from "../app/config";
 

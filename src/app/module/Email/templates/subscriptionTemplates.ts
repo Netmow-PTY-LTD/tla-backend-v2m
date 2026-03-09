@@ -1,4 +1,4 @@
-import config from '../../config';
+import config from '../../../config';
 
 const appName = 'TheLawApp';
 const currentYear = new Date().getFullYear();
@@ -34,7 +34,7 @@ const baseFooter = `
 </html>`;
 
 const ctaButton = (url: string, label: string) =>
-    `<tr><td align="center" style="padding:16px 0;">
+  `<tr><td align="center" style="padding:16px 0;">
     <a href="${url}" style="background:${ORANGE};color:#fff;text-decoration:none;padding:11px 24px;border-radius:6px;font-size:15px;font-weight:bold;display:inline-block;">${label}</a>
   </td></tr>`;
 
@@ -43,17 +43,17 @@ const signoff = `<tr><td style="padding:0 28px 18px;font-size:15px;color:#333;">
 </td></tr>`;
 
 export const subscriptionCreatedEmail = (data: {
-    name: string;
-    planName: string;
-    amount: string;
-    currency: string;
-    periodStart: string;
-    periodEnd: string;
-    invoicePdfUrl?: string;
-    dashboardUrl: string;
+  name: string;
+  planName: string;
+  amount: string;
+  currency: string;
+  periodStart: string;
+  periodEnd: string;
+  invoicePdfUrl?: string;
+  dashboardUrl: string;
 }) => {
-    const { name, planName, amount, currency, periodStart, periodEnd, invoicePdfUrl, dashboardUrl } = data;
-    return `${baseHeader}
+  const { name, planName, amount, currency, periodStart, periodEnd, invoicePdfUrl, dashboardUrl } = data;
+  return `${baseHeader}
   <tr><td style="padding:24px 28px 0;">
     <h2 style="margin:0 0 10px;font-size:20px;color:#333;">🎉 Subscription Activated!</h2>
     <p style="margin:0 0 8px;">Hi <strong>${name}</strong>,</p>
@@ -72,16 +72,16 @@ export const subscriptionCreatedEmail = (data: {
 };
 
 export const subscriptionRenewedEmail = (data: {
-    name: string;
-    planName: string;
-    amount: string;
-    currency: string;
-    nextRenewalDate: string;
-    invoicePdfUrl?: string;
-    dashboardUrl: string;
+  name: string;
+  planName: string;
+  amount: string;
+  currency: string;
+  nextRenewalDate: string;
+  invoicePdfUrl?: string;
+  dashboardUrl: string;
 }) => {
-    const { name, planName, amount, currency, nextRenewalDate, invoicePdfUrl, dashboardUrl } = data;
-    return `${baseHeader}
+  const { name, planName, amount, currency, nextRenewalDate, invoicePdfUrl, dashboardUrl } = data;
+  return `${baseHeader}
   <tr><td style="padding:24px 28px 0;">
     <h2 style="margin:0 0 10px;font-size:20px;color:#333;">✅ Subscription Renewed</h2>
     <p>Hi <strong>${name}</strong>,</p>
@@ -99,12 +99,12 @@ export const subscriptionRenewedEmail = (data: {
 };
 
 export const subscriptionPaymentFailedEmail = (data: {
-    name: string;
-    planName: string;
-    updatePaymentUrl: string;
+  name: string;
+  planName: string;
+  updatePaymentUrl: string;
 }) => {
-    const { name, planName, updatePaymentUrl } = data;
-    return `${baseHeader}
+  const { name, planName, updatePaymentUrl } = data;
+  return `${baseHeader}
   <tr><td style="padding:24px 28px 0;">
     <h2 style="margin:0 0 10px;font-size:20px;color:#c0392b;">⚠️ Payment Failed</h2>
     <p>Hi <strong>${name}</strong>,</p>
@@ -119,13 +119,13 @@ export const subscriptionPaymentFailedEmail = (data: {
 };
 
 export const subscriptionCanceledEmail = (data: {
-    name: string;
-    planName: string;
-    canceledAt: string;
-    reactivateUrl: string;
+  name: string;
+  planName: string;
+  canceledAt: string;
+  reactivateUrl: string;
 }) => {
-    const { name, planName, canceledAt, reactivateUrl } = data;
-    return `${baseHeader}
+  const { name, planName, canceledAt, reactivateUrl } = data;
+  return `${baseHeader}
   <tr><td style="padding:24px 28px 0;">
     <h2 style="margin:0 0 10px;font-size:20px;color:#333;">Subscription Canceled</h2>
     <p>Hi <strong>${name}</strong>,</p>
@@ -137,17 +137,17 @@ export const subscriptionCanceledEmail = (data: {
 };
 
 export const subscriptionChangedEmail = (data: {
-    name: string;
-    oldPlanName: string;
-    newPlanName: string;
-    amount: string;
-    currency: string;
-    periodStart: string;
-    periodEnd: string;
-    dashboardUrl: string;
+  name: string;
+  oldPlanName: string;
+  newPlanName: string;
+  amount: string;
+  currency: string;
+  periodStart: string;
+  periodEnd: string;
+  dashboardUrl: string;
 }) => {
-    const { name, oldPlanName, newPlanName, amount, currency, periodStart, periodEnd, dashboardUrl } = data;
-    return `${baseHeader}
+  const { name, oldPlanName, newPlanName, amount, currency, periodStart, periodEnd, dashboardUrl } = data;
+  return `${baseHeader}
   <tr><td style="padding:24px 28px 0;">
     <h2 style="margin:0 0 10px;font-size:20px;color:#333;">📦 Subscription Updated</h2>
     <p>Hi <strong>${name}</strong>,</p>
@@ -164,16 +164,16 @@ export const subscriptionChangedEmail = (data: {
 };
 
 export const subscriptionRenewalReminderEmail = (data: {
-    name: string;
-    planName: string;
-    daysLeft: number;
-    renewalDate: string;
-    amount: string;
-    currency: string;
-    dashboardUrl: string;
+  name: string;
+  planName: string;
+  daysLeft: number;
+  renewalDate: string;
+  amount: string;
+  currency: string;
+  dashboardUrl: string;
 }) => {
-    const { name, planName, daysLeft, renewalDate, amount, currency, dashboardUrl } = data;
-    return `${baseHeader}
+  const { name, planName, daysLeft, renewalDate, amount, currency, dashboardUrl } = data;
+  return `${baseHeader}
   <tr><td style="padding:24px 28px 0;">
     <h2 style="margin:0 0 10px;font-size:20px;color:#333;">🔔 Subscription Renewal Reminder</h2>
     <p>Hi <strong>${name}</strong>,</p>
@@ -186,13 +186,13 @@ export const subscriptionRenewalReminderEmail = (data: {
 };
 
 export const subscriptionExpiredEmail = (data: {
-    name: string;
-    planName: string;
-    expiredAt: string;
-    reactivateUrl: string;
+  name: string;
+  planName: string;
+  expiredAt: string;
+  reactivateUrl: string;
 }) => {
-    const { name, planName, expiredAt, reactivateUrl } = data;
-    return `${baseHeader}
+  const { name, planName, expiredAt, reactivateUrl } = data;
+  return `${baseHeader}
   <tr><td style="padding:24px 28px 0;">
     <h2 style="margin:0 0 10px;font-size:20px;color:#c0392b;">Subscription Expired</h2>
     <p>Hi <strong>${name}</strong>,</p>

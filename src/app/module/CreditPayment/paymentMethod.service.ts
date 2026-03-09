@@ -12,7 +12,7 @@ import Coupon from './coupon.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { USER_PROFILE } from '../User/user.constant';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../Email/email.sender';
 import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';

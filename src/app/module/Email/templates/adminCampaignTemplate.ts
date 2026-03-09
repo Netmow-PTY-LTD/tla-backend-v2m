@@ -1,4 +1,4 @@
-import config from '../../config';
+import config from '../../../config';
 
 const appName = 'TheLawApp';
 const currentYear = new Date().getFullYear();
@@ -37,16 +37,16 @@ const baseFooter = `
  * Flexible wrapper for admin manual email campaigns
  */
 export const adminCampaignTemplate = (data: {
-    name: string;
-    headline?: string;
-    body: string;
-    ctaLabel?: string;
-    ctaUrl?: string;
-    footerText?: string;
+  name: string;
+  headline?: string;
+  body: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  footerText?: string;
 }) => {
-    const { name, headline, body, ctaLabel, ctaUrl, footerText } = data;
+  const { name, headline, body, ctaLabel, ctaUrl, footerText } = data;
 
-    return `
+  return `
   ${baseHeader}
   <tr>
     <td style="padding:24px 28px 20px;">

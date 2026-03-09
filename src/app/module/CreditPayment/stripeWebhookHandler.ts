@@ -13,7 +13,7 @@ import { deleteCache } from '../../utils/cacheManger';
 // import CreditPackage from './creditPackage.model';
 // import Transaction from './transaction.model';
 // import config from '../../config';
-// import { sendEmail } from '../../emails/email.service';
+// import { sendEmail } from '../Email/email.sender';
 // import { IUser } from '../Auth/auth.interface';
 // import { isVerifiedLawyer } from '../User/user.utils';
 // import { USER_PROFILE } from '../User/user.constant';
