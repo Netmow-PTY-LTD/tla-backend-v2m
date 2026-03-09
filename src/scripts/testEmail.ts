@@ -79,7 +79,15 @@ async function runTest() {
                 subject: `Test System Email - ${requestedTemplate}`,
                 data: {
                     name: "Test Lawyer",
-                    practiceArea: practiceArea
+                    email: email,
+                    practiceArea: practiceArea,
+                    dashboardUrl: 'https://app.thelawapp.com.au/dashboard',
+                    verifyUrl: 'https://app.thelawapp.com.au/verify?token=test-token',
+                    resetUrl: 'https://app.thelawapp.com.au/reset-password?token=test-token',
+                    loginUrl: 'https://app.thelawapp.com.au/login',
+                    otp: '123456',
+                    expiresAt: '30 minutes',
+                    appName: 'The Law App',
                 },
                 emailTemplate: requestedTemplate
             })
