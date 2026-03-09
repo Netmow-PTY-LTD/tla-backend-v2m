@@ -69,6 +69,9 @@ async function runTest() {
         console.log(`   Template: ${requestedTemplate}`);
 
 
+        const practiceArea = ['Family Law', 'Criminal Law', 'Corporate Law'];
+
+
         // 3. Trigger sendEmail service
         const results = await Promise.all(targetEmail.map(email =>
             sendEmail({
@@ -76,7 +79,7 @@ async function runTest() {
                 subject: `Test System Email - ${requestedTemplate}`,
                 data: {
                     name: "Test Lawyer",
-                    paracticeArea: ['Family Law', 'Criminal Law', 'Corporate Law']
+                    practiceArea: practiceArea
                 },
                 emailTemplate: requestedTemplate
             })

@@ -9,16 +9,30 @@
  */
 export const interpolate = (
     template: string,
-    data: Record<string, string | number | boolean | null | undefined | string[]>
+    data: Record<string, string | number | boolean | null | undefined | string[] | unknown>
 ): string => {
     if (!template) return '';
     if (!data) return template;
 
-    return template.replace(/(\{\{|\$\{)(.+?)(\}\}|\})/g, (match, p1, p2) => {
-        const key = p2.trim();
-        const value = data[key];
-        if (value === undefined || value === null) return match;
+    let result = template;
+
+    // Replace {{key}} syntax — must close with }}
+    result = result.replace(/\{\{([^}]+)\}\}/g, (_match, key) => {
+        const trimmedKey = key.trim();
+        const value = data[trimmedKey];
+        if (value === undefined || value === null) return _match;
         if (Array.isArray(value)) return value.join(', ');
         return String(value);
     });
+
+    // Replace ${key} syntax — must close with single }
+    result = result.replace(/\$\{([^}]+)\}/g, (_match, key) => {
+        const trimmedKey = key.trim();
+        const value = data[trimmedKey];
+        if (value === undefined || value === null) return _match;
+        if (Array.isArray(value)) return value.join(', ');
+        return String(value);
+    });
+
+    return result;
 };

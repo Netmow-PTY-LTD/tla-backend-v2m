@@ -85,7 +85,7 @@ export const EMAIL_TEMPLATES = [
         label: 'Welcome – Lawyer',
         variables: [
             'name',           // lawyer full name
-            'paracticeArea',  // array / list of selected services
+            'practiceArea',  // array / list of selected services
             'dashboardUrl',   // link to lawyer dashboard
         ],
     },
@@ -96,7 +96,7 @@ export const EMAIL_TEMPLATES = [
             'name',           // lawyer full name
             'email',          // lawyer email
             'defaultPassword', // plain-text password set by marketer
-            'paracticeArea',  // array / list of selected services
+            'practiceArea',  // array / list of selected services
             'dashboardUrl',   // link to lawyer dashboard
             'appName',        // application name
         ],
