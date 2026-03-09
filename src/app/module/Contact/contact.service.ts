@@ -3,7 +3,7 @@
 
 import { Types } from 'mongoose';
 import { sendSMS } from '../../config/smsTransporter';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { logActivity } from '../Activity/logActivityLog';
 import Lead from '../Lead/lead.model';

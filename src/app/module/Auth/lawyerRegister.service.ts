@@ -13,7 +13,7 @@ import { IUser } from './auth.interface';
 import { REGISTER_USER_TYPE } from './auth.constant';
 import { createLeadService } from './lawyerRegister.utils';
 import { LocationType } from '../LeadSettings/UserWiseLocation.constant';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import Service from '../Service/service.model';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
@@ -22,8 +22,8 @@ import { ILawyerRegistrationDraft, LawyerRegistrationDraft } from './LawyerRegis
 import bcrypt from 'bcryptjs';
 import { generateOtp } from './otp.utils';
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
-import { emailFlowService } from '../Email/email.service';
-import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
+import { emailFlowService } from '../../emails/email.flow.service';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 
 
 
