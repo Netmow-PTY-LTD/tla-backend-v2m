@@ -804,14 +804,15 @@ ${footerDesign}
 
 export const welcomeLawyerEmail = (data: {
   name: string;
-  paracticeArea: string;
+  practiceArea: string | string[];
   dashboardUrl?: string;
 }) => {
   const {
     name,
-    paracticeArea,
+    practiceArea,
     dashboardUrl = `${process.env.CLIENT_SITE_URL}/dashboard`,
   } = data;
+  const practiceAreaString = Array.isArray(practiceArea) ? practiceArea.join(', ') : practiceArea;
   const appName = 'TheLawApp';
   return `
 ${headerDesign}
@@ -829,7 +830,7 @@ ${headerDesign}
                 <p style=" margin-bottom: 4px;"  > Welcome to <strong>TheLawApp!</strong> We're thrilled to have you join our growing network of legal
                 professionals.  </p>
 
-                <p style=" margin-bottom: 4px;"  >  You’ve successfully created your account as a <strong>${paracticeArea}</strong>. You can now:  </p>
+                <p style=" margin-bottom: 4px;"  >  You’ve successfully created your account as a <strong>${practiceAreaString}</strong>. You can now:  </p>
                 <ul>
                     <li>Start receiving legal inquiries</li>
                     <li>Review leads and reply directly</li>

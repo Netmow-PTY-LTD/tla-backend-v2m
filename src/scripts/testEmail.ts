@@ -69,11 +69,26 @@ async function runTest() {
         console.log(`   Template: ${requestedTemplate}`);
 
 
+        const practiceArea = ['Family Law', 'Criminal Law', 'Corporate Law'];
+
+
         // 3. Trigger sendEmail service
         const results = await Promise.all(targetEmail.map(email =>
             sendEmail({
                 to: email,
                 subject: `Test System Email - ${requestedTemplate}`,
+                data: {
+                    name: "Test Lawyer",
+                    email: email,
+                    practiceArea: practiceArea,
+                    dashboardUrl: 'https://app.thelawapp.com.au/dashboard',
+                    verifyUrl: 'https://app.thelawapp.com.au/verify?token=test-token',
+                    resetUrl: 'https://app.thelawapp.com.au/reset-password?token=test-token',
+                    loginUrl: 'https://app.thelawapp.com.au/login',
+                    otp: '123456',
+                    expiresAt: '30 minutes',
+                    appName: 'The Law App',
+                },
                 emailTemplate: requestedTemplate
             })
         ));
