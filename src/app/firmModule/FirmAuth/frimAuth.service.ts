@@ -9,7 +9,7 @@ import { FirmUser } from "./frimAuth.model";
 import { StringValue } from "ms";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { FirmProfile } from "../Firm/firm.model";
-import { sendEmail } from "../../emails/email.service";
+import { sendEmail } from "../../emails/email.sender";
 import { validateObjectId } from "../../utils/validateObjectId";
 import { generateOtpForFrim } from "./auth.utils";
 import bcrypt from 'bcryptjs';

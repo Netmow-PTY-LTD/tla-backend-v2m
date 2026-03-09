@@ -12,7 +12,7 @@ import { ActivityLog } from '../Activity/activityLog.model';
 import { createNotification } from '../Notification/notification.utils';
 import { USER_PROFILE, UserProfileEnum } from '../User/user.constant';
 import config from '../../config';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import { IUser } from '../Auth/auth.interface';
 import { logActivity } from '../Activity/logActivityLog';
 import { getIO } from '../../sockets';

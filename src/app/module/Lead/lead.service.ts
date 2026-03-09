@@ -13,7 +13,7 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import LeadResponse from '../LeadResponse/response.model';
 import Service from '../Service/service.model';
 import config from '../../config';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import { IUser } from '../Auth/auth.interface';
 import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
@@ -382,7 +382,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
 //     },
 //     { $unwind: { path: '$serviceId', preserveNullAndEmptyArrays: true } },
 
-    
+
 
 //     // Populate countryId
 //     {

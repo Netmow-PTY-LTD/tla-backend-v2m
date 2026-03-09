@@ -15,7 +15,7 @@ import Lead from '../Lead/lead.model';
 import { LeadServiceAnswer } from '../Lead/leadServiceAnswer.model';
 import { Types } from 'mongoose';
 import { REGISTER_USER_TYPE } from './auth.constant';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import Service from '../Service/service.model';
 import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
 import Option from '../Option/option.model';

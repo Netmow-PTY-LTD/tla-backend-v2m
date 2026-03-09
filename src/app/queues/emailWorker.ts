@@ -3,7 +3,7 @@ import { redisConnection } from '../config/bullmq.config';
 import { EmailQueue } from './emailQueue.model';
 import { User } from '../module/Auth/auth.model';
 import { IUserProfile } from '../module/User/user.interface';
-import { sendEmail } from '../emails/email.service';
+import { sendEmail } from '../emails/email.sender';
 import { USER_STATUS } from '../module/Auth/auth.constant';
 import { EMAIL_QUEUE_NAME } from './email.queue';
 
