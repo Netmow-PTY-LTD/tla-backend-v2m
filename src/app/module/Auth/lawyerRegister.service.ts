@@ -23,7 +23,7 @@ import bcrypt from 'bcryptjs';
 import { generateOtp } from './otp.utils';
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 import { emailFlowService } from '../../emails/email.flow.service';
-import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 
 
 

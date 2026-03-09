@@ -7,8 +7,8 @@ import { firmPasswordResetEmail, firmRegisterEmail, newClaimNotificationEmail, r
 import { congratulationsLawyerPromotion, emailVerificationTemplate, footerDesign, headerDesign, interactionEmail, lawyerApprval, newLeadAlertToLawyer, otpEmail, passwordResetEmail, publicContactEmail, welcomeClientEmail, welcomeLawyerEmail, welcomeLawyerEmailByMarketing, welcomeLeadSubmitted } from "./templates/template";
 import { adminCampaignTemplate } from "./templates/adminCampaignTemplate";
 import { subscriptionCanceledEmail, subscriptionChangedEmail, subscriptionCreatedEmail, subscriptionExpiredEmail, subscriptionPaymentFailedEmail, subscriptionRenewalReminderEmail, subscriptionRenewedEmail } from "./templates/subscriptionTemplates";
-import { EmailTemplateService } from "../module/emailSystem/emailTemplate.service";
-import { interpolate } from "../module/emailSystem/emailTemplate.utils";
+import { EmailTemplateService } from "../module/emailTemplateSystem/emailTemplate.service";
+import { interpolate } from "../module/emailTemplateSystem/emailTemplate.utils";
 
 
 interface SendEmailParams {

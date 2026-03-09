@@ -1,9 +1,9 @@
 import { IUser } from '../module/Auth/auth.interface';
 import { User } from '../module/Auth/auth.model';
-import { EmailTemplate } from '../module/emailSystem/emailTemplate.model';
+import { EmailTemplate } from '../module/emailTemplateSystem/emailTemplate.model';
 import { IUserProfile } from '../module/User/user.interface';
 import { EmailQueue } from '../queues/emailQueue.model';
-import { EMAIL_TEMPLATE_KEYS } from '../module/emailSystem/emailTemplate.constant';
+import { EMAIL_TEMPLATE_KEYS } from '../module/emailTemplateSystem/emailTemplate.constant';
 import { USER_STATUS } from '../module/Auth/auth.constant';
 import { addEmailToQueue } from '../queues/email.queue';
 

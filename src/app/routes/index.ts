@@ -35,7 +35,7 @@ import { headerFooterCodeRoutes } from '../module/headerFooterCode/headerFooterC
 import { marketingRouter } from '../module/marketing/marketing.route';
 import { LawyerProfileClaimRoutes } from '../module/LawyerProfileClaim/lawyerProfileClaim.route';
 import { envConfigRoutes } from '../module/EnvConfig/envConfig.route';
-import { EmailTemplateRoutes } from '../module/emailSystem/emailTemplate.route';
+import { EmailTemplateRoutes } from '../module/emailTemplateSystem/emailTemplate.route';
 import { customServiceSearchRouter } from '../module/CustomServiceSearch/customServiceSearch.route';
 import { emailCampaignRouter } from '../module/EmailCampaign/emailCampaign.routes';
 
