@@ -22,7 +22,7 @@ import { ILawyerRegistrationDraft, LawyerRegistrationDraft } from './LawyerRegis
 import bcrypt from 'bcryptjs';
 import { generateOtp } from './otp.utils';
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
-import { emailFlowService } from '../Email/email.service';
+import { emailFlowService } from '../Email/email.flow.service';
 import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
 
 
