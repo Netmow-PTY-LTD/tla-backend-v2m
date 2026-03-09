@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { redisConnection } from '../../config/bullmq.config';
+import { redisConnection } from '../config/bullmq.config';
 
 export const EMAIL_QUEUE_NAME = 'email-queue';
 

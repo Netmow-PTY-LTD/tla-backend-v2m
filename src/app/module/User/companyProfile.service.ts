@@ -13,7 +13,7 @@ import { Types } from 'mongoose';
 import { FOLDERS } from '../../constant';
 import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import config from '../../config';
 
 const updateCompanyProfileIntoDB = async (

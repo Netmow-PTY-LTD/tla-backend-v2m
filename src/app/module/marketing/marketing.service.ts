@@ -13,7 +13,7 @@ import { UserLocationServiceMap } from "../UserLocationServiceMap/UserLocationSe
 import { createLeadService, updateLeadService } from "../Auth/lawyerRegister.utils";
 import Service from "../Service/service.model";
 import config from "../../config";
-import { sendEmail } from "../../emails/email.service";
+import { sendEmail } from "../../emails/email.sender";
 import { createToken } from "../Auth/auth.utils";
 import { StringValue } from "ms";
 import FirmUser from "../../firmModule/FirmAuth/frimAuth.model";

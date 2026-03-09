@@ -1,11 +1,11 @@
-import { IUser } from '../Auth/auth.interface';
-import { User } from '../Auth/auth.model';
-import { EmailTemplate } from '../emailSystem/emailTemplate.model';
-import { IUserProfile } from '../User/user.interface';
-import { EmailQueue } from './emailQueue.model';
-import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
-import { USER_STATUS } from '../Auth/auth.constant';
-import { addEmailToQueue } from './email.queue';
+import { IUser } from '../module/Auth/auth.interface';
+import { User } from '../module/Auth/auth.model';
+import { EmailTemplate } from '../module/emailTemplateSystem/emailTemplate.model';
+import { IUserProfile } from '../module/User/user.interface';
+import { EmailQueue } from '../queues/emailQueue.model';
+import { EMAIL_TEMPLATE_KEYS } from '../module/emailTemplateSystem/emailTemplate.constant';
+import { USER_STATUS } from '../module/Auth/auth.constant';
+import { addEmailToQueue } from '../queues/email.queue';
 
 // Lawer flow configuration
 const lawyerFlow = [
