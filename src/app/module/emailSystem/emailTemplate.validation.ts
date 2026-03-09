@@ -10,7 +10,7 @@ const createEmailTemplateValidationSchema = z.object({
         }),
         step: z.number().optional(),
         delayTime: z.number().optional(),
-        target: z.enum(['client', 'lawyer', 'firm']).optional(),
+        target: z.enum(['client', 'lawyer', 'firm', 'generic']).optional(),
         categoryId: z.string({
             required_error: 'Category ID is required',
         }),
@@ -31,7 +31,7 @@ const updateEmailTemplateValidationSchema = z.object({
         templateKey: z.string().optional(),
         step: z.number().optional(),
         delayTime: z.number().optional(),
-        target: z.enum(['client', 'lawyer', 'firm']).optional(),
+        target: z.enum(['client', 'lawyer', 'firm', 'generic']).optional(),
         categoryId: z.string().optional(),
         subject: z.string().optional(),
         body: z.string().optional(),

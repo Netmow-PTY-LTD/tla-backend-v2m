@@ -58,7 +58,7 @@ const emailTemplateSchema = new Schema<IEmailTemplate>(
         },
         target: {
             type: String,
-            enum: ['client', 'lawyer', 'firm'],
+            enum: ['generic', 'client', 'lawyer', 'firm'],
             required: true,
         },
         categoryId: {
