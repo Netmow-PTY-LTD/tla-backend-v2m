@@ -26,7 +26,7 @@ import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 import { generateOtp } from './otp.utils';
 import bcrypt from 'bcryptjs';
 import CustomServiceSearch from '../CustomServiceSearch/customServiceSearch.model';
-import { emailFlowService } from '../Email/email.flow.service';
+import { emailFlowService } from '../../emails/email.flow.service';
 import { EMAIL_TEMPLATE_KEYS } from '../emailSystem/emailTemplate.constant';
 
 

@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { emailFlowService } from '../module/Email/email.flow.service';
+import { emailFlowService } from '../emails/email.flow.service';
 
 /**
  * Email Scheduler Cron
