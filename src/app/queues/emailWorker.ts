@@ -20,11 +20,24 @@ export const startEmailWorker = () => {
                 // eslint-disable-next-line no-console
                 console.log(`🚀 Processing BullMQ job ${job.id} for email: ${email}`);
 
-                // 1. Fetch User and check status
+                // 1. Deduplication guard — skip if this email was already sent
+                if (mongoJobId) {
+                    const existingRecord = await EmailQueue.findById(mongoJobId);
+                    if (existingRecord?.status === 'sent') {
+                        // eslint-disable-next-line no-console
+                        console.warn(
+                            `⚠️ Skipping job ${job.id}: email "${templateKey}" already sent to user ${userId}. (EmailQueue status: sent)`
+                        );
+                        return;
+                    }
+                }
+
+                // 2. Fetch User and check status
                 const user = await User.findById(userId).populate('profile');
 
                 if (!user || user.accountStatus !== USER_STATUS.APPROVED) {
                     const reason = !user ? 'User not found' : 'User not approved';
+                    // eslint-disable-next-line no-console
                     console.warn(`Skipping job ${job.id}: ${reason}.`);
 
                     if (mongoJobId) {
@@ -36,7 +49,7 @@ export const startEmailWorker = () => {
                     return;
                 }
 
-                // 2. Prepare data for variables
+                // 3. Prepare data for variables
                 const profileInfo = user.profile as IUserProfile;
                 const variableData = {
                     name: profileInfo?.name || 'User',
@@ -45,7 +58,7 @@ export const startEmailWorker = () => {
                     ...(extraData || {}),
                 };
 
-                // 3. Send email using the unified sendEmail service
+                // 4. Send email using the unified sendEmail service
                 await sendEmail({
                     to: email,
                     subject: '', // Service will fetch subject from template based on key
@@ -53,7 +66,7 @@ export const startEmailWorker = () => {
                     emailTemplate: templateKey,
                 });
 
-                // 4. Update MongoDB record if it exists
+                // 5. Update MongoDB record if it exists
                 if (mongoJobId) {
                     await EmailQueue.findByIdAndUpdate(mongoJobId, {
                         status: 'sent',
@@ -61,8 +74,10 @@ export const startEmailWorker = () => {
                     });
                 }
 
+                // eslint-disable-next-line no-console
                 console.log(`✅ Email sent successfully for job ${job.id}`);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error(`❌ Error in BullMQ worker for job ${job.id}:`, error);
 
                 if (mongoJobId) {
@@ -92,6 +107,7 @@ export const startEmailWorker = () => {
         console.error(`❌ Job ${job?.id} failed with ${err.message}`);
     });
 
+    // eslint-disable-next-line no-console
     console.log('📬 BullMQ Email Worker started and listening for jobs...');
 
     return worker;
