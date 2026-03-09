@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 import mongoose, { Types } from "mongoose";
@@ -741,6 +742,7 @@ interface SendOtpParams {
 
 
 // let otpStore: Record<string, string> = {}; // Temporary in-memory { email: otp }
+// eslint-disable-next-line prefer-const
 let otpStore: Record<
     string,
     { otp: string; expiresAt: Date }
@@ -960,6 +962,7 @@ export const updateCurrentUser = async (
 
 
         // Remove user-only fields from profile payload
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { email, password, status, ...profilePayload } = payload;
 
         // Update profile
