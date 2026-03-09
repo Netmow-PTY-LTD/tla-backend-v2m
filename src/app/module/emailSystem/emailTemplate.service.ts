@@ -1,3 +1,5 @@
+import QueryBuilder from '../../builder/QueryBuilder';
+import { emailTemplateSearchableFields } from './emailTemplate.constant';
 import { IEmailTemplate, IEmailTemplateCategory } from './emailTemplate.interface';
 import { EmailTemplate, EmailTemplateCategory } from './emailTemplate.model';
 
@@ -6,9 +8,24 @@ const createEmailTemplateIntoDB = async (payload: IEmailTemplate) => {
     return result;
 };
 
-const getAllEmailTemplatesFromDB = async () => {
-    const result = await EmailTemplate.find().populate('createdBy').populate('categoryId');
-    return result;
+const getAllEmailTemplatesFromDB = async (query: Record<string, unknown>) => {
+    const emailTemplateQuery = new QueryBuilder(
+        EmailTemplate.find().populate('createdBy').populate('categoryId'),
+        query
+    )
+        .search(emailTemplateSearchableFields)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+
+    const result = await emailTemplateQuery.modelQuery;
+    const meta = await emailTemplateQuery.countTotal();
+
+    return {
+        meta,
+        result,
+    };
 };
 
 const getSingleEmailTemplateFromDB = async (id: string) => {

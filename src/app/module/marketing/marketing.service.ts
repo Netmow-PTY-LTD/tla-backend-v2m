@@ -185,7 +185,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
 
     const services = await Service.find({ _id: { $in: serviceIds } }).select('name');
 
-    const paracticeArea = services.map((service) => service.name);
+    const practiceArea = services.map((service) => service.name);
 
 
     const commonEmailData = {
@@ -194,7 +194,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
       defaultPassword: userData.password,
       dashboardUrl: `${config.client_url}/lawyer/dashboard`,
       appName: 'TheLawApp',
-      paracticeArea
+      practiceArea
     }
 
     await sendEmail({

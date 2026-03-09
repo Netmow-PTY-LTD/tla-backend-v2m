@@ -40,12 +40,21 @@ const emailTemplateSchema = new Schema<IEmailTemplate>(
             required: true,
             trim: true,
         },
+
         templateKey: {
             type: String,
             required: true,
             unique: true,
             lowercase: true,
             trim: true,
+        },
+        step: {
+            type: Number,
+            default: 0
+        },
+        delayTime: {
+            type: Number,
+            default: 0
         },
         target: {
             type: String,
