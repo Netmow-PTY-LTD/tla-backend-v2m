@@ -12,6 +12,9 @@ async function main() {
     await mongoose.connect(config.database_url as string);
     console.log('✅ Connected to MongoDB');
 
+    const { default: seedAdminUser } = await import('./app/DB/db');
+    await seedAdminUser();
+
     // Initialize dynamic configs from database
     await envConfigLoader.initialize();
 
