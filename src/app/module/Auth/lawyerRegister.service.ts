@@ -13,7 +13,7 @@ import { IUser } from './auth.interface';
 import { REGISTER_USER_TYPE } from './auth.constant';
 import { createLeadService } from './lawyerRegister.utils';
 import { LocationType } from '../LeadSettings/UserWiseLocation.constant';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import Service from '../Service/service.model';
 import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
 import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
@@ -22,6 +22,8 @@ import { ILawyerRegistrationDraft, LawyerRegistrationDraft } from './LawyerRegis
 import bcrypt from 'bcryptjs';
 import { generateOtp } from './otp.utils';
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
+import { emailFlowService } from '../../emails/email.flow.service';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 
 
 
@@ -346,7 +348,11 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
     const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
 
     // Create the user document in the database
-    const [newUser] = await User.create([userData], { session });
+    const initialFlowData = emailFlowService.getInitialFlowData('lawyer');
+    const [newUser] = await User.create([{
+      ...userData,
+      ...initialFlowData,
+    }], { session });
     const addressInfo = lawyerServiceMap?.addressInfo
 
     let zipCode;
@@ -431,12 +437,31 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
     // lawyer service map create
 
+    // custom service create
+
+    const otherService = await Service.findOne({ $or: [{ name: "Other" }, { name: "Others" }] })
+
+
+    const withCustomService = [
+      ...(lawyerServiceMap.services || []),
+      otherService?._id,
+    ]
+      .filter(Boolean)
+      .map((id) => String(id))      // convert to string first
+      .filter((id, index, arr) => arr.indexOf(id) === index) // remove duplicates
+      .map((id) => new Types.ObjectId(id));
+
+
+
+
+
 
     if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
         zipCode: zipCode?._id,
         userProfile: newProfile._id,
+        serviceIds: withCustomService,
       };
 
       await LawyerServiceMap.create([lawyerServiceMapData], { session });
@@ -451,7 +476,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
       userProfileId: newProfile._id,
       locationGroupId: locationGroup?._id,
       locationType: LocationType.NATION_WIDE,
-      serviceIds: lawyerServiceMap.services || [],
+      serviceIds: withCustomService,
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapData], {
@@ -463,15 +488,17 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
       locationGroupId: zipCode?._id,
       locationType: LocationType.DISTANCE_WISE,
       rangeInKm: lawyerServiceMap.rangeInKm,
-      serviceIds: lawyerServiceMap.services || [],
+      serviceIds: withCustomService || [],
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapUserChoiceBase], {
       session,
     });
 
+
+
     //  Create lead service entries using session
-    await createLeadService(newUser?._id, lawyerServiceMap.services, session);
+    await createLeadService(newUser._id as Types.ObjectId, withCustomService, session);
 
     // ----------------------  send email  -----------------------------------------------
 
@@ -481,7 +508,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
 
     const services = await Service.find({ _id: { $in: serviceIds } }).select('name');
 
-    const paracticeArea = services.map((service) => service.name);
+    const practiceArea = services.map((service) => service.name);
 
 
     const commonEmailData = {
@@ -490,14 +517,14 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
       defaultPassword: userData.password,
       dashboardUrl: `${config.client_url}/lawyer/dashboard`,
       appName: 'TheLawApp',
-      paracticeArea
+      practiceArea
     }
 
     await sendEmail({
       to: newUser.email,
       subject: 'Thank you for registering as a lawyer',
       data: commonEmailData,
-      emailTemplate: "welcome_to_lawyer",
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_TO_LAWYER,
     });
 
 
@@ -562,7 +589,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
             role: 'Lawyer',
             requestUrl: `${config.firm_client_url}/dashboard/requests`
           },
-          emailTemplate: 'request_lawyer_as_firm_member',
+          emailTemplate: EMAIL_TEMPLATE_KEYS.REQUEST_LAWYER_AS_FIRM_MEMBER,
         });
 
       }
@@ -632,7 +659,7 @@ const lawyerRegistrationDraftInDB = async (payload: ILawyerRegistrationDraft) =>
       verifyUrl: verifyUrl,
       role: 'Lawyer',
     },
-    emailTemplate: 'verify_email',
+    emailTemplate: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
   });
 
   return result;

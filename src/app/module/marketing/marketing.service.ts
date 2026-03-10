@@ -13,7 +13,7 @@ import { UserLocationServiceMap } from "../UserLocationServiceMap/UserLocationSe
 import { createLeadService, updateLeadService } from "../Auth/lawyerRegister.utils";
 import Service from "../Service/service.model";
 import config from "../../config";
-import { sendEmail } from "../../emails/email.service";
+import { sendEmail } from "../../emails/email.sender";
 import { createToken } from "../Auth/auth.utils";
 import { StringValue } from "ms";
 import FirmUser from "../../firmModule/FirmAuth/frimAuth.model";
@@ -83,7 +83,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
       address: zipCode?.zipcode,
       zipCode: zipCode?._id,
       lawyerContactEmail: newUser?.email,
-       bio:`<p>This is a sample profile description showing how your professional biography will appear on TheLawApp.</p><p>This section allows legal professionals to introduce their background, experience, and approach to client service. A clear and professional profile helps clients understand what to expect when seeking legal assistance and builds confidence before making contact.</p><p>Use this space to outline your qualifications, areas of experience, and how you support clients throughout the legal process. Clear communication, transparency, and professionalism are key to building trust.</p><p>Once updated, this demo content will be replaced by your own profile description and displayed publicly on your TheLawApp profile.</p><p>(This is placeholder text. Please replace it with your own professional biography.)</p>`
+      bio: `<p>This is a sample profile description showing how your professional biography will appear on TheLawApp.</p><p>This section allows legal professionals to introduce their background, experience, and approach to client service. A clear and professional profile helps clients understand what to expect when seeking legal assistance and builds confidence before making contact.</p><p>Use this space to outline your qualifications, areas of experience, and how you support clients throughout the legal process. Clear communication, transparency, and professionalism are key to building trust.</p><p>Once updated, this demo content will be replaced by your own profile description and displayed publicly on your TheLawApp profile.</p><p>(This is placeholder text. Please replace it with your own professional biography.)</p>`
     };
 
     // Create the user profile document in the database
@@ -117,11 +117,30 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
     // lawyer service map create
 
 
+    // custom service create
+
+    const otherService = await Service.findOne({ $or: [{ name: "Other" }, { name: "Others" }] })
+
+
+    const withCustomService = [
+      ...(lawyerServiceMap.services || []),
+      otherService?._id,
+    ]
+      .filter(Boolean)
+      .map((id) => String(id))      // convert to string first
+      .filter((id, index, arr) => arr.indexOf(id) === index) // remove duplicates
+      .map((id) => new Types.ObjectId(id));
+
+
+
+
+
     if (newUser.regUserType === REGISTER_USER_TYPE.LAWYER) {
       const lawyerServiceMapData = {
         ...lawyerServiceMap,
         zipCode: zipCode?._id,
         userProfile: newProfile._id,
+        services: withCustomService,
       };
 
       await LawyerServiceMap.create([lawyerServiceMapData], { session });
@@ -136,7 +155,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
       userProfileId: newProfile._id,
       locationGroupId: locationGroup?._id,
       locationType: LocationType.NATION_WIDE,
-      serviceIds: lawyerServiceMap.services || [],
+      serviceIds: withCustomService || [],
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapData], {
@@ -148,7 +167,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
       locationGroupId: zipCode?._id,
       locationType: LocationType.DISTANCE_WISE,
       rangeInKm: lawyerServiceMap.rangeInKm,
-      serviceIds: lawyerServiceMap.services || [],
+      serviceIds: withCustomService || [],
     };
 
     await UserLocationServiceMap.create([userLocationServiceMapUserChoiceBase], {
@@ -156,17 +175,17 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
     });
 
     //  Create lead service entries using session
-    await createLeadService(newUser?._id, lawyerServiceMap.services, session);
+    await createLeadService(newUser?._id, withCustomService, session);
 
     // ----------------------  send email  -----------------------------------------------
 
-    const serviceIds = lawyerServiceMap.services.map((id) =>
+    const serviceIds = withCustomService.map((id) =>
       new mongoose.Types.ObjectId(id)
     );
 
     const services = await Service.find({ _id: { $in: serviceIds } }).select('name');
 
-    const paracticeArea = services.map((service) => service.name);
+    const practiceArea = services.map((service) => service.name);
 
 
     const commonEmailData = {
@@ -175,7 +194,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
       defaultPassword: userData.password,
       dashboardUrl: `${config.client_url}/lawyer/dashboard`,
       appName: 'TheLawApp',
-      paracticeArea
+      practiceArea
     }
 
     await sendEmail({
@@ -288,7 +307,7 @@ const updateLawyerIntoDB = async (currentUserId: string, id: string, payload: IU
 
     // Update Profile
     if (profile) {
-      await UserProfile.findOneAndUpdate({ user: id }, { ...profile, phone:userData.phone, updatedBy: currentUserId }, { session, new: true });
+      await UserProfile.findOneAndUpdate({ user: id }, { ...profile, phone: userData.phone, updatedBy: currentUserId }, { session, new: true });
     }
 
     // Update LawyerServiceMap and Address
@@ -341,7 +360,7 @@ const updateLawyerIntoDB = async (currentUserId: string, id: string, payload: IU
         lawyerServiceMapData.zipCode = zipCode._id;
       }
 
-   await LawyerServiceMap.findOneAndUpdate(
+      await LawyerServiceMap.findOneAndUpdate(
         { userProfile: user.profile },
         {
           ...lawyerServiceMapData, updatedBy: currentUserId

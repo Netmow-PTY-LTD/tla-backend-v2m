@@ -13,7 +13,7 @@ import { Types } from 'mongoose';
 import { FOLDERS } from '../../constant';
 import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import config from '../../config';
 
 const updateCompanyProfileIntoDB = async (
@@ -151,6 +151,7 @@ export const firmRequestAsMember = async (
 
     //  Step 3: Update user profile to mark request flag
     userProfile.isFirmMemberRequest = true;
+    userProfile.isFirmMemberRequestRejected = false;
     userProfile.activeFirmRequestId = newRequest._id as Types.ObjectId;
     await userProfile.save({ session });
 

@@ -17,6 +17,12 @@ router.get("/dashboard/chart", auth(USER_ROLE.ADMIN), adminController.getAdminDa
 router.get("/dashboard/stats", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardStats);
 router.get("/dashboard/bar-chart", auth(USER_ROLE.ADMIN), adminController.getAdminDashboardBarChart);
 
+// Custom service search: all standalone search logs (paginated + top terms)
+router.get("/custom-service-searches", auth(USER_ROLE.ADMIN), adminController.getCustomServiceSearches);
+
+// Custom service search: registration drafts that contain a customService value
+router.get("/custom-service-drafts", auth(USER_ROLE.ADMIN), adminController.getCustomServiceDrafts);
+
 
 
 

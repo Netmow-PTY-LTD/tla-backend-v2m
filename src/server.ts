@@ -12,11 +12,25 @@ async function main() {
     await mongoose.connect(config.database_url as string);
     console.log('✅ Connected to MongoDB');
 
-    // ADD THIS LINE: Initialize dynamic configs
+    const { default: seedAdminUser } = await import('./app/DB/db');
+    await seedAdminUser();
+
+    // Initialize dynamic configs from database
     await envConfigLoader.initialize();
+
+    // Re-initialize Redis with loaded configs (in case they were in the DB)
+    const { reinitRedis } = await import('./app/config/redis.config');
+    await reinitRedis();
     // Set and initialize sockets
     setSocketServerInstance(io);
     initializeSockets(io);
+
+    // Initialize Email Automation Crons and Workers
+    const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
+    const { startEmailWorker } = await import('./app/queues/emailWorker');
+
+    startEmailSchedulerCron();
+    startEmailWorker();
 
     // Start server
     // server.listen(config.port, () => {

@@ -2,11 +2,23 @@ import mongoose from 'mongoose';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { IServiceWiseQuestion } from './question.interface';
 import ServiceWiseQuestion from './question.model';
+import { redisClient } from '../../config/redis.config';
+import { CacheKeys } from '../../config/cacheKeys';
+import { HTTP_STATUS } from '../../constant/httpStatus';
+import { AppError } from '../../errors/error';
 
 const CreateServiceWiseQuestionIntoDB = async (
   payload: IServiceWiseQuestion,
 ) => {
   const result = await ServiceWiseQuestion.create(payload);
+
+
+  const serviceId = payload.serviceId.toString();
+  const countryId = payload.countryId.toString();
+
+  await redisClient.del(CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId))
+
+
   return result;
 };
 
@@ -39,13 +51,38 @@ const updateServiceWiseQuestionIntoDB = async (
       new: true,
     },
   );
+
+
+  //   invalitate cache
+
+ if (result) {
+    const serviceId = result.serviceId.toString();
+    const countryId = result.countryId.toString();
+    await redisClient.del(
+      CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId),
+    );
+  }
+
+
+
   return result;
 };
 
 const deleteServiceWiseQuestionFromDB = async (id: string) => {
   validateObjectId(id, 'Question');
 
-  const result = await ServiceWiseQuestion.findByIdAndDelete(id)
+  const question = await ServiceWiseQuestion.findById(id);
+  if (!question) {
+    throw new AppError(HTTP_STATUS.NOT_FOUND, 'Question not found');
+  }
+
+
+  const serviceId = question.serviceId.toString();
+  const countryId = question.countryId.toString();
+
+  const result = await ServiceWiseQuestion.findByIdAndDelete(id);
+
+  await redisClient.del(CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId))
 
   return result;
 };
@@ -75,6 +112,8 @@ const updateQuestionOrderIntoDB = async (
       updated: [],
     };
   }
+
+
 
   // Step 3: Check which IDs actually exist in the database
   const existingIds = await ServiceWiseQuestion.find({
@@ -113,6 +152,19 @@ const updateQuestionOrderIntoDB = async (
   const updatedDocuments = await ServiceWiseQuestion.find({
     _id: { $in: updateItems.map((item) => item._id) },
   });
+
+
+if (updatedDocuments && updatedDocuments.length > 0) {
+    for (const doc of updatedDocuments) {
+      const serviceId = doc.serviceId.toString();
+      const countryId = doc.countryId.toString();
+      await redisClient.del(
+        CacheKeys.SERVICE_WISE_QUESTION(serviceId, countryId),
+      );
+    }
+  }
+
+
 
   return updatedDocuments;
 };

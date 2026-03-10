@@ -30,6 +30,7 @@ const CreateCountryIntoDB = async (payload: ICountry) => {
 
     // Commit the transaction
     await session.commitTransaction();
+    await redisClient.del(CacheKeys.ALL_COUNTRIES());
     return createdCountry;
   } catch (error) {
     // Rollback all changes
@@ -49,7 +50,7 @@ const getAllCountryFromDB = async () => {
 
   const cachedData = await redisClient.get(CacheKeys.ALL_COUNTRIES());
   if (cachedData) {
-   
+
     return JSON.parse(cachedData);
   }
 
@@ -85,6 +86,11 @@ const updateCountryIntoDB = async (id: string, payload: Partial<ICountry>) => {
       new: true,
     },
   );
+
+  if (result) {
+    await redisClient.del(CacheKeys.ALL_COUNTRIES());
+  }
+
   return result;
 };
 
@@ -93,6 +99,11 @@ const deleteCountryFromDB = async (id: string) => {
 
 
   const result = await Country.findByIdAndDelete(id);
+
+  if (result) {
+    await redisClient.del(CacheKeys.ALL_COUNTRIES());
+  }
+
   return result;
 };
 

@@ -93,6 +93,19 @@ router.delete(
   paymentMethodController.cancelSubscription,
 );
 
+// Change subscription package within the same type (upgrade/downgrade)
+router.patch(
+  '/change-subscription-package',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  paymentMethodController.changeSubscriptionPackage,
+);
+
+// Switch between subscription types (cross-type change)
+router.post(
+  '/switch-subscription-type',
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  paymentMethodController.switchSubscriptionType,
+);
 
 // Transaction history
 router.get(

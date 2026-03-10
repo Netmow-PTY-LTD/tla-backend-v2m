@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 import { CacheKeys } from '../config/cacheKeys';
@@ -13,10 +14,9 @@ export const deleteCache = async (keys: string | string[]) => {
     // Create pipeline
     const pipeline = redisClient.multi(); // use multi() in redis v4
     keysArray.forEach((key) => pipeline.del(key));
-
-    const results = await pipeline.exec(); // execute pipeline
-    // console.log(`Deleted cache keys: ${keysArray.join(', ')}`);
-    // console.log('Redis results:', results);
+    const results = await pipeline.exec();
+    console.log(`Deleted cache keys: ${keysArray.join(', ')}`);
+    console.log('Redis results:', results);
   } catch (err) {
     console.error(`Error deleting cache keys: ${keys}`, err);
   }
@@ -69,7 +69,7 @@ export const deleteKeysByPattern = async (pattern: string) => {
 
       if (keys.length > 0) {
         const pipeline = redisClient.multi();
-        keys.forEach((key) => pipeline.del(key));
+        keys.forEach((key: any) => pipeline.del(key));
         await pipeline.exec();
         totalDeleted += keys.length;
         console.log(`Deleted keys: ${keys.join(', ')}`);
@@ -105,7 +105,7 @@ export const removeLeadListCacheByUser = async (userId: string) => {
 
       if (keys.length > 0) {
         const pipeline = redisClient.multi();
-        keys.forEach((key) => pipeline.del(key));
+        keys.forEach((key: any) => pipeline.del(key));
         await pipeline.exec();
 
         console.log(` Deleted ${keys.length} lead cache keys for user ${userId}`);

@@ -30,6 +30,7 @@ export interface ILead {
   };
 
   additionalDetails?: string;
+  customService?: string;
   budgetAmount?: number;
   credit?: number;
 

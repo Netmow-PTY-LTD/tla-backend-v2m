@@ -103,33 +103,33 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
 // });
 
 
- const getAdminDashboardBarChart = catchAsync(async (req, res) => {
-    const { filterType } = req.query;
-
-    
-
-    // ✅ Validate filterType
-    const validFilters = ['yearly', 'six-months', 'three-months', 'monthly', 'fifteen-days', 'seven-days'];
-    const selectedFilter = typeof filterType === "string" ? filterType.toLowerCase() : "yearly";
-
-    if (!validFilters.includes(selectedFilter)) {
-        return sendResponse(res, {
-            statusCode:HTTP_STATUS.OK,
-            success: false,
-            message: "Invalid filter type. Use one of: yearly, six-months, three-months, monthly, fifteen-days, seven-days",
-            data:null
-        });
-    }
+const getAdminDashboardBarChart = catchAsync(async (req, res) => {
+  const { filterType } = req.query;
 
 
-    const result = await adminService.getAdminDashboardBarChartFromDB(selectedFilter as any);
 
+  // ✅ Validate filterType
+  const validFilters = ['yearly', 'six-months', 'three-months', 'monthly', 'fifteen-days', 'seven-days'];
+  const selectedFilter = typeof filterType === "string" ? filterType.toLowerCase() : "yearly";
+
+  if (!validFilters.includes(selectedFilter)) {
     return sendResponse(res, {
-        statusCode: HTTP_STATUS.OK,
-        success: true,
-        message: "Admin dashboard bar chart retrieved successfully",
-        data: result,
+      statusCode: HTTP_STATUS.OK,
+      success: false,
+      message: "Invalid filter type. Use one of: yearly, six-months, three-months, monthly, fifteen-days, seven-days",
+      data: null
     });
+  }
+
+
+  const result = await adminService.getAdminDashboardBarChartFromDB(selectedFilter as any);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Admin dashboard bar chart retrieved successfully",
+    data: result,
+  });
 });
 
 
@@ -202,13 +202,38 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
 
 
 
+
+
+// ─── Admin: Custom service searches ───────────────────────────────
+const getCustomServiceSearches = catchAsync(async (req, res) => {
+  const result = await adminService.getCustomServiceSearchesFromDB(req.query);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Custom service searches fetched successfully.',
+    pagination: result.pagination,
+    data: { topSearchTerms: result.topSearchTerms, list: result.data },
+  });
+});
+
+// ─── Admin: Registration drafts with a customService field ────────
+const getCustomServiceDrafts = catchAsync(async (req, res) => {
+  const result = await adminService.getCustomServiceDraftsFromDB(req.query);
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Custom service registration drafts fetched successfully.',
+    pagination: result.pagination,
+    data: result.data,
+  });
+});
+
 export const adminController = {
   getAllClientsDashboard,
   getAllLawyerDashboard,
   getAdminDashboardChart,
   getAdminDashboardStats,
-  getAdminDashboardBarChart
-  // getLawyerDashboard,
-  // getClientDashboard,
-
+  getAdminDashboardBarChart,
+  getCustomServiceSearches,
+  getCustomServiceDrafts,
 };

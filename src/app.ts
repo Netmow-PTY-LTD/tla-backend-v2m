@@ -18,6 +18,8 @@ import { stripeWebhookHandler } from './app/module/CreditPayment/stripeWebhookHa
 // Create Express app
 const app: Application = express();
 
+app.set('trust proxy', 1);
+
 //  payment method
 
 // IMPORTANT: Do not use express.json() before webhook route!

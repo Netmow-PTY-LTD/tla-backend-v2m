@@ -17,7 +17,7 @@ import { FOLDERS, USER_ROLE } from "../../constant";
 import { Notification } from "../../module/Notification/notification.model";
 import UserProfile from "../../module/User/user.model";
 import { sendNotFoundResponse } from "../../errors/custom.error";
-import { sendEmail } from "../../emails/email.service";
+import { sendEmail } from "../../emails/email.sender";
 import User from "../../module/Auth/auth.model";
 
 
@@ -458,7 +458,7 @@ const getFirmStats = async () => {
     const [lawyerCount, clientCount, lawFirmCount] = await Promise.all([
       User.countDocuments({ regUserType: 'lawyer', role: USER_ROLE.USER, deletedAt: null }),
       User.countDocuments({ regUserType: 'client', role: USER_ROLE.USER, deletedAt: null }),
-      FirmProfile.countDocuments({status:'approved'})
+      FirmProfile.countDocuments({ status: 'approved' })
     ]);
 
     return {

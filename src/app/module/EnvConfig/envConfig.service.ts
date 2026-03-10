@@ -4,6 +4,7 @@ import { EnvConfig } from './envConfig.model';
 import { IEnvConfig, IEnvConfigGrouped, IEnvConfigUpdate } from './envConfig.interface';
 import { SENSITIVE_FIELDS } from './envConfig.constant';
 import { Types } from 'mongoose';
+import { clearAllCache } from '../../utils/cacheManger';
 
 // Encryption/Decryption utilities
 const ALGORITHM = 'aes-256-cbc';
@@ -63,10 +64,12 @@ const invalidateCache = async (key?: string) => {
     try {
         if (key) {
             await redisClient.del(getCacheKey(key));
+            await clearAllCache();
         } else {
             const keys = await redisClient.keys(`${CACHE_PREFIX}:*`);
             if (keys.length > 0) {
                 await redisClient.del(keys);
+                await clearAllCache()
             }
         }
     } catch (error) {
@@ -77,10 +80,15 @@ const invalidateCache = async (key?: string) => {
 // Get all configurations grouped by category
 const getAllConfigs = async (): Promise<IEnvConfigGrouped> => {
     try {
-        // Try cache first
-        const cached = await redisClient.get(getCacheKey());
-        if (cached) {
-            return JSON.parse(cached);
+        try {
+            // Try cache first
+            const cached = await redisClient.get(getCacheKey());
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch (error) {
+            console.error('⚠️ Redis cache read failed in getAllConfigs:', error);
+            // Continue to database if Redis fails
         }
 
         const configs = await EnvConfig.find({ isActive: true }).lean();
@@ -103,8 +111,12 @@ const getAllConfigs = async (): Promise<IEnvConfigGrouped> => {
             });
         });
 
-        // Cache the result
-        await redisClient.set(getCacheKey(), JSON.stringify(grouped), { EX: CACHE_TTL });
+        try {
+            // Cache the result
+            await redisClient.set(getCacheKey(), JSON.stringify(grouped), { EX: CACHE_TTL });
+        } catch (error) {
+            console.error('⚠️ Redis cache write failed in getAllConfigs:', error);
+        }
 
         return grouped;
     } catch (error) {
@@ -116,10 +128,14 @@ const getAllConfigs = async (): Promise<IEnvConfigGrouped> => {
 // Get single configuration by key (with decrypted value)
 const getConfigByKey = async (key: string): Promise<IEnvConfig | null> => {
     try {
-        // Try cache first
-        const cached = await redisClient.get(getCacheKey(key));
-        if (cached) {
-            return JSON.parse(cached);
+        try {
+            // Try cache first
+            const cached = await redisClient.get(getCacheKey(key));
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch (error) {
+            console.error(`⚠️ Redis cache read failed for config ${key}:`, error);
         }
 
         const config = await EnvConfig.findOne({ key: key.toUpperCase(), isActive: true });
@@ -134,8 +150,12 @@ const getConfigByKey = async (key: string): Promise<IEnvConfig | null> => {
             configObj.value = decryptValue(config.value);
         }
 
-        // Cache the result
-        await redisClient.set(getCacheKey(key), JSON.stringify(configObj), { EX: CACHE_TTL });
+        try {
+            // Cache the result
+            await redisClient.set(getCacheKey(key), JSON.stringify(configObj), { EX: CACHE_TTL });
+        } catch (error) {
+            console.error(`⚠️ Redis cache write failed for config ${key}:`, error);
+        }
 
         return configObj as IEnvConfig;
     } catch (error) {

@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '../../constant/httpStatus';
 
 import { AppError } from '../../errors/error';
 
+
 /**
  * Handles user login request.
  *
@@ -23,10 +24,12 @@ const login = catchAsync(async (req, res) => {
 
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
+    httpOnly: true,
     // secure: config.NODE_ENV === 'production',
-    secure: true, // Ensures cookie is only sent over HTTPS
-    sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
+    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   // Send the access token and user data in the response
@@ -316,10 +319,12 @@ const ssoLogin = catchAsync(async (req, res) => {
     await authService.ssoLogin(token);
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true, // Makes the cookie inaccessible to JavaScript (helps prevent XSS)
+    httpOnly: true,
     // secure: config.NODE_ENV === 'production',
-    secure: true, // Ensures cookie is only sent over HTTPS
-    sameSite: 'none', // Allows cross-site requests (required for third-party cookies with HTTPS)
+    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true, // Ensure cookie is sent over HTTPS
+    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   // Send the access token and user data in the response

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import User from "../Auth/auth.model";
 import CreditPackage from "../CreditPayment/creditPackage.model";
 import CreditTransaction from "../CreditPayment/creditTransaction.model";
@@ -5,6 +6,9 @@ import Transaction from "../CreditPayment/transaction.model";
 import Lead from "../Lead/lead.model";
 import Service from "../Service/service.model";
 import { AdminDashboardStats, ChartDataItem, DashboardQuery } from "./admin.interface";
+import CustomServiceSearch from "../CustomServiceSearch/customServiceSearch.model";
+import { ClientRegistrationDraft } from "../Auth/clientRegistrationDraft.model";
+import mongoose from "mongoose";
 
 
 
@@ -338,6 +342,7 @@ const getAllLawyerDashboard = async (query: DashboardQuery) => {
 
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
 const getAdminDashboardChartFromDB = async (
@@ -473,7 +478,7 @@ const getAdminDashboardChartFromDB = async (
             date,
             users: users.find((u) => u._id === date)?.count || 0,
             payments: payments.find((p) => p._id === date)?.count || 0,
-            creditsPurchased: creditsPurchased.find((p) => p._id === date)?.totalPurchasedCredits|| 0,
+            creditsPurchased: creditsPurchased.find((p) => p._id === date)?.totalPurchasedCredits || 0,
             creditsSpent: creditsSpent.find((c) => c._id === date)?.totalCredits || 0,
             casePosts: casePosts.find((cp) => cp._id === date)?.count || 0,
             hires: hires.find((h) => h._id === date)?.count || 0,
@@ -564,8 +569,8 @@ const getAdminDashboardBarChartFromDB = async (
 
     // 4️⃣ Credits Purchased (Total credits bought)
     const creditsPurchased = await Transaction.aggregate([
-        {$match: { type: "purchase", status: "completed", createdAt: { $gte: start, $lte: end }} },
-        { $group: { _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },totalCredits: { $sum: "$credit" } }},
+        { $match: { type: "purchase", status: "completed", createdAt: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dateToString: { format: dateFormat, date: "$createdAt" } }, totalCredits: { $sum: "$credit" } } },
     ]);
     // 4️⃣ Credits spent
     const creditsSpent = await CreditTransaction.aggregate([
@@ -585,7 +590,8 @@ const getAdminDashboardBarChartFromDB = async (
         { $group: { _id: { $dateToString: { format: dateFormat, date: "$hiredAt" } }, count: { $sum: 1 } } },
     ]);
 
-    // 📌 Generate labels based on filterType
+    //  Generate labels based on filterType
+    // eslint-disable-next-line prefer-const
     let allDates: string[] = [];
 
     if (type === "yearly") {
@@ -751,12 +757,122 @@ const getAdminDashboardStatsFromDB = async (): Promise<AdminDashboardStats> => {
 
 
 
+
+
+// ─────────────────────────────────────────────────────────────────
+// Admin: Get all custom service searches
+// ─────────────────────────────────────────────────────────────────
+const getCustomServiceSearchesFromDB = async (query: {
+    search?: string;
+    source?: string;
+    countryId?: string;
+    page?: string | number;
+    limit?: string | number;
+    sortOrder?: string;
+    startDate?: string;
+    endDate?: string;
+}) => {
+    const page = Math.max(Number(query.page) || 1, 1);
+    const limit = Math.max(Number(query.limit) || 20, 1);
+    const skip = (page - 1) * limit;
+    const sortOrder = query.sortOrder === 'asc' ? 1 : -1;
+
+    const filter: Record<string, any> = {};
+
+    if (query.search) {
+        filter.searchTerm = { $regex: query.search, $options: 'i' };
+    }
+    if (query.source && ['lead', 'draft', 'anonymous'].includes(query.source)) {
+        filter.source = query.source;
+    }
+    if (query.countryId && mongoose.Types.ObjectId.isValid(query.countryId)) {
+        filter.countryId = new mongoose.Types.ObjectId(query.countryId);
+    }
+    if (query.startDate || query.endDate) {
+        filter.createdAt = {};
+        if (query.startDate) filter.createdAt.$gte = new Date(query.startDate);
+        if (query.endDate) {
+            const end = new Date(query.endDate);
+            end.setHours(23, 59, 59, 999);
+            filter.createdAt.$lte = end;
+        }
+    }
+
+    const [data, total, topSearchTerms] = await Promise.all([
+        CustomServiceSearch.find(filter)
+            .populate('countryId', 'name slug')
+            .populate('serviceId', 'name slug')
+            .populate('leadId', 'status createdAt')
+            .sort({ createdAt: sortOrder })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        CustomServiceSearch.countDocuments(filter),
+        CustomServiceSearch.aggregate([
+            { $match: filter },
+            { $group: { _id: { $toLower: '$searchTerm' }, count: { $sum: 1 }, sources: { $addToSet: '$source' } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 },
+            { $project: { _id: 0, searchTerm: '$_id', count: 1, sources: 1 } },
+        ]),
+    ]);
+
+    const totalPage = Math.ceil(total / limit);
+    return { pagination: { total, page, limit, totalPage }, topSearchTerms, data };
+};
+
+// ─────────────────────────────────────────────────────────────────
+// Admin: Get client registration drafts with a customService value
+// ─────────────────────────────────────────────────────────────────
+const getCustomServiceDraftsFromDB = async (query: {
+    search?: string;
+    page?: string | number;
+    limit?: string | number;
+    sortOrder?: string;
+}) => {
+    const page = Math.max(Number(query.page) || 1, 1);
+    const limit = Math.max(Number(query.limit) || 20, 1);
+    const skip = (page - 1) * limit;
+    const sortOrder = query.sortOrder === 'asc' ? 1 : -1;
+
+    const filter: Record<string, any> = {
+        'leadDetails.customService': { $exists: true, $nin: ['', null] },
+    };
+
+    if (query.search) {
+        filter.$or = [
+            { 'leadDetails.customService': { $regex: query.search, $options: 'i' } },
+            { 'leadDetails.name': { $regex: query.search, $options: 'i' } },
+            { 'leadDetails.email': { $regex: query.search, $options: 'i' } },
+        ];
+    }
+
+    const [data, total] = await Promise.all([
+        ClientRegistrationDraft.find(filter)
+            .populate('countryId', 'name slug')
+            .populate('serviceId', 'name slug')
+            .select('leadDetails.name leadDetails.email leadDetails.customService leadDetails.phone countryId serviceId verification createdAt')
+            .sort({ createdAt: sortOrder })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        ClientRegistrationDraft.countDocuments(filter),
+    ]);
+
+    const totalPage = Math.ceil(total / limit);
+    return { pagination: { total, page, limit, totalPage }, data };
+};
+
+
+
 export const adminService = {
     getAllClientsDashboard,
     getAllLawyerDashboard,
     getAdminDashboardChartFromDB,
     getAdminDashboardStatsFromDB,
-    getAdminDashboardBarChartFromDB
+    getAdminDashboardBarChartFromDB,
+    getCustomServiceSearchesFromDB,
+    getCustomServiceDraftsFromDB,
     // getClientDashboard,
     // getLawyerDashboard,
 };

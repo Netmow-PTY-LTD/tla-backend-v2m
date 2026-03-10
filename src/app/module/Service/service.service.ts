@@ -9,7 +9,7 @@ const CreateServiceIntoDB = async (payload: IService) => {
 };
 
 const getAllServiceFromDB = async () => {
-  const result = await Service.find({});
+  const result = await Service.find({}).sort({ createdAt: -1 });
   return result;
 };
 

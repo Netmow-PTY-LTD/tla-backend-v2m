@@ -13,4 +13,12 @@ export interface ITransaction {
   couponCode?: string;
   discountApplied: number;
   createdAt: Date;
+
+  // Tax fields for GST/VAT tracking
+  taxAmount?: number;
+  taxRate?: number;
+  subtotal?: number;
+  totalWithTax?: number;
+  taxJurisdiction?: string;
+  taxType?: string;
 }

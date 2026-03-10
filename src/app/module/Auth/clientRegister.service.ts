@@ -15,7 +15,7 @@ import Lead from '../Lead/lead.model';
 import { LeadServiceAnswer } from '../Lead/leadServiceAnswer.model';
 import { Types } from 'mongoose';
 import { REGISTER_USER_TYPE } from './auth.constant';
-import { sendEmail } from '../../emails/email.service';
+import { sendEmail } from '../../emails/email.sender';
 import Service from '../Service/service.model';
 import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
 import Option from '../Option/option.model';
@@ -25,6 +25,10 @@ import { ClientRegistrationDraft, IClientRegistrationDraft } from './clientRegis
 import { EmailVerificationDraft } from './EmailVerificationDraft.model';
 import { generateOtp } from './otp.utils';
 import bcrypt from 'bcryptjs';
+import CustomServiceSearch from '../CustomServiceSearch/customServiceSearch.model';
+import { emailFlowService } from '../../emails/email.flow.service';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
+
 
 
 // const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose.ClientSession) => {
@@ -391,10 +395,15 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
       regUserType: REGISTER_USER_TYPE.CLIENT,
       // password: config.default_password,
       password: defaultPassword,
+      isVerifiedAccount: payload.isVerifiedAccount,
     };
 
     // create new user
-    const [newUser] = await User.create([userData], { session });
+    const initialFlowData = emailFlowService.getInitialFlowData('client');
+    const [newUser] = await User.create([{
+      ...userData,
+      ...initialFlowData,
+    }], { session });
 
     // get zipcode detail
     // const address = await ZipCode.findById(leadDetails.zipCode);
@@ -465,11 +474,23 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
             budgetAmount: leadDetails.budgetAmount ?? 0,
             locationId: zipCode?._id,
             credit: creditInfo?.baseCredit,
-            leadPriority: leadDetails?.leadPriority
+            leadPriority: leadDetails?.leadPriority,
+            customService: leadDetails?.customService || '',
           },
         ],
         { session },
       );
+
+      // Auto-log custom service search if client used a custom service term
+      if (leadDetails?.customService) {
+        CustomServiceSearch.create({
+          searchTerm: leadDetails.customService,
+          source: 'lead',
+          countryId: countryId || undefined,
+          serviceId: serviceId || undefined,
+          leadId: leadUser._id,
+        }).catch((err: unknown) => console.error('[CustomServiceSearch] lead log error:', err));
+      }
 
 
       // update case count in user profile
@@ -589,7 +610,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
       to: newUser.email,
       subject: "We've received your legal request — Awaiting approval",
       data: leadData,
-      emailTemplate: 'welcome_Lead_submission',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_LEAD_SUBMISSION,
     });
     const clientData = {
       name: newProfile?.name,
@@ -603,7 +624,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
       to: newUser.email,
       subject: 'Thank you for Registering',
       data: clientData,
-      emailTemplate: 'welcome_to_client',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_TO_CLIENT,
     });
 
 
@@ -666,6 +687,17 @@ const clientRegistrationDraftInDB = async (payload: IClientRegistrationDraft) =>
   // 1. Create ClientRegistrationDraft
   const result = await ClientRegistrationDraft.create(payload);
 
+  // Auto-log custom service search if draft has a custom service term
+  if (payload.leadDetails?.customService) {
+    CustomServiceSearch.create({
+      searchTerm: payload.leadDetails.customService,
+      source: 'draft',
+      countryId: payload.countryId || undefined,
+      serviceId: payload.serviceId || undefined,
+      draftId: result._id,
+    }).catch((err: unknown) => console.error('[CustomServiceSearch] draft log error:', err));
+  }
+
   // 2. Generate OTP
   const otp = generateOtp();
 
@@ -691,7 +723,7 @@ const clientRegistrationDraftInDB = async (payload: IClientRegistrationDraft) =>
       verifyUrl: verifyUrl,
       role: 'Client',
     },
-    emailTemplate: 'verify_email',
+    emailTemplate: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
   });
 
   return result;
@@ -776,6 +808,7 @@ const commitClientRegistration = async (draftId: string) => {
       addressInfo: draft.addressInfo,
       leadDetails: draft.leadDetails,
       questions: draft.questions,
+      isVerifiedAccount: true, // Mark as verified because draft email was verified
     };
 
     // ✅ Create real user (must accept session internally)

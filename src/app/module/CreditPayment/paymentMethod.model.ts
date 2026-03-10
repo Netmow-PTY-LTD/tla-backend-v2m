@@ -18,6 +18,7 @@ const paymentMethodSchema = new Schema(
     expiryYear: { type: Number, required: true },
     isDefault: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true }, // new flag for soft delete
+    stripeEnvironment: { type: String, enum: ['test', 'live'], default: 'test' }, // Track which Stripe environment
   },
   {
     timestamps: true,

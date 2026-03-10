@@ -4,7 +4,7 @@ import sendResponse from '../../utils/sendResponse';
 import { CreditPaymentService } from './creditPayment.service';
 
 const getCreditPackages = catchAsync(async (req, res) => {
-  const packages = await CreditPaymentService.getCreditPackages();
+  const packages = await CreditPaymentService.getCreditPackages(req.query);
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
@@ -121,7 +121,7 @@ const getAllTransactionHistory = catchAsync(async (req, res) => {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: 'Transaction history fetched',
-    pagination:result.meta,
+    pagination: result.meta,
     data: result.data,
   });
 });

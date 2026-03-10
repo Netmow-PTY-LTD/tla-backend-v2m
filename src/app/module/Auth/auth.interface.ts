@@ -4,16 +4,17 @@ import { PhoneVerificationStatus, UserStatus } from './auth.constant';
 import { TUserRole } from '../../constant';
 import { ILawyerServiceMap } from '../User/lawyerServiceMap.interface';
 import { ICompanyProfile } from '../User/companyProfile.interface';
+import { IUserProfile } from '../User/user.interface';
 
 
 type IAddressInfo = {
-  countryId:string;
+  countryId: string;
   zipcode: string;         // Assuming `rest.location.address` is a string
-  postalCode:string;
+  postalCode: string;
   countryCode: string;     // Example: 'AU'
   latitude?: number;       // Optional because you’re using ?. 
   longitude?: number;      // Optional because you’re using ?.
-  zipCodeType?:string;
+  zipCodeType?: string;
 };
 
 
@@ -43,12 +44,15 @@ export interface IUser {
   resetPasswordToken?: string;
   resetPasswordExpires?: string;
   deletedAt?: Date | null;
-  profile: Types.ObjectId;
-  lawyerServiceMap: ILawyerServiceMap &{ addressInfo:IAddressInfo};
+  profile: Types.ObjectId | IUserProfile;
+  lawyerServiceMap: ILawyerServiceMap & { addressInfo: IAddressInfo };
   companyInfo?: ICompanyProfile;
-  createdBy:Types.ObjectId;
-   updatedBy:Types.ObjectId;
-  deletedBy:Types.ObjectId;
+  email_step: number;
+  next_email_at: Date | null;
+  email_paused: boolean;
+  createdBy: Types.ObjectId;
+  updatedBy: Types.ObjectId;
+  deletedBy: Types.ObjectId;
 }
 
 export interface UserModel extends Model<IUser> {

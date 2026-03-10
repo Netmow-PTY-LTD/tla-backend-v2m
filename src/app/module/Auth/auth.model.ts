@@ -89,9 +89,23 @@ const userSchema = new mongoose.Schema(
     pendingEmail: { type: String, lowercase: true, trim: true },
     emailChangeToken: { type: String },
     emailChangeTokenExpires: { type: Date },
-    createdBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    deletedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    updatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    // Email Automation Flow System
+    email_step: {
+      type: Number,
+      default: 0, // 0 means not started or wait for first trigger
+    },
+    next_email_at: {
+      type: Date,
+      index: true,
+      default: null,
+    },
+    email_paused: {
+      type: Boolean,
+      default: false,
+    },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
     versionKey: false,

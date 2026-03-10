@@ -11,24 +11,27 @@ import { TUserRole } from '../constant';
 
 const auth = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
+    let token = req.headers.authorization;
 
     // checking if the token is missing
     if (!token) {
       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
     }
 
+    // strip "Bearer " if present
+    if (token.startsWith('Bearer')) {
+      token = token.split(' ')[1];
+    }
+
     // checking if the given token is valid
-    //  token invalid then check this code errror
     let decoded;
     try {
       decoded = jwt.verify(
         token,
         config.jwt_access_secret as string,
       ) as JwtPayload;
-      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-    } catch (err) {
-      throw new AppError(httpStatus.UNAUTHORIZED, 'Unauthorized');
+    } catch {
+      throw new AppError(httpStatus.UNAUTHORIZED, 'Unauthorized: Invalid or expired token');
     }
 
     const { role, email, iat } = decoded;
@@ -51,8 +54,8 @@ const auth = (...requiredRoles: TUserRole[]) => {
     const userStatus = user?.accountStatus;
 
     if (
-       userStatus === USER_STATUS.SUSPENDED ||
-    userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
+      userStatus === USER_STATUS.SUSPENDED ||
+      userStatus === USER_STATUS.ARCHIVED || userStatus === USER_STATUS.REJECTED
     ) {
       throw new AppError(
         HTTP_STATUS.FORBIDDEN,
@@ -73,7 +76,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(
         httpStatus.UNAUTHORIZED,
-        'You are not authorized  hi!',
+        'You are not authorized!',
       );
     }
 

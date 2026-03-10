@@ -202,6 +202,11 @@ const leadSchema = new Schema<ILead>(
       default: '',
       index: 'text', //  For keyword text search
     },
+    customService: {
+      type: String,
+      default: '',
+      index: 'text', //  For keyword text search
+    },
 
     budgetAmount: {
       type: Number,

@@ -1,0 +1,99 @@
+
+import { Schema, model } from 'mongoose';
+import { IEmailTemplate, IEmailTemplateCategory } from './emailTemplate.interface';
+
+const emailTemplateCategorySchema = new Schema<IEmailTemplateCategory>(
+    {
+        name: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+        },
+        description: {
+            type: String,
+            trim: true,
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+export const EmailTemplateCategory = model<IEmailTemplateCategory>(
+    'EmailTemplateCategory',
+    emailTemplateCategorySchema
+);
+
+const emailTemplateSchema = new Schema<IEmailTemplate>(
+    {
+        title: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+
+        templateKey: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+        },
+        step: {
+            type: Number,
+            default: 0
+        },
+        delayTime: {
+            type: Number,
+            default: 0
+        },
+        target: {
+            type: String,
+            enum: ['generic', 'client', 'lawyer', 'firm'],
+            required: true,
+        },
+        categoryId: {
+            type: Schema.Types.ObjectId,
+            ref: 'EmailTemplateCategory',
+            required: true,
+        },
+        subject: {
+            type: String,
+            required: true,
+        },
+        body: {
+            type: String,
+            required: true,
+        },
+        variables: [
+            {
+                type: String,
+            },
+        ],
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+export const EmailTemplate = model<IEmailTemplate>(
+    'EmailTemplate',
+    emailTemplateSchema
+);
