@@ -37,18 +37,7 @@ const updateCreditPackages = catchAsync(async (req, res) => {
     data: result,
   });
 });
-// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 
-// const purchaseCredits = catchAsync(async (req, res) => {
-//   const userId = req.user.id;
-//   const result = await CreditPaymentService.purchaseCredits(userId, req.body);
-//   return sendResponse(res, {
-//     statusCode: HTTP_STATUS.OK,
-//     success: true,
-//     message: 'Credits purchased successfully',
-//     data: result,
-//   });
-// });
 
 const applyCoupon = catchAsync(async (req, res) => {
   const result = await CreditPaymentService.applyCoupon(req.body.couponCode);
@@ -140,7 +129,6 @@ const getNextCreditOffer = catchAsync(async (req, res) => {
 
 export const creditPaymentController = {
   getCreditPackages,
-  // purchaseCredits,
   applyCoupon,
   getBillingDetails,
   updateBillingDetails,
