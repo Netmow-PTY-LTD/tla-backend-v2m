@@ -12,6 +12,7 @@ import PaymentMethod from './paymentMethod.model';
 import { SubscriptionType } from './paymentMethod.service';
 import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
+import Country from '../Country/country.model';
 
 
 const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
@@ -21,8 +22,8 @@ const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
   }
 
   // Validate that the country exists
-  const Country = (await import('mongoose')).default.model('Country');
-  const country = await Country.findById(payload.country);
+
+  const country = await Country.findById(payload.country).select('currency');
 
   if (!country) {
     throw new Error('Invalid country ID provided');
@@ -32,7 +33,9 @@ const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
     throw new Error('Selected country does not have a currency configured');
   }
 
-  // Currency will be auto-populated by the pre-save hook
+  // set currency from country
+  payload.currency = country.currency.toUpperCase();
+
   const packageCreate = await CreditPackage.create(payload);
   return packageCreate;
 };
@@ -41,11 +44,29 @@ const updateCreditPackagesIntoDB = async (
   creditPackageId: string,
   payload: Partial<ICreditPackage>,
 ) => {
+
+  // If country is being updated, update currency as well
+  if (payload.country) {
+    const country = await Country.findById(payload.country).select('currency');
+
+    if (!country) {
+      throw new Error('Invalid country ID provided');
+    }
+
+    if (!country.currency) {
+      throw new Error('Selected country does not have a currency configured');
+    }
+
+    payload.currency = country.currency.toUpperCase();
+  }
+
+
   const packageCreate = await CreditPackage.findByIdAndUpdate(
     creditPackageId,
     payload,
     { new: true },
   );
+
   return packageCreate;
 };
 
@@ -67,62 +88,6 @@ const getCreditPackages = async (query: Record<string, any>) => {
 
   return packages;
 };
-
-// const purchaseCredits = async (
-//   userId: string,
-//   {
-//     packageId,
-//     couponCode,
-//     autoTopUp,
-//   }: { packageId: string; couponCode: string; autoTopUp: boolean },
-// ) => {
-//   validateObjectId(packageId, 'credit package ID');
-
-//   const creditPackage = await CreditPackage.findById(packageId);
-//   if (!creditPackage) {
-//     return sendNotFoundResponse('Credit package not found');
-//   }
-
-//   let discount = 0;
-//   if (couponCode) {
-//     const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-//     if (
-//       coupon &&
-//       typeof coupon.maxUses === 'number' &&
-//       coupon.currentUses < coupon.maxUses
-//     ) {
-//       discount = coupon.discountPercentage;
-//       coupon.currentUses += 1;
-//       await coupon.save();
-//     }
-//   }
-
-//   const finalPrice = creditPackage.price * (1 - discount / 100);
-
-//   const transaction = await Transaction.create({
-//     userId,
-//     type: 'purchase',
-//     creditPackageId: packageId,
-//     credit: creditPackage.credit,
-//     amountPaid: finalPrice,
-//     status: 'completed',
-//     couponCode,
-//     discountApplied: discount,
-//   });
-
-//   const user = await UserProfile.findOne({ user: userId });
-//   if (!user) {
-//     return sendNotFoundResponse('User not found');
-//   }
-//   user.credits += creditPackage.credit;
-//   user.autoTopUp = autoTopUp || false;
-//   await user.save();
-
-//   return {
-//     newBalance: user.credits,
-//     transactionId: transaction._id,
-//   };
-// };
 
 
 
