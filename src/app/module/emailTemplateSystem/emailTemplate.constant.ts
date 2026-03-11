@@ -1,29 +1,40 @@
 export const EMAIL_TEMPLATE_KEYS = {
-    // Auth / Registration
-    WELCOME_LEAD_SUBMISSION: 'welcome_Lead_submission',
-    WELCOME_TO_CLIENT: 'welcome_to_client',
-    WELCOME_TO_LAWYER: 'welcome_to_lawyer',
-    WELCOME_TO_LAWYER_BY_MARKETER: 'welcome_to_lawyer_by_marketer',
+    // ─── Generic / Auth ──────────────────────────────────────────────────────────
     VERIFY_EMAIL: 'verify_email',
     PASSWORD_RESET: 'password_reset',
     OTP_EMAIL: 'otp_email',
+    // ─── Client ──────────────────────────────────────────────────────────────────
+    WELCOME_TO_CLIENT: 'welcome_to_client', // Client Welcome / Thank you
+    WELCOME_LEAD_SUBMISSION: 'welcome_Lead_submission',
+    CLIENT_DELAYED_ACTIVATION: 'client_delayed_activation',
+    HOW_TO_FIND_RIGHT_LAWYER: 'how_to_find_right_lawyer',
+    HOW_TO_POST_CASE: 'how_to_post_case',
+    // ─── Lawyer ──────────────────────────────────────────────────────────────────
+    WELCOME_TO_LAWYER: 'welcome_to_lawyer', // Lawyer Welcome
+    WELCOME_TO_LAWYER_BY_MARKETER: 'welcome_to_lawyer_by_marketer',
+    LAWYER_DELAYED_ACTIVATION: 'lawyer_delayed_activation',
+    LAWYER_APPROVED: 'lawyer_approved', // Lawyer Activation Thank you
+    COMPLETE_PROFILE_REMINDER: 'complete_profile_reminder',
+    HOW_TO_BID: 'how_to_bid',
+    BUY_CREDIT: 'buy_credit',
+    WIN_JOB: 'win_job',
+    HOW_TO_BE_SUBSCRIBED_USER: 'how_to_be_subscribed_user',
+    SUBSCRIPTION_BENEFITS: 'subscription_benefits',
+    ELITE_PRO: 'elite_pro',
+    BENEFIT_OF_ELITE_PRO_MEMBER: 'benefit_of_elite_pro_member',
+    THOUSAND_CASES_WAITING: 'thousand_cases_waiting',
     LAWYER_PROMOTION: 'lawyerPromotion',
-    LAWYER_APPROVED: 'lawyer_approved',
-
-    // Contact / Interaction
-    CONTACT: 'contact',
-    PUBLIC_CONTACT: 'public-contact',
-
-    // Lead
-    NEW_LEAD_ALERT: 'new_lead_alert',
-
-    // Firm
+    TUTORIAL_SYSTEM: 'tutorial_system',
+    // ─── Firm ────────────────────────────────────────────────────────────────────
+    FIRM_REGISTRATION: 'firm_registration',
     FIRM_PASSWORD_RESET: 'firm_password_reset',
     REQUEST_LAWYER_AS_FIRM_MEMBER: 'request_lawyer_as_firm_member',
-    FIRM_REGISTRATION: 'firm_registration',
-    NEW_CLAIM_NOTIFICATION: 'new_claim_notification',
-
-    // Subscription lifecycle
+    // ─── Lead / Case ─────────────────────────────────────────────────────────────
+    NEW_LEAD_ALERT: 'new_lead_alert',
+    // ─── Contact / Interaction ───────────────────────────────────────────────────
+    CONTACT: 'contact',
+    PUBLIC_CONTACT: 'public-contact',
+    // ─── Subscription & Billing ──────────────────────────────────────────────────
     SUBSCRIPTION_CREATED: 'subscription_created',
     SUBSCRIPTION_RENEWED: 'subscription_renewed',
     SUBSCRIPTION_PAYMENT_FAILED: 'subscription_payment_failed',
@@ -31,347 +42,91 @@ export const EMAIL_TEMPLATE_KEYS = {
     SUBSCRIPTION_CHANGED: 'subscription_changed',
     SUBSCRIPTION_RENEWAL_REMINDER: 'subscription_renewal_reminder',
     SUBSCRIPTION_EXPIRED: 'subscription_expired',
-
-    // Credits
-    CREDITS_PURCHASED: 'credits_purchased',
-    CREDITS_LOW_WARNING: 'credits_low_warning',
-
-    // Admin Custom Campaign
-    ADMIN_CUSTOM: 'admin_custom',
-
-    // Email flow / drip campaigns (BullMQ automated)
-    TUTORIAL_SYSTEM: 'tutorial_system',
-    COMPLETE_PROFILE: 'complete_profile',
-    COMPLETE_PROFILE_REMINDER: 'complete_profile_reminder',
-    HOW_TO_BID: 'how_to_bid',
-    BUY_CREDIT: 'buy_credit',
-    WIN_JOB: 'win_job',
-    SUBSCRIPTION_BENEFITS: 'subscription_benefits',
-    ELITE_PRO: 'elite_pro',
+    SUBSCRIPTION_CONFIRMED: 'subscription_confirmed',
     INVOICE_DUE_21: 'invoice_due_21',
     INVOICE_DUE_30: 'invoice_due_30',
-    HOW_TO_POST_CASE: 'how_to_post_case',
-    SUBSCRIPTION_CONFIRMED: 'subscription_confirmed',
+    // ─── Credits ─────────────────────────────────────────────────────────────────
+    CREDITS_PURCHASED: 'credits_purchased',
+    CREDITS_LOW_WARNING: 'credits_low_warning',
+    // ─── Admin / Promotional / Event ─────────────────────────────────────────────
+    ADMIN_CUSTOM: 'admin_custom',
+    NEW_CLAIM_NOTIFICATION: 'new_claim_notification',
+    SPECIAL_EVENTS_EMAIL: 'special_events_email',
 } as const;
 
 export const EMAIL_TEMPLATES = [
-    // ─── Auth / Registration ───────────────────────────────────────────────────
+    // ─── Generic / Auth ──────────────────────────────────────────────────────────
+    {
+        key: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
+        label: 'Email Verification',
+        variables: ['name', 'verifyUrl', 'role'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.PASSWORD_RESET,
+        label: 'Password Reset',
+        variables: ['name', 'resetUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.OTP_EMAIL,
+        label: 'OTP Verification',
+        variables: ['username', 'otp', 'expiresAt'],
+    },
 
+    // ─── Client ──────────────────────────────────────────────────────────────────
+    {
+        key: EMAIL_TEMPLATE_KEYS.WELCOME_TO_CLIENT,
+        label: 'Welcome / Thank You Email – Client',
+        variables: ['name', 'email', 'defaultPassword', 'dashboardUrl'],
+    },
     {
         key: EMAIL_TEMPLATE_KEYS.WELCOME_LEAD_SUBMISSION,
         label: 'Welcome – Lead Submission (Client)',
         variables: [
-            'name',           // client full name
-            'caseType',       // service / legal area name
-            'leadAnswer',     // formatted HTML of questionnaire answers
-            'preferredContactTime', // lead priority / contact time
-            'additionalDetails',    // extra notes from client
-            'dashboardUrl',   // link to client dashboard
-            'appName',        // application name
+            'name', 'caseType', 'leadAnswer', 'preferredContactTime',
+            'additionalDetails', 'dashboardUrl', 'appName',
         ],
     },
     {
-        key: EMAIL_TEMPLATE_KEYS.WELCOME_TO_CLIENT,
-        label: 'Welcome – Client',
-        variables: [
-            'name',           // client full name
-            'email',          // client email address
-            'defaultPassword', // auto-generated password
-            'dashboardUrl',   // link to client dashboard
-        ],
+        key: EMAIL_TEMPLATE_KEYS.CLIENT_DELAYED_ACTIVATION,
+        label: 'Your Profile Activation is Pending',
+        variables: ['name', 'dashboardUrl'],
     },
+    {
+        key: EMAIL_TEMPLATE_KEYS.HOW_TO_FIND_RIGHT_LAWYER,
+        label: 'How to Find the Right Lawyer',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.HOW_TO_POST_CASE,
+        label: 'How to Post Case',
+        variables: ['name', 'dashboardUrl'],
+    },
+
+    // ─── Lawyer ──────────────────────────────────────────────────────────────────
     {
         key: EMAIL_TEMPLATE_KEYS.WELCOME_TO_LAWYER,
-        label: 'Welcome – Lawyer',
-        variables: [
-            'name',           // lawyer full name
-            'practiceArea',  // array / list of selected services
-            'dashboardUrl',   // link to lawyer dashboard
-        ],
+        label: 'While Registration - Welcome Email',
+        variables: ['name', 'practiceArea', 'dashboardUrl'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.WELCOME_TO_LAWYER_BY_MARKETER,
         label: 'Welcome – Lawyer (by Marketer)',
         variables: [
-            'name',           // lawyer full name
-            'email',          // lawyer email
-            'defaultPassword', // plain-text password set by marketer
-            'practiceArea',  // array / list of selected services
-            'dashboardUrl',   // link to lawyer dashboard
-            'appName',        // application name
+            'name', 'email', 'defaultPassword', 'practiceArea',
+            'dashboardUrl', 'appName',
         ],
     },
     {
-        key: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
-        label: 'Email Verification',
-        variables: [
-            'name',           // user full name
-            'verifyUrl',      // full verification URL with token/code
-            'role',           // user role (Lawyer | Client)
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.PASSWORD_RESET,
-        label: 'Password Reset',
-        variables: [
-            'name',           // user full name
-            'resetUrl',       // password-reset URL with token
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.OTP_EMAIL,
-        label: 'OTP Verification',
-        variables: [
-            'username',       // user display name / email
-            'otp',            // 6-digit OTP code
-            'expiresAt',      // formatted expiry time string
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.LAWYER_PROMOTION,
-        label: 'Lawyer Profile Promotion',
-        variables: [
-            'name',           // lawyer full name
-            'role',           // new profile tier (Expert Lawyer / Premium Lawyer)
-            'dashboardUrl',   // link to lawyer dashboard
-            'appName',        // application name
-        ],
+        key: EMAIL_TEMPLATE_KEYS.LAWYER_DELAYED_ACTIVATION,
+        label: 'Confirmation Email (if there\'s a delay to activate)',
+        variables: ['name', 'dashboardUrl'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.LAWYER_APPROVED,
-        label: 'Lawyer Account Approved',
-        variables: [
-            'name',           // lawyer full name
-            'dashboardUrl',   // link to lawyer dashboard
-        ],
-    },
-
-    // ─── Contact / Interaction ─────────────────────────────────────────────────
-
-    {
-        key: EMAIL_TEMPLATE_KEYS.CONTACT,
-        label: 'Lawyer–Client Interaction',
-        variables: [
-            'name',           // recipient full name
-            'userRole',       // recipient role (regUserType)
-            'dashboardUrl',   // contextual dashboard link
-            'senderName',     // name of person who sent the message
-            'timestamp',      // locale-formatted date/time string
-            'message',        // email body text (emailText)
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.PUBLIC_CONTACT,
-        label: 'Public Contact Form',
-        variables: [
-            'name',           // sender full name
-            'email',          // sender email
-            'phone',          // sender phone (optional)
-            'message',        // message content
-        ],
-    },
-
-    // ─── Lead ──────────────────────────────────────────────────────────────────
-
-    {
-        key: EMAIL_TEMPLATE_KEYS.NEW_LEAD_ALERT,
-        label: 'New Lead Alert (Lawyer)',
-        variables: [
-            'clientName',     // client full name
-            'lawyerType',     // service / practice area
-            'location',       // suburb / zipcode area
-            'credits',        // credits required to respond
-            'email',          // masked client email
-            'phone',          // masked client phone
-            'description',    // additional details / project notes
-            'projectType',    // lead priority / project type
-            'projectValue',   // budget amount
-            'mapImageUrl',    // static map image URL
-            'contactUrl',     // link to respond to this lead
-            'viewDetailsUrl', // link to full lead details
-            'discountUrl',    // promotional / upsell link
-        ],
-    },
-
-    // ─── Firm ──────────────────────────────────────────────────────────────────
-
-    {
-        key: EMAIL_TEMPLATE_KEYS.FIRM_PASSWORD_RESET,
-        label: 'Firm – Password Reset',
-        variables: [
-            'firmName',       // firm display name
-            'firmUserName',   // firm user's name
-            'resetUrl',       // password-reset URL with token
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.REQUEST_LAWYER_AS_FIRM_MEMBER,
-        label: 'Firm – Lawyer Join Request',
-        variables: [
-            'lawyerName',     // lawyer's full name
-            'lawyerEmail',    // lawyer's email address
-            'role',           // requested role (e.g. Lawyer)
-            'requestUrl',     // link to review the request in firm portal
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.FIRM_REGISTRATION,
-        label: 'Firm – Registration',
-        variables: [
-            'firmAdmin',      // firm admin's name
-            'email',          // firm login email
-            'password',       // plain-text initial password
-            'loginUrl',       // link to firm portal login page
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.NEW_CLAIM_NOTIFICATION,
-        label: 'New Claim Notification (Admin)',
-        variables: [
-            'adminName',      // receiving admin's name
-            'claimId',        // unique claim identifier
-            'lawFirmName',    // name of the firm being claimed
-            'claimerName',    // person who submitted the claim
-            'issueDescription', // detailed description of the issue
-        ],
-    },
-
-    // ─── Subscription lifecycle ────────────────────────────────────────────────
-
-    {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CREATED,
-        label: 'Subscription Created',
-        variables: [
-            'name',           // subscriber's full name
-            'planName',       // subscription plan name
-            'amount',         // charged amount
-            'currency',       // currency code (e.g. AUD)
-            'periodStart',    // subscription start date string
-            'periodEnd',      // subscription end date string
-            'invoicePdfUrl',  // URL to download invoice PDF
-            'dashboardUrl',   // link to subscription/dashboard
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_RENEWED,
-        label: 'Subscription Renewed',
-        variables: [
-            'name',           // subscriber's full name
-            'planName',       // subscription plan name
-            'amount',         // renewal charge amount
-            'currency',       // currency code
-            'nextRenewalDate', // date of next renewal
-            'invoicePdfUrl',  // URL to download invoice PDF
-            'dashboardUrl',   // link to subscription/dashboard
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_PAYMENT_FAILED,
-        label: 'Subscription Payment Failed',
-        variables: [
-            'name',           // subscriber's full name
-            'planName',       // subscription plan name
-            'updatePaymentUrl', // link to update payment method
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CANCELED,
-        label: 'Subscription Canceled',
-        variables: [
-            'name',           // subscriber's full name
-            'planName',       // subscription plan name
-            'canceledAt',     // cancellation date string
-            'reactivateUrl',  // link to reactivate the subscription
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CHANGED,
-        label: 'Subscription Plan Changed',
-        variables: [
-            'name',           // subscriber's full name
-            'oldPlanName',    // previous plan name
-            'newPlanName',    // new plan name
-            'amount',         // new plan charge amount
-            'currency',       // currency code
-            'periodStart',    // new period start date
-            'periodEnd',      // new period end date
-            'dashboardUrl',   // link to subscription/dashboard
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_RENEWAL_REMINDER,
-        label: 'Subscription Renewal Reminder',
-        variables: [
-            'name',           // subscriber's full name
-            'planName',       // subscription plan name
-            'daysLeft',       // days until renewal
-            'renewalDate',    // renewal date string
-            'amount',         // renewal charge amount
-            'currency',       // currency code
-            'dashboardUrl',   // link to subscription/dashboard
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_EXPIRED,
-        label: 'Subscription Expired',
-        variables: [
-            'name',           // subscriber's full name
-            'planName',       // subscription plan name
-            'expiredAt',      // expiry date string
-            'reactivateUrl',  // link to re-subscribe
-        ],
-    },
-
-    // ─── Credits ───────────────────────────────────────────────────────────────
-
-    {
-        key: EMAIL_TEMPLATE_KEYS.CREDITS_PURCHASED,
-        label: 'Credits Purchased',
-        variables: [
-            'name',           // user's full name
-            'credits',        // number of credits purchased
-            'amount',         // amount paid
-            'currency',       // currency code
-            'dashboardUrl',   // link to credits/dashboard
-        ],
-    },
-    {
-        key: EMAIL_TEMPLATE_KEYS.CREDITS_LOW_WARNING,
-        label: 'Low Credits Warning',
-        variables: [
-            'name',           // user's full name
-            'credits',        // remaining credits count
-            'dashboardUrl',   // link to buy more credits
-        ],
-    },
-
-    // ─── Admin Custom Campaign ─────────────────────────────────────────────────
-
-    {
-        key: EMAIL_TEMPLATE_KEYS.ADMIN_CUSTOM,
-        label: 'Custom Admin Message',
-        variables: [
-            'name',           // recipient's full name
-            'headline',       // email headline / subject line (optional)
-            'body',           // main message body text
-            'ctaLabel',       // call-to-action button label (optional)
-            'ctaUrl',         // call-to-action URL (optional)
-            'footerText',     // footer note (optional)
-        ],
-    },
-
-    // ─── Email flow / drip campaigns ──────────────────────────────────────────
-
-    {
-        key: EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM,
-        label: 'Tutorial System',
+        label: 'After Registration (after activation) - Thank you email',
         variables: ['name', 'dashboardUrl'],
     },
-    {
-        key: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE,
-        label: 'Complete Profile',
-        variables: ['name', 'dashboardUrl'],
-    },
+
     {
         key: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER,
         label: 'Complete Profile Reminder',
@@ -384,23 +139,146 @@ export const EMAIL_TEMPLATES = [
     },
     {
         key: EMAIL_TEMPLATE_KEYS.BUY_CREDIT,
-        label: 'Buy Credit',
+        label: 'How to Buy Credits and Start Bidding',
         variables: ['name', 'dashboardUrl'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.WIN_JOB,
-        label: 'Win Job',
+        label: 'How to Get More Cases on The Law App',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.HOW_TO_BE_SUBSCRIBED_USER,
+        label: 'Unlock Advanced Features by Becoming a Subscribed User',
         variables: ['name', 'dashboardUrl'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS,
-        label: 'Subscription Benefits',
+        label: 'Why Should You Become a Subscribed User?',
         variables: ['name', 'dashboardUrl'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.ELITE_PRO,
-        label: 'Elite Pro',
+        label: 'Become an Elite Pro Member and Take Your Practice to the Next Level',
         variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.BENEFIT_OF_ELITE_PRO_MEMBER,
+        label: 'What Is the Benefit of Elite Pro Member',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.THOUSAND_CASES_WAITING,
+        label: '1,000 Cases Waiting for You',
+        variables: ['name', 'dashboardUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.LAWYER_PROMOTION,
+        label: 'Lawyer Profile Promotion',
+        variables: ['name', 'role', 'dashboardUrl', 'appName'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM,
+        label: 'Tutorial System',
+        variables: ['name', 'dashboardUrl'],
+    },
+
+    // ─── Firm ────────────────────────────────────────────────────────────────────
+    {
+        key: EMAIL_TEMPLATE_KEYS.FIRM_REGISTRATION,
+        label: 'Firm – Registration',
+        variables: ['firmAdmin', 'email', 'password', 'loginUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.FIRM_PASSWORD_RESET,
+        label: 'Firm – Password Reset',
+        variables: ['firmName', 'firmUserName', 'resetUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.REQUEST_LAWYER_AS_FIRM_MEMBER,
+        label: 'Firm – Lawyer Join Request',
+        variables: ['lawyerName', 'lawyerEmail', 'role', 'requestUrl'],
+    },
+
+    // ─── Lead / Case ─────────────────────────────────────────────────────────────
+    {
+        key: EMAIL_TEMPLATE_KEYS.NEW_LEAD_ALERT,
+        label: 'New Lead Alert (Lawyer)',
+        variables: [
+            'clientName', 'lawyerType', 'location', 'credits',
+            'email', 'phone', 'description', 'projectType',
+            'projectValue', 'mapImageUrl', 'contactUrl',
+            'viewDetailsUrl', 'discountUrl',
+        ],
+    },
+
+    // ─── Contact / Interaction ───────────────────────────────────────────────────
+    {
+        key: EMAIL_TEMPLATE_KEYS.CONTACT,
+        label: 'Lawyer–Client Interaction',
+        variables: [
+            'name', 'userRole', 'dashboardUrl', 'senderName',
+            'timestamp', 'message',
+        ],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.PUBLIC_CONTACT,
+        label: 'Public Contact Form',
+        variables: ['name', 'email', 'phone', 'message'],
+    },
+
+    // ─── Subscription & Billing ──────────────────────────────────────────────────
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CREATED,
+        label: 'Subscription Created',
+        variables: [
+            'name', 'planName', 'amount', 'currency',
+            'periodStart', 'periodEnd', 'invoicePdfUrl', 'dashboardUrl',
+        ],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_RENEWED,
+        label: 'Subscription Renewed',
+        variables: [
+            'name', 'planName', 'amount', 'currency',
+            'nextRenewalDate', 'invoicePdfUrl', 'dashboardUrl',
+        ],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_PAYMENT_FAILED,
+        label: 'Subscription Payment Failed',
+        variables: ['name', 'planName', 'updatePaymentUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CANCELED,
+        label: 'Subscription Canceled',
+        variables: ['name', 'planName', 'canceledAt', 'reactivateUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CHANGED,
+        label: 'Subscription Plan Changed',
+        variables: [
+            'name', 'oldPlanName', 'newPlanName', 'amount',
+            'currency', 'periodStart', 'periodEnd', 'dashboardUrl',
+        ],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_RENEWAL_REMINDER,
+        label: 'Subscription Renewal Reminder',
+        variables: [
+            'name', 'planName', 'daysLeft', 'renewalDate',
+            'amount', 'currency', 'dashboardUrl',
+        ],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_EXPIRED,
+        label: 'Subscription Expired',
+        variables: ['name', 'planName', 'expiredAt', 'reactivateUrl'],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CONFIRMED,
+        label: 'Subscription Confirmed',
+        variables: ['name', 'planName', 'dashboardUrl'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.INVOICE_DUE_21,
@@ -412,15 +290,42 @@ export const EMAIL_TEMPLATES = [
         label: 'Invoice Due 30 Days',
         variables: ['name', 'dashboardUrl'],
     },
+
+    // ─── Credits ─────────────────────────────────────────────────────────────────
     {
-        key: EMAIL_TEMPLATE_KEYS.HOW_TO_POST_CASE,
-        label: 'How to Post Case',
-        variables: ['name', 'dashboardUrl'],
+        key: EMAIL_TEMPLATE_KEYS.CREDITS_PURCHASED,
+        label: 'Credits Purchased',
+        variables: [
+            'name', 'credits', 'amount', 'currency', 'dashboardUrl',
+        ],
     },
     {
-        key: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_CONFIRMED,
-        label: 'Subscription Confirmed',
-        variables: ['name', 'planName', 'dashboardUrl'],
+        key: EMAIL_TEMPLATE_KEYS.CREDITS_LOW_WARNING,
+        label: 'Low Credits Warning',
+        variables: ['name', 'credits', 'dashboardUrl'],
+    },
+
+    // ─── Admin / Promotional / Event ─────────────────────────────────────────────
+    {
+        key: EMAIL_TEMPLATE_KEYS.ADMIN_CUSTOM,
+        label: 'Custom Admin Message',
+        variables: [
+            'name', 'headline', 'body', 'ctaLabel',
+            'ctaUrl', 'footerText',
+        ],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.NEW_CLAIM_NOTIFICATION,
+        label: 'New Claim Notification (Admin)',
+        variables: [
+            'adminName', 'claimId', 'lawFirmName', 'claimerName',
+            'issueDescription',
+        ],
+    },
+    {
+        key: EMAIL_TEMPLATE_KEYS.SPECIAL_EVENTS_EMAIL,
+        label: 'Special Events Email',
+        variables: ['name', 'dashboardUrl'],
     },
 ];
 
@@ -432,3 +337,4 @@ export const emailTemplateSearchableFields = [
 ];
 
 export type TEmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[keyof typeof EMAIL_TEMPLATE_KEYS];
+
