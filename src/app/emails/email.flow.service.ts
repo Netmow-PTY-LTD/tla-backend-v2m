@@ -53,7 +53,13 @@ export const emailFlowService = {
      */
     getInitialFlowData: async (role: string) => {
         // Find the "promotional" category ID to filter by
-        const promoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
+        const categoryName = role === 'lawyer' ? 'Promotional Email for Lawyer' : role === 'client' ? 'Promotional Email for Client' : 'promotional';
+        let promoCategory = await EmailTemplateCategory.findOne({ name: categoryName });
+        
+        // Fallback to general 'promotional' category if specific one is not found
+        if (!promoCategory && categoryName !== 'promotional') {
+            promoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
+        }
 
         const query: Record<string, any> = {
             target: role,
@@ -120,8 +126,10 @@ export const emailFlowService = {
             accountStatus: { $in: [USER_STATUS.APPROVED, USER_STATUS.PENDING] },
         }).populate('profile');
 
-        // Find the promotional category
-        const promoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
+        // Find the promotional categories
+        const lawyerPromoCategory = await EmailTemplateCategory.findOne({ name: 'Promotional Email for Lawyer' });
+        const clientPromoCategory = await EmailTemplateCategory.findOne({ name: 'Promotional Email for Client' });
+        const generalPromoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
 
         for (const user of usersToEmail) {
             const currentStep = user.email_step || 1;
@@ -132,6 +140,13 @@ export const emailFlowService = {
                 step: { $gte: currentStep },
                 isActive: true
             };
+
+            let promoCategory = generalPromoCategory;
+            if (user.regUserType === 'lawyer') {
+                promoCategory = lawyerPromoCategory || generalPromoCategory;
+            } else if (user.regUserType === 'client') {
+                promoCategory = clientPromoCategory || generalPromoCategory;
+            }
 
             if (promoCategory) {
                 query.categoryId = promoCategory._id;
