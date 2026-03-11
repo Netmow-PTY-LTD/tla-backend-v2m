@@ -684,8 +684,15 @@ const clientRegistrationDraftInDB = async (payload: IClientRegistrationDraft) =>
 
 
 
+  // Set delayed activation time to 24 hours from now
+  const draftData = {
+    ...payload,
+    next_email_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    email_step: 0,
+  };
+
   // 1. Create ClientRegistrationDraft
-  const result = await ClientRegistrationDraft.create(payload);
+  const result = await ClientRegistrationDraft.create(draftData);
 
   // Auto-log custom service search if draft has a custom service term
   if (payload.leadDetails?.customService) {
