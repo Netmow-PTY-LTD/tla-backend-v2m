@@ -1176,7 +1176,7 @@ export const changeHireStatus = async (
 
   if (!currentUserId || !otherUserId) return { success: true, message: `Hire request ${hireDecision}`, response };
 
-  const activity = await logActivity({
+  await logActivity({
     createdBy: currentUserId,
     activityNote: `Response status updated to "${response.status}"`,
     activityType: 'hired',
@@ -1185,7 +1185,7 @@ export const changeHireStatus = async (
     extraField: { leadId, affectedUser: otherUserId },
   });
 
-  const notification1 = await createNotification({
+  await createNotification({
     userId: currentUserId,
     toUser: otherUserId,
     title: `Response Status Changed`,
@@ -1194,8 +1194,7 @@ export const changeHireStatus = async (
     type: 'hired',
     link: `/lawyer/dashboard/my-responses?responseId=${responseId}`,
   });
-
-  const notification2 = await createNotification({
+  await createNotification({
     userId: otherUserId,
     toUser: currentUserId,
     title: `Response Status Changed`,
