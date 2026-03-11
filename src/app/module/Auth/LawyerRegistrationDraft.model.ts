@@ -50,6 +50,8 @@ export interface ILawyerRegistrationDraft extends Document {
     isEmailVerified: boolean;
     verifiedAt: Date | null;
   };
+  email_step?: number;
+  next_email_at?: Date | null;
 }
 
 /* ================= SCHEMA ================= */
@@ -126,7 +128,9 @@ const LawyerRegistrationDraftSchema = new Schema<ILawyerRegistrationDraft>(
     verification: {
       isEmailVerified: { type: Boolean, default: false },
       verifiedAt: { type: Date, default: null }
-    }
+    },
+    email_step: { type: Number, default: 0 },
+    next_email_at: { type: Date, default: null }
   },
   {
     timestamps: true,

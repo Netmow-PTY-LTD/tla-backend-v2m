@@ -165,6 +165,8 @@ export interface IClientRegistrationDraft extends Document {
     isEmailVerified: boolean;
     verifiedAt: Date | null;
   };
+  email_step?: number;
+  next_email_at?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -265,7 +267,9 @@ const clientRegistrationDraftSchema = new Schema<IClientRegistrationDraft>(
     verification: {
       isEmailVerified: { type: Boolean, default: false },
       verifiedAt: { type: Date, default: null }
-    }
+    },
+    email_step: { type: Number, default: 0 },
+    next_email_at: { type: Date, default: null }
   },
   {
     timestamps: true,

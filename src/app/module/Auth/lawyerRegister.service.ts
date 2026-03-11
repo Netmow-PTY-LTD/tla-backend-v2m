@@ -631,8 +631,15 @@ const lawyerRegistrationDraftInDB = async (payload: ILawyerRegistrationDraft) =>
     throw new AppError(HTTP_STATUS.CONFLICT, 'Account alredy exists with the email. Please! login with existing email or use new email');
   }
 
+  // Set delayed activation time to 24 hours from now
+  const draftData = {
+    ...payload,
+    next_email_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    email_step: 0,
+  };
+
   // 1. Create LawyerRegistrationDraft
-  const result = await LawyerRegistrationDraft.create(payload);
+  const result = await LawyerRegistrationDraft.create(draftData);
 
   // 2. Generate OTP
   const otp = generateOtp();

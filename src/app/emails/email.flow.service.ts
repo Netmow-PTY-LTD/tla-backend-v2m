@@ -6,26 +6,26 @@ import { EmailQueue } from '../queues/emailQueue.model';
 import { EMAIL_TEMPLATE_KEYS } from '../module/emailTemplateSystem/emailTemplate.constant';
 import { USER_STATUS } from '../module/Auth/auth.constant';
 import { addEmailToQueue } from '../queues/email.queue';
+import { ClientRegistrationDraft } from '../module/Auth/clientRegistrationDraft.model';
+import { LawyerRegistrationDraft } from '../module/Auth/LawyerRegistrationDraft.model';
 
 // Lawyer flow configuration
 const lawyerFlow = [
-    { step: 1, templateKey: EMAIL_TEMPLATE_KEYS.LAWYER_DELAYED_ACTIVATION, delayMs: 24 * 60 * 60 * 1000 }, // Wait 24h
-    { step: 2, templateKey: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER, delayMs: 2 * 24 * 60 * 60 * 1000 }, // 2-3 days after activation
-    { step: 3, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_BID, delayMs: 2 * 24 * 60 * 60 * 1000 }, // ~4-5 days after registration
-    { step: 4, templateKey: EMAIL_TEMPLATE_KEYS.BUY_CREDIT, delayMs: 3 * 24 * 60 * 60 * 1000 }, // ~1 week after reg
-    { step: 5, templateKey: EMAIL_TEMPLATE_KEYS.WIN_JOB, delayMs: 4 * 24 * 60 * 60 * 1000 }, // 1-2 weeks after reg
-    { step: 6, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_BE_SUBSCRIBED_USER, delayMs: 4 * 24 * 60 * 60 * 1000 }, // ~2 weeks after reg
-    { step: 7, templateKey: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS, delayMs: 7 * 24 * 60 * 60 * 1000 }, // 3-4 weeks after reg
-    { step: 8, templateKey: EMAIL_TEMPLATE_KEYS.THOUSAND_CASES_WAITING, delayMs: 3 * 24 * 60 * 60 * 1000 }, // 3-4 weeks after reg
-    { step: 9, templateKey: EMAIL_TEMPLATE_KEYS.ELITE_PRO, delayMs: 6 * 24 * 60 * 60 * 1000 }, // After 1 month
-    { step: 10, templateKey: EMAIL_TEMPLATE_KEYS.BENEFIT_OF_ELITE_PRO_MEMBER, delayMs: 10 * 24 * 60 * 60 * 1000 }, // 1-2 weeks after previous
-    { step: 11, templateKey: EMAIL_TEMPLATE_KEYS.SPECIAL_EVENTS_EMAIL, delayMs: 30 * 24 * 60 * 60 * 1000 }, // Periodically
+    { step: 1, templateKey: EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER, delayMs: 2 * 24 * 60 * 60 * 1000 }, // 2-3 days after activation
+    { step: 2, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_BID, delayMs: 2 * 24 * 60 * 60 * 1000 }, // ~4-5 days after registration
+    { step: 3, templateKey: EMAIL_TEMPLATE_KEYS.BUY_CREDIT, delayMs: 3 * 24 * 60 * 60 * 1000 }, // ~1 week after reg
+    { step: 4, templateKey: EMAIL_TEMPLATE_KEYS.WIN_JOB, delayMs: 4 * 24 * 60 * 60 * 1000 }, // 1-2 weeks after reg
+    { step: 5, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_BE_SUBSCRIBED_USER, delayMs: 4 * 24 * 60 * 60 * 1000 }, // ~2 weeks after reg
+    { step: 6, templateKey: EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS, delayMs: 7 * 24 * 60 * 60 * 1000 }, // 3-4 weeks after reg
+    { step: 7, templateKey: EMAIL_TEMPLATE_KEYS.THOUSAND_CASES_WAITING, delayMs: 3 * 24 * 60 * 60 * 1000 }, // 3-4 weeks after reg
+    { step: 8, templateKey: EMAIL_TEMPLATE_KEYS.ELITE_PRO, delayMs: 6 * 24 * 60 * 60 * 1000 }, // After 1 month
+    { step: 9, templateKey: EMAIL_TEMPLATE_KEYS.BENEFIT_OF_ELITE_PRO_MEMBER, delayMs: 10 * 24 * 60 * 60 * 1000 }, // 1-2 weeks after previous
+    { step: 10, templateKey: EMAIL_TEMPLATE_KEYS.SPECIAL_EVENTS_EMAIL, delayMs: 30 * 24 * 60 * 60 * 1000 }, // Periodically
 ];
 
 // Client flow configuration
 const clientFlow = [
-    { step: 1, templateKey: EMAIL_TEMPLATE_KEYS.CLIENT_DELAYED_ACTIVATION, delayMs: 24 * 60 * 60 * 1000 }, // Wait 24h
-    { step: 2, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_FIND_RIGHT_LAWYER, delayMs: 2 * 24 * 60 * 60 * 1000 }, // 2 days after reg
+    { step: 1, templateKey: EMAIL_TEMPLATE_KEYS.HOW_TO_FIND_RIGHT_LAWYER, delayMs: 2 * 24 * 60 * 60 * 1000 }, // 2 days after reg
 ];
 
 export const emailFlowService = {
@@ -45,12 +45,6 @@ export const emailFlowService = {
         if (!profile) return false;
 
         switch (templateKey) {
-
-            case EMAIL_TEMPLATE_KEYS.LAWYER_DELAYED_ACTIVATION:
-            case EMAIL_TEMPLATE_KEYS.CLIENT_DELAYED_ACTIVATION:
-                // Skip if they are already approved
-                return user.accountStatus === USER_STATUS.APPROVED;
-
             case EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM:
                 return false; // Always send
             case EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER:
@@ -188,6 +182,70 @@ export const emailFlowService = {
                 // Reached end of flow or all remaining conditions met
                 await User.findByIdAndUpdate(user._id, { next_email_at: null, email_step: stepIndex });
             }
+        }
+
+        // Process Client Registration Drafts
+        try {
+            const clientDrafts = await ClientRegistrationDraft.find({
+                next_email_at: { $lte: now, $ne: null },
+            });
+
+            for (const draft of clientDrafts) {
+                const template = await EmailTemplate.findOne({ templateKey: EMAIL_TEMPLATE_KEYS.CLIENT_DELAYED_ACTIVATION, isActive: true });
+                if (template) {
+                    const jobRecord = await EmailQueue.create({
+                        userId: draft._id,
+                        email: draft.leadDetails.email,
+                        templateKey: template.templateKey,
+                        scheduledAt: now,
+                        status: 'pending',
+                        person_type: 'client',
+                        email_type: 'automation',
+                    });
+
+                    await addEmailToQueue({
+                        mongoJobId: jobRecord._id,
+                        userId: draft._id,
+                        email: draft.leadDetails.email,
+                        templateKey: template.templateKey,
+                    });
+                }
+                await ClientRegistrationDraft.findByIdAndUpdate(draft._id, { next_email_at: null, email_step: 1 });
+            }
+        } catch (error) {
+            console.error('Error processing client registration drafts emails:', error);
+        }
+
+        // Process Lawyer Registration Drafts
+        try {
+            const lawyerDrafts = await LawyerRegistrationDraft.find({
+                next_email_at: { $lte: now, $ne: null },
+            });
+
+            for (const draft of lawyerDrafts) {
+                const template = await EmailTemplate.findOne({ templateKey: EMAIL_TEMPLATE_KEYS.LAWYER_DELAYED_ACTIVATION, isActive: true });
+                if (template) {
+                    const jobRecord = await EmailQueue.create({
+                        userId: draft._id,
+                        email: draft.email,
+                        templateKey: template.templateKey,
+                        scheduledAt: now,
+                        status: 'pending',
+                        person_type: 'lawyer',
+                        email_type: 'automation',
+                    });
+
+                    await addEmailToQueue({
+                        mongoJobId: jobRecord._id,
+                        userId: draft._id,
+                        email: draft.email,
+                        templateKey: template.templateKey,
+                    });
+                }
+                await LawyerRegistrationDraft.findByIdAndUpdate(draft._id, { next_email_at: null, email_step: 1 });
+            }
+        } catch (error) {
+            console.error('Error processing lawyer registration drafts emails:', error);
         }
     },
 };

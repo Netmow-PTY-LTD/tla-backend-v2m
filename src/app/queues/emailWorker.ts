@@ -6,6 +6,9 @@ import { IUserProfile } from '../module/User/user.interface';
 import { sendEmail } from '../emails/email.sender';
 import { USER_STATUS } from '../module/Auth/auth.constant';
 import { EMAIL_QUEUE_NAME } from './email.queue';
+import { EMAIL_TEMPLATE_KEYS } from '../module/emailTemplateSystem/emailTemplate.constant';
+import { ClientRegistrationDraft } from '../module/Auth/clientRegistrationDraft.model';
+import { LawyerRegistrationDraft } from '../module/Auth/LawyerRegistrationDraft.model';
 
 /**
  * Worker to process email jobs from BullMQ
@@ -32,14 +35,43 @@ export const startEmailWorker = () => {
                     }
                 }
 
-                // 2. Fetch User and check status
-                const user = await User.findById(userId).populate('profile');
+                // 2. Fetch User or Draft and check status
+                let name = 'User';
+                let shouldSend = true;
 
-                if (!user || user.accountStatus !== USER_STATUS.APPROVED) {
-                    const reason = !user ? 'User not found' : 'User not approved';
-                    // eslint-disable-next-line no-console
-                    console.warn(`Skipping job ${job.id}: ${reason}.`);
+                if (templateKey === EMAIL_TEMPLATE_KEYS.CLIENT_DELAYED_ACTIVATION) {
+                    const draft = await ClientRegistrationDraft.findById(userId);
+                    if (!draft) {
+                        shouldSend = false;
+                        // eslint-disable-next-line no-console
+                        console.warn(`Skipping job ${job.id}: Client draft not found.`);
+                    } else {
+                        name = draft.leadDetails?.name || 'User';
+                    }
+                } else if (templateKey === EMAIL_TEMPLATE_KEYS.LAWYER_DELAYED_ACTIVATION) {
+                    const draft = await LawyerRegistrationDraft.findById(userId);
+                    if (!draft) {
+                        shouldSend = false;
+                        // eslint-disable-next-line no-console
+                        console.warn(`Skipping job ${job.id}: Lawyer draft not found.`);
+                    } else {
+                        name = draft.profile?.name || 'User';
+                    }
+                } else {
+                    const user = await User.findById(userId).populate('profile');
 
+                    if (!user || user.accountStatus !== USER_STATUS.APPROVED) {
+                        shouldSend = false;
+                        const reason = !user ? 'User not found' : 'User not approved';
+                        // eslint-disable-next-line no-console
+                        console.warn(`Skipping job ${job.id}: ${reason}.`);
+                    } else {
+                        const profileInfo = user.profile as IUserProfile;
+                        name = profileInfo?.name || 'User';
+                    }
+                }
+
+                if (!shouldSend) {
                     if (mongoJobId) {
                         await EmailQueue.findByIdAndUpdate(mongoJobId, {
                             status: 'failed',
@@ -50,11 +82,10 @@ export const startEmailWorker = () => {
                 }
 
                 // 3. Prepare data for variables
-                const profileInfo = user.profile as IUserProfile;
                 const variableData = {
-                    name: profileInfo?.name || 'User',
-                    email: user.email,
-                    to: user.email,
+                    name,
+                    email,
+                    to: email,
                     ...(extraData || {}),
                 };
 
