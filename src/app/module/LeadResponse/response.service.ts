@@ -12,8 +12,9 @@ import { ActivityLog } from '../Activity/activityLog.model';
 import { createNotification } from '../Notification/notification.utils';
 import { USER_PROFILE, UserProfileEnum } from '../User/user.constant';
 import config from '../../config';
-import { sendEmail } from '../../emails/email.sender';
 import { IUser } from '../Auth/auth.interface';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
+import { sendEmail } from '../../emails/email.sender';
 import { logActivity } from '../Activity/logActivityLog';
 import { getIO } from '../../sockets';
 import Lead from '../Lead/lead.model';
@@ -808,7 +809,7 @@ const updateResponseStatus = async (
       to: userEmail,
       subject: `🎉 Congrats! Your profile has been upgraded to ${roleLabel}.`,
       data: emailData,
-      emailTemplate: 'lawyerPromotion',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.LAWYER_PROMOTION,
     });
 
 
@@ -1114,7 +1115,7 @@ export const changeHireStatus = async (
           dashboardUrl: `${config.client_url}/lawyer/dashboard`,
           appName: "TheLawApp",
         },
-        emailTemplate: "lawyerPromotion",
+        emailTemplate: EMAIL_TEMPLATE_KEYS.LAWYER_PROMOTION,
       });
     }
   }

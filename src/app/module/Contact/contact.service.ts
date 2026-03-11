@@ -4,6 +4,7 @@
 import { Types } from 'mongoose';
 import { sendSMS } from '../../config/smsTransporter';
 import { sendEmail } from '../../emails/email.sender';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 import { logActivity } from '../Activity/logActivityLog';
 import Lead from '../Lead/lead.model';
@@ -450,7 +451,7 @@ export const sendContactMessage = async (
         to: toEmail,
         subject: `Your Legal Inquiry – Response from  ${sentByUserName}`,
         data: emailData,
-        emailTemplate: 'contact',
+        emailTemplate: EMAIL_TEMPLATE_KEYS.CONTACT,
       });
 
       const emailRecord = await SendEmail.create({
@@ -626,7 +627,7 @@ const contactWithEmail = async (payload: IEmail) => {
         to: adminEmails.join(','),
         subject: `You have received a message from ${payload.name}`,
         data: payload,
-        emailTemplate: "public-contact",
+        emailTemplate: EMAIL_TEMPLATE_KEYS.PUBLIC_CONTACT,
       });
     } else {
       console.warn(" No admin emails found to notify for contact message.");
