@@ -22,27 +22,36 @@ export const emailFlowService = {
             case EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM:
                 return false; // Always send
             case EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER:
-                return !!(profile.bio || profile.profilePicture || (profile.serviceIds && profile.serviceIds.length > 0));
+                // Skip if profile is fully complete (has bio, picture, and services)
+                return !!(profile.bio && profile.profilePicture && (profile.serviceIds && profile.serviceIds.length > 0));
             case EMAIL_TEMPLATE_KEYS.HOW_TO_BID:
-            case EMAIL_TEMPLATE_KEYS.THOUSAND_CASES_WAITING:
+                // Skip if the lawyer has already placed a bid
                 return (profile.responseCases || 0) > 0;
             case EMAIL_TEMPLATE_KEYS.BUY_CREDIT:
+                // Skip if credits have already been purchased (and currently has them)
                 return (profile.credits || 0) > 0;
             case EMAIL_TEMPLATE_KEYS.WIN_JOB:
-                return (profile.hiredCases || 0) > 0;
+                // Skip if they have already won a job, OR if they haven't placed any bids yet
+                return (profile.hiredCases || 0) > 0 || (profile.responseCases || 0) === 0;
             case EMAIL_TEMPLATE_KEYS.HOW_TO_BE_SUBSCRIBED_USER:
             case EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS:
+                // Skip if already a subscribed user
                 return !!profile.subscriptionId;
             case EMAIL_TEMPLATE_KEYS.ELITE_PRO:
             case EMAIL_TEMPLATE_KEYS.BENEFIT_OF_ELITE_PRO_MEMBER:
+                // Skip if already an Elite Pro member
                 return !!profile.isElitePro;
+            case EMAIL_TEMPLATE_KEYS.THOUSAND_CASES_WAITING:
+                // Skip if the lawyer has engaged with enough cases (e.g., 5 or more as per rules)
+                return (profile.responseCases || 0) >= 5;
             case EMAIL_TEMPLATE_KEYS.HOW_TO_POST_CASE:
             case EMAIL_TEMPLATE_KEYS.HOW_TO_FIND_RIGHT_LAWYER:
+                // Skip if client has already posted a case
                 return (profile.totalCases || 0) > 0;
             case EMAIL_TEMPLATE_KEYS.INVOICE_DUE_21:
             case EMAIL_TEMPLATE_KEYS.INVOICE_DUE_30:
             case EMAIL_TEMPLATE_KEYS.SPECIAL_EVENTS_EMAIL:
-                return false; // Always send based on time
+                return false; // Always send based on the scheduled time / periodic
             default:
                 return false;
         }
@@ -55,7 +64,7 @@ export const emailFlowService = {
         // Find the "promotional" category ID to filter by
         const categoryName = role === 'lawyer' ? 'Promotional Email for Lawyer' : role === 'client' ? 'Promotional Email for Client' : 'promotional';
         let promoCategory = await EmailTemplateCategory.findOne({ name: categoryName });
-        
+
         // Fallback to general 'promotional' category if specific one is not found
         if (!promoCategory && categoryName !== 'promotional') {
             promoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
@@ -332,27 +341,36 @@ export const emailFlowService = {
             case EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM:
                 return false; // Always send
             case EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER:
-                return !!(profile.bio || profile.profilePicture || (profile.serviceIds && profile.serviceIds.length > 0));
+                // Skip if profile is fully complete (has bio, picture, and services)
+                return !!(profile.bio && profile.profilePicture && (profile.serviceIds && profile.serviceIds.length > 0));
             case EMAIL_TEMPLATE_KEYS.HOW_TO_BID:
-            case EMAIL_TEMPLATE_KEYS.THOUSAND_CASES_WAITING:
+                // Skip if the lawyer has already placed a bid
                 return (profile.responseCases || 0) > 0;
             case EMAIL_TEMPLATE_KEYS.BUY_CREDIT:
+                // Skip if credits have already been purchased (and currently has them)
                 return (profile.credits || 0) > 0;
             case EMAIL_TEMPLATE_KEYS.WIN_JOB:
-                return (profile.hiredCases || 0) > 0;
+                // Skip if they have already won a job, OR if they haven't placed any bids yet
+                return (profile.hiredCases || 0) > 0 || (profile.responseCases || 0) === 0;
             case EMAIL_TEMPLATE_KEYS.HOW_TO_BE_SUBSCRIBED_USER:
             case EMAIL_TEMPLATE_KEYS.SUBSCRIPTION_BENEFITS:
+                // Skip if already a subscribed user
                 return !!profile.subscriptionId;
             case EMAIL_TEMPLATE_KEYS.ELITE_PRO:
             case EMAIL_TEMPLATE_KEYS.BENEFIT_OF_ELITE_PRO_MEMBER:
+                // Skip if already an Elite Pro member
                 return !!profile.isElitePro;
+            case EMAIL_TEMPLATE_KEYS.THOUSAND_CASES_WAITING:
+                // Skip if the lawyer has engaged with enough cases (e.g., 5 or more as per rules)
+                return (profile.responseCases || 0) >= 5;
             case EMAIL_TEMPLATE_KEYS.HOW_TO_POST_CASE:
             case EMAIL_TEMPLATE_KEYS.HOW_TO_FIND_RIGHT_LAWYER:
+                // Skip if client has already posted a case
                 return (profile.totalCases || 0) > 0;
             case EMAIL_TEMPLATE_KEYS.INVOICE_DUE_21:
             case EMAIL_TEMPLATE_KEYS.INVOICE_DUE_30:
             case EMAIL_TEMPLATE_KEYS.SPECIAL_EVENTS_EMAIL:
-                return false; // Always send based on time
+                return false; // Always send based on the scheduled time / periodic
             default:
                 return false;
         }
