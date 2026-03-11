@@ -348,7 +348,7 @@ const lawyerRegisterUserIntoDB = async (payload: IUser, externalSession?: mongoo
     const { profile, lawyerServiceMap, companyInfo, ...userData } = payload;
 
     // Create the user document in the database
-    const initialFlowData = emailFlowService.getInitialFlowData('lawyer');
+    const initialFlowData = await emailFlowService.getInitialFlowData('lawyer');
     const [newUser] = await User.create([{
       ...userData,
       ...initialFlowData,

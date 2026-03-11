@@ -14,7 +14,7 @@ import Lead from '../Lead/lead.model';
 
 import { LeadServiceAnswer } from '../Lead/leadServiceAnswer.model';
 import { Types } from 'mongoose';
-import { REGISTER_USER_TYPE } from './auth.constant';
+import { REGISTER_USER_TYPE, USER_STATUS } from './auth.constant';
 import { sendEmail } from '../../emails/email.sender';
 import Service from '../Service/service.model';
 import CountryWiseServiceWiseField from '../CountryWiseMap/countryWiseServiceWiseFields.model';
@@ -395,11 +395,12 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
       regUserType: REGISTER_USER_TYPE.CLIENT,
       // password: config.default_password,
       password: defaultPassword,
+      accountStatus: USER_STATUS.APPROVED,
       isVerifiedAccount: payload.isVerifiedAccount,
     };
 
     // create new user
-    const initialFlowData = emailFlowService.getInitialFlowData('client');
+    const initialFlowData = await emailFlowService.getInitialFlowData('client');
     const [newUser] = await User.create([{
       ...userData,
       ...initialFlowData,
