@@ -399,7 +399,7 @@ const clientRegisterUserIntoDB = async (payload: any, externalSession?: mongoose
     };
 
     // create new user
-    const initialFlowData = emailFlowService.getInitialFlowData('client');
+    const initialFlowData = await emailFlowService.getInitialFlowData('client');
     const [newUser] = await User.create([{
       ...userData,
       ...initialFlowData,
