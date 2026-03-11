@@ -19,6 +19,7 @@ import { StringValue } from "ms";
 import FirmUser from "../../firmModule/FirmAuth/frimAuth.model";
 import { Firm_USER_ROLE } from "../../firmModule/FirmAuth/frimAuth.constant";
 import { IUser } from "../Auth/auth.interface";
+import { EMAIL_TEMPLATE_KEYS } from "../emailTemplateSystem/emailTemplate.constant";
 
 
 
@@ -201,7 +202,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
       to: newUser.email,
       subject: 'Your Lawyer Account Has Been Activated on TheLawApp',
       data: commonEmailData,
-      emailTemplate: "welcome_to_lawyer_by_marketer",
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_TO_LAWYER_BY_MARKETER,
     });
 
 
@@ -243,7 +244,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
         verifyUrl: emailVerificationUrl,
         role: 'Lawyer'
       },
-      emailTemplate: 'verify_email',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
     });
 
 
@@ -262,7 +263,7 @@ const lawyerRegisterUserIntoDB = async (userId: string, payload: IUser) => {
             role: 'Lawyer',
             requestUrl: `${config.firm_client_url}/dashboard/requests`
           },
-          emailTemplate: 'request_lawyer_as_firm_member',
+          emailTemplate: EMAIL_TEMPLATE_KEYS.REQUEST_LAWYER_AS_FIRM_MEMBER,
         });
 
       }

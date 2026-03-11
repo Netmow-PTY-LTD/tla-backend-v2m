@@ -13,6 +13,7 @@ import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import { USER_PROFILE } from '../User/user.constant';
 import { sendEmail } from '../../emails/email.sender';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
@@ -316,7 +317,7 @@ const purchaseCredits = async (
         to: (userProfile.user as IUser)?.email,
         subject: `🎉 Congrats! Your profile has been upgraded to ${roleLabel}.`,
         data: emailData,
-        emailTemplate: 'lawyerPromotion',
+        emailTemplate: EMAIL_TEMPLATE_KEYS.LAWYER_PROMOTION,
       }));
     }
 

@@ -15,6 +15,7 @@ import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
 import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
 import { sendEmail } from '../../emails/email.sender';
 import config from '../../config';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 
 const updateCompanyProfileIntoDB = async (
   userId: string,
@@ -179,7 +180,7 @@ export const firmRequestAsMember = async (
           role: "Lawyer",
           requestUrl: `${config.firm_client_url}/dashboard/requests`,
         },
-        emailTemplate: "request_lawyer_as_firm_member",
+        emailTemplate: EMAIL_TEMPLATE_KEYS.REQUEST_LAWYER_AS_FIRM_MEMBER,
       });
 
 

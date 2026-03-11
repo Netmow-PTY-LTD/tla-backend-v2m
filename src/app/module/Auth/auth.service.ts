@@ -11,6 +11,7 @@ import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import UserProfile from '../User/user.model';
 import { sendEmail } from '../../emails/email.sender';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 import { validateObjectId } from '../../utils/validateObjectId';
 import { generateOtp } from './otp.utils';
 import { IUserProfile } from '../User/user.interface';
@@ -261,7 +262,7 @@ const forgetPassword = async (userEmail: string) => {
     to: user.email,
     subject: 'Reset Your Password to Regain Access',
     data: restEmailData,
-    emailTemplate: 'password_reset',
+    emailTemplate: EMAIL_TEMPLATE_KEYS.PASSWORD_RESET,
   });
 
 };
@@ -453,7 +454,7 @@ const resendVerificationEmail = async (email: string) => {
       verifyUrl: emailVerificationUrl,
       role: user.role,
     },
-    emailTemplate: 'verify_email',
+    emailTemplate: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
   });
 
   return { email: user.email, isVerified: user.isVerifiedAccount };
@@ -503,7 +504,7 @@ export const changeAccountStatus = async (
         name: updatedUser.profile?.name ?? "User",
 
       },
-      emailTemplate: 'lawyer_approved',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.LAWYER_APPROVED,
     });
 
   }
@@ -552,7 +553,7 @@ const sendOtp = async ({
       username,
       expiresAt: expiresAt.toLocaleTimeString(), // format as needed
     },
-    emailTemplate: 'otp_email',
+    emailTemplate: EMAIL_TEMPLATE_KEYS.OTP_EMAIL,
   });
 
 
