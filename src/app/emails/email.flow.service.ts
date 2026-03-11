@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IUser } from '../module/Auth/auth.interface';
 import { User } from '../module/Auth/auth.model';
-import { EmailTemplate } from '../module/emailTemplateSystem/emailTemplate.model';
+import { EmailTemplate, EmailTemplateCategory } from '../module/emailTemplateSystem/emailTemplate.model';
 import { IUserProfile } from '../module/User/user.interface';
 import { EmailQueue } from '../queues/emailQueue.model';
 import { EMAIL_TEMPLATE_KEYS } from '../module/emailTemplateSystem/emailTemplate.constant';
@@ -51,12 +52,21 @@ export const emailFlowService = {
      * Initial data for a new user to start the automation flow.
      */
     getInitialFlowData: async (role: string) => {
-        // Find the first active template for the role based on the step order
-        const firstTemplate = await EmailTemplate.findOne({
+        // Find the "promotional" category ID to filter by
+        const promoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
+
+        const query: Record<string, any> = {
             target: role,
             isActive: true,
             step: { $gt: 0 }
-        }).sort({ step: 1 });
+        };
+
+        if (promoCategory) {
+            query.categoryId = promoCategory._id;
+        }
+
+        // Find the first active promotional template for the role based on the step order
+        const firstTemplate = await EmailTemplate.findOne(query).sort({ step: 1 });
 
         if (firstTemplate) {
             return {
@@ -110,15 +120,24 @@ export const emailFlowService = {
             accountStatus: { $in: [USER_STATUS.APPROVED, USER_STATUS.PENDING] },
         }).populate('profile');
 
+        // Find the promotional category
+        const promoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
+
         for (const user of usersToEmail) {
             const currentStep = user.email_step || 1;
 
-            // Get all remaining active templates for this user's role starting from their current step
-            const templates = await EmailTemplate.find({
+            // Get all remaining active promotional templates for this user's role starting from their current step
+            const query: Record<string, any> = {
                 target: user.regUserType,
                 step: { $gte: currentStep },
                 isActive: true
-            }).sort({ step: 1 });
+            };
+
+            if (promoCategory) {
+                query.categoryId = promoCategory._id;
+            }
+
+            const templates = await EmailTemplate.find(query).sort({ step: 1 });
 
             let selectedTemplate = null;
             let finalStepIndex = 0;
