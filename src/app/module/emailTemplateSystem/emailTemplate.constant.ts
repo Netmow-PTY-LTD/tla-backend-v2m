@@ -89,7 +89,7 @@ export const EMAIL_TEMPLATES = [
     {
         key: EMAIL_TEMPLATE_KEYS.CLIENT_DELAYED_ACTIVATION,
         label: 'Your Profile Activation is Pending',
-        variables: ['name', 'dashboardUrl'],
+        variables: ['name'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.HOW_TO_FIND_RIGHT_LAWYER,
@@ -119,7 +119,7 @@ export const EMAIL_TEMPLATES = [
     {
         key: EMAIL_TEMPLATE_KEYS.LAWYER_DELAYED_ACTIVATION,
         label: 'Confirmation Email (if there\'s a delay to activate)',
-        variables: ['name', 'dashboardUrl'],
+        variables: ['name'],
     },
     {
         key: EMAIL_TEMPLATE_KEYS.LAWYER_APPROVED,
