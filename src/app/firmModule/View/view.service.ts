@@ -18,6 +18,7 @@ import { Notification } from "../../module/Notification/notification.model";
 import UserProfile from "../../module/User/user.model";
 import { sendNotFoundResponse } from "../../errors/custom.error";
 import { sendEmail } from "../../emails/email.sender";
+import { EMAIL_TEMPLATE_KEYS } from "../../module/emailTemplateSystem/emailTemplate.constant";
 import User from "../../module/Auth/auth.model";
 
 
@@ -374,7 +375,7 @@ const createClaimIntoDB = async (
               claimerName: payload.claimerName,
               issueDescription: payload.issueDescription,
             },
-            emailTemplate: "new_claim_notification",
+            emailTemplate: EMAIL_TEMPLATE_KEYS.NEW_CLAIM_NOTIFICATION,
           };
 
           return sendEmail(emailData);

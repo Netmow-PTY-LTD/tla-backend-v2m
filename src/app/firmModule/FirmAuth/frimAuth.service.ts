@@ -11,6 +11,7 @@ import { StringValue } from "ms";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { FirmProfile } from "../Firm/firm.model";
 import { sendEmail } from "../../emails/email.sender";
+import { EMAIL_TEMPLATE_KEYS } from "../../module/emailTemplateSystem/emailTemplate.constant";
 import { validateObjectId } from "../../utils/validateObjectId";
 import { generateOtpForFrim } from "./auth.utils";
 import bcrypt from 'bcryptjs';
@@ -255,7 +256,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
             to: userData.email,
             subject: 'Welcome to TheLawApp - Your Account has been Successfully Created',
             data: data,
-            emailTemplate: "firm_registration",
+            emailTemplate: EMAIL_TEMPLATE_KEYS.FIRM_REGISTRATION,
         });
 
 
@@ -508,7 +509,7 @@ const forgetPassword = async (userEmail: string) => {
         to: user.email,
         subject: 'Password Reset Request for TheLawApp Company Account',
         data: restEmailData,
-        emailTemplate: 'firm_password_reset',
+        emailTemplate: EMAIL_TEMPLATE_KEYS.FIRM_PASSWORD_RESET,
     });
 
 };
@@ -695,7 +696,7 @@ const resendVerificationEmail = async (email: string) => {
             verifyUrl: emailVerificationUrl,
             role: user.role,
         },
-        emailTemplate: 'verify_email',
+        emailTemplate: EMAIL_TEMPLATE_KEYS.VERIFY_EMAIL,
     });
 
     return { email: user.email, isVerified: user.isVerifiedAccount };
@@ -770,7 +771,7 @@ const sendOtp = async ({
             username,
             expiresAt: expiresAt.toLocaleTimeString(), // format as needed
         },
-        emailTemplate: 'otp_email',
+        emailTemplate: EMAIL_TEMPLATE_KEYS.OTP_EMAIL,
     });
 
 

@@ -15,6 +15,7 @@ import Service from '../Service/service.model';
 import config from '../../config';
 import { sendEmail } from '../../emails/email.sender';
 import { IUser } from '../Auth/auth.interface';
+import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
 import ZipCode from '../Country/zipcode.model';
@@ -213,7 +214,7 @@ const CreateLeadIntoDB = async (userId: string, payload: any) => {
       to: (userProfile.user as IUser).email,
       subject: "We've received your legal request — Awaiting approval",
       data: emailData,
-      emailTemplate: 'welcome_Lead_submission',
+      emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_LEAD_SUBMISSION,
     });
 
 
@@ -4949,7 +4950,7 @@ const repostLead = async (clientUserId: string, leadId: string,) => {
         to: (userProfile.user as IUser)?.email,
         subject: "You've successfully reposted your legal request",
         data: emailData,
-        emailTemplate: 'welcome_Lead_submission',
+        emailTemplate: EMAIL_TEMPLATE_KEYS.WELCOME_LEAD_SUBMISSION,
       });
 
 
