@@ -11,4 +11,11 @@ export interface IAppSettings {
   stripeLiveMode: boolean;
   autoRefundIfLeadInactive: boolean;
   firm_client_url: string | null;
+  robots: string;
+  emailSettings: {
+    isFlowEnabled: boolean;
+    maxRetries: number;
+    workerConcurrency: number;
+    batchSize: number;
+  };
 }

@@ -14,6 +14,12 @@ const settingsSchema = new Schema(
     responseLimitPerLead: { type: Number, default: 5 },
     stripeLiveMode: { type: Boolean, default: false },
     autoRefundIfLeadInactive: { type: Boolean, default: true },
+    emailSettings: {
+      isFlowEnabled: { type: Boolean, default: true },
+      maxRetries: { type: Number, default: 3 },
+      workerConcurrency: { type: Number, default: 5 },
+      batchSize: { type: Number, default: 50 }
+    },
     robots: { type: String, default: 'noindex, nofollow' },
     firm_client_url: { type: String, default: '' },
   },

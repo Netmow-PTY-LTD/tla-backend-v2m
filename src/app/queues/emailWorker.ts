@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../config/bullmq.config';
 import { EmailQueue } from './emailQueue.model';
@@ -9,11 +10,15 @@ import { EMAIL_QUEUE_NAME } from './email.queue';
 import { EMAIL_TEMPLATE_KEYS } from '../module/emailTemplateSystem/emailTemplate.constant';
 import { ClientRegistrationDraft } from '../module/Auth/clientRegistrationDraft.model';
 import { LawyerRegistrationDraft } from '../module/Auth/LawyerRegistrationDraft.model';
+import { getAppSettings } from '../module/Settings/settingsConfig';
 
 /**
  * Worker to process email jobs from BullMQ
  */
-export const startEmailWorker = () => {
+export const startEmailWorker = async () => {
+    const settings = await getAppSettings() as any;
+    const emailSettings = settings?.emailSettings;
+
     const worker = new Worker(
         EMAIL_QUEUE_NAME,
         async (job: Job) => {
@@ -139,7 +144,7 @@ export const startEmailWorker = () => {
         },
         {
             connection: redisConnection,
-            concurrency: 5, // Process 5 emails at a time
+            concurrency: emailSettings?.workerConcurrency || 5, // Process configured emails at a time
         }
     );
 
