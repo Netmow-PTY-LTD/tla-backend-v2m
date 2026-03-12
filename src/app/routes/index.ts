@@ -38,10 +38,15 @@ import { envConfigRoutes } from '../module/EnvConfig/envConfig.route';
 import { EmailTemplateRoutes } from '../module/emailTemplateSystem/emailTemplate.route';
 import { customServiceSearchRouter } from '../module/CustomServiceSearch/customServiceSearch.route';
 import { emailCampaignRouter } from '../module/EmailCampaign/emailCampaign.routes';
+import { ScheduledJobRoutes } from '../module/ScheduledJob/scheduledJob.route';
 
 const router = Router();
 
 const moduleRoutes = [
+  {
+    path: '/scheduled-jobs',
+    route: ScheduledJobRoutes,
+  },
   {
     path: '/email-templates',
     route: EmailTemplateRoutes,

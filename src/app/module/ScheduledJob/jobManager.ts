@@ -1,0 +1,138 @@
+import cron, { ScheduledTask } from 'node-cron';
+import { Queue } from 'bullmq';
+import { redisConnection } from '../../config/bullmq.config';
+import { taskRegistry } from './taskRegistry';
+import { ScheduledJobService } from './scheduledJob.service';
+import { IScheduledJob } from './scheduledJob.interface';
+import { Types } from 'mongoose';
+
+class JobManager {
+  private cronJobs: Map<string, ScheduledTask> = new Map();
+  private queues: Map<string, Queue> = new Map();
+
+  /**
+   * Initialize all jobs on startup
+   */
+  async initialize() {
+    console.log('🔄 Initializing Job Manager...');
+    
+    // Load Cron Jobs
+    const cronJobs = await ScheduledJobService.getActiveCronJobsFromDB();
+    for (const job of cronJobs) {
+      this.scheduleCronJob(job as IScheduledJob & { _id: Types.ObjectId });
+    }
+
+    // Load BullMQ Jobs
+    const bullmqJobs = await ScheduledJobService.getActiveBullMQJobsFromDB();
+    for (const job of bullmqJobs) {
+      await this.upsertBullMQJob(job as IScheduledJob & { _id: Types.ObjectId });
+    }
+
+    console.log('✅ Job Manager initialized.');
+  }
+
+  /**
+   * Schedule or Reschedule a Cron Job
+   */
+  scheduleCronJob(job: IScheduledJob & { _id: Types.ObjectId }) {
+    const jobId = job._id.toString();
+
+    // Stop existing job if any
+    if (this.cronJobs.has(jobId)) {
+      this.cronJobs.get(jobId)?.stop();
+      this.cronJobs.delete(jobId);
+    }
+
+    if (!job.active || !job.cron) return;
+
+    const taskFunction = taskRegistry[job.task];
+    if (!taskFunction) {
+      console.warn(`⚠️ Task function "${job.task}" not found for job "${job.name}".`);
+      return;
+    }
+
+    const scheduledTask = cron.schedule(job.cron, async () => {
+      try {
+        console.log(`🚀 Executing dynamic cron task: ${job.name}`);
+        await taskFunction(job.payload);
+        await ScheduledJobService.updateLastRunInDB(jobId, 'success');
+      } catch (error) {
+        console.error(`❌ Error executing dynamic cron task "${job.name}":`, error);
+        await ScheduledJobService.updateLastRunInDB(jobId, 'failed');
+      }
+    });
+
+    this.cronJobs.set(jobId, scheduledTask);
+    console.log(`✅ Scheduled dynamic cron: ${job.name} [${job.cron}]`);
+  }
+
+  /**
+   * Add or Update a BullMQ Job
+   */
+  async upsertBullMQJob(job: IScheduledJob & { _id: Types.ObjectId }) {
+    const queueName = job.queueName || 'default-queue';
+    const jobId = job._id.toString();
+
+    if (!this.queues.has(queueName)) {
+      this.queues.set(queueName, new Queue(queueName, { connection: redisConnection }));
+    }
+
+    const queue = this.queues.get(queueName)!;
+
+    // For repeatable jobs, we should remove existing ones first to avoid duplicates
+    if (job.cron) {
+      // Find and remove existing job scheduler for this specific job ID
+      // We use the jobId as the schedulerId for uniqueness
+      await queue.removeJobScheduler(jobId);
+
+      if (job.active) {
+        await queue.upsertJobScheduler(jobId, {
+          pattern: job.cron,
+        }, {
+          name: job.task, // Use the task name for the job execution
+          data: job.payload,
+          opts: {
+            attempts: job.attempts || 3,
+            priority: job.priority || 1,
+          }
+        });
+        console.log(`✅ Added/Updated job scheduler in BullMQ: ${job.name} [ID: ${jobId}]`);
+      }
+    } else {
+      // One-time job logic
+      if (job.active) {
+        await queue.add(job.task, job.payload, {
+          attempts: job.attempts || 3,
+          priority: job.priority || 1,
+          jobId: jobId,
+          delay: job.delay || 0,
+        });
+        console.log(`✅ Enqueued one-time job to BullMQ: ${job.name}`);
+      }
+    }
+  }
+
+  /**
+   * Stop a Cron Job
+   */
+  stopCronJob(jobId: string) {
+    if (this.cronJobs.has(jobId)) {
+      this.cronJobs.get(jobId)?.stop();
+      this.cronJobs.delete(jobId);
+      console.log(`🛑 Stopped cron job: ${jobId}`);
+    }
+  }
+
+  /**
+   * Stop/Remove a BullMQ Job
+   */
+  async stopBullMQJob(jobId: string, queueName: string = 'default-queue') {
+    if (this.queues.has(queueName)) {
+      const queue = this.queues.get(queueName)!;
+      await queue.removeJobScheduler(jobId);
+      console.log(`🛑 Stopped BullMQ scheduler: ${jobId}`);
+    }
+  }
+}
+
+export const jobManager = new JobManager();
