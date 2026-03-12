@@ -2,8 +2,9 @@
 import { Queue } from 'bullmq';
 import { redisConnection } from '../config/bullmq.config';
 
-export const EMAIL_QUEUE_NAME = 'email-queue';
+import { getAppSettings } from '../module/Settings/settingsConfig';
 
+export const EMAIL_QUEUE_NAME = 'email-queue';
 
 export const emailQueue = new Queue(EMAIL_QUEUE_NAME, {
     connection: redisConnection,
@@ -19,6 +20,12 @@ export const emailQueue = new Queue(EMAIL_QUEUE_NAME, {
 });
 
 export const addEmailToQueue = async (data: Record<string, any>) => {
-    return await emailQueue.add('send-email', data, { jobId: data.mongoJobId ? data.mongoJobId.toString() : undefined });
+    const settings = await getAppSettings() as any;
+    const emailSettings = settings?.emailSettings;
+
+    return await emailQueue.add('send-email', data, {
+        jobId: data.mongoJobId ? data.mongoJobId.toString() : undefined,
+        attempts: emailSettings?.maxRetries || 3,
+    });
 };
 

@@ -30,7 +30,7 @@ async function main() {
     const { startEmailWorker } = await import('./app/queues/emailWorker');
 
     startEmailSchedulerCron();
-    startEmailWorker();
+    await startEmailWorker();
 
     // Start server
     // server.listen(config.port, () => {

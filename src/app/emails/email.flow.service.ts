@@ -9,6 +9,7 @@ import { USER_STATUS } from '../module/Auth/auth.constant';
 import { addEmailToQueue } from '../queues/email.queue';
 import { ClientRegistrationDraft } from '../module/Auth/clientRegistrationDraft.model';
 import { LawyerRegistrationDraft } from '../module/Auth/LawyerRegistrationDraft.model';
+import { getAppSettings } from '../module/Settings/settingsConfig';
 
 export const emailFlowService = {
     /**
@@ -124,6 +125,15 @@ export const emailFlowService = {
     },
 
     processScheduledEmails: async () => {
+        const settings = await getAppSettings() as any;
+        const emailSettings = settings?.emailSettings;
+
+        // 1. Check if automation flow is globally enabled
+        if (emailSettings && !emailSettings.isFlowEnabled) {
+            console.log('⏸️ Email Flow: Globally disabled via settings.');
+            return;
+        }
+
         const now = new Date();
         // find users where next_email_at <= now AND email_paused = false
         const usersToEmail = await User.find({
@@ -131,7 +141,9 @@ export const emailFlowService = {
             email_paused: false,
             // Allow BOTH Pending and Approved users to progress so they get delayed-activation emails
             accountStatus: { $in: [USER_STATUS.APPROVED, USER_STATUS.PENDING] },
-        }).populate('profile');
+        })
+            .populate('profile')
+            .limit(emailSettings?.batchSize || 50);
 
         // Find the promotional categories
         const lawyerPromoCategory = await EmailTemplateCategory.findOne({ name: 'Promotional Email for Lawyer' });
