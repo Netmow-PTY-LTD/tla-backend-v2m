@@ -35,7 +35,22 @@ export const startEmailWorker = () => {
                     }
                 }
 
-                // 2. Fetch User or Draft and check status
+                // 2. Broad Deduplication guard — skip if this template was EVER sent successfully to this user
+                const alreadySent = await EmailQueue.findOne({
+                    userId,
+                    templateKey,
+                    status: 'sent'
+                });
+
+                if (alreadySent) {
+                    console.warn(`⚠️ Skipping: email "${templateKey}" already successfully sent to user ${userId} in a previous record.`);
+                    if (mongoJobId) {
+                        await EmailQueue.findByIdAndUpdate(mongoJobId, { status: 'sent' });
+                    }
+                    return;
+                }
+
+                // 3. Fetch User or Draft and check status
                 let name = 'User';
                 let shouldSend = true;
 
@@ -43,7 +58,6 @@ export const startEmailWorker = () => {
                     const draft = await ClientRegistrationDraft.findById(userId);
                     if (!draft) {
                         shouldSend = false;
-                        // eslint-disable-next-line no-console
                         console.warn(`Skipping job ${job.id}: Client draft not found.`);
                     } else {
                         name = draft.leadDetails?.name || 'User';
@@ -52,7 +66,6 @@ export const startEmailWorker = () => {
                     const draft = await LawyerRegistrationDraft.findById(userId);
                     if (!draft) {
                         shouldSend = false;
-                        // eslint-disable-next-line no-console
                         console.warn(`Skipping job ${job.id}: Lawyer draft not found.`);
                     } else {
                         name = draft.profile?.name || 'User';
@@ -60,10 +73,12 @@ export const startEmailWorker = () => {
                 } else {
                     const user = await User.findById(userId).populate('profile');
 
-                    if (!user || user.accountStatus !== USER_STATUS.APPROVED) {
+                    // ALLOW BOTH APPROVED AND PENDING users to receive automated drip emails
+                    const isValidStatus = user && [USER_STATUS.APPROVED, USER_STATUS.PENDING].includes(user.accountStatus as any);
+
+                    if (!user || !isValidStatus) {
                         shouldSend = false;
-                        const reason = !user ? 'User not found' : 'User not approved';
-                        // eslint-disable-next-line no-console
+                        const reason = !user ? 'User not found' : `User status is ${user.accountStatus}`;
                         console.warn(`Skipping job ${job.id}: ${reason}.`);
                     } else {
                         const profileInfo = user.profile as IUserProfile;
