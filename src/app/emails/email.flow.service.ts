@@ -19,8 +19,6 @@ export const emailFlowService = {
         if (!profile) return false;
 
         switch (templateKey) {
-            case EMAIL_TEMPLATE_KEYS.TUTORIAL_SYSTEM:
-                return false; // Always send
             case EMAIL_TEMPLATE_KEYS.COMPLETE_PROFILE_REMINDER:
                 // Skip if profile is fully complete (has bio, picture, and services)
                 return !!(profile.bio && profile.profilePicture && (profile.serviceIds && profile.serviceIds.length > 0));
@@ -141,19 +139,28 @@ export const emailFlowService = {
         const generalPromoCategory = await EmailTemplateCategory.findOne({ name: 'promotional' });
 
         for (const user of usersToEmail) {
-            const currentStep = user.email_step || 1;
+            // 1. Atomic Locking: Prevent other cron runs from picking up this user
+            const lockedUser = await User.findOneAndUpdate(
+                { _id: user._id, next_email_at: user.next_email_at },
+                { $set: { next_email_at: null } },
+                { new: true }
+            ).populate('profile');
+            if (!lockedUser) continue;
+
+            const workingUser = lockedUser.toObject() as any;
+            const currentStep = workingUser.email_step || 1;
 
             // Get all remaining active promotional templates for this user's role starting from their current step
             const query: Record<string, any> = {
-                target: user.regUserType,
+                target: workingUser.regUserType,
                 step: { $gte: currentStep },
                 isActive: true
             };
 
             let promoCategory = generalPromoCategory;
-            if (user.regUserType === 'lawyer') {
+            if (workingUser.regUserType === 'lawyer') {
                 promoCategory = lawyerPromoCategory || generalPromoCategory;
-            } else if (user.regUserType === 'client') {
+            } else if (workingUser.regUserType === 'client') {
                 promoCategory = clientPromoCategory || generalPromoCategory;
             }
 
@@ -169,7 +176,7 @@ export const emailFlowService = {
             // Logic improvement: Skip templates if condition already met
             for (let i = 0; i < templates.length; i++) {
                 const tmpl = templates[i];
-                if (!emailFlowService.isConditionMet(user, tmpl.templateKey)) {
+                if (!emailFlowService.isConditionMet(workingUser, tmpl.templateKey)) {
                     selectedTemplate = tmpl;
                     finalStepIndex = i;
                     break;
@@ -177,23 +184,34 @@ export const emailFlowService = {
             }
 
             if (selectedTemplate) {
-                const jobRecord = await EmailQueue.create({
-                    userId: user._id,
-                    email: user.email,
+                // Safeguard: Check if already queued to further prevent doubles
+                const existing = await EmailQueue.findOne({
+                    userId: workingUser._id,
                     templateKey: selectedTemplate.templateKey,
-                    scheduledAt: now,
-                    status: 'pending',
-                    person_type: user.regUserType as 'client' | 'lawyer' | 'admin',
-                    email_type: 'automation',
+                    status: { $in: ['pending', 'sent'] }
                 });
 
-                // Add to BullMQ
-                await addEmailToQueue({
-                    mongoJobId: jobRecord._id,
-                    userId: user._id,
-                    email: user.email,
-                    templateKey: selectedTemplate.templateKey,
-                });
+                if (existing) {
+                    console.log(`⚠️ Email already pending for user ${workingUser._id}, template: ${selectedTemplate.templateKey}`);
+                } else {
+                    const jobRecord = await EmailQueue.create({
+                        userId: workingUser._id,
+                        email: workingUser.email,
+                        templateKey: selectedTemplate.templateKey,
+                        scheduledAt: now,
+                        status: 'pending',
+                        person_type: workingUser.regUserType as 'client' | 'lawyer' | 'admin',
+                        email_type: 'automation',
+                    });
+
+                    // Add to BullMQ
+                    await addEmailToQueue({
+                        mongoJobId: jobRecord._id,
+                        userId: workingUser._id,
+                        email: workingUser.email,
+                        templateKey: selectedTemplate.templateKey,
+                    });
+                }
 
                 // Move to NEXT step and schedule it
                 const nextTemplate = templates[finalStepIndex + 1];
@@ -203,12 +221,12 @@ export const emailFlowService = {
                     next_email_at: nextTemplate ? new Date(now.getTime() + (nextTemplate.delayTime || 0)) : null,
                 };
 
-                await User.findByIdAndUpdate(user._id, updateData);
+                await User.findByIdAndUpdate(workingUser._id, updateData);
             } else {
                 // Reached end of flow or all remaining conditions met
                 // Update email_step to beyond the highest available step
                 const maxCheckedStep = templates.length > 0 ? templates[templates.length - 1].step : currentStep;
-                await User.findByIdAndUpdate(user._id, { next_email_at: null, email_step: maxCheckedStep + 1 });
+                await User.findByIdAndUpdate(workingUser._id, { next_email_at: null, email_step: maxCheckedStep + 1 });
             }
         }
 
@@ -219,26 +237,42 @@ export const emailFlowService = {
             });
 
             for (const draft of clientDrafts) {
+                // Atomic Lock
+                const lockedDraft = await ClientRegistrationDraft.findOneAndUpdate(
+                    { _id: draft._id, next_email_at: draft.next_email_at },
+                    { $set: { next_email_at: null } },
+                    { new: true }
+                );
+                if (!lockedDraft) continue;
+
                 const template = await EmailTemplate.findOne({ templateKey: EMAIL_TEMPLATE_KEYS.CLIENT_DELAYED_ACTIVATION, isActive: true });
                 if (template) {
-                    const jobRecord = await EmailQueue.create({
-                        userId: draft._id,
-                        email: draft.leadDetails.email,
+                    const existing = await EmailQueue.findOne({
+                        userId: lockedDraft._id,
                         templateKey: template.templateKey,
-                        scheduledAt: now,
-                        status: 'pending',
-                        person_type: 'client',
-                        email_type: 'automation',
+                        status: { $in: ['pending', 'sent'] }
                     });
 
-                    await addEmailToQueue({
-                        mongoJobId: jobRecord._id,
-                        userId: draft._id,
-                        email: draft.leadDetails.email,
-                        templateKey: template.templateKey,
-                    });
+                    if (!existing) {
+                        const jobRecord = await EmailQueue.create({
+                            userId: lockedDraft._id,
+                            email: lockedDraft.leadDetails.email,
+                            templateKey: template.templateKey,
+                            scheduledAt: now,
+                            status: 'pending',
+                            person_type: 'client',
+                            email_type: 'automation',
+                        });
+
+                        await addEmailToQueue({
+                            mongoJobId: jobRecord._id,
+                            userId: lockedDraft._id,
+                            email: lockedDraft.leadDetails.email,
+                            templateKey: template.templateKey,
+                        });
+                    }
                 }
-                await ClientRegistrationDraft.findByIdAndUpdate(draft._id, { next_email_at: null, email_step: 1 });
+                await ClientRegistrationDraft.findByIdAndUpdate(lockedDraft._id, { email_step: 1 });
             }
         } catch (error) {
             console.error('Error processing client registration drafts emails:', error);
@@ -251,26 +285,42 @@ export const emailFlowService = {
             });
 
             for (const draft of lawyerDrafts) {
+                // Atomic Lock
+                const lockedDraft = await LawyerRegistrationDraft.findOneAndUpdate(
+                    { _id: draft._id, next_email_at: draft.next_email_at },
+                    { $set: { next_email_at: null } },
+                    { new: true }
+                );
+                if (!lockedDraft) continue;
+
                 const template = await EmailTemplate.findOne({ templateKey: EMAIL_TEMPLATE_KEYS.LAWYER_DELAYED_ACTIVATION, isActive: true });
                 if (template) {
-                    const jobRecord = await EmailQueue.create({
-                        userId: draft._id,
-                        email: draft.email,
+                    const existing = await EmailQueue.findOne({
+                        userId: lockedDraft._id,
                         templateKey: template.templateKey,
-                        scheduledAt: now,
-                        status: 'pending',
-                        person_type: 'lawyer',
-                        email_type: 'automation',
+                        status: { $in: ['pending', 'sent'] }
                     });
 
-                    await addEmailToQueue({
-                        mongoJobId: jobRecord._id,
-                        userId: draft._id,
-                        email: draft.email,
-                        templateKey: template.templateKey,
-                    });
+                    if (!existing) {
+                        const jobRecord = await EmailQueue.create({
+                            userId: lockedDraft._id,
+                            email: lockedDraft.email,
+                            templateKey: template.templateKey,
+                            scheduledAt: now,
+                            status: 'pending',
+                            person_type: 'lawyer',
+                            email_type: 'automation',
+                        });
+
+                        await addEmailToQueue({
+                            mongoJobId: jobRecord._id,
+                            userId: lockedDraft._id,
+                            email: lockedDraft.email,
+                            templateKey: template.templateKey,
+                        });
+                    }
                 }
-                await LawyerRegistrationDraft.findByIdAndUpdate(draft._id, { next_email_at: null, email_step: 1 });
+                await LawyerRegistrationDraft.findByIdAndUpdate(lockedDraft._id, { email_step: 1 });
             }
         } catch (error) {
             console.error('Error processing lawyer registration drafts emails:', error);
