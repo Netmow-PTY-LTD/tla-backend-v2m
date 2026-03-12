@@ -1,5 +1,7 @@
 import { IScheduledJob } from './scheduledJob.interface';
 import { ScheduledJob } from './scheduledJob.model';
+import { taskRegistry } from './taskRegistry';
+import { bullMQTaskRegistry } from './bullMQTaskRegistry';
 
 const createScheduledJobIntoDB = async (payload: IScheduledJob) => {
   const result = await ScheduledJob.create(payload);
@@ -52,6 +54,27 @@ const deleteScheduledJobFromDB = async (id: string) => {
   return result;
 };
 
+const formatTaskName = (name: string) => {
+  return name
+    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+    .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
+    .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
+    .trim();
+};
+
+const getAvailableTasks = () => {
+  return {
+    cron: Object.keys(taskRegistry).map((task) => ({
+      label: formatTaskName(task),
+      value: task,
+    })),
+    bullmq: Object.keys(bullMQTaskRegistry).map((task) => ({
+      label: formatTaskName(task),
+      value: task,
+    })),
+  };
+};
+
 export const ScheduledJobService = {
   createScheduledJobIntoDB,
   getAllScheduledJobsFromDB,
@@ -61,4 +84,5 @@ export const ScheduledJobService = {
   updateScheduledJobIntoDB,
   updateLastRunInDB,
   deleteScheduledJobFromDB,
+  getAvailableTasks,
 };

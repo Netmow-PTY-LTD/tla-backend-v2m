@@ -89,9 +89,21 @@ const deleteScheduledJob = catchAsync(async (req, res) => {
   });
 });
 
+const getAvailableTasks = catchAsync(async (req, res) => {
+  const result = ScheduledJobService.getAvailableTasks();
+
+  sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: 'Available tasks retrieved successfully',
+    data: result,
+  });
+});
+
 export const ScheduledJobController = {
   createScheduledJob,
   getAllScheduledJobs,
   updateScheduledJob,
   deleteScheduledJob,
+  getAvailableTasks,
 };

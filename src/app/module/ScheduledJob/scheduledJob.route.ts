@@ -12,6 +12,11 @@ router.post(
 );
 
 router.get(
+  '/task-names',
+  ScheduledJobController.getAvailableTasks
+);
+
+router.get(
   '/',
   ScheduledJobController.getAllScheduledJobs
 );
