@@ -37,8 +37,7 @@ const updateScheduledJob = catchAsync(async (req, res) => {
   const { id } = req.params;
   
   // Get old data to check runner change
-  const oldJobData = await ScheduledJobService.getAllScheduledJobsFromDB();
-  const oldJob = oldJobData.find(j => j._id.toString() === id);
+  const oldJob = await ScheduledJobService.getScheduledJobByIdFromDB(id);
 
   const result = await ScheduledJobService.updateScheduledJobIntoDB(id, req.body);
 
@@ -70,8 +69,7 @@ const updateScheduledJob = catchAsync(async (req, res) => {
 
 const deleteScheduledJob = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const jobs = await ScheduledJobService.getAllScheduledJobsFromDB();
-  const targetJob = jobs.find(j => j._id.toString() === id);
+  const targetJob = await ScheduledJobService.getScheduledJobByIdFromDB(id);
   
   await ScheduledJobService.deleteScheduledJobFromDB(id);
 

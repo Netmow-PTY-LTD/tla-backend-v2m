@@ -11,6 +11,11 @@ const getAllScheduledJobsFromDB = async () => {
   return result;
 };
 
+const getScheduledJobByIdFromDB = async (id: string) => {
+  const result = await ScheduledJob.findById(id);
+  return result;
+};
+
 const getActiveCronJobsFromDB = async () => {
   const result = await ScheduledJob.find({
     runner: 'cron',
@@ -50,6 +55,7 @@ const deleteScheduledJobFromDB = async (id: string) => {
 export const ScheduledJobService = {
   createScheduledJobIntoDB,
   getAllScheduledJobsFromDB,
+  getScheduledJobByIdFromDB,
   getActiveCronJobsFromDB,
   getActiveBullMQJobsFromDB,
   updateScheduledJobIntoDB,
