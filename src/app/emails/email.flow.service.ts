@@ -144,7 +144,7 @@ export const emailFlowService = {
                 { _id: user._id, next_email_at: user.next_email_at },
                 { $set: { next_email_at: null } },
                 { new: true }
-            );
+            ).populate('profile');
             if (!lockedUser) continue;
 
             const workingUser = lockedUser.toObject() as any;
@@ -188,7 +188,7 @@ export const emailFlowService = {
                 const existing = await EmailQueue.findOne({
                     userId: workingUser._id,
                     templateKey: selectedTemplate.templateKey,
-                    status: 'pending'
+                    status: { $in: ['pending', 'sent'] }
                 });
 
                 if (existing) {
@@ -250,7 +250,7 @@ export const emailFlowService = {
                     const existing = await EmailQueue.findOne({
                         userId: lockedDraft._id,
                         templateKey: template.templateKey,
-                        status: 'pending'
+                        status: { $in: ['pending', 'sent'] }
                     });
 
                     if (!existing) {
@@ -298,7 +298,7 @@ export const emailFlowService = {
                     const existing = await EmailQueue.findOne({
                         userId: lockedDraft._id,
                         templateKey: template.templateKey,
-                        status: 'pending'
+                        status: { $in: ['pending', 'sent'] }
                     });
 
                     if (!existing) {
