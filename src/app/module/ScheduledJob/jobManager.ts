@@ -89,8 +89,8 @@ class JobManager {
         await queue.upsertJobScheduler(jobId, {
           pattern: job.cron,
         }, {
-          name: job.task, // Use the task name for the job execution
-          data: job.payload,
+          name: job.task,
+          data: { ...job.payload, mongoJobId: jobId }, // Ensure mongoJobId is passed
           opts: {
             attempts: job.attempts || 3,
             priority: job.priority || 1,
@@ -101,7 +101,7 @@ class JobManager {
     } else {
       // One-time job logic
       if (job.active) {
-        await queue.add(job.task, job.payload, {
+        await queue.add(job.task, { ...job.payload, mongoJobId: jobId }, {
           attempts: job.attempts || 3,
           priority: job.priority || 1,
           jobId: jobId,
