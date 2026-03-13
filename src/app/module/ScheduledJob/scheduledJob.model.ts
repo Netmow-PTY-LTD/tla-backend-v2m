@@ -49,7 +49,7 @@ const scheduledJobSchema = new Schema<IScheduledJob>(
     },
     lastStatus: {
       type: String,
-      enum: ['success', 'failed'],
+      enum: ['success', 'failed', 'skipped'],
     },
   },
   {

@@ -23,13 +23,19 @@ export const addEmailToQueue = async (data: Record<string, any>) => {
     // Dynamically fetch configurations from ScheduledJob database (set via Admin Panel)
     const { ScheduledJob } = await import('../module/ScheduledJob/scheduledJob.model');
 
-    // Find the configuration for the 'send-email' task
-    const jobConfig = await ScheduledJob.findOne({ task: 'send-email' });
+    // Find the BullMQ configuration for the 'send-email' task
+    const jobConfig = await ScheduledJob.findOne({ task: 'send-email', runner: 'bullmq' });
 
     // If the task is explicitly disabled in the admin panel, stop here
     if (jobConfig && jobConfig.active === false) {
         // eslint-disable-next-line no-console
         console.warn(`🛑 Skipping email enqueue: 'send-email' task is currently INACTIVE in ScheduledJob settings.`);
+        
+        // Update the specific record if mongoJobId is present
+        if (data.mongoJobId) {
+            const { ScheduledJobService } = await import('../module/ScheduledJob/scheduledJob.service');
+            await ScheduledJobService.updateLastRunInDB(data.mongoJobId.toString(), 'skipped');
+        }
         return;
     }
 

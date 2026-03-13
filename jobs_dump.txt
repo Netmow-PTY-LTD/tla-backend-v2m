@@ -1,0 +1,6 @@
+--- send-email jobs ---
+ID: 69b38e0fd95d76d8ee30e769, Name: Email Queue Sender, Runner: bullmq, Active: true, LastRun: Fri Mar 13 2026 11:51:01 GMT+0600 (Bangladesh Standard Time)
+
+--- All Jobs ---
+ID: 69b386389efa1986dd0d042e, Task: processScheduledEmails, Runner: cron, Active: true
+ID: 69b38e0fd95d76d8ee30e769, Task: send-email, Runner: bullmq, Active: true

@@ -34,11 +34,21 @@ const getActiveBullMQJobsFromDB = async () => {
   return result;
 };
 
-const updateLastRunInDB = async (id: string, status: 'success' | 'failed') => {
+const updateLastRunInDB = async (id: string, status: 'success' | 'failed' | 'skipped') => {
+  // eslint-disable-next-line no-console
+  console.log(`💾 [DB Update] Job ID: ${id}, Status: ${status}`);
   const result = await ScheduledJob.findByIdAndUpdate(id, {
     lastRunAt: new Date(),
     lastStatus: status,
-  });
+  }, { new: true });
+  
+  if (!result) {
+    // eslint-disable-next-line no-console
+    console.warn(`⚠️ [DB Update] No record found in ScheduledJob for ID: ${id}`);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(`✅ [DB Update] Successfully updated ScheduledJob: ${id}`);
+  }
   return result;
 };
 

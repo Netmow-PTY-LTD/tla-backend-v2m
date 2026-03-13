@@ -1,6 +1,6 @@
 
 export type TJobRunner = 'cron' | 'bullmq';
-export type TJobStatus = 'success' | 'failed';
+export type TJobStatus = 'success' | 'failed' | 'skipped';
 
 export interface IScheduledJob {
   name: string;

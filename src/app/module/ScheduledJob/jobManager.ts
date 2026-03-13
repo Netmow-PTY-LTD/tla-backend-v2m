@@ -23,6 +23,18 @@ class JobManager {
     const allJobs = await ScheduledJob.find();
 
     for (const job of allJobs) {
+      const jobId = job._id.toString();
+      
+      // 1. Thoroughly clean up existing runners for this job ID to prevent interference
+      // Stop Cron if it exists in local memory
+      this.stopCronJob(jobId);
+      
+      // Stop BullMQ scheduler in ALL known queues (in case it changed queues or runners)
+      for (const queue of this.queues.values()) {
+        await queue.removeJobScheduler(jobId).catch(() => {}); // Ignore errors if not present
+      }
+
+      // 2. Schedule the correct runner
       if (job.runner === 'cron') {
         this.scheduleCronJob(job as IScheduledJob & { _id: Types.ObjectId });
       } else {
@@ -45,15 +57,25 @@ class JobManager {
       this.cronJobs.delete(jobId);
     }
 
-    if (!job.active || !job.cron) return;
+    const cronPattern = job.cron;
+    if (!cronPattern) return;
 
-    const taskFunction = taskRegistry[job.task];
-    if (!taskFunction) {
-      console.warn(`⚠️ Task function "${job.task}" not found for job "${job.name}".`);
-      return;
-    }
+    const scheduledTask = cron.schedule(cronPattern, async () => {
+      // Fetch latest job state from DB to check if still active
+      const currentJob = await ScheduledJob.findById(jobId);
+      
+      if (!currentJob || !currentJob.active) {
+        console.log(`⏸️ Skipping dynamic cron task: ${job.name} (Inactive)`);
+        await ScheduledJobService.updateLastRunInDB(jobId, 'skipped');
+        return;
+      }
 
-    const scheduledTask = cron.schedule(job.cron, async () => {
+      const taskFunction = taskRegistry[job.task];
+      if (!taskFunction) {
+        console.warn(`⚠️ Task function "${job.task}" not found for job "${job.name}".`);
+        return;
+      }
+
       try {
         console.log(`🚀 Executing dynamic cron task: ${job.name}`);
         await taskFunction(job.payload);
@@ -65,7 +87,7 @@ class JobManager {
     });
 
     this.cronJobs.set(jobId, scheduledTask);
-    console.log(`✅ Scheduled dynamic cron: ${job.name} [${job.cron}]`);
+    console.log(`✅ Scheduled dynamic cron (active or for tracking): ${job.name} [${job.cron}]`);
   }
 
   /**
@@ -90,18 +112,24 @@ class JobManager {
       // We use the jobId as the schedulerId for uniqueness
       await queue.removeJobScheduler(jobId);
 
+      // We maintain the scheduler in BullMQ even if 'active' is false.
+      // The GenericWorker will check the 'active' flag and record a 'skipped' status.
+      // This ensures lastRunAt and lastStatus are updated even for inactive jobs.
+      await queue.upsertJobScheduler(jobId, {
+        pattern: job.cron,
+      }, {
+        name: job.task,
+        data: { ...job.payload, mongoJobId: jobId }, // Ensure mongoJobId is passed
+        opts: {
+          attempts: job.attempts || 3,
+          priority: job.priority || 1,
+        }
+      });
+
       if (job.active) {
-        await queue.upsertJobScheduler(jobId, {
-          pattern: job.cron,
-        }, {
-          name: job.task,
-          data: { ...job.payload, mongoJobId: jobId }, // Ensure mongoJobId is passed
-          opts: {
-            attempts: job.attempts || 3,
-            priority: job.priority || 1,
-          }
-        });
         console.log(`✅ Added/Updated job scheduler in BullMQ: ${job.name} [ID: ${jobId}]`);
+      } else {
+        console.log(`⏸️ Maintained inactive scheduler for tracking: ${job.name} [ID: ${jobId}]`);
       }
     } else {
       // One-time job logic
