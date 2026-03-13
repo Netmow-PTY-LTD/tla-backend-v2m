@@ -42,10 +42,9 @@ async function main() {
     const { jobManager } = await import('./app/module/ScheduledJob/jobManager');
     await jobManager.initialize();
 
-    // Start BullMQ Generic Workers
-    const { startGenericWorker } = await import('./app/queues/genericWorker');
-    startGenericWorker('default-queue');
-    startGenericWorker('email-queue'); // Start for email-queue as well if needed
+    // Start Core BullMQ Workers via JobManager
+    jobManager.ensureWorkerRunning('default-queue');
+    jobManager.ensureWorkerRunning('email-queue');
 
     // Start server
     // server.listen(config.port, () => {

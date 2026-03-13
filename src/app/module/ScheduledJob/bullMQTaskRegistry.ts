@@ -1,3 +1,4 @@
+import { emailFlowService } from '../../emails/email.flow.service';
 import { handleEmailJob } from '../../queues/emailWorker';
 
 /**
@@ -11,6 +12,13 @@ export const bullMQTaskRegistry: Record<
   // 📨 Main Email Task
   'send-email': async (data: Record<string, unknown>, jobId?: string) => {
     await handleEmailJob(data, jobId);
+  },
+
+  // 📧 Email Flow Scheduler (Can be run via BullMQ or Cron)
+  processScheduledEmails: async () => {
+    // eslint-disable-next-line no-console
+    console.log('🔄 BullMQ: Running processScheduledEmails');
+    await emailFlowService.processScheduledEmails();
   },
 
   // Add more BullMQ specific tasks here

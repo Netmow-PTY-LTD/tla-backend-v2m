@@ -1,14 +1,16 @@
 import cron, { ScheduledTask } from 'node-cron';
-import { Queue } from 'bullmq';
+import { Queue, Worker } from 'bullmq';
 import { redisConnection } from '../../config/bullmq.config';
 import { taskRegistry } from './taskRegistry';
 import { ScheduledJobService } from './scheduledJob.service';
 import { IScheduledJob } from './scheduledJob.interface';
 import { Types } from 'mongoose';
+import { startGenericWorker } from '../../queues/genericWorker';
 
 class JobManager {
   private cronJobs: Map<string, ScheduledTask> = new Map();
   private queues: Map<string, Queue> = new Map();
+  private workers: Map<string, Worker> = new Map();
 
   /**
    * Initialize all jobs on startup
@@ -79,6 +81,9 @@ class JobManager {
 
     const queue = this.queues.get(queueName)!;
 
+    // Ensure a worker is running for this queue
+    this.ensureWorkerRunning(queueName);
+
     // For repeatable jobs, we should remove existing ones first to avoid duplicates
     if (job.cron) {
       // Find and remove existing job scheduler for this specific job ID
@@ -131,6 +136,17 @@ class JobManager {
       const queue = this.queues.get(queueName)!;
       await queue.removeJobScheduler(jobId);
       console.log(`🛑 Stopped BullMQ scheduler: ${jobId}`);
+    }
+  }
+
+  /**
+   * Ensure a generic worker is running for a specific queue
+   */
+  public ensureWorkerRunning(queueName: string) {
+    if (!this.workers.has(queueName)) {
+      console.log(`👷 Starting generic worker for queue: "${queueName}"`);
+      const worker = startGenericWorker(queueName);
+      this.workers.set(queueName, worker);
     }
   }
 }
