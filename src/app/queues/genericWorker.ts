@@ -11,23 +11,31 @@ export const startGenericWorker = (queueName: string = 'default-queue') => {
     queueName,
     async (job: Job) => {
       const taskName = job.name;
-      const handler = bullMQTaskRegistry[taskName];
+      // 1. Fetch the task configuration from the database
+      const { ScheduledJob } = await import('../module/ScheduledJob/scheduledJob.model');
+      const jobConfig = await ScheduledJob.findOne({ task: taskName });
 
+      // 2. Guard: If the task is explicitly disabled, skip execution
+      if (jobConfig && !jobConfig.active) {
+        // eslint-disable-next-line no-console
+        console.warn(`⏸️ [${queueName}] Skipping task "${taskName}": Currently INACTIVE in configuration.`);
+        return;
+      }
+
+      const handler = bullMQTaskRegistry[taskName];
       if (!handler) {
         // eslint-disable-next-line no-console
         console.warn(`⚠️ [${queueName}] No handler found for task: "${taskName}"`);
         return;
       }
 
-      // Identify the MongoDB Job ID for tracking
+      // Identify the MongoDB Job ID for tracking (priority: job.data > job.id)
       let mongoJobId = job.data?.mongoJobId;
 
-      // If not in data, check if the job.id itself is a Mongo ID or contains one (for repeatable jobs)
       if (!mongoJobId && job.id) {
         if (/^[0-9a-fA-F]{24}$/.test(job.id)) {
           mongoJobId = job.id;
         } else if (job.id.startsWith('repeat:')) {
-          // BullMQ repeatable jobs have IDs like "repeat:mongoId:timestamp"
           const parts = job.id.split(':');
           if (parts[1] && /^[0-9a-fA-F]{24}$/.test(parts[1])) {
             mongoJobId = parts[1];
@@ -41,8 +49,12 @@ export const startGenericWorker = (queueName: string = 'default-queue') => {
 
         await handler(job.data, job.id);
 
+        // 3. Update tracking in ScheduledJob collection
+        // If we have a specific ID, use it. Otherwise, update by task name for generic runner tracking.
         if (mongoJobId) {
           await ScheduledJobService.updateLastRunInDB(mongoJobId, 'success');
+        } else if (jobConfig) {
+          await ScheduledJobService.updateLastRunInDB(jobConfig._id.toString(), 'success');
         }
 
         // eslint-disable-next-line no-console
@@ -53,6 +65,8 @@ export const startGenericWorker = (queueName: string = 'default-queue') => {
 
         if (mongoJobId) {
           await ScheduledJobService.updateLastRunInDB(mongoJobId, 'failed');
+        } else if (jobConfig) {
+          await ScheduledJobService.updateLastRunInDB(jobConfig._id.toString(), 'failed');
         }
 
         throw error;
