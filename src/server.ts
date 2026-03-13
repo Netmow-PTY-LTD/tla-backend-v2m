@@ -25,12 +25,26 @@ async function main() {
     setSocketServerInstance(io);
     initializeSockets(io);
 
-    // Initialize Email Automation Crons and Workers
-    const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
-    const { startEmailWorker } = await import('./app/queues/emailWorker');
 
-    startEmailSchedulerCron();
-    await startEmailWorker();
+    // Initialize Email Automation Crons and Workers
+    // const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
+    // const { startEmailWorker } = await import('./app/queues/emailWorker');
+
+    // startEmailSchedulerCron();
+    // await startEmailWorker();
+
+
+
+
+
+
+    // Dynamic Job Manager
+    const { jobManager } = await import('./app/module/ScheduledJob/jobManager');
+    await jobManager.initialize();
+
+    // Start Core BullMQ Workers via JobManager
+    jobManager.ensureWorkerRunning('default-queue');
+    jobManager.ensureWorkerRunning('email-queue');
 
     // Start server
     // server.listen(config.port, () => {
