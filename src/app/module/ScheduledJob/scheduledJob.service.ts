@@ -47,9 +47,10 @@ const updateLastRunInDB = async (id: string, status: 'success' | 'failed' | 'ski
     console.warn(`⚠️ [DB Update] No record found in ScheduledJob for ID: ${id}`);
   } else {
     // eslint-disable-next-line no-console
-    console.log(`✅ [DB Update] Successfully updated ScheduledJob: ${id}`);
+    console.log(`✅ [DB Update] Successfully updated ScheduledJob: ${id}. New lastRunAt: ${result.lastRunAt}, status: ${result.lastStatus}`);
   }
   return result;
+
 };
 
 const updateScheduledJobIntoDB = async (id: string, payload: Partial<IScheduledJob>) => {

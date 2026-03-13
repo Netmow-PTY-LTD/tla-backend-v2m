@@ -2,17 +2,25 @@ import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../config/bullmq.config';
 import { bullMQTaskRegistry } from '../module/ScheduledJob/bullMQTaskRegistry';
 import { ScheduledJobService } from '../module/ScheduledJob/scheduledJob.service';
+import ScheduledJob from '../module/ScheduledJob/scheduledJob.model';
 
 /**
  * Generic Worker to process BullMQ jobs using the task registry
  */
 export const startGenericWorker = (queueName: string = 'default-queue') => {
+  // eslint-disable-next-line no-console
+  console.log(`👷 [${queueName}] Initializing worker instance...`);
+
   const worker = new Worker(
     queueName,
     async (job: Job) => {
       const taskName = job.name;
       // eslint-disable-next-line no-console
-      console.log(`🔍 [${queueName}] Triggered job: "${taskName}" [BullMQ ID: ${job.id}]`);
+      console.log(`------- BULLMQ WORKER TRIGGERED (PID: ${process.pid}) -------`);
+      // eslint-disable-next-line no-console
+      console.log(`🔍 [${queueName}] Job Name: "${taskName}", Job ID: ${job.id}`);
+      // eslint-disable-next-line no-console
+      console.log(`📦 [${queueName}] Job Data:`, JSON.stringify(job.data));
 
       // Identify the MongoDB Job ID for tracking (priority: job.data > job.id)
       let mongoJobId = job.data?.mongoJobId;
@@ -23,6 +31,8 @@ export const startGenericWorker = (queueName: string = 'default-queue') => {
         const match = job.id.match(/[0-9a-fA-F]{24}/);
         if (match) {
           mongoJobId = match[0];
+          // eslint-disable-next-line no-console
+          console.log(`🆔 [${queueName}] Extracted mongoJobId from job.id: ${mongoJobId}`);
         }
       }
 
@@ -30,34 +40,42 @@ export const startGenericWorker = (queueName: string = 'default-queue') => {
       console.log(`🆔 [${queueName}] Resolved mongoJobId: ${mongoJobId || 'None'} from BullMQ ID: ${job.id}`);
 
       // 1. Fetch the task configuration from the database
-      const { ScheduledJob } = await import('../module/ScheduledJob/scheduledJob.model');
-      
       let jobConfig = null;
       let isScheduledJobRecord = false;
       
       if (mongoJobId) {
         jobConfig = await ScheduledJob.findById(mongoJobId);
+        // eslint-disable-next-line no-console
+        console.log(`🔍 [${queueName}] DB Lookup by ID (${mongoJobId}): ${jobConfig ? 'FOUND' : 'NOT FOUND'}`);
+        
         // Only accept it if it's actually a BullMQ record
         if (jobConfig && jobConfig.runner === 'bullmq') {
           isScheduledJobRecord = true;
-        } else {
+        } else if (jobConfig) {
+          // eslint-disable-next-line no-console
+          console.log(`⚠️ [${queueName}] Record found by ID has WRONG runner: ${jobConfig.runner} (expected bullmq)`);
           jobConfig = null;
         }
       }
       
-      // Fallback to task name if ID lookup fails (e.g. mongoJobId was an EmailQueue ID, or no ID was passed)
+      // Fallback to task name if ID lookup fails
       if (!jobConfig) {
         jobConfig = await ScheduledJob.findOne({ task: taskName, runner: 'bullmq' });
+        // eslint-disable-next-line no-console
+        console.log(`🔍 [${queueName}] DB Fallback Lookup by Task ("${taskName}"): ${jobConfig ? 'FOUND' : 'NOT FOUND'}`);
       }
 
       // 2. Guard: If the task is a scheduled entry and explicitly disabled, skip execution
       if (jobConfig && !jobConfig.active) {
         // eslint-disable-next-line no-console
-        console.warn(`⏸️ [${queueName}] Skipping task "${taskName}": Currently INACTIVE in configuration.`);
+        console.warn(`⏸️ [${queueName}] Task "${taskName}" is INACTIVE. ID: ${jobConfig._id}`);
         
         // Update tracking to show it was skipped
         const trackingId = isScheduledJobRecord && mongoJobId ? mongoJobId : (jobConfig?._id ? jobConfig._id.toString() : null);
+        
         if (trackingId) {
+          // eslint-disable-next-line no-console
+          console.log(`📝 [${queueName}] (PID: ${process.pid}) Recording "skipped" status for ID: ${trackingId}`);
           await ScheduledJobService.updateLastRunInDB(trackingId, 'skipped');
         }
         return;
@@ -72,7 +90,7 @@ export const startGenericWorker = (queueName: string = 'default-queue') => {
 
       try {
         // eslint-disable-next-line no-console
-        console.log(`🚀 [${queueName}] Processing BullMQ job: ${taskName} [ID: ${job.id}]`);
+        console.log(`🚀 [${queueName}] (PID: ${process.pid}) Processing BullMQ job: ${taskName} [ID: ${job.id}]`);
 
         await handler(job.data, job.id);
 
@@ -101,6 +119,16 @@ export const startGenericWorker = (queueName: string = 'default-queue') => {
       concurrency: 5,
     }
   );
+
+  worker.on('ready', () => {
+    // eslint-disable-next-line no-console
+    console.log(`🔌 [${queueName}] Worker is READY and connected to Redis (PID: ${process.pid})`);
+  });
+
+  worker.on('error', (err) => {
+    // eslint-disable-next-line no-console
+    console.error(`☢️ [${queueName}] Worker Error:`, err);
+  });
 
   worker.on('completed', (job) => {
     // eslint-disable-next-line no-console

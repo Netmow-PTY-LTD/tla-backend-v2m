@@ -107,15 +107,19 @@ class JobManager {
     this.ensureWorkerRunning(queueName);
 
     // For repeatable jobs, we should remove existing ones first to avoid duplicates
+    const schedulerId = `sched:${jobId}`;
+
     if (job.cron) {
       // Find and remove existing job scheduler for this specific job ID
-      // We use the jobId as the schedulerId for uniqueness
-      await queue.removeJobScheduler(jobId);
+      // await queue.removeJobScheduler(schedulerId).catch(() => {});
+      
+      // Also try cleaning up the old ID-only scheduler just in case
+      // await queue.removeJobScheduler(jobId).catch(() => {});
 
       // We maintain the scheduler in BullMQ even if 'active' is false.
       // The GenericWorker will check the 'active' flag and record a 'skipped' status.
       // This ensures lastRunAt and lastStatus are updated even for inactive jobs.
-      await queue.upsertJobScheduler(jobId, {
+      const schedResult = await queue.upsertJobScheduler(schedulerId, {
         pattern: job.cron,
       }, {
         name: job.task,
@@ -126,10 +130,13 @@ class JobManager {
         }
       });
 
+      console.log(`📡 [JobManager] upsertJobScheduler result for "${job.name}":`, JSON.stringify(schedResult));
+
+
       if (job.active) {
-        console.log(`✅ Added/Updated job scheduler in BullMQ: ${job.name} [ID: ${jobId}]`);
+        console.log(`✅ Added/Updated active BullMQ scheduler: ${job.name} [ID: ${schedulerId}, Cron: ${job.cron}]`);
       } else {
-        console.log(`⏸️ Maintained inactive scheduler for tracking: ${job.name} [ID: ${jobId}]`);
+        console.log(`⏸️ Added/Updated inactive BullMQ scheduler (for tracking): ${job.name} [ID: ${schedulerId}, Cron: ${job.cron}]`);
       }
     } else {
       // One-time job logic
@@ -140,13 +147,13 @@ class JobManager {
           jobId: jobId,
           delay: job.delay || 0,
         });
-        console.log(`✅ Enqueued/Updated one-time job to BullMQ: ${job.name}`);
+        console.log(`✅ Enqueued one-time job: ${job.name}`);
       } else {
         // If inactive, try to remove the pending job if it exists
         const pendingJob = await queue.getJob(jobId);
         if (pendingJob) {
           await pendingJob.remove();
-          console.log(`🛑 Removed pending one-time job from BullMQ: ${job.name}`);
+          console.log(`🛑 Removed pending one-time job: ${job.name}`);
         }
       }
     }
@@ -179,9 +186,13 @@ class JobManager {
    */
   public ensureWorkerRunning(queueName: string) {
     if (!this.workers.has(queueName)) {
-      console.log(`👷 Starting generic worker for queue: "${queueName}"`);
+      // eslint-disable-next-line no-console
+      console.log(`👷 [JobManager] Starting generic worker for queue: "${queueName}"`);
       const worker = startGenericWorker(queueName);
       this.workers.set(queueName, worker);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`👷 [JobManager] Worker for "${queueName}" is already running.`);
     }
   }
 }
