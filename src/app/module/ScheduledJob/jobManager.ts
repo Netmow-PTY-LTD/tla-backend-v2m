@@ -6,6 +6,7 @@ import { ScheduledJobService } from './scheduledJob.service';
 import { IScheduledJob } from './scheduledJob.interface';
 import { Types } from 'mongoose';
 import { startGenericWorker } from '../../queues/genericWorker';
+import ScheduledJob from './scheduledJob.model';
 
 class JobManager {
   private cronJobs: Map<string, ScheduledTask> = new Map();
@@ -17,17 +18,16 @@ class JobManager {
    */
   async initialize() {
     console.log('🔄 Initializing Job Manager...');
-    
-    // Load Cron Jobs
-    const cronJobs = await ScheduledJobService.getActiveCronJobsFromDB();
-    for (const job of cronJobs) {
-      this.scheduleCronJob(job as IScheduledJob & { _id: Types.ObjectId });
-    }
 
-    // Load BullMQ Jobs
-    const bullmqJobs = await ScheduledJobService.getActiveBullMQJobsFromDB();
-    for (const job of bullmqJobs) {
-      await this.upsertBullMQJob(job as IScheduledJob & { _id: Types.ObjectId });
+    // Load ALL jobs to sync state (stop inactive ones)
+    const allJobs = await ScheduledJob.find();
+
+    for (const job of allJobs) {
+      if (job.runner === 'cron') {
+        this.scheduleCronJob(job as IScheduledJob & { _id: Types.ObjectId });
+      } else {
+        await this.upsertBullMQJob(job as IScheduledJob & { _id: Types.ObjectId });
+      }
     }
 
     console.log('✅ Job Manager initialized.');
@@ -112,7 +112,14 @@ class JobManager {
           jobId: jobId,
           delay: job.delay || 0,
         });
-        console.log(`✅ Enqueued one-time job to BullMQ: ${job.name}`);
+        console.log(`✅ Enqueued/Updated one-time job to BullMQ: ${job.name}`);
+      } else {
+        // If inactive, try to remove the pending job if it exists
+        const pendingJob = await queue.getJob(jobId);
+        if (pendingJob) {
+          await pendingJob.remove();
+          console.log(`🛑 Removed pending one-time job from BullMQ: ${job.name}`);
+        }
       }
     }
   }

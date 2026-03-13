@@ -26,6 +26,13 @@ export const addEmailToQueue = async (data: Record<string, any>) => {
     // Find the configuration for the 'send-email' task
     const jobConfig = await ScheduledJob.findOne({ task: 'send-email' });
 
+    // If the task is explicitly disabled in the admin panel, stop here
+    if (jobConfig && jobConfig.active === false) {
+        // eslint-disable-next-line no-console
+        console.warn(`🛑 Skipping email enqueue: 'send-email' task is currently INACTIVE in ScheduledJob settings.`);
+        return;
+    }
+
     return await emailQueue.add('send-email', data, {
         jobId: data.mongoJobId ? data.mongoJobId.toString() : undefined,
         attempts: jobConfig?.attempts || 3,
