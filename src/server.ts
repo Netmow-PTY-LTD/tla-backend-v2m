@@ -25,6 +25,19 @@ async function main() {
     setSocketServerInstance(io);
     initializeSockets(io);
 
+
+    // Initialize Email Automation Crons and Workers
+    // const { startEmailSchedulerCron } = await import('./app/cron/emailSchedulerCron');
+    // const { startEmailWorker } = await import('./app/queues/emailWorker');
+
+    // startEmailSchedulerCron();
+    // await startEmailWorker();
+
+
+
+
+
+
     // Dynamic Job Manager
     const { jobManager } = await import('./app/module/ScheduledJob/jobManager');
     await jobManager.initialize();
