@@ -77,11 +77,13 @@ const resetPasswordValidationSchema = z.object({
   }),
 });
 // Validation schema for logging out (requires refresh token in cookies)
+// ✅ FIXED: Made refreshToken optional — if cookie is already gone (e.g. second window),
+// don't throw 400 which causes the frontend to think it's an auth error and loops.
 const logOutTokenValidationSchema = z.object({
   cookies: z.object({
     refreshToken: z.string({
       required_error: 'Refresh token is required!',
-    }),
+    }).optional(),
   }),
 });
 
