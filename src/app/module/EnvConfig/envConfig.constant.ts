@@ -36,7 +36,9 @@ export const EXCLUDED_ENV_VARS = [
     'NODE_ENV',
     'PORT',
     'CLIENT_SITE_URL',
-    'FIRM_CLIENT_URL'
+    'FIRM_CLIENT_URL',
+    'JWT_ACCESS_SECRET',
+    'JWT_REFRESH_SECRET',
 ];
 
 // Sensitive fields that should be encrypted
@@ -103,22 +105,22 @@ export const ENV_CONFIG_METADATA: IEnvConfigMetadata[] = [
     },
 
     // JWT
-    {
-        key: 'JWT_ACCESS_SECRET',
-        group: ENV_CONFIG_GROUPS.JWT,
-        type: ENV_CONFIG_TYPES.STRING,
-        description: 'Secret key for JWT access tokens',
-        isSensitive: true,
-        requiresRestart: false,
-    },
-    {
-        key: 'JWT_REFRESH_SECRET',
-        group: ENV_CONFIG_GROUPS.JWT,
-        type: ENV_CONFIG_TYPES.STRING,
-        description: 'Secret key for JWT refresh tokens',
-        isSensitive: true,
-        requiresRestart: false,
-    },
+    // {
+    //     key: 'JWT_ACCESS_SECRET',
+    //     group: ENV_CONFIG_GROUPS.JWT,
+    //     type: ENV_CONFIG_TYPES.STRING,
+    //     description: 'Secret key for JWT access tokens',
+    //     isSensitive: true,
+    //     requiresRestart: false,
+    // },
+    // {
+    //     key: 'JWT_REFRESH_SECRET',
+    //     group: ENV_CONFIG_GROUPS.JWT,
+    //     type: ENV_CONFIG_TYPES.STRING,
+    //     description: 'Secret key for JWT refresh tokens',
+    //     isSensitive: true,
+    //     requiresRestart: false,
+    // },
     {
         key: 'JWT_ACCESS_EXPIRES_IN',
         group: ENV_CONFIG_GROUPS.JWT,
