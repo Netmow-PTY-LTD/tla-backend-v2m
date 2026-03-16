@@ -22,13 +22,15 @@ const login = catchAsync(async (req, res) => {
   const { accessToken, refreshToken, userData } =
     await authService.loginUserIntoDB(payload);
 
+  // ✅ FIXED: Use environment-conditional cookie settings
+  // In development (HTTP), secure:true means the cookie is NEVER sent — breaking refresh flow
+  const isProduction = process.env.NODE_ENV === 'production';
+
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    // secure: config.NODE_ENV === 'production',
-    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: true, // Ensure cookie is sent over HTTPS
-    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    secure: isProduction,                      // Only HTTPS in production
+    sameSite: isProduction ? 'none' : 'lax',  // cross-site in prod, lax in dev
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
@@ -156,15 +158,37 @@ const logOut = catchAsync(async (req, res) => {
   // Extract the refresh token from cookies
   const { refreshToken } = req.cookies;
 
-  // Invalidate the refresh token in the database or token store
-  const result = await authService.logOutToken(refreshToken);
+  // ✅ FIXED: If no refresh token cookie, the user is already logged out — return success.
+  // Previously this threw a 400 which the frontend treated as an auth failure — causing a logout loop.
+  if (!refreshToken) {
+    return sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      message: 'Already logged out.',
+      data: null,
+    });
+  }
 
-  // If the refresh token belongs to a valid user, clear it from cookies
-  if (result.validUser) {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  try {
+    // Invalidate the refresh token in the database or token store
+    const result = await authService.logOutToken(refreshToken);
+
+    // If the refresh token belongs to a valid user, clear it from cookies
+    if (result.validUser) {
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+      });
+    }
+  } catch {
+    // Even if token is invalid/expired, still clear the cookie and return success
     res.clearCookie('refreshToken', {
-      httpOnly: true, // Makes cookie inaccessible to JavaScript
-      secure: true, // Ensures cookie is sent over HTTPS
-      sameSite: 'none', // Allows cross-site usage (must be used with HTTPS)
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
     });
   }
 
@@ -317,13 +341,15 @@ const ssoLogin = catchAsync(async (req, res) => {
 
   const { accessToken, refreshToken, userData } =
     await authService.ssoLogin(token);
+
+  // ✅ FIXED: Use environment-conditional cookie settings (same as login)
+  const isProduction = process.env.NODE_ENV === 'production';
+
   // Set the refresh token in a secure HTTP-only cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    // secure: config.NODE_ENV === 'production',
-    // sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: true, // Ensure cookie is sent over HTTPS
-    sameSite: 'none', // Allow cross-site usage (must be used with HTTPS)
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
@@ -336,18 +362,6 @@ const ssoLogin = catchAsync(async (req, res) => {
     data: userData,
 
   });
-
-
-
-
-
-
-
-
-
-
-
-
 });
 
 
