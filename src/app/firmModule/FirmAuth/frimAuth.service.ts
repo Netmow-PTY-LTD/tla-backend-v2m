@@ -24,12 +24,6 @@ import StaffProfile from "../Staff/staff.model";
 import { TUploadedFile } from "../../interface/file.interface";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
-import User from "../../module/Auth/auth.model";
-import { USER_STATUS } from "../../module/Auth/auth.constant";
-import { SsoToken } from "./SsoToken.model";
-import UserProfile from "../../module/User/user.model";
-import { redisClient } from "../../config/redis.config";
-import { CacheKeys } from "../../config/cacheKeys";
 import { IFirmProfile } from "../Firm/firm.interface";
 
 
@@ -195,7 +189,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
 
         // 4️ Create FirmLicense linked to FirmProfile
-        const newLicense = await FirmLicense.create(
+        await FirmLicense.create(
             [
                 {
                     firmProfileId: newProfile._id,
