@@ -27,5 +27,5 @@ export const REGISTER_USER_TYPE = {
   CLIENT: 'client',
   LAWYER: 'lawyer',
   ADMIN: 'admin',
- marketer: 'marketer',
+  MARKETER: 'marketer',
 } as const;
