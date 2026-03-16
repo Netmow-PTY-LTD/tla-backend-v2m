@@ -24,12 +24,6 @@ import StaffProfile from "../Staff/staff.model";
 import { TUploadedFile } from "../../interface/file.interface";
 import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
 import { FOLDERS } from "../../constant";
-import User from "../../module/Auth/auth.model";
-import { USER_STATUS } from "../../module/Auth/auth.constant";
-import { SsoToken } from "./SsoToken.model";
-import UserProfile from "../../module/User/user.model";
-import { redisClient } from "../../config/redis.config";
-import { CacheKeys } from "../../config/cacheKeys";
 import { IFirmProfile } from "../Firm/firm.interface";
 
 
@@ -195,7 +189,7 @@ const firmRegisterUserIntoDB = async (payload: LawFirmRegistrationPayload) => {
 
 
         // 4️ Create FirmLicense linked to FirmProfile
-        const newLicense = await FirmLicense.create(
+        await FirmLicense.create(
             [
                 {
                     firmProfileId: newProfile._id,
@@ -308,7 +302,7 @@ const loginUserIntoDB = async (payload: IFirmLoginUser) => {
 
     // Verifying if the password matches the one in the database
     if (!(await FirmUser.isPasswordMatched(payload?.password, user?.password)))
-        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password do not matched');
+        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password does not match.');
 
     // Create JWT tokens (access and refresh) and return them with user data
     const jwtPayload = {
@@ -421,7 +415,7 @@ const changePasswordIntoDB = async (
     //checking if the password is correct
 
     if (!(await FirmUser.isPasswordMatched(payload.oldPassword, user?.password)))
-        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password do not matched');
+        throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password does not match.');
 
     //hash new password
     const newHashedPassword = await bcrypt.hash(

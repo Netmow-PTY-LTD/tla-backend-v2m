@@ -54,7 +54,7 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
 
   // Verifying if the password matches the one in the database
   if (!(await User.isPasswordMatched(payload?.password, user?.password)))
-    throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password do not matched');
+    throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password does not match.');
 
   // Create JWT tokens (access and refresh) and return them with user data
   const jwtPayload = {
@@ -178,7 +178,7 @@ const changePasswordIntoDB = async (
   //checking if the password is correct
 
   if (!(await User.isPasswordMatched(payload.oldPassword, user?.password)))
-    throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password do not matched');
+    throw new AppError(HTTP_STATUS.FORBIDDEN, 'Password does not match.');
 
   //hash new password
   const newHashedPassword = await bcrypt.hash(
