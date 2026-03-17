@@ -8,9 +8,9 @@ import { IUserProfile } from '../User/interfaces/user.interface';
 import Experience from '../User/models/experience.model';
 import Faq from '../User/models/faq.model';
 import UserProfile from '../User/models/user.model';
-import ProfilePhotos from '../User/models/profilePhotos';
-import ProfileSocialMedia from '../User/models/profileSocialMedia';
-import ProfileCustomService from '../User/models/profileServiceCoustom.model';
+import ProfilePhotos from '../User/models/profile-photos.model';
+import ProfileSocialMedia from '../User/models/profile-social-media.model';
+import ProfileCustomService from '../User/models/profile-custom-service.model';
 import { calculateLawyerBadge } from '../User/utils/user.utils';
 import { FirmProfile } from '../../firmModule/Firm/firm.model';
 import { redisClient } from '../../config/redis.config';
@@ -442,5 +442,6 @@ export const viewService = {
   getPublicUserProfileBySlug,
   getAllPublicCompanyProfilesIntoDB,
 };
+
 
 

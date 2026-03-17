@@ -5,9 +5,9 @@ import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
 import { validateObjectId } from '../../../utils/validateObjectId';
 
-import { IAccreditation } from '../interfaces/profileAccreditation.interface';
+import { IAccreditation } from '../interfaces/profile-accreditation.interface';
 
-import Accreditation from '../models/ProfileAccreditation';
+import Accreditation from '../models/profile-accreditation.model';
 import UserProfile from '../models/user.model';
 import { FOLDERS } from '../../../constant';
 import mongoose from 'mongoose';
@@ -230,3 +230,4 @@ export const accreditationService = {
   updateProfileAccreditationIntoDB,
   deleteAccreditationIntoDB,
 };
+

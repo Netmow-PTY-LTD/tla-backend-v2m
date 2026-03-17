@@ -3,7 +3,7 @@ import UserProfile from '../User/models/user.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import User from './auth.model';
-import { LawyerServiceMap } from '../User/models/lawyerServiceMap.model';
+import { LawyerServiceMap } from '../User/models/lawyer-service-map.model';
 import ZipCode from '../Country/zipcode.model';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { createToken } from './auth.utils';
@@ -810,3 +810,4 @@ export const lawyerRegisterService = {
   verifyLawyerRegistrationEmail,
   commitLawyerRegistration
 };
+

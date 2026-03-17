@@ -1,5 +1,5 @@
 import mongoose, { model } from 'mongoose';
-import { IAccreditation } from '../interfaces/profileAccreditation.interface';
+import { IAccreditation } from '../interfaces/profile-accreditation.interface';
 
 const accreditationSchema = new mongoose.Schema(
   {
@@ -37,3 +37,4 @@ export const Accreditation = model<IAccreditation>(
   accreditationSchema,
 );
 export default Accreditation;
+

@@ -1,5 +1,5 @@
 import mongoose, { model } from 'mongoose';
-import { ICompanyProfile } from '../interfaces/companyProfile.interface';
+import { ICompanyProfile } from '../interfaces/company-profile.interface';
 
 const companyProfileSchema = new mongoose.Schema(
   {
@@ -93,3 +93,4 @@ export const CompanyProfile = model<ICompanyProfile>(
   companyProfileSchema,
 );
 export default CompanyProfile;
+

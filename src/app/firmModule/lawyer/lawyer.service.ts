@@ -6,7 +6,7 @@ import User from "../../module/Auth/auth.model";
 import ZipCode from "../../module/Country/zipcode.model";
 import UserProfile from "../../module/User/models/user.model";
 import { REGISTER_USER_TYPE, USER_STATUS } from "../../module/Auth/auth.constant";
-import { LawyerServiceMap } from "../../module/User/models/lawyerServiceMap.model";
+import { LawyerServiceMap } from "../../module/User/models/lawyer-service-map.model";
 import { LocationType } from "../../module/UserLocationServiceMap/userLocationServiceMap.interface";
 import { UserLocationServiceMap } from "../../module/UserLocationServiceMap/UserLocationServiceMap.model";
 import { createLeadService } from "../../module/Auth/lawyerRegister.utils";
@@ -333,3 +333,4 @@ export const firmLawyerService = {
     lawyerRemoveFromFirm
 
 };
+

@@ -2,8 +2,8 @@ import { CacheKeys } from '../../../config/cacheKeys';
 import { redisClient } from '../../../config/redis.config';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { validateObjectId } from '../../../utils/validateObjectId';
-import { IProfileCustomService } from '../interfaces/profileCustomService.interface';
-import ProfileCustomService from '../models/profileServiceCoustom.model';
+import { IProfileCustomService } from '../interfaces/profile-custom-service.interface';
+import ProfileCustomService from '../models/profile-custom-service.model';
 import UserProfile from '../models/user.model';
 
 const updateProfileCustomServiceIntoDB = async (
@@ -60,3 +60,4 @@ export const profileCustomService = {
   updateProfileCustomServiceIntoDB,
   deleteCustomServiceIntoDB,
 };
+

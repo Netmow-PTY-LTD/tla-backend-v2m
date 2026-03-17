@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import UserProfile from "../app/module/User/models/user.model";         // your UserProfile model
 
 import config from "../app/config";
-import { LawyerServiceMap } from "../app/module/User/models/lawyerServiceMap.model";
+import { LawyerServiceMap } from "../app/module/User/models/lawyer-service-map.model";
 
 const uri = config.database_url as string;
 
@@ -41,3 +41,4 @@ async function cleanLawyerServiceMaps() {
 
 // Run the script
 cleanLawyerServiceMaps();
+

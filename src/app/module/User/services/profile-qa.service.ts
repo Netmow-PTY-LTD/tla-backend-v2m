@@ -1,8 +1,8 @@
 import { Types } from 'mongoose';
 import UserProfile from '../models/user.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
-import ProfileQA from '../models/ProfileQAS';
-import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
+import ProfileQA from '../models/profile-qa.model';
+import { PROFILE_QUESTIONS } from '../utils/profile-qa.utils';
 import { redisClient } from '../../../config/redis.config';
 import { CacheKeys } from '../../../config/cacheKeys';
 
@@ -46,3 +46,4 @@ const updateProfileQAIntoDB = async (
 export const profileQAService = {
   updateProfileQAIntoDB,
 };
+

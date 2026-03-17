@@ -2,8 +2,8 @@
 import { Model, Types } from 'mongoose';
 import { PhoneVerificationStatus, UserStatus } from './auth.constant';
 import { TUserRole } from '../../constant';
-import { ILawyerServiceMap } from '../User/interfaces/lawyerServiceMap.interface';
-import { ICompanyProfile } from '../User/interfaces/companyProfile.interface';
+import { ILawyerServiceMap } from '../User/interfaces/lawyer-service-map.interface';
+import { ICompanyProfile } from '../User/interfaces/company-profile.interface';
 import { IUserProfile } from '../User/interfaces/user.interface';
 
 
@@ -94,3 +94,4 @@ export interface UserModel extends Model<IUser> {
     jwtIssuedTimestamp: number,
   ): boolean;
 }
+

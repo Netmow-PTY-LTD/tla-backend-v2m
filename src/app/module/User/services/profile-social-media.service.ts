@@ -1,17 +1,18 @@
 import { CacheKeys } from '../../../config/cacheKeys';
 import { redisClient } from '../../../config/redis.config';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
-import { IExperience } from '../interfaces/experience.interface';
-import Experience from '../models/experience.model';
+
+import { IProfileSocialMedia } from '../interfaces/profile-social-media.interface';
+
+import ProfileSocialMedia from '../models/profile-social-media.model';
 import UserProfile from '../models/user.model';
 
-const updateProfileExperienceIntoDB = async (
+const updateProfileSocialMediaIntoDB = async (
   userId: string,
-  payload: Partial<IExperience>,
+  payload: Partial<IProfileSocialMedia>,
 ) => {
 
   await redisClient.del(CacheKeys.USER_INFO(userId));
-
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {
@@ -19,7 +20,7 @@ const updateProfileExperienceIntoDB = async (
     return sendNotFoundResponse('user profile data');
   }
 
-  const updateProfileExperience = await Experience.findOneAndUpdate(
+  const updateProfileSocialMedia = await ProfileSocialMedia.findOneAndUpdate(
     { userProfileId: userProfile._id },
     payload,
     {
@@ -28,9 +29,10 @@ const updateProfileExperienceIntoDB = async (
     },
   );
 
-  return updateProfileExperience;
+  return updateProfileSocialMedia;
 };
 
-export const profileExperienceService = {
-  updateProfileExperienceIntoDB,
+export const profileSocialMediaService = {
+  updateProfileSocialMediaIntoDB,
 };
+

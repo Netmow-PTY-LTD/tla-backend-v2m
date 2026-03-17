@@ -7,7 +7,7 @@ import ZipCode from "../Country/zipcode.model";
 import UserProfile from "../User/models/user.model";
 import { LawyerRequestAsMember } from "../../firmModule/lawyerRequest/lawyerRequest.model";
 import { REGISTER_USER_TYPE, USER_STATUS } from "../Auth/auth.constant";
-import { LawyerServiceMap } from "../User/models/lawyerServiceMap.model";
+import { LawyerServiceMap } from "../User/models/lawyer-service-map.model";
 import { LocationType } from "../UserLocationServiceMap/userLocationServiceMap.interface";
 import { UserLocationServiceMap } from "../UserLocationServiceMap/UserLocationServiceMap.model";
 import { createLeadService, updateLeadService } from "../Auth/lawyerRegister.utils";
@@ -472,3 +472,4 @@ export const marketingService = {
   getLawyerFromDB,
   deleteLawyerFromDB
 };
+

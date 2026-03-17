@@ -1,31 +1,33 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import { accreditationService } from '../services/profileAccreditation.service';
+import { profileCustomService } from '../services/profile-custom-service.service';
 
-const deleteProfileAccreditation = catchAsync(async (req, res) => {
+const deleteCustomService = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
   // Extract the user ID from the request parameters
-  const { accreditationId } = req.params;
+  const { customServiceId } = req.params;
 
   // Call the service function to retrieve the user's profile data from the database
   const result =
-    await accreditationService.deleteAccreditationIntoDB(req.user.userId, accreditationId);
+    await profileCustomService.deleteCustomServiceIntoDB(userId, customServiceId);
   if (!result) {
     return sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: false,
-      message: 'Accreditation not found',
+      message: 'Custom Service not found',
       data: null,
     });
   }
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
-    message: 'Accreditation Delete Successfully',
+    message: 'Custom Service Delete Successfully',
     data: result,
   });
 });
 
-export const accreditationController = {
-  deleteProfileAccreditation,
+export const customServiceController = {
+  deleteCustomService,
 };
+

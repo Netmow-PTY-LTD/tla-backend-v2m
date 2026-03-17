@@ -7,7 +7,7 @@ import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
 
 
-import ProfilePhotos from '../models/profilePhotos';
+import ProfilePhotos from '../models/profile-photos.model';
 import UserProfile from '../models/user.model';
 import { redisClient } from '../../../config/redis.config';
 import { CacheKeys } from '../../../config/cacheKeys';
@@ -221,3 +221,4 @@ export const ProfilePhotosService = {
   updateProfilePhotosIntoDB,
   removeProfileMediaFromDB
 };
+

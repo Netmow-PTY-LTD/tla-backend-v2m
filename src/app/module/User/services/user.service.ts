@@ -8,14 +8,14 @@ import { IUserProfile } from '../interfaces/user.interface';
 import { deleteFromSpace, uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
 import UserProfile from '../models/user.model';
-import CompanyProfile from '../models/companyProfile.model';
-import ProfilePhotos from '../models/profilePhotos';
-import profileSocialMedia from '../models/profileSocialMedia';
+import CompanyProfile from '../models/company-profile.model';
+import ProfilePhotos from '../models/profile-photos.model';
+import profileSocialMedia from '../models/profile-social-media.model';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
-import Accreditation from '../models/ProfileAccreditation';
-import ProfileCustomService from '../models/profileServiceCoustom.model';
-import ProfileQA from '../models/ProfileQAS';
-import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
+import Accreditation from '../models/profile-accreditation.model';
+import ProfileCustomService from '../models/profile-custom-service.model';
+import ProfileQA from '../models/profile-qa.model';
+import { PROFILE_QUESTIONS } from '../utils/profile-qa.utils';
 import mongoose, { Document } from 'mongoose';
 import Experience from '../models/experience.model';
 import Faq from '../models/faq.model';
@@ -865,4 +865,5 @@ export const UserProfileService = {
   softDeleteUserIntoDB,
   updateDefaultProfileIntoDB
 };
+
 

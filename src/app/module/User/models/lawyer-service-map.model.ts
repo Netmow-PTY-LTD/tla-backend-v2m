@@ -1,5 +1,5 @@
 import mongoose, { Schema, model, Types } from 'mongoose';
-import { ILawyerServiceMap } from '../interfaces/lawyerServiceMap.interface';
+import { ILawyerServiceMap } from '../interfaces/lawyer-service-map.interface';
 
 const lawyerServiceMapSchema = new Schema(
   {
@@ -63,3 +63,4 @@ export const LawyerServiceMap = model<ILawyerServiceMap>(
   'LawyerServiceMap',
   lawyerServiceMapSchema,
 );
+

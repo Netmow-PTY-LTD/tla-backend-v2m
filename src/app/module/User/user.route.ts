@@ -5,10 +5,10 @@ import { userProfileController } from './controllers/user.controller';
 import auth from '../../middlewares/auth';
 import { USER_ROLE } from '../../constant';
 import { upload } from '../../config/upload';
-import { customServiceController } from './controllers/customService.controller';
-import { accreditationController } from './controllers/accrediation.controller';
+import { customServiceController } from './controllers/custom-service.controller';
+import { accreditationController } from './controllers/accreditation.controller';
 import { faqController } from './controllers/faq.controller';
-import { profileMediaController } from './controllers/profileMedia.controller';
+import { profileMediaController } from './controllers/profile-media.controller';
 const router = Router();
 
 router.get(
@@ -74,3 +74,4 @@ router.patch(
 );
 
 export const UserProfileRouter = router;
+
