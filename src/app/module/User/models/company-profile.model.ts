@@ -1,5 +1,5 @@
 import mongoose, { model } from 'mongoose';
-import { ICompanyProfile } from '../interfaces/company-profile.interface';
+import { ICompanyProfile } from '../interfaces';
 
 const companyProfileSchema = new mongoose.Schema(
   {

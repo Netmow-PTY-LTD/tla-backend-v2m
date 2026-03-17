@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
-import { IZipCode, ZipCodeModel } from '../interfaces/zipcode.interface';
+import { IZipCode, ZipCodeModel } from '../interfaces';
 
 
 const zipCodeSchema = new mongoose.Schema(

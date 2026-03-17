@@ -2,7 +2,7 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import { cityService } from '../services/city.service';
+import { cityService } from '../services';
 
 
 

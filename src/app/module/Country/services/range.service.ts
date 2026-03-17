@@ -1,5 +1,5 @@
 import { validateObjectId } from '../../../utils/validateObjectId';
-import { IRange } from '../interfaces/range.interface';
+import { IRange } from '../interfaces';
 import { Range } from '../models';
 
 const CreateRangeIntoDB = async (payload: IRange) => {

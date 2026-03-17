@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IExperience } from '../interfaces/experience.interface';
+import { IExperience } from '../interfaces';
 
 const experienceSchema = new Schema(
   {

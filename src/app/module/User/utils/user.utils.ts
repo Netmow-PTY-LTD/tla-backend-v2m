@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import LeadResponse from '../../LeadResponse/response.model';
-import UserProfile from '../models/user.model';
+import { UserProfile } from '../models';
 import Transaction from '../../CreditPayment/transaction.model';
 
 export const getExpertiseBadge = async (userId: Types.ObjectId): Promise<'Premium Lawyer' | 'Expert Lawyer' | null> => {

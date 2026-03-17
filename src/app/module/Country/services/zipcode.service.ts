@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { validateObjectId } from '../../../utils/validateObjectId';
-import { IZipCode } from '../interfaces/zipcode.interface';
+import { IZipCode } from '../interfaces';
 import { ZipCode } from '../models';
 
 const CreateZipCodeIntoDB = async (payload: IZipCode) => {

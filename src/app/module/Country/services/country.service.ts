@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import CountryWiseMap from '../../CountryWiseMap/countryWiseMap.model';
-import { ICountry } from '../interfaces/country.interface';
+import { ICountry } from '../interfaces';
 import { Country } from '../models';
 import { validateObjectId } from '../../../utils/validateObjectId';
 import { redisClient } from '../../../config/redis.config';
