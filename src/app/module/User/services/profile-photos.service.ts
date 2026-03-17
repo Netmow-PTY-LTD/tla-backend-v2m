@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import mongoose from 'mongoose';
 import { deleteFromSpace, uploadToSpaces } from '../../../config/upload';
 import { FOLDERS } from '../../../constant';

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { deleteFromSpace, uploadToSpaces } from '../../../config/upload';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
