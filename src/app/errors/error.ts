@@ -32,33 +32,12 @@ const handleCastError = (
 
   return {
     statusCode,
-    message: 'Invalid ID',
+    message: `Invalid ID: The value '${err.value}' is not a valid ${err.kind} for the field '${err.path}'.`,
     errorSources,
   };
 };
 
-// const handleDuplicateError = (err: any): TGenericErrorResponse => {
-//   // Extract value within double quotes using regex
-//   const match = err.message.match(/"([^"]*)"/);
 
-//   // The extracted value will be in the first capturing group
-//   const extractedMessage = match && match[1];
-
-//   const errorSources: TErrorSources = [
-//     {
-//       path: '',
-//       message: `${extractedMessage} is already exists`,
-//     },
-//   ];
-
-//   const statusCode = 400;
-
-//   return {
-//     statusCode,
-//     message: 'Invalid ID',
-//     errorSources,
-//   };
-// };
 
 const handleDuplicateError = (err: any): TGenericErrorResponse => {
   const statusCode = 409; // 409 Conflict is more semantically correct for duplicate key errors
@@ -94,10 +73,11 @@ const handleValidationError = (
   );
 
   const statusCode = 400;
+  const fieldPaths = errorSources.map((e) => e.path).join(', ');
 
   return {
     statusCode,
-    message: 'Validation Error',
+    message: `Mongoose Validation failed for (${fieldPaths}). Detail: ${errorSources[0]?.message || 'Invalid input detected.'}`,
     errorSources,
   };
 };
@@ -105,16 +85,17 @@ const handleValidationError = (
 const handleZodError = (err: ZodError): TGenericErrorResponse => {
   const errorSources: TErrorSources = err.issues.map((issue: ZodIssue) => {
     return {
-      path: issue?.path[issue.path.length - 1],
+      path: issue?.path.join('.'),
       message: issue.message,
     };
   });
 
   const statusCode = 400;
+  const fieldPaths = errorSources.map((e) => e.path).join(', ');
 
   return {
     statusCode,
-    message: 'Validation Error',
+    message: `Zod Validation failed for (${fieldPaths}). Detail: ${errorSources[0]?.message || 'Invalid request format.'}`,
     errorSources,
   };
 };

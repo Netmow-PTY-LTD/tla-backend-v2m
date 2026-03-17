@@ -6,6 +6,7 @@ import { emailFlowService } from '../emails/email.flow.service';
  * Logic: Every 1 minute, finds users who need their next email sent.
  */
 export const startEmailSchedulerCron = () => {
+
     cron.schedule('* * * * *', async () => {
         try {
             console.log('🔄 Cron Scheduler: Processing pending email flows...');
@@ -17,5 +18,6 @@ export const startEmailSchedulerCron = () => {
     });
 
     console.log('🕒 Node-Cron Email Scheduler started.');
+
 };
 
