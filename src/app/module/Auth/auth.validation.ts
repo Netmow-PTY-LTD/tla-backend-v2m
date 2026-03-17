@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { profileValidationSchema } from '../User/user.validation';
+import { profileValidationSchema } from '../User/validations/user.validation';
 import mongoose from 'mongoose';
 
 

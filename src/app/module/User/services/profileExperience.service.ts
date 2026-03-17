@@ -1,17 +1,17 @@
-import { CacheKeys } from '../../config/cacheKeys';
-import { redisClient } from '../../config/redis.config';
-import { sendNotFoundResponse } from '../../errors/custom.error';
-import { IExperience } from './experience.interface';
-import Experience from './experience.model';
-import UserProfile from './user.model';
+import { CacheKeys } from '../../../config/cacheKeys';
+import { redisClient } from '../../../config/redis.config';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { IExperience } from '../interfaces/experience.interface';
+import Experience from '../models/experience.model';
+import UserProfile from '../models/user.model';
 
 const updateProfileExperienceIntoDB = async (
   userId: string,
   payload: Partial<IExperience>,
 ) => {
 
-await redisClient.del(CacheKeys.USER_INFO(userId));
-  
+  await redisClient.del(CacheKeys.USER_INFO(userId));
+
   const userProfile = await UserProfile.findOne({ user: userId });
 
   if (!userProfile) {

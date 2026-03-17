@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
-import UserProfile from '../User/user.model';
+import UserProfile from '../User/models/user.model';
 import CreditTransaction from '../CreditPayment/creditTransaction.model';
 import LeadResponse from '../LeadResponse/response.model';
 import { HTTP_STATUS } from '../../constant/httpStatus';

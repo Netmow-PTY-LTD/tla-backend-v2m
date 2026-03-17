@@ -1,20 +1,20 @@
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import { UserProfileService } from './user.service';
-import { TUploadedFile } from '../../interface/file.interface';
-import { CompanyProfileService } from './companyProfile.service';
-import { ProfilePhotosService } from './profilePhotos.service';
-import { accreditationService } from './profileAccreditation.service';
-import { profileSocialMediaService } from './profileSocialMedia.service';
-import { profileCustomService } from './ProfileCustomService.service';
-import { profileQAService } from './profileQA.service';
-import { profileExperienceService } from './profileExperience.service';
-import { profileFaqService } from './profileFaq.service';
-import { startQueryTimer } from '../../utils/queryTimer';
-import { agreementService } from './agreement.service';
-import { redisClient } from '../../config/redis.config';
-import { CacheKeys } from '../../config/cacheKeys';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { UserProfileService } from '../services/user.service';
+import { TUploadedFile } from '../../../interface/file.interface';
+import { CompanyProfileService } from '../services/companyProfile.service';
+import { ProfilePhotosService } from '../services/profilePhotos.service';
+import { accreditationService } from '../services/profileAccreditation.service';
+import { profileSocialMediaService } from '../services/profileSocialMedia.service';
+import { profileCustomService } from '../services/ProfileCustomService.service';
+import { profileQAService } from '../services/profileQA.service';
+import { profileExperienceService } from '../services/profileExperience.service';
+import { profileFaqService } from '../services/profileFaq.service';
+import { startQueryTimer } from '../../../utils/queryTimer';
+import { agreementService } from '../services/agreement.service';
+import { redisClient } from '../../../config/redis.config';
+import { CacheKeys } from '../../../config/cacheKeys';
 
 /**
  * @desc   Updates the user's profile data in the database.
@@ -28,7 +28,7 @@ import { CacheKeys } from '../../config/cacheKeys';
 
 const updateProfile = catchAsync(async (req, res) => {
   const userId = req.user.userId;
- 
+
   // const parsedData = JSON.parse(req.body.data);
   const parsedData = req.body.data ? JSON.parse(req.body.data) : {};
   const files = req.files as TUploadedFile[];
@@ -279,8 +279,8 @@ const getAllUserProfile = catchAsync(async (req, res) => {
       : req.query.isPhoneVerified === "false"
         ? false
         : undefined,
- // createdBy filter (userId reference)
-  createdBy: req.query.createdBy as string | undefined,
+    // createdBy filter (userId reference)
+    createdBy: req.query.createdBy as string | undefined,
     //  sorting support
     sortBy: (req.query.sortBy as string) || "createdAt",
     sortOrder: req.query.sortOrder === "asc" ? "asc" : "desc",

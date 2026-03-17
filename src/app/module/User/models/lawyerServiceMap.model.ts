@@ -1,5 +1,5 @@
 import mongoose, { Schema, model, Types } from 'mongoose';
-import { ILawyerServiceMap } from './lawyerServiceMap.interface';
+import { ILawyerServiceMap } from '../interfaces/lawyerServiceMap.interface';
 
 const lawyerServiceMapSchema = new Schema(
   {

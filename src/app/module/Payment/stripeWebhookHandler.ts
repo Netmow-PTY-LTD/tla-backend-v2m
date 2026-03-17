@@ -124,7 +124,7 @@ import { Request, Response } from 'express';
 import { SubscriptionType } from '../CreditPayment/paymentMethod.service';
 import EliteProUserSubscription, { IEliteProUserSubscription } from '../CreditPayment/EliteProUserSubscription';
 import UserSubscription, { IUserSubscription } from '../CreditPayment/subscriptions.model';
-import UserProfile from '../User/user.model';
+import UserProfile from '../User/models/user.model';
 import mongoose, { mongo } from 'mongoose';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache } from '../../utils/cacheManger';
@@ -133,7 +133,7 @@ import { stripe, getStripeWebhookSecret } from '../../config/stripe.config';
 export const stripeWebhookHandler = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature']!;
 
-  
+
 
   let event: Stripe.Event;
 
@@ -210,14 +210,14 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           await userProfile.save();
         }
 
-          // --------------------  REVALIDATE REDIS CACHE -----------------------
-          await deleteCache(CacheKeys.USER_INFO(userId));
-  
+        // --------------------  REVALIDATE REDIS CACHE -----------------------
+        await deleteCache(CacheKeys.USER_INFO(userId));
+
         break;
       }
 
 
-     // ---------------------------------
+      // ---------------------------------
       // Payment failed
       // ---------------------------------
       case 'invoice.payment_failed': {
@@ -258,8 +258,8 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         }
 
         // console.log(` User ${userId} ${type} subscription payment failed`);
-          // --------------------  REVALIDATE REDIS CACHE -----------------------
-          await deleteCache(CacheKeys.USER_INFO(userId));
+        // --------------------  REVALIDATE REDIS CACHE -----------------------
+        await deleteCache(CacheKeys.USER_INFO(userId));
         break;
       }
 
@@ -313,8 +313,8 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         }
 
         // console.log(` User ${subscriptionRecord.userId} ${type} subscription canceled`);
-          // --------------------  REVALIDATE REDIS CACHE -----------------------
-          await deleteCache(CacheKeys.USER_INFO(userId));
+        // --------------------  REVALIDATE REDIS CACHE -----------------------
+        await deleteCache(CacheKeys.USER_INFO(userId));
         break;
       }
 
@@ -323,7 +323,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
 
       default:
-        // console.log(` Unhandled event type: ${event.type}`);
+      // console.log(` Unhandled event type: ${event.type}`);
     }
 
     res.status(200).send('OK');

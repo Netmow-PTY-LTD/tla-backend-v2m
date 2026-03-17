@@ -1,11 +1,12 @@
+/* eslint-disable no-console */
 import mongoose from "mongoose";
-import { deleteFromSpace, uploadToSpaces } from "../../config/upload";
-import { FOLDERS } from "../../constant";
-import { sendNotFoundResponse } from "../../errors/custom.error";
-import { TUploadedFile } from "../../interface/file.interface";
-import { validateObjectId } from "../../utils/validateObjectId";
-import Agreement, { IAgreement } from "./agreement.model";
-import UserProfile from "./user.model";
+import { deleteFromSpace, uploadToSpaces } from "../../../config/upload";
+import { FOLDERS } from "../../../constant";
+import { sendNotFoundResponse } from "../../../errors/custom.error";
+import { TUploadedFile } from "../../../interface/file.interface";
+import { validateObjectId } from "../../../utils/validateObjectId";
+import Agreement, { IAgreement } from "../models/agreement.model";
+import UserProfile from "../models/user.model";
 
 
 // const updateProfileAgreementIntoDB = async (
@@ -192,6 +193,7 @@ const deleteAgreementIntoDB = async (id: string) => {
     if (agreement.agreement) {
       try {
         await deleteFromSpace(agreement.agreement);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         throw new Error('Failed to delete agreement file from Spaces');
       }

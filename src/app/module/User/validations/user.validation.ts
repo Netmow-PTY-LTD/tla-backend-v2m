@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { USER_PROFILE } from './user.constant';
+import { USER_PROFILE } from '../constant/user.constant';
 
 //// Zod enum created from USER_PROFILE values
 // This enforces the accepted values for the profileType field

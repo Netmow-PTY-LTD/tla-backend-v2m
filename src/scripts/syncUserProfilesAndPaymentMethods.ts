@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import UserProfile from "../app/module/User/user.model";
+import UserProfile from "../app/module/User/models/user.model";
 
 import config from "../app/config";
 import PaymentMethod from "../app/module/CreditPayment/paymentMethod.model";
@@ -14,7 +14,7 @@ async function syncUserProfilesAndPaymentMethods() {
       console.log("Connected to MongoDB");
     }
 
-   
+
 
     // Get all valid UserProfile IDs
     const profiles = await UserProfile.find({}, { _id: 1 }).lean();

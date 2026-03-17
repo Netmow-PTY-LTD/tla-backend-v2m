@@ -2,7 +2,7 @@
 import { IUser } from '../module/Auth/auth.interface';
 import { User } from '../module/Auth/auth.model';
 import { EmailTemplate, EmailTemplateCategory } from '../module/emailTemplateSystem/emailTemplate.model';
-import { IUserProfile } from '../module/User/user.interface';
+import { IUserProfile } from '../module/User/interfaces/user.interface';
 import { EmailQueue } from '../queues/emailQueue.model';
 import { EMAIL_TEMPLATE_KEYS } from '../module/emailTemplateSystem/emailTemplate.constant';
 import { USER_STATUS } from '../module/Auth/auth.constant';

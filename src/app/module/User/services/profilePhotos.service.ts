@@ -1,16 +1,16 @@
 import mongoose from 'mongoose';
-import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
-import { FOLDERS } from '../../constant';
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import { sendNotFoundResponse } from '../../errors/custom.error';
-import { AppError } from '../../errors/error';
-import { TUploadedFile } from '../../interface/file.interface';
+import { deleteFromSpace, uploadToSpaces } from '../../../config/upload';
+import { FOLDERS } from '../../../constant';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { AppError } from '../../../errors/error';
+import { TUploadedFile } from '../../../interface/file.interface';
 
 
-import ProfilePhotos from './profilePhotos';
-import UserProfile from './user.model';
-import { redisClient } from '../../config/redis.config';
-import { CacheKeys } from '../../config/cacheKeys';
+import ProfilePhotos from '../models/profilePhotos';
+import UserProfile from '../models/user.model';
+import { redisClient } from '../../../config/redis.config';
+import { CacheKeys } from '../../../config/cacheKeys';
 
 const updateProfilePhotosIntoDB = async (
   userId: string,
@@ -20,7 +20,7 @@ const updateProfilePhotosIntoDB = async (
   files: TUploadedFile[],
 ) => {
 
-   await redisClient.del(CacheKeys.USER_INFO(userId));
+  await redisClient.del(CacheKeys.USER_INFO(userId));
 
   const userProfile = await UserProfile.findOne({ user: userId });
 
@@ -113,7 +113,7 @@ export const removeProfileMediaFromDB = async (
   urlToRemove: string
 ) => {
 
-    await redisClient.del(CacheKeys.USER_INFO(userId));
+  await redisClient.del(CacheKeys.USER_INFO(userId));
   // Start MongoDB transaction
   const session = await mongoose.startSession();
   session.startTransaction();

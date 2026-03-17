@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { userProfileController } from './user.controller';
+import { userProfileController } from './controllers/user.controller';
 // import { authZodValidation } from '../validations/user.validation';
 // import validateRequest from '../../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import { USER_ROLE } from '../../constant';
 import { upload } from '../../config/upload';
-import { customServiceController } from './customService.controller';
-import { accreditationController } from './accrediation.controller';
-import { faqController } from './faq.controller';
-import { profileMediaController } from './profileMedia.controller';
+import { customServiceController } from './controllers/customService.controller';
+import { accreditationController } from './controllers/accrediation.controller';
+import { faqController } from './controllers/faq.controller';
+import { profileMediaController } from './controllers/profileMedia.controller';
 const router = Router();
 
 router.get(
@@ -18,7 +18,7 @@ router.get(
 );
 router.get(
   '/list',
-  auth(USER_ROLE.ADMIN,USER_ROLE.USER),
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   userProfileController.getAllUserProfile,
 );
 
@@ -68,9 +68,9 @@ router.patch(
 
 router.patch(
   '/update/default/:userId',
- auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   upload.single('file'), // single file
- userProfileController.updateDefaultProfile
+  userProfileController.updateDefaultProfile
 );
 
 export const UserProfileRouter = router;

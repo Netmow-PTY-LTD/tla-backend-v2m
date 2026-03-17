@@ -2,7 +2,7 @@
 import mongoose, { Types } from 'mongoose';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 
-import UserProfile from '../User/user.model';
+import UserProfile from '../User/models/user.model';
 import {
   ILeadService,
   IUpdateLeadServiceAnswers,
@@ -227,7 +227,7 @@ const getLeadServicesWithQuestions = async (userId: string) => {
   //  Try to get from cache
   const cachedData = await redisClient.get(CacheKeys.LEAD_SERVICES_QUESTIONS(userId));
   if (cachedData) {
-  
+
     return JSON.parse(cachedData);
   }
 
@@ -452,7 +452,7 @@ const deleteLeadService = async (userId: string, serviceId: string) => {
         { session }
       );
 
-    
+
 
       // -------------------  REVALIDATE REDIS CACHE ---------------------
       await deleteCache([
@@ -497,7 +497,7 @@ const updateLeadServiceAnswersIntoDB = async (
   }>,
 ) => {
 
-  
+
 
 
   //  Find the associated user profile

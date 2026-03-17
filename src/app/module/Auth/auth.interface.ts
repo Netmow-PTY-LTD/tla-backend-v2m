@@ -2,9 +2,9 @@
 import { Model, Types } from 'mongoose';
 import { PhoneVerificationStatus, UserStatus } from './auth.constant';
 import { TUserRole } from '../../constant';
-import { ILawyerServiceMap } from '../User/lawyerServiceMap.interface';
-import { ICompanyProfile } from '../User/companyProfile.interface';
-import { IUserProfile } from '../User/user.interface';
+import { ILawyerServiceMap } from '../User/interfaces/lawyerServiceMap.interface';
+import { ICompanyProfile } from '../User/interfaces/companyProfile.interface';
+import { IUserProfile } from '../User/interfaces/user.interface';
 
 
 type IAddressInfo = {

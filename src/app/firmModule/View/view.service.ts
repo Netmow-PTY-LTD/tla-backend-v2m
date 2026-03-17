@@ -15,7 +15,7 @@ import { HTTP_STATUS } from "../../constant/httpStatus";
 import { uploadToSpaces } from "../../config/upload";
 import { FOLDERS, USER_ROLE } from "../../constant";
 import { Notification } from "../../module/Notification/notification.model";
-import UserProfile from "../../module/User/user.model";
+import UserProfile from "../../module/User/models/user.model";
 import { sendNotFoundResponse } from "../../errors/custom.error";
 import { sendEmail } from "../../emails/email.sender";
 import { EMAIL_TEMPLATE_KEYS } from "../../module/emailTemplateSystem/emailTemplate.constant";

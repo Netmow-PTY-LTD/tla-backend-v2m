@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import UserProfile from '../User/user.model';
+import UserProfile from '../User/models/user.model';
 
 import PaymentMethod from './paymentMethod.model';
 import { stripe, getCurrentEnvironment } from '../../config/stripe.config';
@@ -11,13 +11,13 @@ import CreditPackage from './creditPackage.model';
 import Coupon from './coupon.model';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
-import { USER_PROFILE } from '../User/user.constant';
+import { USER_PROFILE } from '../User/constant/user.constant';
 import { sendEmail } from '../../emails/email.sender';
 import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 import config from '../../config';
 import { IUser } from '../Auth/auth.interface';
 import { USER_STATUS } from '../Auth/auth.constant';
-import { isVerifiedLawyer } from '../User/user.utils';
+import { isVerifiedLawyer } from '../User/utils/user.utils';
 import UserSubscription, { IUserSubscription } from './subscriptions.model';
 import SubscriptionPackage from '../SubscriptionPackage/subscriptionPack.model';
 import mongoose from 'mongoose';

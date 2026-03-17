@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
-import { profileCustomService } from './ProfileCustomService.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { profileCustomService } from '../services/ProfileCustomService.service';
 
 const deleteCustomService = catchAsync(async (req, res) => {
   const userId = req.user.userId;

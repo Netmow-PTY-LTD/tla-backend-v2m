@@ -1,18 +1,18 @@
-import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import { sendNotFoundResponse } from '../../errors/custom.error';
-import { AppError } from '../../errors/error';
-import { TUploadedFile } from '../../interface/file.interface';
-import { validateObjectId } from '../../utils/validateObjectId';
+import { deleteFromSpace, uploadToSpaces } from '../../../config/upload';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { AppError } from '../../../errors/error';
+import { TUploadedFile } from '../../../interface/file.interface';
+import { validateObjectId } from '../../../utils/validateObjectId';
 
-import { IAccreditation } from './profileAccreditation.interface';
+import { IAccreditation } from '../interfaces/profileAccreditation.interface';
 
-import Accreditation from './ProfileAccreditation';
-import UserProfile from './user.model';
-import { FOLDERS } from '../../constant';
+import Accreditation from '../models/ProfileAccreditation';
+import UserProfile from '../models/user.model';
+import { FOLDERS } from '../../../constant';
 import mongoose from 'mongoose';
-import { redisClient } from '../../config/redis.config';
-import { CacheKeys } from '../../config/cacheKeys';
+import { redisClient } from '../../../config/redis.config';
+import { CacheKeys } from '../../../config/cacheKeys';
 
 // const updateProfileAccreditationIntoDB = async (
 //   id: string,

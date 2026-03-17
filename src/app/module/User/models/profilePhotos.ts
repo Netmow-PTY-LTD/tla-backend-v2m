@@ -1,5 +1,5 @@
 import mongoose, { model } from 'mongoose';
-import { IProfilePhotos } from './profiePhotos.interface';
+import { IProfilePhotos } from '../interfaces/profiePhotos.interface';
 
 const profileServiceCustomSchema = new mongoose.Schema(
   {

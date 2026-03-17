@@ -1,17 +1,17 @@
-import { CacheKeys } from '../../config/cacheKeys';
-import { redisClient } from '../../config/redis.config';
-import { sendNotFoundResponse } from '../../errors/custom.error';
+import { CacheKeys } from '../../../config/cacheKeys';
+import { redisClient } from '../../../config/redis.config';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 
-import { IProfileSocialMedia } from './profileSocailMedia.interface';
+import { IProfileSocialMedia } from '../interfaces/profileSocailMedia.interface';
 
-import ProfileSocialMedia from './profileSocialMedia';
-import UserProfile from './user.model';
+import ProfileSocialMedia from '../models/profileSocialMedia';
+import UserProfile from '../models/user.model';
 
 const updateProfileSocialMediaIntoDB = async (
   userId: string,
   payload: Partial<IProfileSocialMedia>,
 ) => {
-  
+
   await redisClient.del(CacheKeys.USER_INFO(userId));
   const userProfile = await UserProfile.findOne({ user: userId });
 

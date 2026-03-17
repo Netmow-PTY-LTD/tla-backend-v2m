@@ -3,7 +3,7 @@ import { IFirmProfile } from './firm.interface';
 import { FirmProfile } from './firm.model';
 import FirmUser from '../FirmAuth/frimAuth.model';
 import { sendNotFoundResponse } from '../../errors/custom.error';
-import UserProfile from '../../module/User/user.model';
+import UserProfile from '../../module/User/models/user.model';
 import Transaction from '../../module/CreditPayment/transaction.model';
 import CreditTransaction from '../../module/CreditPayment/creditTransaction.model';
 import Lead from '../../module/Lead/lead.model';

@@ -1,21 +1,21 @@
 import mongoose from 'mongoose';
-import { uploadToSpaces } from '../../config/upload';
-import { sendNotFoundResponse } from '../../errors/custom.error';
+import { uploadToSpaces } from '../../../config/upload';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
 
-import { TUploadedFile } from '../../interface/file.interface';
-import ZipCode from '../Country/zipcode.model';
+import { TUploadedFile } from '../../../interface/file.interface';
+import ZipCode from '../../Country/zipcode.model';
 
-import { ICompanyProfile } from './companyProfile.interface';
-import CompanyProfile from './companyProfile.model';
-import UserProfile from './user.model';
-import { LawyerRequestAsMember } from '../../firmModule/lawyerRequest/lawyerRequest.model';
+import { ICompanyProfile } from '../interfaces/companyProfile.interface';
+import CompanyProfile from '../models/companyProfile.model';
+import UserProfile from '../models/user.model';
+import { LawyerRequestAsMember } from '../../../firmModule/lawyerRequest/lawyerRequest.model';
 import { Types } from 'mongoose';
-import { FOLDERS } from '../../constant';
-import FirmUser from '../../firmModule/FirmAuth/frimAuth.model';
-import { Firm_USER_ROLE } from '../../firmModule/FirmAuth/frimAuth.constant';
-import { sendEmail } from '../../emails/email.sender';
-import config from '../../config';
-import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
+import { FOLDERS } from '../../../constant';
+import FirmUser from '../../../firmModule/FirmAuth/frimAuth.model';
+import { Firm_USER_ROLE } from '../../../firmModule/FirmAuth/frimAuth.constant';
+import { sendEmail } from '../../../emails/email.sender';
+import config from '../../../config';
+import { EMAIL_TEMPLATE_KEYS } from '../../emailTemplateSystem/emailTemplate.constant';
 
 const updateCompanyProfileIntoDB = async (
   userId: string,

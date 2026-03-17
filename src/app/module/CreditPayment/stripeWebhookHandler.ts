@@ -6,7 +6,7 @@ import { Request, Response } from 'express';
 import { SubscriptionType } from '../CreditPayment/paymentMethod.service';
 import EliteProUserSubscription, { IEliteProUserSubscription } from '../CreditPayment/EliteProUserSubscription';
 import UserSubscription, { IUserSubscription } from '../CreditPayment/subscriptions.model';
-import UserProfile from '../User/user.model';
+import UserProfile from '../User/models/user.model';
 import mongoose from 'mongoose';
 import { CacheKeys } from '../../config/cacheKeys';
 import { deleteCache } from '../../utils/cacheManger';

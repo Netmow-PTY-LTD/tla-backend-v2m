@@ -1,10 +1,10 @@
 import { Types } from 'mongoose';
-import UserProfile from './user.model';
-import { sendNotFoundResponse } from '../../errors/custom.error';
-import ProfileQA from './ProfileQAS';
-import { PROFILE_QUESTIONS } from './profileQA.utils';
-import { redisClient } from '../../config/redis.config';
-import { CacheKeys } from '../../config/cacheKeys';
+import UserProfile from '../models/user.model';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import ProfileQA from '../models/ProfileQAS';
+import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
+import { redisClient } from '../../../config/redis.config';
+import { CacheKeys } from '../../../config/cacheKeys';
 
 interface QAInput {
   question: string;
@@ -16,7 +16,7 @@ const updateProfileQAIntoDB = async (
   profileQA: QAInput[],
 ) => {
 
- await redisClient.del(CacheKeys.USER_INFO(userId.toString()));
+  await redisClient.del(CacheKeys.USER_INFO(userId.toString()));
 
 
   const userProfile = await UserProfile.findOne({ user: userId });

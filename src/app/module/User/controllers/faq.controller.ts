@@ -1,8 +1,8 @@
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
 
-import { profileFaqService } from './profileFaq.service';
+import { profileFaqService } from '../services/profileFaq.service';
 
 const deleteFaq = catchAsync(async (req, res) => {
   // Extract the user ID from the request parameters

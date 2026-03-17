@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 
 import { UserLocationServiceMap } from './UserLocationServiceMap.model';
-import UserProfile from '../User/user.model';
+import UserProfile from '../User/models/user.model';
 import { IUserLocationServiceMap } from './userLocationServiceMap.interface';
 import { deleteCache, removeLeadListCacheByUser } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';

@@ -1,17 +1,17 @@
-import { CacheKeys } from '../../config/cacheKeys';
-import { redisClient } from '../../config/redis.config';
-import { sendNotFoundResponse } from '../../errors/custom.error';
-import { validateObjectId } from '../../utils/validateObjectId';
-import { IProfileCustomService } from './profileCustomService.interface';
-import ProfileCustomService from './profileServiceCoustom.model';
-import UserProfile from './user.model';
+import { CacheKeys } from '../../../config/cacheKeys';
+import { redisClient } from '../../../config/redis.config';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { validateObjectId } from '../../../utils/validateObjectId';
+import { IProfileCustomService } from '../interfaces/profileCustomService.interface';
+import ProfileCustomService from '../models/profileServiceCoustom.model';
+import UserProfile from '../models/user.model';
 
 const updateProfileCustomServiceIntoDB = async (
   userId: string,
   payload: Partial<IProfileCustomService> & { _id?: string },
 ) => {
 
- await redisClient.del(CacheKeys.USER_INFO(userId));
+  await redisClient.del(CacheKeys.USER_INFO(userId));
   // Find the user's profile by user ID
   const userProfile = await UserProfile.findOne({ user: userId });
 
@@ -49,7 +49,7 @@ const deleteCustomServiceIntoDB = async (userId: string, id: string) => {
   validateObjectId(id, 'Custom Service ');
 
 
-await redisClient.del(CacheKeys.USER_INFO(userId));
+  await redisClient.del(CacheKeys.USER_INFO(userId));
 
   const customServiceDelete = await ProfileCustomService.findByIdAndDelete(id);
 

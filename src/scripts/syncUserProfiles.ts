@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import User from "../app/module/Auth/auth.model";
-import UserProfile from "../app/module/User/user.model";
+import UserProfile from "../app/module/User/models/user.model";
 import config from "../app/config";
 
 // Replace with your MongoDB URI if running standalone

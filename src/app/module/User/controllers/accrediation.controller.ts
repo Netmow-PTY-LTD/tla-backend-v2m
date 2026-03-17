@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
-import { accreditationService } from './profileAccreditation.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { accreditationService } from '../services/profileAccreditation.service';
 
 const deleteProfileAccreditation = catchAsync(async (req, res) => {
   // Extract the user ID from the request parameters

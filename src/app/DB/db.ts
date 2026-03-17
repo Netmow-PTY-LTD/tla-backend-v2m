@@ -1,9 +1,9 @@
-import { UserProfile } from '../module/User/user.model';
+import { UserProfile } from '../module/User/models/user.model';
 import { User } from '../module/Auth/auth.model';
 import { USER_ROLE } from '../constant';
 import config from '../config';
 import { USER_STATUS } from '../module/Auth/auth.constant';
-import { USER_PROFILE } from '../module/User/user.constant';
+import { USER_PROFILE } from '../module/User/constant/user.constant';
 
 const seedAdminUser = async () => {
     const isAdminExists = await User.findOne({ role: USER_ROLE.ADMIN });

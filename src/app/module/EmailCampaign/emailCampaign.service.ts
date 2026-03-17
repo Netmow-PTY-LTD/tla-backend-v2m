@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
 import EmailCampaign, { IEmailCampaign } from './emailCampaign.model';
-import UserProfile from '../User/user.model';
+import UserProfile from '../User/models/user.model';
 import { sendEmail } from '../../emails/email.sender';
 import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';

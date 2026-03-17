@@ -1,29 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import { AppError } from '../../errors/error';
-import User from '../Auth/auth.model';
-import { IUserProfile } from './user.interface';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import { AppError } from '../../../errors/error';
+import User from '../../Auth/auth.model';
+import { IUserProfile } from '../interfaces/user.interface';
 
-import { deleteFromSpace, uploadToSpaces } from '../../config/upload';
-import { TUploadedFile } from '../../interface/file.interface';
-import UserProfile from './user.model';
-import CompanyProfile from './companyProfile.model';
-import ProfilePhotos from './profilePhotos';
-import profileSocialMedia from './profileSocialMedia';
-import { sendNotFoundResponse } from '../../errors/custom.error';
-import Accreditation from './ProfileAccreditation';
-import ProfileCustomService from './profileServiceCoustom.model';
-import ProfileQA from './ProfileQAS';
-import { PROFILE_QUESTIONS } from './profileQA.utils';
+import { deleteFromSpace, uploadToSpaces } from '../../../config/upload';
+import { TUploadedFile } from '../../../interface/file.interface';
+import UserProfile from '../models/user.model';
+import CompanyProfile from '../models/companyProfile.model';
+import ProfilePhotos from '../models/profilePhotos';
+import profileSocialMedia from '../models/profileSocialMedia';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import Accreditation from '../models/ProfileAccreditation';
+import ProfileCustomService from '../models/profileServiceCoustom.model';
+import ProfileQA from '../models/ProfileQAS';
+import { PROFILE_QUESTIONS } from '../utils/profileQA.utils';
 import mongoose, { Document } from 'mongoose';
-import Experience from './experience.model';
-import Faq from './faq.model';
-import Agreement from './agreement.model';
-import { FOLDERS } from '../../constant';
-import { redisClient } from '../../config/redis.config';
+import Experience from '../models/experience.model';
+import Faq from '../models/faq.model';
+import Agreement from '../models/agreement.model';
+import { FOLDERS } from '../../../constant';
+import { redisClient } from '../../../config/redis.config';
 
-import { CacheKeys, TTL } from '../../config/cacheKeys';
+import { CacheKeys, TTL } from '../../../config/cacheKeys';
 
 
 /**
@@ -98,9 +98,9 @@ const getAllUserIntoDB = async (query: Record<string, any>) => {
               email: 1,
               role: 1,
               name: 1,
-              regUserType:1,
-              isVerifiedAccount:1,
-              accountStatus:1,
+              regUserType: 1,
+              isVerifiedAccount: 1,
+              accountStatus: 1,
             },
           },
         ],

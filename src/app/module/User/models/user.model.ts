@@ -1,6 +1,6 @@
 import mongoose, { Schema, model } from 'mongoose';
-import { USER_PROFILE } from './user.constant';
-import { IUserProfile } from './user.interface';
+import { USER_PROFILE } from '../constant/user.constant';
+import { IUserProfile } from '../interfaces/user.interface';
 import slugify from 'slugify';
 
 // Define the schema for the user profile

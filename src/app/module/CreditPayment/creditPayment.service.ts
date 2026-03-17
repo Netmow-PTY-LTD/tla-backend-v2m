@@ -2,8 +2,8 @@
 import { getCurrentEnvironment, stripe } from '../../config/stripe.config';
 import { sendNotFoundResponse } from '../../errors/custom.error';
 
-import { IBillingAddress } from '../User/user.interface';
-import UserProfile from '../User/user.model';
+import { IBillingAddress } from '../User/interfaces/user.interface';
+import UserProfile from '../User/models/user.model';
 import { ICreditPackage } from './creditPackage.interface';
 import Coupon from './coupon.model';
 import CreditPackage from './creditPackage.model';

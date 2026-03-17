@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import CreditPackage from '../app/module/CreditPayment/creditPackage.model';
-import UserProfile from '../app/module/User/user.model';
+import UserProfile from '../app/module/User/models/user.model';
 import Transaction from '../app/module/CreditPayment/transaction.model';
 import User from '../app/module/Auth/auth.model'; // User schema
 import { deleteCache } from '../app/utils/cacheManger';

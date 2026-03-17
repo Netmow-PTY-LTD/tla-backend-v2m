@@ -1,9 +1,9 @@
-import { CacheKeys } from '../../config/cacheKeys';
-import { redisClient } from '../../config/redis.config';
-import { sendNotFoundResponse } from '../../errors/custom.error';
-import { validateObjectId } from '../../utils/validateObjectId';
-import Faq, { IFaq } from './faq.model';
-import UserProfile from './user.model';
+import { CacheKeys } from '../../../config/cacheKeys';
+import { redisClient } from '../../../config/redis.config';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { validateObjectId } from '../../../utils/validateObjectId';
+import Faq, { IFaq } from '../models/faq.model';
+import UserProfile from '../models/user.model';
 
 const updateProfileFaqIntoDB = async (
   userId: string,
