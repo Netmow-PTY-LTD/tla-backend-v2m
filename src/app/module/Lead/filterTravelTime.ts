@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 import { ZipCode } from '../Country/models';

@@ -1,9 +1,5 @@
-import mongoose, { Document, Schema, Model, model } from 'mongoose';
-
-export interface IAgreement extends Document {
-  userProfileId: mongoose.Types.ObjectId;
-  agreement?: string;
-}
+import { Schema, Model, model } from 'mongoose';
+import { IAgreement } from '../interfaces';
 
 const agreementSchema = new Schema<IAgreement>({
   userProfileId: {

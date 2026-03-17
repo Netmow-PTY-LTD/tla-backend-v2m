@@ -93,7 +93,7 @@ countriesSchema.statics.isCountryExists = async function (id: string) {
   return await Country.findById(id);
 };
 
-const Country = mongoose.model<ICountry, CountryModel>(
+export const Country = mongoose.model<ICountry, CountryModel>(
   'Country',
   countriesSchema,
 );

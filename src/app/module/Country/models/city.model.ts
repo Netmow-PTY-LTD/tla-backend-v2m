@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Schema } from "mongoose";
 import { ICity } from '../interfaces';
-import ZipCode from './zipcode.model';
+import { ZipCode } from './zipcode.model';
 
 // const CitySchema = new Schema<ICity>(
 //   {

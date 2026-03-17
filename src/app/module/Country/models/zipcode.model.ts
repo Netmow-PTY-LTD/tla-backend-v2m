@@ -124,7 +124,7 @@ zipCodeSchema.index({ location: '2dsphere' });
 
 
 
-const ZipCode = mongoose.model<IZipCode, ZipCodeModel>(
+export const ZipCode = mongoose.model<IZipCode, ZipCodeModel>(
   'ZipCode',
   zipCodeSchema,
 );

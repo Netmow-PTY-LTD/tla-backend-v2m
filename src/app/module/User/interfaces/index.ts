@@ -7,3 +7,5 @@ export * from './profile-custom-service.interface';
 export * from './profile-qa.interface';
 export * from './experience.interface';
 export * from './lawyer-service-map.interface';
+export * from './agreement.interface';
+export * from './faq.interface';

@@ -1,12 +1,5 @@
-import mongoose, { Schema } from 'mongoose';
-
-export interface IFaq {
-  userProfileId: mongoose.Types.ObjectId;
-  question: string;
-  answer: string;
-  isActive: boolean;
-  
-}
+import { Schema, model } from 'mongoose';
+import { IFaq } from '../interfaces';
 
 const faqSchema = new Schema<IFaq>(
   {
@@ -33,5 +26,5 @@ const faqSchema = new Schema<IFaq>(
   },
 );
 
-export const Faq = mongoose.model<IFaq>('Faq', faqSchema);
+export const Faq = model<IFaq>('Faq', faqSchema);
 export default Faq;
