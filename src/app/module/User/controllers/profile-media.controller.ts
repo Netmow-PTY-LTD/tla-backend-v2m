@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import { ProfilePhotosService } from '../services/profile-photos.service';
+import { ProfilePhotosService } from '../services';
 
 const removeProfileMedia = catchAsync(async (req: Request, res: Response) => {
   const { type, url } = req.body;

@@ -1,9 +1,8 @@
 import { CacheKeys } from '../../../config/cacheKeys';
 import { redisClient } from '../../../config/redis.config';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
-import { IExperience } from '../interfaces/experience.interface';
-import Experience from '../models/experience.model';
-import UserProfile from '../models/user.model';
+import { IExperience } from '../interfaces';
+import { Experience, UserProfile } from '../models';
 
 const updateProfileExperienceIntoDB = async (
   userId: string,

@@ -33,5 +33,5 @@ const faqSchema = new Schema<IFaq>(
   },
 );
 
-const Faq = mongoose.model<IFaq>('Faq', faqSchema);
+export const Faq = mongoose.model<IFaq>('Faq', faqSchema);
 export default Faq;

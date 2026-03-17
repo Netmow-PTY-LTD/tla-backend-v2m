@@ -15,6 +15,6 @@ const agreementSchema = new Schema<IAgreement>({
  
 });
 
-const Agreement: Model<IAgreement> = model<IAgreement>('Agreement', agreementSchema);
+export const Agreement: Model<IAgreement> = model<IAgreement>('Agreement', agreementSchema);
 
 export default Agreement;

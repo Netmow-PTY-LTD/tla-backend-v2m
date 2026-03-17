@@ -33,4 +33,5 @@ const reviewInviteSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model('ReviewInvite', reviewInviteSchema);
+export const ReviewInvite = mongoose.model('ReviewInvite', reviewInviteSchema);
+export default ReviewInvite;

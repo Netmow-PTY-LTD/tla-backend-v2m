@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
-import { profileCustomService } from '../services/profile-custom-service.service';
+import { profileCustomService } from '../services';
 
 const deleteCustomService = catchAsync(async (req, res) => {
   const userId = req.user.userId;

@@ -1,4 +1,4 @@
-import { UserProfile } from '../module/User/models/user.model';
+import { UserProfile } from '../module/User/models';
 import { User } from '../module/Auth/auth.model';
 import { USER_ROLE } from '../constant';
 import config from '../config';

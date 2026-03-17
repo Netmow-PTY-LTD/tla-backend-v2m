@@ -24,5 +24,5 @@ const profileQASchema = new mongoose.Schema(
   },
 );
 
-const ProfileQA = mongoose.model('ProfileQA', profileQASchema);
+export const ProfileQA = mongoose.model('ProfileQA', profileQASchema);
 export default ProfileQA;

@@ -2,10 +2,8 @@ import { CacheKeys } from '../../../config/cacheKeys';
 import { redisClient } from '../../../config/redis.config';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
-import { IProfileSocialMedia } from '../interfaces/profile-social-media.interface';
-
-import ProfileSocialMedia from '../models/profile-social-media.model';
-import UserProfile from '../models/user.model';
+import { IProfileSocialMedia } from '../interfaces';
+import { ProfileSocialMedia, UserProfile } from '../models';
 
 const updateProfileSocialMediaIntoDB = async (
   userId: string,

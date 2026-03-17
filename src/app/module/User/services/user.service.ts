@@ -3,23 +3,22 @@
 import { HTTP_STATUS } from '../../../constant/httpStatus';
 import { AppError } from '../../../errors/error';
 import User from '../../Auth/auth.model';
-import { IUserProfile } from '../interfaces/user.interface';
+import { IUserProfile } from '../interfaces';
 
 import { deleteFromSpace, uploadToSpaces } from '../../../config/upload';
 import { TUploadedFile } from '../../../interface/file.interface';
-import UserProfile from '../models/user.model';
-import CompanyProfile from '../models/company-profile.model';
-import ProfilePhotos from '../models/profile-photos.model';
-import profileSocialMedia from '../models/profile-social-media.model';
-import { sendNotFoundResponse } from '../../../errors/custom.error';
-import Accreditation from '../models/profile-accreditation.model';
-import ProfileCustomService from '../models/profile-custom-service.model';
-import ProfileQA from '../models/profile-qa.model';
-import { PROFILE_QUESTIONS } from '../utils/profile-qa.utils';
-import mongoose, { Document } from 'mongoose';
-import Experience from '../models/experience.model';
-import Faq from '../models/faq.model';
-import Agreement from '../models/agreement.model';
+import {
+  UserProfile,
+  CompanyProfile,
+  ProfilePhotos,
+  ProfileSocialMedia,
+  Accreditation,
+  ProfileCustomService,
+  ProfileQA,
+  Experience,
+  Faq,
+  Agreement,
+} from '../models';
 import { FOLDERS } from '../../../constant';
 import { redisClient } from '../../../config/redis.config';
 
@@ -383,7 +382,7 @@ const getSingleUserProfileDataIntoDB = async (userId: string) => {
     CompanyProfile.findOne({ userProfileId }).select('+_id'),
     Accreditation.find({ userProfileId }).select('+_id'),
     ProfilePhotos.findOne({ userProfileId }).select('+_id'),
-    profileSocialMedia.findOne({ userProfileId }).select('+_id'),
+    ProfileSocialMedia.findOne({ userProfileId }).select('+_id'),
     ProfileCustomService.find({ userProfileId }).select('+_id'),
     ProfileQA.find({ userProfileId }),
     Experience.findOne({ userProfileId }).select('+_id'),
@@ -527,7 +526,7 @@ const getCurrentUserProfileInfoIntoDB = async (userId: string) => {
     CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
     Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
     ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
-    profileSocialMedia
+    ProfileSocialMedia
       .findOne({ userProfileId: userProfileId })
       .select('+_id '),
     ProfileCustomService.find({ userProfileId: userProfileId }).select('+_id '),
@@ -665,7 +664,7 @@ export const getCurrentUserProfileInfoFromCache = async (userId: string) => {
     CompanyProfile.findOne({ userProfileId: userProfileId }).select('+_id '),
     Accreditation.find({ userProfileId: userProfileId }).select('+_id '),
     ProfilePhotos.findOne({ userProfileId: userProfileId }).select('+_id '),
-    profileSocialMedia
+    ProfileSocialMedia
       .findOne({ userProfileId: userProfileId })
       .select('+_id '),
     ProfileCustomService.find({ userProfileId: userProfileId }).select('+_id '),

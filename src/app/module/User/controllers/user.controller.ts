@@ -1,18 +1,19 @@
 import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
 import { HTTP_STATUS } from '../../../constant/httpStatus';
-import { UserProfileService } from '../services/user.service';
-import { TUploadedFile } from '../../../interface/file.interface';
-import { CompanyProfileService } from '../services/company-profile.service';
-import { ProfilePhotosService } from '../services/profile-photos.service';
-import { accreditationService } from '../services/profile-accreditation.service';
-import { profileSocialMediaService } from '../services/profile-social-media.service';
-import { profileCustomService } from '../services/profile-custom-service.service';
-import { profileQAService } from '../services/profile-qa.service';
-import { profileExperienceService } from '../services/profile-experience.service';
-import { profileFaqService } from '../services/profile-faq.service';
+import {
+  UserProfileService,
+  CompanyProfileService,
+  ProfilePhotosService,
+  accreditationService,
+  profileSocialMediaService,
+  profileCustomService,
+  profileQAService,
+  profileExperienceService,
+  profileFaqService,
+  agreementService,
+} from '../services';
 import { startQueryTimer } from '../../../utils/queryTimer';
-import { agreementService } from '../services/agreement.service';
 import { redisClient } from '../../../config/redis.config';
 import { CacheKeys } from '../../../config/cacheKeys';
 

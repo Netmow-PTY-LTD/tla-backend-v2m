@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from "mongoose";
 import { sendNotFoundResponse } from "../../errors/custom.error";
-import UserProfile from "../../module/User/models/user.model";
+import { UserProfile } from "../../module/User/models";
 import { FirmProfile } from "../Firm/firm.model";
 import FirmUser from "../FirmAuth/frimAuth.model";
 import { LawyerRequestAsMember, ILawyerRequestAsMember } from "./lawyerRequest.model";

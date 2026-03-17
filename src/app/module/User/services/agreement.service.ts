@@ -5,8 +5,7 @@ import { FOLDERS } from "../../../constant";
 import { sendNotFoundResponse } from "../../../errors/custom.error";
 import { TUploadedFile } from "../../../interface/file.interface";
 import { validateObjectId } from "../../../utils/validateObjectId";
-import Agreement, { IAgreement } from "../models/agreement.model";
-import UserProfile from "../models/user.model";
+import { Agreement, IAgreement, UserProfile } from "../models";
 
 
 // const updateProfileAgreementIntoDB = async (

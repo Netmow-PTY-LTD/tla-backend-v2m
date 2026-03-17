@@ -6,10 +6,9 @@ import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
 import { validateObjectId } from '../../../utils/validateObjectId';
 
-import { IAccreditation } from '../interfaces/profile-accreditation.interface';
+import { IAccreditation } from '../interfaces';
 
-import Accreditation from '../models/profile-accreditation.model';
-import UserProfile from '../models/user.model';
+import { Accreditation, UserProfile } from '../models';
 import { FOLDERS } from '../../../constant';
 import mongoose from 'mongoose';
 import { redisClient } from '../../../config/redis.config';

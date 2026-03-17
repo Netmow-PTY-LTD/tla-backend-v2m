@@ -1,7 +1,6 @@
 import { Types } from 'mongoose';
-import UserProfile from '../models/user.model';
+import { UserProfile, ProfileQA } from '../models';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
-import ProfileQA from '../models/profile-qa.model';
 import { PROFILE_QUESTIONS } from '../utils/profile-qa.utils';
 import { redisClient } from '../../../config/redis.config';
 import { CacheKeys } from '../../../config/cacheKeys';

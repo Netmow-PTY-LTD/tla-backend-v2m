@@ -5,9 +5,8 @@ import { sendNotFoundResponse } from '../../../errors/custom.error';
 import { TUploadedFile } from '../../../interface/file.interface';
 import { ZipCode } from '../../Country/models';
 
-import { ICompanyProfile } from '../interfaces/company-profile.interface';
-import CompanyProfile from '../models/company-profile.model';
-import UserProfile from '../models/user.model';
+import { ICompanyProfile } from '../interfaces';
+import { CompanyProfile, UserProfile } from '../models';
 import { LawyerRequestAsMember } from '../../../firmModule/lawyerRequest/lawyerRequest.model';
 import { Types } from 'mongoose';
 import { FOLDERS } from '../../../constant';

@@ -9,8 +9,7 @@ import { AppError } from '../../../errors/error';
 import { TUploadedFile } from '../../../interface/file.interface';
 
 
-import ProfilePhotos from '../models/profile-photos.model';
-import UserProfile from '../models/user.model';
+import { ProfilePhotos, UserProfile } from '../models';
 import { redisClient } from '../../../config/redis.config';
 import { CacheKeys } from '../../../config/cacheKeys';
 

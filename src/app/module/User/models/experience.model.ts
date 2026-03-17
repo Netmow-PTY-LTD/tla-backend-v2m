@@ -29,6 +29,6 @@ const experienceSchema = new Schema(
     versionKey: false,
   },
 );
-const Experience = mongoose.model<IExperience>('Experience', experienceSchema);
+export const Experience = mongoose.model<IExperience>('Experience', experienceSchema);
 export default Experience;
 

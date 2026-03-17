@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { userProfileController } from './controllers/user.controller';
-// import { authZodValidation } from '../validations/user.validation';
-// import validateRequest from '../../../middlewares/validateRequest';
+import {
+  userProfileController,
+  customServiceController,
+  accreditationController,
+  faqController,
+  profileMediaController,
+} from './controllers';
 import auth from '../../middlewares/auth';
 import { USER_ROLE } from '../../constant';
 import { upload } from '../../config/upload';
-import { customServiceController } from './controllers/custom-service.controller';
-import { accreditationController } from './controllers/accreditation.controller';
-import { faqController } from './controllers/faq.controller';
-import { profileMediaController } from './controllers/profile-media.controller';
 const router = Router();
 
 router.get(
