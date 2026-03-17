@@ -23,6 +23,9 @@ import { FOLDERS } from '../../../constant';
 import { redisClient } from '../../../config/redis.config';
 
 import { CacheKeys, TTL } from '../../../config/cacheKeys';
+import mongoose from 'mongoose';
+import { sendNotFoundResponse } from '../../../errors/custom.error';
+import { PROFILE_QUESTIONS } from '../utils';
 
 
 /**
