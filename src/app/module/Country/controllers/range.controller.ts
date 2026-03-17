@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from '../../constant/httpStatus';
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
-import { rangeService } from './range.service';
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { rangeService } from '../services/range.service';
 
 const createRange = catchAsync(async (req, res) => {
   const rangeData = req.body;
@@ -106,3 +106,7 @@ export const rangeController = {
   updateSingleRange,
   getAllRange,
 };
+
+
+
+

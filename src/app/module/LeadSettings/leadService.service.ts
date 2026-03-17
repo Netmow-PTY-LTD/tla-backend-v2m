@@ -13,7 +13,7 @@ import ServiceWiseQuestion from '../Question/question.model';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 
 import Option from '../Option/option.model';
-import ZipCode from '../Country/zipcode.model';
+import { ZipCode } from '../Country/models';
 import { IUserLocationServiceMap } from '../UserLocationServiceMap/userLocationServiceMap.interface';
 import { redisClient } from '../../config/redis.config';
 import { CacheKeys, TTL } from '../../config/cacheKeys';
@@ -591,3 +591,4 @@ export const LeadServiceService = {
   deleteLeadService,
   updateLeadServiceAnswersIntoDB,
 };
+

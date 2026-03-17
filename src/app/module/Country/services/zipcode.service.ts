@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { validateObjectId } from '../../utils/validateObjectId';
-import { IZipCode } from './zipcode.interface';
-import ZipCode from './zipcode.model';
+import { validateObjectId } from '../../../utils/validateObjectId';
+import { IZipCode } from '../interfaces/zipcode.interface';
+import { ZipCode } from '../models';
 
 const CreateZipCodeIntoDB = async (payload: IZipCode) => {
   const zipCode = await ZipCode.create(payload);
@@ -199,3 +200,7 @@ export const zipCodeService = {
   updateZipCodeIntoDB,
   deleteZipCodeFromDB,
 };
+
+
+
+

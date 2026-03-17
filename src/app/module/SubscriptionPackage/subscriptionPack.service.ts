@@ -2,7 +2,7 @@
 import { stripe, stripeTest, stripeLive, getCurrentEnvironment } from "../../config/stripe.config";
 import QueryBuilder from "../../builder/QueryBuilder";
 import SubscriptionPackage, { ISubscription } from "./subscriptionPack.model";
-import Country from "../Country/country.model";
+import { Country } from "../Country/models";
 
 
 
@@ -568,3 +568,4 @@ export const subscriptionPackageService = {
   updateSubscriptionIntoDB,
   deleteSubscriptionFromDB,
 };
+

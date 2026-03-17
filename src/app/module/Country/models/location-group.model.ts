@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ICountryWiseLocationGroup } from './country.interface';
+import { ICountryWiseLocationGroup } from '../interfaces/country.interface';
 
 const countryWiseLocationGroupSchema = new Schema<ICountryWiseLocationGroup>(
   {
@@ -26,3 +26,7 @@ export const LocationGroup = mongoose.model<ICountryWiseLocationGroup>(
   'LocationGroup',
   countryWiseLocationGroupSchema,
 );
+
+
+
+

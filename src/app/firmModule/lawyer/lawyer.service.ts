@@ -3,7 +3,6 @@ import mongoose, { Types } from "mongoose";
 import { AppError } from "../../errors/error";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import User from "../../module/Auth/auth.model";
-import ZipCode from "../../module/Country/zipcode.model";
 import UserProfile from "../../module/User/models/user.model";
 import { REGISTER_USER_TYPE, USER_STATUS } from "../../module/Auth/auth.constant";
 import { LawyerServiceMap } from "../../module/User/models/lawyer-service-map.model";
@@ -19,6 +18,7 @@ import config from "../../config";
 import { Firm_USER_ROLE } from "../FirmAuth/frimAuth.constant";
 import { SsoToken } from "../FirmAuth/SsoToken.model";
 import Service from "../../module/Service/service.model";
+import { ZipCode } from "../../module/Country/models";
 
 
 const addLawyer = async (userId: string, payload: any) => {
@@ -333,4 +333,5 @@ export const firmLawyerService = {
     lawyerRemoveFromFirm
 
 };
+
 

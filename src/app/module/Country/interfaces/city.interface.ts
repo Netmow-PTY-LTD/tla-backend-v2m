@@ -25,3 +25,7 @@ export interface ICity {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+
+
+

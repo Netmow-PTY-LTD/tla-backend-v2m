@@ -1,7 +1,7 @@
 import axios from "axios";
 import config from "../../config";
 import mongoose from "mongoose";
-import ZipCode from "../Country/zipcode.model";
+import { ZipCode } from "../Country/models";
 
 
 
@@ -88,7 +88,7 @@ export async function getZipsByCountry(countryId: string): Promise<CachedZip[]> 
   const cacheExpired = !zipCacheTimestamps[countryId] || now - zipCacheTimestamps[countryId] > ZIP_CACHE_TTL;
 
   if (!zipCache[countryId] || cacheExpired) {
- 
+
     const zips = await ZipCode.find({ countryId }).select('location');
     zipCache[countryId] = zips
       .filter(z => z.location && Array.isArray(z.location.coordinates))
@@ -98,7 +98,7 @@ export async function getZipsByCountry(countryId: string): Promise<CachedZip[]> 
       }));
     zipCacheTimestamps[countryId] = now;
   } else {
-   
+
   }
 
   return zipCache[countryId];
@@ -189,3 +189,4 @@ export const getBatchTravelInfo = async (
 
   return results;
 };
+

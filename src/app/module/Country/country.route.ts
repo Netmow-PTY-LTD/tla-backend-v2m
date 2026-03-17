@@ -1,14 +1,9 @@
 import { Router } from 'express';
 import validateRequest from '../../middlewares/validateRequest';
-import { countryZodValidation } from './country.validation';
-import { countryController } from './country.controller';
+import { countryZodValidation, rangeZodValidation, zipcodeZodValidation } from './validations';
+import { cityController, countryController, rangeController, zipCodeController } from './controllers';
 import auth from '../../middlewares/auth';
 import { USER_ROLE } from '../../constant';
-import { zipcodeZodValidation } from './zipcode.validation';
-import { zipCodeController } from './zipcode.controller';
-import { rangeZodValidation } from './range.validation';
-import { rangeController } from './range.controller';
-import { cityController } from './city.controller';
 
 const router = Router();
 

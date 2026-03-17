@@ -12,7 +12,7 @@ import PaymentMethod from './paymentMethod.model';
 import { SubscriptionType } from './paymentMethod.service';
 import { deleteCache } from '../../utils/cacheManger';
 import { CacheKeys } from '../../config/cacheKeys';
-import Country from '../Country/country.model';
+import { Country } from '../Country/models';
 
 
 const createCreditPackagesIntoDB = async (payload: ICreditPackage) => {
@@ -395,3 +395,4 @@ export const CreditPaymentService = {
   getAllTransactionHistory,
   findNextCreditOffer,
 };
+

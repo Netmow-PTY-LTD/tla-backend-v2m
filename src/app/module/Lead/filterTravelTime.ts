@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
-import ZipCode from '../Country/zipcode.model';
+import { ZipCode } from '../Country/models';
 
 const MODE_SPEED: Record<string, number> = {
   driving: 40, // km/h
@@ -80,3 +80,4 @@ export const findLeadsWithinTravelTime = async (
 
   return { condition: null, nearbyZipIds: [] };
 };
+

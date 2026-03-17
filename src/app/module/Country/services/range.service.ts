@@ -1,6 +1,6 @@
-import { validateObjectId } from '../../utils/validateObjectId';
-import { IRange } from './range.interface';
-import { Range } from './range.model';
+import { validateObjectId } from '../../../utils/validateObjectId';
+import { IRange } from '../interfaces/range.interface';
+import { Range } from '../models';
 
 const CreateRangeIntoDB = async (payload: IRange) => {
   const zipCode = await Range.create(payload);
@@ -60,3 +60,7 @@ export const rangeService = {
   updateRangeIntoDB,
   deleteRangeFromDB,
 };
+
+
+
+

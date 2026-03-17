@@ -4,7 +4,8 @@
 import { stripe, stripeTest, stripeLive, getCurrentEnvironment } from "../../config/stripe.config";
 import QueryBuilder from "../../builder/QueryBuilder";
 import EliteProPackageModel, { IEliteProPackage } from "./EliteProSubs.model";
-import Country from "../Country/country.model";
+import { Country } from "../Country/models";
+
 
 
 
@@ -556,3 +557,4 @@ export const eliteProSubscriptionService = {
   updateEliteProSubscriptionIntoDB,
   deleteEliteProSubscriptionFromDB,
 };
+

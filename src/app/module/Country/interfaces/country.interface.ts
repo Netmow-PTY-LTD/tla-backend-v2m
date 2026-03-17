@@ -22,3 +22,7 @@ export interface CountryModel extends Model<ICountry> {
   // eslint-disable-next-line no-unused-vars
   isCountryExists(id: string): Promise<ICountry>;
 }
+
+
+
+

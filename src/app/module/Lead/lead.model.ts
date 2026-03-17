@@ -162,7 +162,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { ILead } from './lead.interface';
 import { PRIORITY_OPTIONS } from './lead.constant';
-import ZipCode from '../Country/zipcode.model';
+import { ZipCode } from '../Country/models';
 
 const leadSchema = new Schema<ILead>(
   {
@@ -421,6 +421,7 @@ leadSchema.pre('findOneAndUpdate', async function (next) {
 const Lead = mongoose.model<ILead>('Lead', leadSchema);
 
 export default Lead;
+
 
 
 

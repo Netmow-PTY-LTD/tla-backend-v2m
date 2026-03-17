@@ -1,5 +1,7 @@
-import { validateObjectId } from "../../utils/validateObjectId";
-import { City } from "./city.model";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { validateObjectId } from '../../../utils/validateObjectId';
+import { City } from '../models';
 
 
 
@@ -94,3 +96,6 @@ export const cityService = {
     getAllCityFromDB,
     createCityInDB,
 }
+
+
+

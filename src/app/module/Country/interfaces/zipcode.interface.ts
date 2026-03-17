@@ -21,3 +21,7 @@ export interface ZipCodeModel extends Model<IZipCode> {
   // eslint-disable-next-line no-unused-vars
   isZipCodeExists(id: string): Promise<IZipCode>;
 }
+
+
+
+

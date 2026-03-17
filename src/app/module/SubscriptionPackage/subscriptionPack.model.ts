@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
-import { ICountry } from "../Country/country.interface";
+import { ICountry } from "../Country/interfaces";
 
 export type BillingCycle = "monthly" | "yearly" | "weekly" | "one_time";
 
@@ -190,3 +190,4 @@ const SubscriptionPackage = mongoose.model<ISubscription, SubscriptionModel>(
 );
 
 export default SubscriptionPackage;
+

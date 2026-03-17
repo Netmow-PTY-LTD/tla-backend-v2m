@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { City } from "../app/module/Country/city.model";
+import { City } from "../app/module/Country/models";
 import { citiesData } from "./data/citiesData";
 
 

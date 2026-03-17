@@ -1,5 +1,5 @@
 import { Schema, Document, Types } from "mongoose";
-import { IZipCode } from "../../module/Country/zipcode.interface";
+import { IZipCode } from "../../module/Country/interfaces";
 
 
 export interface IFirmLocation extends Document {
@@ -21,3 +21,4 @@ export interface FirmLocationResponse {
   createdAt: string;
   updatedAt: string;
 }
+

@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import CountryWiseMap from '../CountryWiseMap/countryWiseMap.model';
-import { ICountry } from './country.interface';
-import Country from './country.model';
-import { validateObjectId } from '../../utils/validateObjectId';
-import { redisClient } from '../../config/redis.config';
-import { CacheKeys, TTL } from '../../config/cacheKeys';
+import CountryWiseMap from '../../CountryWiseMap/countryWiseMap.model';
+import { ICountry } from '../interfaces/country.interface';
+import { Country } from '../models';
+import { validateObjectId } from '../../../utils/validateObjectId';
+import { redisClient } from '../../../config/redis.config';
+import { CacheKeys, TTL } from '../../../config/cacheKeys';
 
 
 
@@ -114,3 +114,7 @@ export const countryService = {
   updateCountryIntoDB,
   deleteCountryFromDB,
 };
+
+
+
+

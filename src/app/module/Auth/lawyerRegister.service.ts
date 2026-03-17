@@ -4,7 +4,7 @@ import { AppError } from '../../errors/error';
 import { HTTP_STATUS } from '../../constant/httpStatus';
 import User from './auth.model';
 import { LawyerServiceMap } from '../User/models/lawyer-service-map.model';
-import ZipCode from '../Country/zipcode.model';
+import { ZipCode } from '../Country/models';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { createToken } from './auth.utils';
 import config from '../../config';
@@ -810,4 +810,5 @@ export const lawyerRegisterService = {
   verifyLawyerRegistrationEmail,
   commitLawyerRegistration
 };
+
 

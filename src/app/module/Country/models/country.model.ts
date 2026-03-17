@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { CountryModel, ICountry } from './country.interface';
+import { CountryModel, ICountry } from '../interfaces/country.interface';
 import { Schema } from 'mongoose';
 
 const countriesSchema = new mongoose.Schema(
@@ -99,3 +99,7 @@ const Country = mongoose.model<ICountry, CountryModel>(
 );
 
 export default Country;
+
+
+
+

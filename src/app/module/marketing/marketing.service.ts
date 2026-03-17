@@ -3,7 +3,7 @@ import mongoose, { Types } from "mongoose";
 import User from "../Auth/auth.model";
 import { AppError } from "../../errors/error";
 import { HTTP_STATUS } from "../../constant/httpStatus";
-import ZipCode from "../Country/zipcode.model";
+import { ZipCode } from "../Country/models";
 import UserProfile from "../User/models/user.model";
 import { LawyerRequestAsMember } from "../../firmModule/lawyerRequest/lawyerRequest.model";
 import { REGISTER_USER_TYPE, USER_STATUS } from "../Auth/auth.constant";
@@ -472,4 +472,5 @@ export const marketingService = {
   getLawyerFromDB,
   deleteLawyerFromDB
 };
+
 

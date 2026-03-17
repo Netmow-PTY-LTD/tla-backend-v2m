@@ -1,7 +1,8 @@
-import { HTTP_STATUS } from "../../constant/httpStatus";
-import catchAsync from "../../utils/catchAsync";
-import sendResponse from "../../utils/sendResponse";
-import { cityService } from "./city.service";
+
+import { HTTP_STATUS } from '../../../constant/httpStatus';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { cityService } from '../services/city.service';
 
 
 
@@ -50,7 +51,10 @@ const createCity = catchAsync(async (req, res) => {
 
 
 
-export const cityController={
-    getAllCity,
-    createCity,
+export const cityController = {
+  getAllCity,
+  createCity,
 }
+
+
+

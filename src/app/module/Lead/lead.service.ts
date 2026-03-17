@@ -18,10 +18,10 @@ import { IUser } from '../Auth/auth.interface';
 import { EMAIL_TEMPLATE_KEYS } from '../emailTemplateSystem/emailTemplate.constant';
 import ServiceWiseQuestion from '../Question/question.model';
 import Option from '../Option/option.model';
-import ZipCode from '../Country/zipcode.model';
+import { ZipCode } from '../Country/models';
 import { UserLocationServiceMap } from '../UserLocationServiceMap/UserLocationServiceMap.model';
 import { LocationType } from '../UserLocationServiceMap/userLocationServiceMap.interface';
-import { IZipCode } from '../Country/zipcode.interface';
+import { IZipCode } from '../Country/interfaces';
 import { redisClient } from '../../config/redis.config';
 import { CacheKeys, TTL } from '../../config/cacheKeys';
 import { deleteKeysByPattern } from '../../utils/cacheManger';
@@ -5000,3 +5000,4 @@ export const leadService = {
   repostLead,
   getAllClientWiseLeadFromDB
 };
+

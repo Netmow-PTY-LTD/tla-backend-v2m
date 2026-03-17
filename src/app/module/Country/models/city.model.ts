@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Schema } from "mongoose";
-import { ICity } from "./city.interface";
-import ZipCode from "./zipcode.model";
+import { ICity } from '../interfaces/city.interface';
+import ZipCode from './zipcode.model';
 
 // const CitySchema = new Schema<ICity>(
 //   {
@@ -96,3 +97,7 @@ CitySchema.pre("save", async function (next) {
 
 
 export const City = mongoose.model<ICity>("City", CitySchema);
+
+
+
+

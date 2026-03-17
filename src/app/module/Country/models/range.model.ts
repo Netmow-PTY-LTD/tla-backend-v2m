@@ -30,3 +30,7 @@ const rangeSchema = new Schema(
 );
 
 export const Range = model('Range', rangeSchema);
+
+
+
+

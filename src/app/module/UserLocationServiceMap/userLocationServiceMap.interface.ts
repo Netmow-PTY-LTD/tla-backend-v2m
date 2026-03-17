@@ -1,5 +1,5 @@
 import { PopulatedDoc, Types } from 'mongoose';
-import { IZipCode } from '../Country/zipcode.interface';
+import { IZipCode } from '../Country/interfaces';
 
 
 
@@ -29,5 +29,6 @@ export type IUserLocationServiceMap = {
     createdAt?: Date;
     updatedAt?: Date;
 };
+
 
 

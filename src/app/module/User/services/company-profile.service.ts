@@ -3,7 +3,7 @@ import { uploadToSpaces } from '../../../config/upload';
 import { sendNotFoundResponse } from '../../../errors/custom.error';
 
 import { TUploadedFile } from '../../../interface/file.interface';
-import ZipCode from '../../Country/zipcode.model';
+import { ZipCode } from '../../Country/models';
 
 import { ICompanyProfile } from '../interfaces/company-profile.interface';
 import CompanyProfile from '../models/company-profile.model';
@@ -208,4 +208,5 @@ export const CompanyProfileService = {
   updateCompanyProfileIntoDB,
   firmRequestAsMember,
 };
+
 
