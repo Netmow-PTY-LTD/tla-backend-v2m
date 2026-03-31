@@ -1,14 +1,17 @@
+
 import { Types } from 'mongoose';
 
 export interface IPaymentMethod {
   userId: Types.ObjectId;
   stripeCustomerId: string;
   paymentMethodId: string;
-  email: string;
-  cardLastFour: string;
-  cardBrand: string;
-  expiryMonth: number;
-  expiryYear: number;
+  paymentType?: string;
+  email?: string;
+  cardLastFour?: string;
+  cardBrand?: string;
+  expiryMonth?: number;
+  expiryYear?: number;
   isDefault: boolean;
-  isActive?: boolean; // Optional flag for soft delete
+  isActive?: boolean;
+
 }
