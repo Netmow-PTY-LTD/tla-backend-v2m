@@ -89,8 +89,9 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
   const stripePaymentMethod =
     await stripe.paymentMethods.retrieve(paymentMethodId);
 
-  if (stripePaymentMethod.type !== 'card') {
-    return { success: false, message: 'Invalid payment method type' };
+  const allowedTypes = ['card', 'cashapp', 'bancontact', 'amazon_pay', 'link', 'sepa_debit'];
+  if (!allowedTypes.includes(stripePaymentMethod.type)) {
+    return { success: false, message: `Unsupported payment method type: ${stripePaymentMethod.type}` };
   }
 
   // 2. Get user profile
@@ -141,6 +142,7 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     userProfileId: userProfile._id,
     stripeCustomerId,
     paymentMethodId: stripePaymentMethod.id,
+    paymentType: stripePaymentMethod.type,
     email,
     cardLastFour: stripePaymentMethod.card?.last4,
     cardBrand: stripePaymentMethod.card?.brand,

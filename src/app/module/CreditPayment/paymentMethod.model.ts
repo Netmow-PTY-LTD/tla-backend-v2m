@@ -12,10 +12,11 @@ const paymentMethodSchema = new Schema(
     stripeCustomerId: { type: String },
     paymentMethodId: { type: String, required: true },
     email: { type: String },
-    cardLastFour: { type: String, required: true },
-    cardBrand: { type: String, required: true },
-    expiryMonth: { type: Number, required: true },
-    expiryYear: { type: Number, required: true },
+    paymentType: { type: String, default: 'card' },
+    cardLastFour: { type: String, required: false },
+    cardBrand: { type: String, required: false },
+    expiryMonth: { type: Number, required: false },
+    expiryYear: { type: Number, required: false },
     isDefault: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true }, // new flag for soft delete
     stripeEnvironment: { type: String, enum: ['test', 'live'], default: 'test' }, // Track which Stripe environment
