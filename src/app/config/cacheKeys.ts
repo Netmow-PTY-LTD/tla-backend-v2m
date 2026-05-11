@@ -81,6 +81,10 @@ export const CacheKeys = {
     ENV_CONFIG_ALL: () => 'ENV_CONFIG:ALL',
     ENV_CONFIG_BY_KEY: (key: string) => `ENV_CONFIG:KEY:${key}`,
 
+    // ---------- WEBSITE FAQ ----------
+    WEBSITE_FAQS: (page: number, limit: number, category?: string, search?: string, isActive?: boolean) =>
+        `website_faqs:page${page}:limit${limit}:category:${category || 'all'}:search:${search || 'all'}:active:${isActive ?? true}`,
+    WEBSITE_FAQS_PATTERN: () => `website_faqs:*`,
 
 };
 

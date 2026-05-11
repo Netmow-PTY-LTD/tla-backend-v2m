@@ -25,6 +25,7 @@ import { eliteProSubscriptionRouter } from '../module/EliteProPackage/EliteProSu
 import { pageRouter } from '../module/Pages/page.route';
 import { claimRouter } from '../module/Claim/claim.route';
 import { testimonialRoutes } from '../module/Testimonial/testimonial.route';
+import { websiteFaqRoutes } from '../module/WebsiteFaq/websiteFaq.route';
 import { userLocationServiceMapRouter } from '../module/UserLocationServiceMap/userLocationServiceMap.route';
 import { adminFirmRouter } from '../module/FirmManagement/firm.route';
 import { seoRouter } from '../module/Seo/seo.route';
@@ -151,6 +152,10 @@ const moduleRoutes = [
   {
     path: '/testimonials',
     route: testimonialRoutes,
+  },
+  {
+    path: '/website-faq',
+    route: websiteFaqRoutes,
   },
   {
     path: '/user-location-service-map',
