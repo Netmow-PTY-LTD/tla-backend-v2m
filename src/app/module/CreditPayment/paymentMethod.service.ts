@@ -94,6 +94,9 @@ const addPaymentMethod = async (userId: string, paymentMethodId: string) => {
     return { success: false, message: `Unsupported payment method type: ${stripePaymentMethod.type}` };
   }
 
+
+
+
   // 2. Get user profile
   const userProfile = await UserProfile.findOne({ user: userId });
   if (!userProfile) {
