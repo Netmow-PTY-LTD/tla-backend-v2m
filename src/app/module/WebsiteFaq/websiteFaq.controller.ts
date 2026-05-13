@@ -45,10 +45,11 @@ const getCompanyPublicFaqs = catchAsync(async (req, res) => {
 
 // Get all FAQs (Admin/Marketer - includes inactive)
 const getAllFaqs = catchAsync(async (req, res) => {
-  const { category, search, isActive, page, limit } = req.query;
+  const { category, websiteType, search, isActive, page, limit } = req.query;
 
   const result = await websiteFaqService.getAllWebsiteFaqsFromDB({
     category: category as string,
+    websiteType: websiteType as "tla_main" | "company" | undefined,
     search: search as string,
     isActive: isActive === "true" ? true : isActive === "false" ? false : undefined,
     page: page ? Number(page) : 1,
