@@ -30,6 +30,19 @@ const getPublicFaqs = catchAsync(async (req, res) => {
   });
 });
 
+// Get all Company FAQs (Public - for company website)
+const getCompanyPublicFaqs = catchAsync(async (req, res) => {
+  const { category } = req.query;
+  const result = await websiteFaqService.getCompanyPublicFaqsFromDB(category as string);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Company FAQs retrieved successfully",
+    data: result,
+  });
+});
+
 // Get all FAQs (Admin/Marketer - includes inactive)
 const getAllFaqs = catchAsync(async (req, res) => {
   const { category, search, isActive, page, limit } = req.query;
@@ -132,6 +145,7 @@ const toggleActiveStatus = catchAsync(async (req, res) => {
 export const websiteFaqController = {
   createWebsiteFaq,
   getPublicFaqs,
+  getCompanyPublicFaqs,
   getAllFaqs,
   getWebsiteFaqById,
   updateWebsiteFaq,

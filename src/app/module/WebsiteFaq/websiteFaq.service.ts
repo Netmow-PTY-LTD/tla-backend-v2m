@@ -4,7 +4,7 @@ import { redisClient } from "../../config/redis.config";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { AppError } from "../../errors/error";
 import { deleteKeysByPattern } from "../../utils/cacheManger";
-import { FAQ_CATEGORY, WebsiteFaq } from "./websiteFaq.model";
+import { FAQ_CATEGORY, WEBSITE_TYPE, WebsiteFaq } from "./websiteFaq.model";
 import { IWebsiteFaqFilters, IWebsiteFaqPayload } from "./websiteFaq.interface";
 import mongoose, { FilterQuery } from "mongoose";
 
@@ -18,18 +18,18 @@ const createWebsiteFaq = async (payload: IWebsiteFaqPayload, userId: string) => 
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
-    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
-    console.error('Failed to invalidate cache after createWebsiteFaq:', error);
+    console.error('Failed to invalidate cache:', error);
   }
 
   return result;
 };
 
-const getAllPublicFaqsFromDB = async (category?: string) => {
-  // Cache key for public FAQs with category filter (v2 for cache busting)
+const getAllPublicFaqsFromDB = async (category?: string, websiteType?: string) => {
+  // Cache key for public FAQs with category and websiteType filter (v3 for cache busting)
   const normalizedCategory = category || 'all';
-  const cacheKey = `website_faqs:public:v2:${normalizedCategory}`;
+  const normalizedWebsiteType = websiteType || WEBSITE_TYPE.TLA_MAIN;
+  const cacheKey = `website_faqs:public:v3:${normalizedWebsiteType}:${normalizedCategory}`;
 
   // Try to get cached data
   const cachedData = await redisClient.get(cacheKey);
@@ -37,7 +37,10 @@ const getAllPublicFaqsFromDB = async (category?: string) => {
     return JSON.parse(cachedData);
   }
 
-  const query: FilterQuery<any> = { isActive: true };
+  const query: FilterQuery<any> = {
+    isActive: true,
+    websiteType: normalizedWebsiteType,
+  };
 
   if (category) {
     query.category = category;
@@ -54,11 +57,16 @@ const getAllPublicFaqsFromDB = async (category?: string) => {
   return data;
 };
 
+const getCompanyPublicFaqsFromDB = async (category?: string) => {
+  return getAllPublicFaqsFromDB(category, WEBSITE_TYPE.COMPANY);
+};
+
 const getAllWebsiteFaqsFromDB = async (params: IWebsiteFaqFilters) => {
-  const { category, search, isActive, page = 1, limit = 10 } = params;
+  const { category, websiteType, search, isActive, page = 1, limit = 10 } = params;
 
   // Normalize cache key parameters to ensure consistency
   const normalizedCategory = category || 'all';
+  const normalizedWebsiteType = websiteType || WEBSITE_TYPE.TLA_MAIN;
   const normalizedSearch = search || 'all';
   const normalizedIsActive = typeof isActive === "boolean" ? isActive : true;
 
@@ -71,7 +79,9 @@ const getAllWebsiteFaqsFromDB = async (params: IWebsiteFaqFilters) => {
     }
   }
 
-  const query: FilterQuery<any> = {};
+  const query: FilterQuery<any> = {
+    websiteType: normalizedWebsiteType,
+  };
 
   if (category) {
     query.category = category;
@@ -235,6 +245,7 @@ const toggleActiveStatus = async (id: string, userId: string) => {
 export const websiteFaqService = {
   createWebsiteFaq,
   getAllPublicFaqsFromDB,
+  getCompanyPublicFaqsFromDB,
   getAllWebsiteFaqsFromDB,
   getWebsiteFaqById,
   updateWebsiteFaq,

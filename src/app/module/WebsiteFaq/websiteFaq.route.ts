@@ -9,6 +9,9 @@ const router = express.Router();
 router.get("/public", websiteFaqController.getPublicFaqs);
 router.get("/public/:id", websiteFaqController.getWebsiteFaqById);
 
+// Company website public routes - no authentication required
+router.get("/company/public", websiteFaqController.getCompanyPublicFaqs);
+
 // Admin routes - require SUPER_ADMIN, ADMIN, or MARKETER role
 router.get(
   "/list",
