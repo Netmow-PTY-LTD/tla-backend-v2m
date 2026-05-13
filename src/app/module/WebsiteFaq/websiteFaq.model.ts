@@ -6,10 +6,16 @@ export enum FAQ_CATEGORY {
   GENERAL = "general",
 }
 
+export enum WEBSITE_TYPE {
+  TLA_MAIN = "tla_main",
+  COMPANY = "company",
+}
+
 export interface IWebsiteFaq extends Document {
   question: string;
   answer: string;
   category: FAQ_CATEGORY;
+  websiteType: WEBSITE_TYPE;
   order: number;
   isActive: boolean;
   createdBy: Types.ObjectId;
@@ -37,6 +43,12 @@ const websiteFaqSchema = new Schema<IWebsiteFaq>(
       required: [true, "Category is required"],
       default: FAQ_CATEGORY.GENERAL,
     },
+    websiteType: {
+      type: String,
+      enum: Object.values(WEBSITE_TYPE),
+      required: [true, "Website type is required"],
+      default: WEBSITE_TYPE.TLA_MAIN,
+    },
     order: {
       type: Number,
       default: 0,
@@ -62,6 +74,6 @@ const websiteFaqSchema = new Schema<IWebsiteFaq>(
 );
 
 // Index for efficient querying
-websiteFaqSchema.index({ category: 1, isActive: 1, order: 1 });
+websiteFaqSchema.index({ websiteType: 1, category: 1, isActive: 1, order: 1 });
 
 export const WebsiteFaq = model<IWebsiteFaq>("WebsiteFaq", websiteFaqSchema);

@@ -4,7 +4,7 @@ import { redisClient } from "../../config/redis.config";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { AppError } from "../../errors/error";
 import { deleteKeysByPattern } from "../../utils/cacheManger";
-import { FAQ_CATEGORY, WebsiteFaq } from "./websiteFaq.model";
+import { FAQ_CATEGORY, WEBSITE_TYPE, WebsiteFaq } from "./websiteFaq.model";
 import { IWebsiteFaqFilters, IWebsiteFaqPayload } from "./websiteFaq.interface";
 import mongoose, { FilterQuery } from "mongoose";
 
@@ -18,16 +18,19 @@ const createWebsiteFaq = async (payload: IWebsiteFaqPayload, userId: string) => 
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:admin:*');
   } catch (error) {
-    console.error('Failed to invalidate cache after createWebsiteFaq:', error);
+    console.error('Failed to invalidate cache:', error);
   }
 
   return result;
 };
 
-const getAllPublicFaqsFromDB = async () => {
-  // Cache key for public FAQs (no pagination, no filters)
-  const cacheKey = 'website_faqs:public:all';
+const getAllPublicFaqsFromDB = async (category?: string, websiteType?: string) => {
+  // Cache key for public FAQs with category and websiteType filter (v3 for cache busting)
+  const normalizedCategory = category || 'all';
+  const normalizedWebsiteType = websiteType || WEBSITE_TYPE.TLA_MAIN;
+  const cacheKey = `website_faqs:public:v3:${normalizedWebsiteType}:${normalizedCategory}`;
 
   // Try to get cached data
   const cachedData = await redisClient.get(cacheKey);
@@ -35,7 +38,16 @@ const getAllPublicFaqsFromDB = async () => {
     return JSON.parse(cachedData);
   }
 
-  const data = await WebsiteFaq.find({ isActive: true })
+  const query: FilterQuery<any> = {
+    isActive: true,
+    websiteType: normalizedWebsiteType,
+  };
+
+  if (category) {
+    query.category = category;
+  }
+
+  const data = await WebsiteFaq.find(query)
     .sort({ order: 1, createdAt: -1 });
 
   // Cache the result
@@ -46,16 +58,21 @@ const getAllPublicFaqsFromDB = async () => {
   return data;
 };
 
+const getCompanyPublicFaqsFromDB = async (category?: string) => {
+  return getAllPublicFaqsFromDB(category, WEBSITE_TYPE.COMPANY);
+};
+
 const getAllWebsiteFaqsFromDB = async (params: IWebsiteFaqFilters) => {
-  const { category, search, isActive, page = 1, limit = 10 } = params;
+  const { category, websiteType, search, isActive, page = 1, limit = 10 } = params;
 
   // Normalize cache key parameters to ensure consistency
   const normalizedCategory = category || 'all';
+  const normalizedWebsiteType = websiteType || 'all';
   const normalizedSearch = search || 'all';
   const normalizedIsActive = typeof isActive === "boolean" ? isActive : true;
 
   // Try to get cached data (only for public requests with isActive=true)
-  const cacheKey = CacheKeys.WEBSITE_FAQS(page, limit, normalizedCategory, normalizedSearch, normalizedIsActive);
+  const cacheKey = `website_faqs:admin:${page}:${limit}:${normalizedCategory}:${normalizedWebsiteType}:${normalizedSearch}:${normalizedIsActive}`;
   if (isActive !== false) {
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
@@ -64,6 +81,11 @@ const getAllWebsiteFaqsFromDB = async (params: IWebsiteFaqFilters) => {
   }
 
   const query: FilterQuery<any> = {};
+
+  // Only apply websiteType filter if explicitly provided and not "all"
+  if (websiteType && websiteType !== 'all') {
+    query.websiteType = websiteType;
+  }
 
   if (category) {
     query.category = category;
@@ -141,6 +163,7 @@ const updateWebsiteFaq = async (id: string, payload: Partial<IWebsiteFaqPayload>
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
     console.error('Failed to invalidate cache after updateWebsiteFaq:', error);
   }
@@ -159,6 +182,7 @@ const deleteWebsiteFaq = async (id: string) => {
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
     console.error('Failed to invalidate cache after deleteWebsiteFaq:', error);
   }
@@ -214,6 +238,7 @@ const toggleActiveStatus = async (id: string, userId: string) => {
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
     console.error('Failed to invalidate cache after toggleActiveStatus:', error);
   }
@@ -224,6 +249,7 @@ const toggleActiveStatus = async (id: string, userId: string) => {
 export const websiteFaqService = {
   createWebsiteFaq,
   getAllPublicFaqsFromDB,
+  getCompanyPublicFaqsFromDB,
   getAllWebsiteFaqsFromDB,
   getWebsiteFaqById,
   updateWebsiteFaq,

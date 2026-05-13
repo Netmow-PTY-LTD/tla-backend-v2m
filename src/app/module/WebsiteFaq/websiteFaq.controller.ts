@@ -19,7 +19,8 @@ const createWebsiteFaq = catchAsync(async (req, res) => {
 
 // Get all FAQs (Public - for clients and lawyers)
 const getPublicFaqs = catchAsync(async (req, res) => {
-  const result = await websiteFaqService.getAllPublicFaqsFromDB();
+  const { category } = req.query;
+  const result = await websiteFaqService.getAllPublicFaqsFromDB(category as string);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
@@ -29,12 +30,26 @@ const getPublicFaqs = catchAsync(async (req, res) => {
   });
 });
 
+// Get all Company FAQs (Public - for company website)
+const getCompanyPublicFaqs = catchAsync(async (req, res) => {
+  const { category } = req.query;
+  const result = await websiteFaqService.getCompanyPublicFaqsFromDB(category as string);
+
+  return sendResponse(res, {
+    statusCode: HTTP_STATUS.OK,
+    success: true,
+    message: "Company FAQs retrieved successfully",
+    data: result,
+  });
+});
+
 // Get all FAQs (Admin/Marketer - includes inactive)
 const getAllFaqs = catchAsync(async (req, res) => {
-  const { category, search, isActive, page, limit } = req.query;
+  const { category, websiteType, search, isActive, page, limit } = req.query;
 
   const result = await websiteFaqService.getAllWebsiteFaqsFromDB({
     category: category as string,
+    websiteType: websiteType as "tla_main" | "company" | undefined,
     search: search as string,
     isActive: isActive === "true" ? true : isActive === "false" ? false : undefined,
     page: page ? Number(page) : 1,
@@ -131,6 +146,7 @@ const toggleActiveStatus = catchAsync(async (req, res) => {
 export const websiteFaqController = {
   createWebsiteFaq,
   getPublicFaqs,
+  getCompanyPublicFaqs,
   getAllFaqs,
   getWebsiteFaqById,
   updateWebsiteFaq,
