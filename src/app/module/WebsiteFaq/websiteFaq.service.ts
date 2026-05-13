@@ -82,8 +82,8 @@ const getAllWebsiteFaqsFromDB = async (params: IWebsiteFaqFilters) => {
 
   const query: FilterQuery<any> = {};
 
-  // Only apply websiteType filter if explicitly provided
-  if (websiteType) {
+  // Only apply websiteType filter if explicitly provided and not "all"
+  if (websiteType && websiteType !== 'all') {
     query.websiteType = websiteType;
   }
 

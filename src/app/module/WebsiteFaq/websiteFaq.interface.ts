@@ -11,7 +11,7 @@ export interface IWebsiteFaqPayload {
 
 export interface IWebsiteFaqFilters {
   category?: string;
-  websiteType?: "tla_main" | "company";
+  websiteType?: "tla_main" | "company" | "all";
   search?: string;
   isActive?: boolean;
   page?: number;
