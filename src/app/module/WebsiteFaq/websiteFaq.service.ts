@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CacheKeys, TTL } from "../../config/cacheKeys";
+import { TTL } from "../../config/cacheKeys";
 import { redisClient } from "../../config/redis.config";
 import { HTTP_STATUS } from "../../constant/httpStatus";
 import { AppError } from "../../errors/error";
@@ -14,14 +14,8 @@ const createWebsiteFaq = async (payload: IWebsiteFaqPayload, userId: string) => 
     createdBy: new mongoose.Types.ObjectId(userId),
   });
 
-  // Invalidate cache - ensure it completes before returning
-  try {
-    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
-    await deleteKeysByPattern('website_faqs:public:*');
-    await deleteKeysByPattern('website_faqs:admin:*');
-  } catch (error) {
-    console.error('Failed to invalidate cache:', error);
-  }
+  // Non-blocking cache invalidation - don't wait for it
+  deleteKeysByPattern('website_faqs:*').catch(err => console.error('Cache invalidation error:', err));
 
   return result;
 };
@@ -159,14 +153,8 @@ const updateWebsiteFaq = async (id: string, payload: Partial<IWebsiteFaqPayload>
     throw new AppError(HTTP_STATUS.NOT_FOUND, "FAQ not found");
   }
 
-  // Invalidate cache - ensure it completes before returning
-  try {
-    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
-    await deleteKeysByPattern('website_faqs:public:*');
-    await deleteKeysByPattern('website_faqs:public:v2:*');
-  } catch (error) {
-    console.error('Failed to invalidate cache after updateWebsiteFaq:', error);
-  }
+  // Non-blocking cache invalidation - don't wait for it
+  deleteKeysByPattern('website_faqs:*').catch(err => console.error('Cache invalidation error:', err));
 
   return result;
 };
@@ -178,14 +166,8 @@ const deleteWebsiteFaq = async (id: string) => {
     throw new AppError(HTTP_STATUS.NOT_FOUND, "FAQ not found");
   }
 
-  // Invalidate cache - ensure it completes before returning
-  try {
-    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
-    await deleteKeysByPattern('website_faqs:public:*');
-    await deleteKeysByPattern('website_faqs:public:v2:*');
-  } catch (error) {
-    console.error('Failed to invalidate cache after deleteWebsiteFaq:', error);
-  }
+  // Non-blocking cache invalidation - don't wait for it
+  deleteKeysByPattern('website_faqs:*').catch(err => console.error('Cache invalidation error:', err));
 
   return result;
 };
@@ -207,13 +189,8 @@ const bulkUpdateOrder = async (updates: Array<{ id: string; order: number }>, us
     await session.commitTransaction();
     session.endSession();
 
-    // Invalidate cache - ensure it completes before returning
-    try {
-      await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
-      await deleteKeysByPattern('website_faqs:public:*');
-    } catch (error) {
-      console.error('Failed to invalidate cache after bulkUpdateOrder:', error);
-    }
+    // Non-blocking cache invalidation - don't wait for it
+    deleteKeysByPattern('website_faqs:*').catch(err => console.error('Cache invalidation error:', err));
 
     return { success: true, message: "Order updated successfully" };
   } catch (err) {
@@ -234,14 +211,8 @@ const toggleActiveStatus = async (id: string, userId: string) => {
   faq.updatedBy = new mongoose.Types.ObjectId(userId);
   await faq.save();
 
-  // Invalidate cache - ensure it completes before returning
-  try {
-    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
-    await deleteKeysByPattern('website_faqs:public:*');
-    await deleteKeysByPattern('website_faqs:public:v2:*');
-  } catch (error) {
-    console.error('Failed to invalidate cache after toggleActiveStatus:', error);
-  }
+  // Non-blocking cache invalidation - don't wait for it
+  deleteKeysByPattern('website_faqs:*').catch(err => console.error('Cache invalidation error:', err));
 
   return faq;
 };
