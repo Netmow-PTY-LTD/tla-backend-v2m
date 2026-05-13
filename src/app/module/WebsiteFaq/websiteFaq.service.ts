@@ -14,17 +14,48 @@ const createWebsiteFaq = async (payload: IWebsiteFaqPayload, userId: string) => 
     createdBy: new mongoose.Types.ObjectId(userId),
   });
 
-  // Invalidate cache
-  await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+  // Invalidate cache - ensure it completes before returning
+  try {
+    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+    await deleteKeysByPattern('website_faqs:public:*');
+  } catch (error) {
+    console.error('Failed to invalidate cache after createWebsiteFaq:', error);
+  }
 
   return result;
+};
+
+const getAllPublicFaqsFromDB = async () => {
+  // Cache key for public FAQs (no pagination, no filters)
+  const cacheKey = 'website_faqs:public:all';
+
+  // Try to get cached data
+  const cachedData = await redisClient.get(cacheKey);
+  if (cachedData) {
+    return JSON.parse(cachedData);
+  }
+
+  const data = await WebsiteFaq.find({ isActive: true })
+    .sort({ order: 1, createdAt: -1 });
+
+  // Cache the result
+  await redisClient.set(cacheKey, JSON.stringify(data), {
+    EX: TTL.EXTENDED_1D,
+  });
+
+  return data;
 };
 
 const getAllWebsiteFaqsFromDB = async (params: IWebsiteFaqFilters) => {
   const { category, search, isActive, page = 1, limit = 10 } = params;
 
+  // Normalize cache key parameters to ensure consistency
+  const normalizedCategory = category || 'all';
+  const normalizedSearch = search || 'all';
+  const normalizedIsActive = typeof isActive === "boolean" ? isActive : true;
+
   // Try to get cached data (only for public requests with isActive=true)
-  const cacheKey = CacheKeys.WEBSITE_FAQS(page, limit, category, search, isActive);
+  const cacheKey = CacheKeys.WEBSITE_FAQS(page, limit, normalizedCategory, normalizedSearch, normalizedIsActive);
   if (isActive !== false) {
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
@@ -106,8 +137,13 @@ const updateWebsiteFaq = async (id: string, payload: Partial<IWebsiteFaqPayload>
     throw new AppError(HTTP_STATUS.NOT_FOUND, "FAQ not found");
   }
 
-  // Invalidate cache
-  await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+  // Invalidate cache - ensure it completes before returning
+  try {
+    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+    await deleteKeysByPattern('website_faqs:public:*');
+  } catch (error) {
+    console.error('Failed to invalidate cache after updateWebsiteFaq:', error);
+  }
 
   return result;
 };
@@ -119,8 +155,13 @@ const deleteWebsiteFaq = async (id: string) => {
     throw new AppError(HTTP_STATUS.NOT_FOUND, "FAQ not found");
   }
 
-  // Invalidate cache
-  await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+  // Invalidate cache - ensure it completes before returning
+  try {
+    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+    await deleteKeysByPattern('website_faqs:public:*');
+  } catch (error) {
+    console.error('Failed to invalidate cache after deleteWebsiteFaq:', error);
+  }
 
   return result;
 };
@@ -142,8 +183,13 @@ const bulkUpdateOrder = async (updates: Array<{ id: string; order: number }>, us
     await session.commitTransaction();
     session.endSession();
 
-    // Invalidate cache
-    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+    // Invalidate cache - ensure it completes before returning
+    try {
+      await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+      await deleteKeysByPattern('website_faqs:public:*');
+    } catch (error) {
+      console.error('Failed to invalidate cache after bulkUpdateOrder:', error);
+    }
 
     return { success: true, message: "Order updated successfully" };
   } catch (err) {
@@ -164,14 +210,20 @@ const toggleActiveStatus = async (id: string, userId: string) => {
   faq.updatedBy = new mongoose.Types.ObjectId(userId);
   await faq.save();
 
-  // Invalidate cache
-  await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+  // Invalidate cache - ensure it completes before returning
+  try {
+    await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
+    await deleteKeysByPattern('website_faqs:public:*');
+  } catch (error) {
+    console.error('Failed to invalidate cache after toggleActiveStatus:', error);
+  }
 
   return faq;
 };
 
 export const websiteFaqService = {
   createWebsiteFaq,
+  getAllPublicFaqsFromDB,
   getAllWebsiteFaqsFromDB,
   getWebsiteFaqById,
   updateWebsiteFaq,

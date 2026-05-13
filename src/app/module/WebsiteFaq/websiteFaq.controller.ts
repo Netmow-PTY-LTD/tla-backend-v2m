@@ -19,22 +19,13 @@ const createWebsiteFaq = catchAsync(async (req, res) => {
 
 // Get all FAQs (Public - for clients and lawyers)
 const getPublicFaqs = catchAsync(async (req, res) => {
-  const { category, search, page, limit } = req.query;
-
-  const result = await websiteFaqService.getAllWebsiteFaqsFromDB({
-    category: category as string,
-    search: search as string,
-    isActive: true, // Only active FAQs for public
-    page: page ? Number(page) : 1,
-    limit: limit ? Number(limit) : 10,
-  });
+  const result = await websiteFaqService.getAllPublicFaqsFromDB();
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
     success: true,
     message: "FAQs retrieved successfully",
-    pagination: result.meta,
-    data: result.data,
+    data: result,
   });
 });
 
