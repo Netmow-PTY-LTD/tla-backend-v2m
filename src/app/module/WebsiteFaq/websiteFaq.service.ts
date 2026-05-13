@@ -25,9 +25,10 @@ const createWebsiteFaq = async (payload: IWebsiteFaqPayload, userId: string) => 
   return result;
 };
 
-const getAllPublicFaqsFromDB = async () => {
-  // Cache key for public FAQs (no pagination, no filters)
-  const cacheKey = 'website_faqs:public:all';
+const getAllPublicFaqsFromDB = async (category?: string) => {
+  // Cache key for public FAQs with category filter
+  const normalizedCategory = category || 'all';
+  const cacheKey = `website_faqs:public:${normalizedCategory}`;
 
   // Try to get cached data
   const cachedData = await redisClient.get(cacheKey);
@@ -35,7 +36,13 @@ const getAllPublicFaqsFromDB = async () => {
     return JSON.parse(cachedData);
   }
 
-  const data = await WebsiteFaq.find({ isActive: true })
+  const query: FilterQuery<any> = { isActive: true };
+
+  if (category) {
+    query.category = category;
+  }
+
+  const data = await WebsiteFaq.find(query)
     .sort({ order: 1, createdAt: -1 });
 
   // Cache the result

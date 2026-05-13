@@ -19,7 +19,8 @@ const createWebsiteFaq = catchAsync(async (req, res) => {
 
 // Get all FAQs (Public - for clients and lawyers)
 const getPublicFaqs = catchAsync(async (req, res) => {
-  const result = await websiteFaqService.getAllPublicFaqsFromDB();
+  const { category } = req.query;
+  const result = await websiteFaqService.getAllPublicFaqsFromDB(category as string);
 
   return sendResponse(res, {
     statusCode: HTTP_STATUS.OK,
