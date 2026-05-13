@@ -18,6 +18,7 @@ const createWebsiteFaq = async (payload: IWebsiteFaqPayload, userId: string) => 
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
     console.error('Failed to invalidate cache after createWebsiteFaq:', error);
   }
@@ -26,9 +27,9 @@ const createWebsiteFaq = async (payload: IWebsiteFaqPayload, userId: string) => 
 };
 
 const getAllPublicFaqsFromDB = async (category?: string) => {
-  // Cache key for public FAQs with category filter
+  // Cache key for public FAQs with category filter (v2 for cache busting)
   const normalizedCategory = category || 'all';
-  const cacheKey = `website_faqs:public:${normalizedCategory}`;
+  const cacheKey = `website_faqs:public:v2:${normalizedCategory}`;
 
   // Try to get cached data
   const cachedData = await redisClient.get(cacheKey);
@@ -148,6 +149,7 @@ const updateWebsiteFaq = async (id: string, payload: Partial<IWebsiteFaqPayload>
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
     console.error('Failed to invalidate cache after updateWebsiteFaq:', error);
   }
@@ -166,6 +168,7 @@ const deleteWebsiteFaq = async (id: string) => {
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
     console.error('Failed to invalidate cache after deleteWebsiteFaq:', error);
   }
@@ -221,6 +224,7 @@ const toggleActiveStatus = async (id: string, userId: string) => {
   try {
     await deleteKeysByPattern(CacheKeys.WEBSITE_FAQS_PATTERN());
     await deleteKeysByPattern('website_faqs:public:*');
+    await deleteKeysByPattern('website_faqs:public:v2:*');
   } catch (error) {
     console.error('Failed to invalidate cache after toggleActiveStatus:', error);
   }
